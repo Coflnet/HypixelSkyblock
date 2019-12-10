@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Coflnet;
 using Hypixel.NET;
 using Hypixel.NET.SkyblockApi;
-using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
 using WebSocketSharp.Server;
@@ -155,23 +154,7 @@ namespace hypixel
                     Indexed();
                     break;
                 case 'i':
-                    Console.WriteLine("building indexes");
-                    // increase max items in cache
-                    StorageManager.maxItemsInCache += 40000;
-                    var lastIndex = new DateTime(1970,1,1);
-                    var updateStart = DateTime.Now;
-
-                    if(FileController.Exists("lastIndex"))
-                        lastIndex = FileController.LoadAs<DateTime>("lastIndex");
-
-                    // add an extra hour to make sure we don't miss something
-                    lastIndex = lastIndex.Subtract(new TimeSpan(1,0,0));
-
-                    AddIndexes(StorageManager.GetAllAuctions());
-
-                    // we are done
-                    FileController.SaveAs("lastIndex",updateStart);
-                    //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
+                    BuildIndexes();
                     break;
                     case 'p':
                     LastHourIndex();
@@ -180,6 +163,26 @@ namespace hypixel
                     return true;
             }
             return false;
+        }
+
+        private static void BuildIndexes()
+        {
+            Console.WriteLine("building indexes");
+            // increase max items in cache
+            StorageManager.maxItemsInCache += 40000;
+            var lastIndex = new DateTime(1970,1,1);
+            var updateStart = DateTime.Now;
+
+            if(FileController.Exists("lastIndex"))
+                lastIndex = FileController.LoadAs<DateTime>("lastIndex");
+
+            // add an extra hour to make sure we don't miss something
+            lastIndex = lastIndex.Subtract(new TimeSpan(1,0,0));
+
+            AddIndexes(StorageManager.GetAllAuctions());
+
+            // we are done
+            FileController.SaveAs("lastIndex",updateStart);
         }
 
         private static void AddIndexes(IEnumerable<SaveAuction> auctions)
@@ -325,7 +328,11 @@ namespace hypixel
             return StorageManager.GetAuctionsWith(itemName);
         }
 
-
+        /// <summary>
+        /// Gets all the Auctions the User bidded on/in
+        /// </summary>
+        /// <param name="target">The user to search bids for</param>
+        /// <returns></returns>
         static IEnumerable<SaveAuction> GetBiddedAuctions(User target)
         {
             var bids = new List<SaveAuction>();
@@ -333,9 +340,11 @@ namespace hypixel
                 var seller = StorageManager.GetOrCreateUser(bidReference.sellerId);
                 yield return seller.auctions[bidReference.auctionId];
             }
-            //return bids;//.GroupBy(x => x.Start).Select(y => y.First());
         }
 
+        /// <summary>
+        /// Downloads all auctions and save the ones that changed since the last update
+        /// </summary>
         static void Update () {
             Console.WriteLine($"Usage bevore update {System.GC.GetTotalMemory(false)}");
             var hypixel = new HypixelApi (apiKey, 5);
@@ -519,7 +528,12 @@ namespace hypixel
         
 
       
-
+        /// <summary>
+        /// Downloads username for a given uuid from mojang.
+        /// Will return null if rate limit reached.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns>The name or null if error occurs</returns>
         public static string GetPlayerNameFromUuid(string uuid)
         {
             if(DateTime.Now.Subtract(new TimeSpan(0,10,0)) < BlockedSince)
@@ -572,88 +586,5 @@ namespace hypixel
     public class SubscribeEngine
     {
         
-    }
-
-    [MessagePackObject]
-    public class SubscribeItem
-    {
-        [Key("name")]
-        public string itemName;
-        [Key("category")]
-        public string itemCategory;
-        [Key("count")]
-        public short itemCount;
-        [Key("playerId")]
-        public string playerUUid;
-        [Key("minPrice")]
-        public long minPrice;
-        [Key("maxPrice")]
-        public long maxPrice;
-
-        [Key("enchantments")]
-        public Enchantment[] enchantments;
-
-
-        public enum Type
-        {
-            NewAuction = 1,
-            NewBid = 2
-        }
-
-        public Type type;
-
-
-        public bool Match(SaveAuction auction)
-        {
-            if(!String.IsNullOrEmpty(itemName) && !auction.ItemName.StartsWith(itemName))
-            {
-                return false;
-            }
-            if(type == Type.NewAuction)
-            {
-                if(!String.IsNullOrEmpty(playerUUid) && auction.Auctioneer != playerUUid)
-                {
-                    return false;
-                }
-            } else if(type == Type.NewBid)
-            {
-                if(!String.IsNullOrEmpty(playerUUid) && !auction.Bids.Where(b=>b.Bidder == playerUUid).Any())
-                {
-                    return false;
-                }
-            }
-
-            // matching category
-            if(!String.IsNullOrEmpty(itemCategory) && auction.Category != itemCategory)
-            {
-                return false;
-            }
-
-            // matching count
-            if(itemCount != 0 && auction.Count != itemCount)
-            {
-                return false;
-            }
-
-            var itemPrice = auction.StartingBid;
-            if(auction.Bids.Count > 0)
-            {
-                itemPrice = auction.HighestBidAmount;
-            }
-
-            // in price range
-            if((maxPrice != 0 && itemPrice > maxPrice) ||itemPrice < minPrice)
-            {
-                return false;
-            }
-
-            if(enchantments != null)
-            {
-                // make sure there are all the required enchantments
-                return enchantments.Except(auction.Enchantments).Any();
-            }
-            
-            return true;
-        }
     }
 }
