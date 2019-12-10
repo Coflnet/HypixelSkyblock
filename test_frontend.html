@@ -1,0 +1,19 @@
+<script>
+var ws = new WebSocket("ws://localhost:8008/skyblock");
+
+ws.onmessage = function (evt) { 
+   var received_msg = evt.data;
+console.log(received_msg);
+};
+
+function send(type,data)
+{
+    ws.send(JSON.stringify({type:type,data:btoa(data)}));
+}
+
+function sendData(type, data)
+{
+    send(type, JSON.stringify(data));
+}
+
+</script>
