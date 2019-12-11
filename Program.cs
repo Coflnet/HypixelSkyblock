@@ -570,6 +570,9 @@ namespace hypixel
             return responseDeserialized[responseDeserialized.Count-1].name;
         }
 
+        /// <summary>
+        /// Starts the backend server
+        /// </summary>
         private static void StartServer()
         {
             var server = new WebSocketServer(8008);

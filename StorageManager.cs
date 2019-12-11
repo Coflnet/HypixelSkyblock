@@ -155,7 +155,7 @@ namespace hypixel
         {
             foreach (var item in FileController.FileNames( "*","items"))
             {
-                if(item.ToLower().StartsWith(itemName.ToLower()))
+                if(item.ToLower() == itemName.ToLower())
                 {
                     var itemsAuctions = GetOrCreateItemRef(item,true)?.auctionIds;
                     if(itemsAuctions == null)
