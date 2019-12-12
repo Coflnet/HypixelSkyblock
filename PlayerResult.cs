@@ -25,7 +25,18 @@ namespace hypixel
 
         public int CompareTo(PlayerResult other)
         {
-            return other.AuctionCount - AuctionCount;
+            return (other.AuctionCount - AuctionCount) * 1000 + Name.CompareTo(other.Name);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is PlayerResult result &&
+                   UUid == result.UUid ;
+        }
+
+        public override int GetHashCode()
+        {
+            return UUid.GetHashCode();
         }
     }
 }

@@ -190,7 +190,7 @@ namespace Coflnet {
 			var tempPath = path + ".tmp";
 			bool found = false;
 			using (var file = File.Open (path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)) {
-				using (var tempFile = File.Open (tempPath, FileMode.Append, FileAccess.Write, FileShare.None)) {
+				using (var tempFile = File.Open (tempPath, FileMode.Append, FileAccess.Write, FileShare.Read)) {
 					while (file.Position < file.Length) {
 						var item = MessagePackSerializer.Deserialize<T> (file, resolver, true);
 						if (target.Invoke (item)) {

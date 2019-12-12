@@ -4,10 +4,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet;
 using Hypixel.NET;
 using Hypixel.NET.SkyblockApi;
+using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
 using WebSocketSharp.Server;
@@ -54,7 +56,7 @@ namespace hypixel
                 Console.WriteLine ("2) List Bids");
                 Console.WriteLine ("3) Display");
                 Console.WriteLine ("4) List Won Bids");
-                Console.WriteLine ("5) List Lost Bids");
+                Console.WriteLine ("5) Search For auction");
                 Console.WriteLine ("6) Avherage selling price in the last 2 weeks");
                 Console.WriteLine ("9) End");
 
@@ -79,6 +81,10 @@ namespace hypixel
         static bool runSubProgram(char mode)
         {
             switch (mode) {
+                case 't':
+                    // test
+                    
+                break;
                 case 's':
                     StartServer();
                     break;
@@ -116,19 +122,35 @@ namespace hypixel
                     }
                     break;
                 case '5':
-                    var target = ReadUser();
-                    Console.WriteLine("Lost Auctions");
-                    foreach (var item in GetBiddedAuctions(target))
+                    var itemName = "Enchanted Glowstone";
+                    var time = DateTime.Parse("12.12.2019 9:53:55");
+                    
+                    var matchedAuctions = StorageManager.GetOrCreateItemRef(itemName,true).auctions;
+                        //.Where(a=>a.End > (time-new TimeSpan(24,0,5)) );//&& a.End < time+new TimeSpan(1,0,5) );
+
+                    Console.WriteLine("Searching");
+
+                    foreach (var item in matchedAuctions)
                     {
-                        if(item.Bids[item.Bids.Count-1].Bidder != target.uuid)
-                        Console.WriteLine($"{item.ItemName} for {item.HighestBidAmount}, Ended: {item.End < DateTime.UtcNow.ToLocalTime()}, End {item.End}");
+                        var a = StorageManager.GetOrCreateAuction(item.uuId);
+
+                        if(a.Count == 0 || a.HighestBidAmount/a.Count > 10 || a.HighestBidAmount == 0)
+                        continue;
+
+                        if(a.Bids == null || a.Bids.Count == 0)
+                            Console.WriteLine($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.Auctioneer}) to noone");
+                        else
+                            Console.WriteLine($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.Auctioneer}) to {a.Bids.Last().Bidder} id: {item.uuId} ");
+                        
                     }
+    
+
                     break;
                 case '6':
                     var targetItemName = Console.ReadLine();
                     Console.WriteLine($"Overview for the last 2 weeks for {targetItemName}");
                     var twoWeeksAgo = DateTime.UtcNow.ToLocalTime().Subtract(new TimeSpan(14,0,0,0));
-                    var collection = AuctionsForItem(targetItemName)
+                    var collection = AuctionsForItem(targetItemName,default(DateTime),DateTime.MaxValue)
                             .Where(
                                 item=> {
                                     if(item == null)
@@ -200,13 +222,19 @@ namespace hypixel
 
         private static void CreateIndex(SaveAuction item)
         {
-            StorageManager.GetOrCreateItemRef(item.ItemName)?.auctionIds.Add(item.Uuid);
+            try{
+                StorageManager.GetOrCreateItemRef(item.ItemName)?.auctions.Add(new ItemReferences.AuctionReference(item.Uuid,item.End));
+            
+            } catch(Exception e)
+            {
+                Console.WriteLine($"Error on {item.ItemName} {e.Message}" );
+            }
                         
                         try {
                           
                             var u = StorageManager.GetOrCreateUser(item.Auctioneer,true);
                             u?.auctionIds.Add(item.Uuid);
-                            
+                            // for search load the name
                             PlayerSearch.Instance.LoadName(u);
                         }catch(Exception e)
                         {
@@ -220,7 +248,7 @@ namespace hypixel
                                 StorageManager.GetOrCreateUser(bid.Bidder,true).Bids.Add(new AuctionReference(null,item.Uuid));
                             }catch(Exception)
                             {
-                                Console.WriteLine("Corrupted " + bid.Bidder);
+                                Console.WriteLine("Corrupted user" + bid.Bidder);
                             }
 
                         }
@@ -234,7 +262,7 @@ namespace hypixel
             foreach (var item in FileController.FileNames( "*","items"))
             {
                     var itemsAuctions = StorageManager.GetOrCreateItemRef(item);
-                    if(itemsAuctions == null|| itemsAuctions.auctionIds == null)
+                    if(itemsAuctions == null)
                     {
                         Console.WriteLine($"{itemsAuctions.Name} emtpy");
                         continue;
@@ -242,7 +270,7 @@ namespace hypixel
                         
                 //Console.WriteLine($"{itemsAuctions.Name} has {itemsAuctions.auctionIds.Count}");
                 
-                count += itemsAuctions.auctionIds.Count;
+                count += itemsAuctions.auctions.Count;
             }
             Console.WriteLine($"Total: {count}");
         }
@@ -322,10 +350,10 @@ namespace hypixel
             return StorageManager.GetOrCreateUser(Console.ReadLine ().Trim ());
         }
 
-        public static IEnumerable<SaveAuction> AuctionsForItem(string itemName)
+        public static IEnumerable<SaveAuction> AuctionsForItem(string itemName,DateTime start, DateTime end)
         {
             itemName =  itemName.ToLower();
-            return StorageManager.GetAuctionsWith(itemName);
+            return StorageManager.GetAuctionsWith(itemName,start, end);
         }
 
         /// <summary>
@@ -551,20 +579,24 @@ namespace hypixel
             var response = client.Execute(request);
 
 
-            if (response.Content == "")
+            if (response.Content == "" )
             {
                 return null;
             }
 
-            dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
-
-
-            if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests
+            || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
                 Console.WriteLine("Blocked");
                 BlockedSince = DateTime.Now;
                 return null;
             }
+            Console.WriteLine(response.StatusCode);
+
+            dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
+
+
+            
 
             //Mojang stores the names as array so return the latest
             return responseDeserialized[responseDeserialized.Count-1].name;
@@ -578,7 +610,8 @@ namespace hypixel
             var server = new WebSocketServer(8008);
             server.AddWebSocketService<SkyblockBackEnd> ("/skyblock");
             server.Start ();
-            Console.ReadKey (true);
+            //Console.ReadKey (true);
+            Thread.Sleep(Timeout.Infinite);
             server.Stop ();
         }
 

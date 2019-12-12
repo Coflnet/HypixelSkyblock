@@ -1,0 +1,10 @@
+version: '3'
+services:
+  skyblock:
+    build: .
+    ports:
+    - "8008:8008"
+    volumes:
+    - ./ah:/data
+    restart: always
+
