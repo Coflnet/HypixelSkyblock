@@ -31,6 +31,10 @@ namespace Coflnet {
 			return Directory.GetFiles (Path.Combine (dataPaht, subFolder), namePattern).Select (Path.GetFileName);
 		}
 
+		public static IEnumerable<string> DirectoriesNames (string namePattern = "*", string subFolder = "") {
+			return Directory.GetDirectories (Path.Combine (dataPaht, subFolder), namePattern);
+		}
+
 		/// <summary>
 		/// Writes all text.
 		/// </summary>
@@ -94,8 +98,8 @@ namespace Coflnet {
 		/// <returns>The lines as.</returns>
 		/// <param name="relativePath">Relative path.</param>
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		public static IEnumerable<T> ReadLinesAs<T> (string relativePath) {
-			return ReadLinesAs<T> (relativePath, MessagePackSerializer.DefaultResolver);
+		public static IEnumerable<T> ReadLinesAs<T> (string relativePath, Action corrupted = null) {
+			return ReadLinesAs<T> (relativePath, MessagePackSerializer.DefaultResolver,corrupted);
 		}
 
 		/// <summary>
@@ -105,18 +109,30 @@ namespace Coflnet {
 		/// <param name="relativePath">Relative path.</param>
 		/// <param name="resolver">Resolver.</param>
 		/// <typeparam name="T">The type to deserialize to.</typeparam>
-		public static IEnumerable<T> ReadLinesAs<T> (string relativePath, IFormatterResolver resolver) {
+		public static IEnumerable<T> ReadLinesAs<T> (string relativePath, IFormatterResolver resolver,Action corrupted=null) {
 			var path = Path.Combine (dataPaht, relativePath);
 			if (!File.Exists (path)) {
 				// there is nothing to read
 				yield break;
 			}
 
+			bool broken = false;
+
 			using (var file = File.Open (path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 				while (file.Position < file.Length) {
-					yield return MessagePackSerializer.Deserialize<T> (file, resolver, true);
+					T element;
+					try{
+						element = MessagePackSerializer.Deserialize<T> (file, resolver, true);
+					} catch(Exception )
+					{
+						broken = true;
+						continue;
+					}
+					yield return element;
 				}
 			}
+			if(broken)
+				corrupted?.Invoke();
 		}
 
 		/// <summary>
@@ -183,32 +199,55 @@ namespace Coflnet {
 		/// <param name="data">The data to be replaced with</param>
 		/// <param name="appendIfNotFound">Whereether or not the data should be appended to the end if no match was found</param>
 		/// <typeparam name="T"></typeparam>
-		public static void ReplaceLine<T> (string relativePath, Func<T, bool> target, T data,bool appendIfNotFound, IFormatterResolver resolver) {
+		public static void ReplaceLine<T> (string relativePath, Func<T, bool> target, T data,bool appendIfNotFound, IFormatterResolver resolver, short retryNum = 0) {
 			var path = Path.Combine (dataPaht, relativePath);
 			// create it
 			Directory.CreateDirectory (Path.GetDirectoryName (path));
 			var tempPath = path + ".tmp";
-			bool found = false;
-			using (var file = File.Open (path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)) {
-				using (var tempFile = File.Open (tempPath, FileMode.Append, FileAccess.Write, FileShare.Read)) {
-					while (file.Position < file.Length) {
-						var item = MessagePackSerializer.Deserialize<T> (file, resolver, true);
-						if (target.Invoke (item)) {
-							item = data;
-							found = true;
+			lock(tempPath)
+			{
+				bool found = false;
+				using (var file = File.Open (path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)) {
+					using (var tempFile = File.Open (tempPath, FileMode.Append, FileAccess.Write, FileShare.Read)) {
+						while (file.Position < file.Length) {
+							try{
+								var item = MessagePackSerializer.Deserialize<T> (file, resolver, true);
+								
+								if (target.Invoke (item)) {
+									item = data;
+									found = true;
+								}
+								MessagePackSerializer.Serialize<T> (tempFile, item, resolver);
+							} catch(InvalidOperationException e)
+							{
+								Console.WriteLine($"Skipped correupted element {relativePath}");
+							}
+							
+							
 						}
-						MessagePackSerializer.Serialize<T> (tempFile, item, resolver);
-					}
 
-					// may append it to the end if it didn't exist bevore
-					if(appendIfNotFound && !found)
-					{
-						MessagePackSerializer.Serialize<T> (tempFile, data, resolver);
+						// may append it to the end if it didn't exist bevore
+						if(appendIfNotFound && !found)
+						{
+							MessagePackSerializer.Serialize<T> (tempFile, data, resolver);
+						}
 					}
 				}
+				File.Delete(path);
+				try{
+					File.Move(tempPath,path);
+				} catch(IOException e)
+				{
+					Console.WriteLine($"Could not move {tempPath} retrying");
+					if(retryNum < 3)
+						ReplaceLine<T>(relativePath,target,data,appendIfNotFound,resolver,retryNum++);
+						else {
+							Console.WriteLine($"To many tries");
+						}
+
+				}
 			}
-			File.Delete(path);
-			File.Move(tempPath,path);
+			
 		}
 
 		/// <summary>
@@ -286,7 +325,7 @@ namespace Coflnet {
 			{
 				File.Delete(destination);
 			}
-			File.Move (Path.Combine (dataPaht, relavtiveOrigin), destination);
+			File.Move (GetAbsolutePath( relavtiveOrigin), destination);
 		}
 
 		public static string GetAbsolutePath(string relativePath)

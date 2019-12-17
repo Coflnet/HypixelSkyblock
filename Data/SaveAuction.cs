@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using fNbt;
 using MessagePack;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
@@ -115,6 +117,42 @@ namespace hypixel
                 return -1;
             }
             return (short)unziped.Substring(index+name.Length+offset,1)[0];
+        }
+
+        public static string SkullUrl(string data)
+        {
+            var f = new NbtFile();
+            var stream = new MemoryStream(Convert.FromBase64String(data));
+            f.LoadFromStream(stream,NbtCompression.GZip);
+            var base64 = f.RootTag.Get<NbtList>("i")
+                    .Get<NbtCompound>(0)
+                    .Get<NbtCompound>("tag")
+                    .Get<NbtCompound>("SkullOwner")
+                    .Get<NbtCompound>("Properties")
+                    .Get<NbtList>("textures")
+                    .Get<NbtCompound>(0)
+                    .Get<NbtString>("Value").StringValue;
+
+            //Console.WriteLine(base64);
+            base64 = base64.Replace('-', '+');
+            base64 = base64.Replace('_', '/');
+
+            string json = null;
+            try{
+                json = Encoding.UTF8.GetString(Convert.FromBase64String(base64.Trim()));
+            } catch (Exception)
+            {
+                // somethimes the "==" is missing idk why
+                json = Encoding.UTF8.GetString(Convert.FromBase64String(base64 + "=="));
+                Console.WriteLine(json);
+                
+                //return null;
+            }
+
+
+            
+            dynamic result = JsonConvert.DeserializeObject(json);
+            return result.textures.SKIN.url;
         }
 
 

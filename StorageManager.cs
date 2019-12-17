@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Coflnet;
-using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -58,7 +57,7 @@ namespace hypixel
             {
                 var users = FileController.LoadAs<Dictionary<string,User>>(compactPath);
                 SaveToCache(cacheKey,users,Save);
-                if(users.TryGetValue(uuid,out result))
+                if(users != null && users.TryGetValue(uuid,out result))
                 {
                     Program.usersLoaded++;
                     return result;
@@ -83,12 +82,8 @@ namespace hypixel
 
         private static void Save(Dictionary<string,User> users)
         {
-            try{
-                FileController.SaveAs ("users/"+users.Values.First().uuid.Substring(0,4), users);
-            } catch (Exception e)
-            {
-                throw e;
-            }
+            FileController.SaveAs ("users/"+users.Values.First().uuid.Substring(0,4), users);
+         
             
         }
 
@@ -132,14 +127,41 @@ namespace hypixel
         /// <returns></returns>
         public static IEnumerable<SaveAuction> GetAllAuctions()
         {
-            return GetFileContents<SaveAuction>("auctions");
+            return GetContents<SaveAuction>("sauctions",true);
         }
 
-        public static IEnumerable<T> GetFileContents<T>(string path)
+
+
+
+        public static IEnumerable<T> GetContents<T>(string path,bool subDirectories = false)
         {
-            foreach (var item in FileController.FileNames("*",path))
+            foreach (var item in FileController.DirectoriesNames("*",path))
             {
-                var compactPath = Path.Combine(path,item);
+                foreach (var file in Directory.GetFiles (item))
+                {
+                    var compactPath = Path.Combine(path,file);
+                    if(FileController.Exists (compactPath))
+                    {
+                        foreach (var auction in FileController.ReadLinesAs<T> (compactPath,()=>
+                        {// read impossible
+                            // move the file
+                            Console.WriteLine("Correupt " + compactPath);
+                            FileController.Move(compactPath,"corrupted/"+file);
+                        }))
+                        {
+                            yield return auction;
+                        }
+                    }
+                }
+            }
+        }
+
+
+         public static IEnumerable<T> GetFileContents<T>(string path,bool subDirectories = false)
+        {
+            foreach (var file in FileController.FileNames("*",path))
+            {
+                var compactPath = Path.Combine(path,file);
                 if(FileController.Exists (compactPath))
                 {
                     foreach (var auction in FileController.ReadLinesAs<T> (compactPath))
@@ -149,7 +171,6 @@ namespace hypixel
                 }
             }
         }
-
 
         public static IEnumerable<SaveAuction> GetAuctionsWith(string itemName,DateTime start, DateTime end)
         {
@@ -218,7 +239,7 @@ namespace hypixel
             }
 
 
-            var compactPath = "auctions/"+uuid.Substring(0,4);
+            var compactPath =AuctionFilePath(uuid);// "auctions/"+uuid.Substring(0,4);
             if(input == null && FileController.Exists (compactPath))
             {
                 foreach (var auction in FileController.ReadLinesAs<SaveAuction> (compactPath))
@@ -235,7 +256,7 @@ namespace hypixel
             }
 
             // not found
-            var a = new SaveAuction () { Uuid = uuid };
+            var a = new SaveAuction () { Uuid = uuid, ItemName = "not_found" };
             if(input != null)
             {
                 a=input;
@@ -274,7 +295,7 @@ namespace hypixel
                     save((T)value.value);
                     } catch(Exception e)
                     {
-                        Console.WriteLine($"Failed to save: {lockKey} {e.Message}");
+                        Console.WriteLine($"Failed to save: {key} {e.Message} {e.StackTrace}");
                     }
                 }
             });
@@ -324,35 +345,36 @@ namespace hypixel
 
             var i = 0;
             var files = 0;
+            Console.WriteLine("migrating");
 
-            foreach (var item in FileController.FileNames( "*","users"))
+            Parallel.ForEach( FileController.FileNames( "*","auctions"),item=>
             {
-                var compactPath = Path.Combine("users/"+ item);
-                Dictionary<string,User> users;
+                var compactPath = Path.Combine("auctions/"+ item);
                 try{
-                    users = FileController.LoadAs<Dictionary<string,User>>(compactPath);
+                    foreach (var auction in FileController.ReadLinesAs<SaveAuction>(compactPath))
+                    {
+                        FileController.ReplaceLine<SaveAuction> (AuctionFilePath(auction.Uuid),(a)=>a.Uuid == auction.Uuid, auction);
+                        ItemPrices.Instance.AddAuction(auction);
+                        i++;
+                    }
                 } catch(Exception e)
                 {
                     Console.WriteLine($"Could not process {item} {e.Message} {e.StackTrace?[0]}");
-                    continue;
+                    return;
                 }
-                Parallel.ForEach ( users,user=>
-                {
-                    if(user.Value.Name == null || user.Value.Name.Length < 3)
-                    {
-                        // invalid item, skip
-                        return;
-                    }
-
-                    PlayerSearch.Instance.SaveNameForPlayer(user.Value.Name,user.Key);
-                });
-
                 files++;
                 
                 Console.Write($"\r{i} - {files}");
-            }
+            });
             Console.WriteLine("saving: " + dirty.Count);
+            ItemPrices.Instance.Save();
             Save().Wait();
+        }
+
+        private static string AuctionFilePath(string uuid)
+        {
+            return "auctions/"+uuid.Substring(0,5).Insert(2,"/");
+            //return "fauctions/"+uuid.Substring(0,5);
         }
 
         public static void Save(User user)
@@ -362,7 +384,8 @@ namespace hypixel
 
         public static void Save(SaveAuction auction)
         {
-            FileController.ReplaceLine<SaveAuction> ("auctions/"+auction.Uuid.Substring(0,4),(a)=>a.Uuid == auction.Uuid, auction);
+            //FileController.ReplaceLine<SaveAuction> ("auctions/"+auction.Uuid.Substring(0,4),(a)=>a.Uuid == auction.Uuid, auction);
+            FileController.ReplaceLine<SaveAuction> (AuctionFilePath(auction.Uuid),(a)=>a!= null && a.Uuid == auction.Uuid, auction);
         }
 
         public static void Save(ItemReferences item)
@@ -373,99 +396,6 @@ namespace hypixel
                 return;
             }
             FileController.SaveAs ("items/"+item.Name, item);
-        }
-    }
-
-    [MessagePackObject]
-    public class ItemReferences
-    {
-        private static HashSet<string> reforges = new HashSet<string>(){
-            "Demonic",
-            "Forceful",
-            "Gentle",
-            "Godly",
-            "Hurtful",
-            "Keen",
-            "Strong",
-            "Superior",
-            "Unpleasant",
-            "Zealous",
-            "Odd",
-            "Rich",
-            "Epic",
-            "Fair",
-            "Fast",
-            "Heroic",
-            "Legendary",
-            "Spicy",
-            "Deadly",
-            "Fine",
-            "Grand",
-            "Hasty",
-            "Neat",
-            "Papid",
-            "Unreal",
-            "Clean",
-            "Fierce",
-            "Heavy",
-            "Light",
-            "Mythic",
-            "Pure",
-            "Smart",
-            "Titanic",
-            "Wise",
-            "Very", 
-            "Highly",
-            "Bizarre",
-            "Itchy",
-            "Omnious",
-            "Pleasant",
-            "Pretty",
-            "Shiny",
-            "Simple",
-            "Strange",
-            "Vivid",
-            "Ominous"
-        };
-
-
-        [Key(0)]
-        public string Name;
-
-        [IgnoreMember]
-        public ConcurrentBag<string> auctionIds = new ConcurrentBag<string>();
-
-        [Key(2)]
-        public ConcurrentBag<AuctionReference> auctions = new ConcurrentBag<AuctionReference>();
-
-
-        public static string RemoveReforges(string fullItemName)
-        {
-            if(reforges.Contains(fullItemName.Split(' ')[0]))
-            { 
-                int i = fullItemName.IndexOf(" ")+1;
-                return fullItemName.Substring(i);
-            }
-
-            return fullItemName;
-        }
-
-
-        [MessagePackObject]
-        public class AuctionReference
-        {
-            [Key(0)]
-            public string uuId;
-            [Key(1)]
-            public DateTime End;
-
-            public AuctionReference(string uuId, DateTime end)
-            {
-                this.uuId = uuId;
-                End = end;
-            }
-
-            public AuctionReference() {}
         }
     }
 }

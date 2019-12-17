@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Coflnet;
+using MessagePack;
 using WebSocketSharp;
 
 namespace hypixel
@@ -24,6 +25,10 @@ namespace hypixel
             {
                 throw new ValidationException("The search term has to be 3 characters or longer");
             }
+            if(start == "ekw")
+                {
+                    Console.WriteLine("Searching file");
+                }
 
             var firstThree = start.Substring(0,3).ToLower();
             var path = "players/"+firstThree;
@@ -32,6 +37,12 @@ namespace hypixel
                 return result;
             } else if(FileController.Exists(path))
             {
+                if(firstThree == "ekw")
+                {
+                    Console.WriteLine("Reading file");
+                }
+
+
                 // maybe in the file
                 result = FileController.LoadAs<HashSet<PlayerResult>>(path);
                 // is the cache to large?
@@ -39,11 +50,19 @@ namespace hypixel
                 {
                     players.Remove(players.Keys.First());
                 }
+                if(firstThree == "ekw")
+                {
+                    Console.WriteLine(MessagePackSerializer.ToJson(result));
+                }
                 // cache
                 players[firstThree] = result;
                 return result;
                 
             } else {
+                 if(start == "ekw")
+                {
+                    Console.WriteLine("nothing found");
+                }
                 return new HashSet<PlayerResult>();
             }
         }
@@ -55,9 +74,11 @@ namespace hypixel
             string path = "players/"+index;
             lock(path)
             {
-                HashSet<PlayerResult> list= new HashSet<PlayerResult>();
+                HashSet<PlayerResult> list = null;
                 if(FileController.Exists(path))
-                     list = FileController.LoadAs<HashSet<PlayerResult>>(path);
+                    list = FileController.LoadAs<HashSet<PlayerResult>>(path);
+                if(list == null)
+                    list = new HashSet<PlayerResult>();
                 list.Add(new PlayerResult(name,uuid));
                 FileController.SaveAs(path,list);
             }
@@ -69,9 +90,11 @@ namespace hypixel
         {
             if(!user.Name.IsNullOrEmpty() && user.Name.Length > 2)
             {
+
                 // already loaded
                 return;
             }
+
 
             var name = Program.GetPlayerNameFromUuid(user.uuid);
 

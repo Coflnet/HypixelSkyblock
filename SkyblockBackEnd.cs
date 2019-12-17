@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using Coflnet;
+using Hypixel.NET.SkyblockApi;
 using MessagePack;
+using Newtonsoft.Json;
+using RestSharp;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
@@ -15,32 +20,39 @@ namespace hypixel
         static SkyblockBackEnd()
         {
             Commands.Add("search",new SearchCommand());
-            Commands.Add("itemDetails",new ItemDetailsCommand());
+            Commands.Add("itemPrices",new ItemPricesCommand());
+            Commands.Add("playerDetails",new PlayerDetailsCommand());
             Commands.Add("version",new GetVersionCommand());
+            Commands.Add("auctionDetails",new AuctionDetails());
+            Commands.Add("itemDetails",new ItemDetailsCommand());
+
+            
 
             
         }
 
         protected override void OnMessage (MessageEventArgs e)
         {
+            long mId = 0;
             try{
                 var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                mId = data.mId;
                 data.Connection = this;
                  data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
                  Console.WriteLine(data.Data);
 
                 if(!Commands.ContainsKey(data.Type))
                 {
-                    SendBack(new MessageData("error",$"The command `{data.Type}` is Unkown, please check your spelling"));
+                    data.SendBack(new MessageData("error",$"The command `{data.Type}` is Unkown, please check your spelling"));
                     return;
                 }
                 Commands[data.Type].Execute(data);
             } catch(CoflnetException ex)
             {
-                SendBack(new MessageData(ex.Slug,ex.Message));
+                SendBack(new MessageData(ex.Slug,ex.Message){mId =mId});
             }catch (Exception ex)
             {
-                SendBack(new MessageData("error","The Message has to follow the format {\"type\":\"SomeType\",\"data\":\"\"}"));
+                SendBack(new MessageData("error","The Message has to follow the format {\"type\":\"SomeType\",\"data\":\"\"}"){mId =mId});
                
                 throw ex;
             }
@@ -54,27 +66,208 @@ namespace hypixel
         }
     }
 
-    public abstract class Command
-    {
-        public abstract void Execute(MessageData data);
-    }
-
-    public class SearchCommand : Command
+    public class ItemDetailsCommand : Command
     {
         public override void Execute(MessageData data)
         {
-            Regex rgx = new Regex("[^a-zA-Z0-9_]");
+            Regex rgx = new Regex("[^a-f0-9]");
             var search = rgx.Replace(data.Data, "");
-            var result = PlayerSearch.Instance.GetPlayers(search).Where(e=>e.Name.StartsWith(search)).Take(5).ToList();
-            data.SendBack(MessageData.Create("searchResponse",result));
+            data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search))));
         }
     }
 
-    public class GetVersionCommand : Command
+
+    public class ItemDetails
     {
-        public override void Execute(MessageData data)
+        public static ItemDetails Instance;
+
+        public Dictionary<string,Item> Items = new Dictionary<string, Item>();
+
+        static ItemDetails ()
         {
-            data.SendBack(MessageData.Create("version",2));
+            Instance = new ItemDetails();
+            if(FileController.Exists("itemDetails"))
+            Instance.Items = FileController.LoadAs<Dictionary<string,Item>>("itemDetails");
+        }
+
+        public void AddOrIgnoreDetails(Auction a)
+        {
+            var name = ItemReferences.RemoveReforges(a.ItemName);
+            if(Items.ContainsKey(name))
+            {
+                // already exists
+                // try to get shorter lore
+                if(Items[name]?.Description?.Length > a?.ItemLore?.Length && a.ItemLore.Length > 10)
+                {
+                    Items[name].Description = a.ItemLore;
+                }
+                return;
+            }
+
+            // new item, add it
+            var i = new Item();
+                //Console.WriteLine("New: " + name);
+            i.Name = name;
+            i.Tier = a.Tier;
+            i.Category = a.Category;
+            i.Description = a.ItemLore;
+            i.Extra = a.Extra;
+            i.MinecraftType = MinecraftTypeParser.Instance.Parse(a.Extra);
+            if(i.MinecraftType == "skull" )
+            {
+                //Console.WriteLine("Parsing bytes");
+                //Console.WriteLine(name);
+                try{
+                    i.IconUrl = NBT.SkullUrl(a.ItemBytes);
+                } catch(Exception e)
+                {
+                    Console.WriteLine($"Error :O {name}\n\n" + e.Message);
+                }
+               // Console.WriteLine(i.IconUrl);
+            } else {
+                var t = MinecraftTypeParser.Instance.GetDetails(a.ItemName);
+                i.IconUrl = $"https://skyblock-backend.coflnet.com/static/{t?.type}-{t?.meta}.png";
+            }
+
+            Items[name] = i;
+        }
+
+        /// <summary>
+        /// Tries to find and return an item by name
+        /// </summary>
+        /// <param name="fullName">Full Item name</param>
+        /// <returns></returns>
+        public Item GetDetails(string fullName)
+        {
+            var name = ItemReferences.RemoveReforges(fullName);
+
+            if(Items.TryGetValue(name,out Item value))
+            {
+                return value;
+            }
+
+            return Item.Default;
+        }
+
+        public void Save()
+        {
+            FileController.SaveAs("itemDetails",Items);
+        }
+
+
+
+        [MessagePackObject]
+        public class Item
+        {
+            public static Item Default = new Item(){Name = "unknown",Description="This item has not yet been reviewed by our team"};
+
+
+            [Key(0)]
+            public string Name;
+            [Key(1)]
+            public List<string> AltNames;
+            [Key(2)]
+            public string Description;
+            [Key(3)]
+            public string IconUrl;
+            [Key(4)]
+            public string Category;
+            [Key(5)]
+            public string Extra;
+            [Key(6)]
+            public string Tier;
+            [Key(7)]
+            public string MinecraftType;
+            [Key(8)]
+            public string color;
+        }
+    }
+
+    public class MinecraftTypeParser
+    {
+        static public MinecraftTypeParser Instance;
+
+        public static Dictionary<string,Item> Items {get; private set;}
+
+        static MinecraftTypeParser()
+        {
+            Instance = new MinecraftTypeParser();
+            if(FileController.Exists("minecraftTypes"))
+            {
+                Items = FileController.LoadAs<Dictionary<string,Item>>("minecraftItems");
+            } else {
+                // 
+                LoadItems();
+            }
+        }
+        
+
+        static void LoadItems()
+        {
+             var client = new RestClient("https://minecraft-ids.grahamedgecombe.com/");
+            var request = new RestRequest($"items.json", Method.GET);
+
+            //Get the response and Deserialize
+            var response = client.Execute(request);
+
+            Items = new Dictionary<string, Item>();
+
+            foreach (var item in JsonConvert.DeserializeObject<List<Item>>(response.Content))
+            {
+                if(!Items.ContainsKey(item.name))
+                    Items.Add(item.name,item);
+            }
+
+            FileController.SaveAs("minecraftItems",Items);
+        }
+
+        public string Parse(string fullName)
+        {
+            // special items first
+            if(fullName.EndsWith("Skull Item"))
+            {
+                return "skull";
+            }
+
+
+            // exact match
+            foreach (var name in fullName.Split(' '))
+            {
+                if(Items.ContainsKey(name))
+                {
+                    return name;
+                }
+            }
+
+            foreach (var item in Items.Keys)
+            {
+                if(fullName.Contains(item))
+                {
+                    return item;
+                }
+            }
+
+            return fullName.Substring(fullName.IndexOf(' '));
+        }
+
+        public Item GetDetails(string name)
+        {
+            Items.TryGetValue(name, out Item item);
+            return item;
+        }
+
+
+        [MessagePackObject]
+        public class Item
+        {
+            [Key(0)]
+            public int type;
+            [Key(1)]
+            public int meta;
+            [Key(2)]
+            public string name;
+            [Key(3)]
+            public string text_type;
         }
     }
 }

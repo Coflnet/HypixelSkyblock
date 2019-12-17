@@ -4,16 +4,17 @@ using MessagePack;
 
 namespace hypixel
 {
-    public class ItemDetailsCommand : Command
+    public class ItemPricesCommand : Command
     {
         public override void Execute(MessageData data)
         {
-            SearchDetails details;
+            ItemSearchQuery details;
             try{
-                details = data.GetAs<SearchDetails>();
+                details = data.GetAs<ItemSearchQuery>();
             } catch(Exception e)
             {
-                throw new ValidationException("Format not valid for itemDetails, please see the docs");
+                Console.WriteLine(e.Message);
+                throw new ValidationException("Format not valid for itemPrices, please see the docs");
             }
 
             if(details.End == default(DateTime))
@@ -22,13 +23,27 @@ namespace hypixel
             }
             Console.WriteLine($"Start: {details.Start} End: {details.End}");
 
-            var result = Program.AuctionsForItem(details.name,details.Start,details.End)
-                .Where(item=>item.HighestBidAmount > 0)
-                .Select(item=>new Result(){
-                    End = item.End,
-                    Price = item.HighestBidAmount/item.Count
+            int hourAmount = 1;
+            if(details.End - details.Start > TimeSpan.FromDays(20))
+            {
+                hourAmount = 6;
+            } else if(details.End - details.Start > TimeSpan.FromDays(6))
+            {
+                hourAmount = 2;
+            }
+            
+
+            var result = ItemPrices.Instance.Search(details)
+                .Where(item=>item.Price > 0)
+                .GroupBy(item=>ItemPrices.RoundDown(item.End,TimeSpan.FromHours(hourAmount)))
+                .Select(item=>
+                new Result(){
+                    End = item.Key,
+                    Price = (long) item.Average(a=>a.Price/(a.Count == 0 ? 1 : a.Count)),
+                    Count =  (long) item.Average(a=> a.Count),
+                    Bids =  (long) item.Average(a=> a.BidCount),
                 }).ToList();
-            data.SendBack (MessageData.Create("item",result));
+            data.SendBack (MessageData.Create("itemResponse",result));
         }
 
         [MessagePackObject]
@@ -38,6 +53,11 @@ namespace hypixel
             public DateTime End;
             [Key("price")]
             public long Price;
+            [Key("count")]
+            public long Count;
+            [Key("bids")]
+            public long Bids;
+
         }
 
 

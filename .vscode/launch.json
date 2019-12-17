@@ -16,6 +16,17 @@
             "stopAtEntry": false
         },
         {
+            "name": "Index test (i)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
+            "args": ["/media/ekwav/Daten2/dev/hypixel/ah","i"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Server test",
             "type": "coreclr",
             "request": "launch",

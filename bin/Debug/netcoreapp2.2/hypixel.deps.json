@@ -1,19 +1,37 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.2",
-    "signature": "b1d9c15572af8f81c4abcc629d7528a3d8f39056"
+    "signature": "e3fcebedbb43e77c8b3501337510d971283757c2"
   },
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.2": {
       "hypixel/1.0.0": {
         "dependencies": {
+          "ConcurrentHashSet": "1.1.0",
           "Hypixel.NET": "1.0.6",
           "MessagePack": "1.8.80",
-          "WebSocketSharp": "1.0.3-rc11"
+          "WebSocketSharp": "1.0.3-rc11",
+          "fNbt": "0.6.4"
         },
         "runtime": {
           "hypixel.dll": {}
+        }
+      },
+      "ConcurrentHashSet/1.1.0": {
+        "runtime": {
+          "lib/netstandard2.0/ConcurrentCollections.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "fNbt/0.6.4": {
+        "runtime": {
+          "lib/net35-client/fNbt.dll": {
+            "assemblyVersion": "0.6.4.0",
+            "fileVersion": "0.6.4.0"
+          }
         }
       },
       "Hypixel.NET/1.0.6": {
@@ -238,6 +256,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "ConcurrentHashSet/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1SuuhZe0wUJbchXdjS23O+quojkw0IXqM9LtUp3RwgQreDI4cj1lfDbdHnD4fOYEnUrftzVIYoonvPlsXm30Bg==",
+      "path": "concurrenthashset/1.1.0",
+      "hashPath": "concurrenthashset.1.1.0.nupkg.sha512"
+    },
+    "fNbt/0.6.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ApHeYBciy/XixfMdHjknJ4ct4bCrg/rWCOgiI/YyHRp5JMtldEWnQFc23y+S7MOZbL7rG2L+cD8r9P2U1ardqQ==",
+      "path": "fnbt/0.6.4",
+      "hashPath": "fnbt.0.6.4.nupkg.sha512"
     },
     "Hypixel.NET/1.0.6": {
       "type": "package",

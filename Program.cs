@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
 using WebSocketSharp.Server;
+using WebSocketSharp;
+using WebSocketSharp.Net;
 
 namespace hypixel
 {
@@ -202,6 +205,7 @@ namespace hypixel
             lastIndex = lastIndex.Subtract(new TimeSpan(1,0,0));
 
             AddIndexes(StorageManager.GetAllAuctions());
+            ItemPrices.Instance.Save();
 
             // we are done
             FileController.SaveAs("lastIndex",updateStart);
@@ -211,47 +215,64 @@ namespace hypixel
         {
             int count = 0;
             Parallel.ForEach(auctions,item=>{
+                if(item == null || item.Uuid == null)
+                {
+                    return;
+                }
 
-                        CreateIndex(item);
+                        CreateIndex(item,true);
 
                         if(count++ % 10 == 0)
-                        Console.Write($"\r{count} {item.Uuid.Substring(0,4)} u{usersLoaded}");
+                        Console.Write($"\r{count} {item.Uuid.Substring(0,5)} u{usersLoaded}");
                     });
                     StorageManager.Save().Wait();
         }
 
-        private static void CreateIndex(SaveAuction item)
+        private static void CreateIndex(SaveAuction item, bool excludeUser = false)
         {
+            if(item == null || item.ItemName == null)
+            {
+                // broken, ignore this aucion
+                return;
+            }
             try{
-                StorageManager.GetOrCreateItemRef(item.ItemName)?.auctions.Add(new ItemReferences.AuctionReference(item.Uuid,item.End));
-            
+                //StorageManager.GetOrCreateItemRef(item.ItemName)?.auctions.Add(new ItemReferences.AuctionReference(item.Uuid,item.End));
+                ItemPrices.Instance.AddAuction(item);
             } catch(Exception e)
             {
                 Console.WriteLine($"Error on {item.ItemName} {e.Message}" );
+                throw e;
+            }
+
+            if(excludeUser)
+            {
+                return;
             }
                         
-                        try {
-                          
-                            var u = StorageManager.GetOrCreateUser(item.Auctioneer,true);
-                            u?.auctionIds.Add(item.Uuid);
-                            // for search load the name
-                            PlayerSearch.Instance.LoadName(u);
-                        }catch(Exception e)
-                        {
-                            Console.WriteLine("Corrupted " + item.Auctioneer + $" {e.Message}");
-                        }
+            try {
+                
+                var u = StorageManager.GetOrCreateUser(item.Auctioneer,true);
+                u?.auctionIds.Add(item.Uuid);
+                // for search load the name
+                PlayerSearch.Instance.LoadName(u);
+            }catch(Exception e)
+            {
+                Console.WriteLine("Corrupted " + item.Auctioneer + $" {e.Message} \n{e.StackTrace}");
+            }
 
-                    
-                        foreach (var bid in item.Bids)
-                        {
-                            try {
-                                StorageManager.GetOrCreateUser(bid.Bidder,true).Bids.Add(new AuctionReference(null,item.Uuid));
-                            }catch(Exception)
-                            {
-                                Console.WriteLine("Corrupted user" + bid.Bidder);
-                            }
+        
+            foreach (var bid in item.Bids)
+            {
+                try {
+                    var u = StorageManager.GetOrCreateUser(bid.Bidder,true);
+                    u.Bids.Add(new AuctionReference(null,item.Uuid));
+                    PlayerSearch.Instance.LoadName(u);
+                }catch(Exception e)
+                {
+                    Console.WriteLine($"Corrupted user {bid.Bidder} {e.Message} {e.StackTrace}");
+                }
 
-                        }
+            }
         }
 
 
@@ -449,6 +470,8 @@ namespace hypixel
                 PrintUpdateEstimate(max,doneCont,sum,updateStartTime,max);
             }
 
+            ItemDetails.Instance.Save();
+
 
             StorageManager.Save ().Wait();
             FileController.SaveAs ("lastUpdate", updateStartTime);
@@ -486,6 +509,7 @@ namespace hypixel
                 count ++;
                 Console.Write($"\r {count}");
             });
+            ItemPrices.Instance.Save();
             StorageManager.Save().Wait();
 
             DeleteDir(targetTmp);
@@ -516,6 +540,10 @@ namespace hypixel
         {
             int count = 0;
             foreach (var item in res.Auctions) {
+
+                ItemDetails.Instance.AddOrIgnoreDetails(item);
+
+
      
                 // nothing changed if the last bid is older than the last update
                 if (item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
@@ -591,7 +619,6 @@ namespace hypixel
                 BlockedSince = DateTime.Now;
                 return null;
             }
-            Console.WriteLine(response.StatusCode);
 
             dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
 
@@ -607,8 +634,37 @@ namespace hypixel
         /// </summary>
         private static void StartServer()
         {
-            var server = new WebSocketServer(8008);
+            var server = new HttpServer(8008);
             server.AddWebSocketService<SkyblockBackEnd> ("/skyblock");
+            server.OnGet += (sender, e) => {
+                var req = e.Request;
+                var res = e.Response;
+
+                var path = req.RawUrl;
+
+                byte[] contents;
+                var relativePath = $"files/{path}";
+                if (!FileController.Exists (relativePath)) {
+                    res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                    return;
+                }
+
+                contents = FileController.ReadAllBytes(relativePath);
+
+                if (path.EndsWith (".html")) {
+                    res.ContentType = "text/html";
+                    res.ContentEncoding = Encoding.UTF8;
+                }
+                else if (path.EndsWith (".png")) {
+                    res.ContentType = "image/png";
+                    res.ContentEncoding = Encoding.UTF8;
+                }
+
+                res.WriteContent (contents);
+            };
+
+
+
             server.Start ();
             //Console.ReadKey (true);
             Thread.Sleep(Timeout.Infinite);
