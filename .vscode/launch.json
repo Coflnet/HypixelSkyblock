@@ -32,7 +32,18 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
-            "args": ["/media/ekwav/Daten1/dev/hypixel/ah","s"],
+            "args": ["/media/ekwav/Daten2/dev/hypixel/ah","s"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Update test",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
+            "args": ["/media/ekwav/Daten2/dev/hypixel/ah","u"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false

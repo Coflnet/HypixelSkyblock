@@ -57,6 +57,10 @@
               "version": "[2.2.0, )",
               "autoReferenced": true
             },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[1.0.0-beta0007, )"
+            },
             "WebSocketSharp": {
               "target": "Package",
               "version": "[1.0.3-rc11, )"

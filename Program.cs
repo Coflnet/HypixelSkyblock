@@ -16,6 +16,12 @@ using RestSharp;
 using WebSocketSharp.Server;
 using WebSocketSharp;
 using WebSocketSharp.Net;
+using RestSharp.Extensions;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.Primitives;
 
 namespace hypixel
 {
@@ -644,6 +650,62 @@ namespace hypixel
 
                 byte[] contents;
                 var relativePath = $"files/{path}";
+
+                if(path.StartsWith("/static/skin"))
+                {
+                    if(!FileController.Exists(relativePath))
+                    {
+                        // try to get it from mojang
+                        var client = new RestClient("https://textures.minecraft.net/");
+                        var request = new RestRequest("/texture/{id}");
+                        request.AddUrlSegment("id",Path.GetFileName(relativePath));
+                        Console.WriteLine(Path.GetFileName(relativePath));
+                        var fullPath = FileController.GetAbsolutePath(relativePath);
+                        FileController.CreatePath(fullPath);
+                        var inStream = new MemoryStream(client.DownloadData(request));
+                        
+                        client.DownloadData(request).SaveAs(fullPath+ "f.png" );
+
+                        // parse it to only show face
+                       // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
+                        using (var outputImage = new Image<Rgba32>(16, 16))
+                        {
+                            var baseImage = SixLabors.ImageSharp.Image.Load(inStream);
+                            
+/*
+                            var overLay = baseImage.Clone(
+                                            i => i.Resize(17, 17)
+                                                .Crop(new Rectangle(16, 80, 16, 16)));
+*/
+                            var lowerImage = baseImage.Clone(
+                                            i => i.Resize(256, 256)
+                                                .Crop(new Rectangle(32, 32, 32, 32)));
+/*
+                           lowerImage.Mutate(o=>o.)
+
+                            outputImage.Mutate(o => o
+                                .DrawImage(lowerImage, new Point(0, 0), 1f) // draw the first one top left
+                                .DrawImage(overLay, new Point(0, 0), 1f) // draw the second next to it
+                            );     */
+
+                            //outputImage.Save(fullPath);     
+
+                            lowerImage.Save(fullPath+ ".png");        
+                             
+                        }
+                        FileController.Move(relativePath + ".png",relativePath);
+                     /*   using (var image = Image.Load(inStream, out IImageFormat format))
+                        {
+                            var clone = image.Clone(
+                                            i => i.Resize(width, height)
+                                                .Crop(new Rectangle(x, y, cropWidth, cropHeight)));
+
+                            clone.Save(outStream, format);
+                        }*/
+                    }
+
+                }
+
                 if (!FileController.Exists (relativePath)) {
                     res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
                     return;

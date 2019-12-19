@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -52,6 +53,7 @@ namespace hypixel
                 SendBack(new MessageData(ex.Slug,ex.Message){mId =mId});
             }catch (Exception ex)
             {
+                Console.WriteLine(ex.StackTrace);
                 SendBack(new MessageData("error","The Message has to follow the format {\"type\":\"SomeType\",\"data\":\"\"}"){mId =mId});
                
                 throw ex;
@@ -70,7 +72,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            Regex rgx = new Regex("[^a-f0-9]");
+            Regex rgx = new Regex("[^a-zA-Z -]");
             var search = rgx.Replace(data.Data, "");
             data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search))));
         }
@@ -86,8 +88,14 @@ namespace hypixel
         static ItemDetails ()
         {
             Instance = new ItemDetails();
+            Instance.Load();
+        }
+
+
+        public void Load()
+        {
             if(FileController.Exists("itemDetails"))
-            Instance.Items = FileController.LoadAs<Dictionary<string,Item>>("itemDetails");
+                Items = FileController.LoadAs<Dictionary<string,Item>>("itemDetails");
         }
 
         public void AddOrIgnoreDetails(Auction a)
@@ -106,26 +114,26 @@ namespace hypixel
 
             // new item, add it
             var i = new Item();
-                //Console.WriteLine("New: " + name);
             i.Name = name;
             i.Tier = a.Tier;
             i.Category = a.Category;
             i.Description = a.ItemLore;
             i.Extra = a.Extra;
-            i.MinecraftType = MinecraftTypeParser.Instance.Parse(a.Extra);
+            i.MinecraftType = MinecraftTypeParser.Instance.Parse(a);
+            Console.WriteLine($"New: {name} ({i.MinecraftType})" );
             if(i.MinecraftType == "skull" )
             {
                 //Console.WriteLine("Parsing bytes");
                 //Console.WriteLine(name);
                 try{
-                    i.IconUrl = NBT.SkullUrl(a.ItemBytes);
+                    i.IconUrl = $"https://skyblock-backend.coflnet.com/static/skin/{Path.GetFileName(NBT.SkullUrl(a.ItemBytes))}" ;
                 } catch(Exception e)
                 {
                     Console.WriteLine($"Error :O {name}\n\n" + e.Message);
                 }
                // Console.WriteLine(i.IconUrl);
             } else {
-                var t = MinecraftTypeParser.Instance.GetDetails(a.ItemName);
+                var t = MinecraftTypeParser.Instance.GetDetails(i.MinecraftType);
                 i.IconUrl = $"https://skyblock-backend.coflnet.com/static/{t?.type}-{t?.meta}.png";
             }
 
@@ -139,8 +147,10 @@ namespace hypixel
         /// <returns></returns>
         public Item GetDetails(string fullName)
         {
+            if(Items== null)
+                Load();
             var name = ItemReferences.RemoveReforges(fullName);
-
+            Console.WriteLine("Getting "+ fullName);
             if(Items.TryGetValue(name,out Item value))
             {
                 return value;
@@ -221,33 +231,37 @@ namespace hypixel
             FileController.SaveAs("minecraftItems",Items);
         }
 
-        public string Parse(string fullName)
+        public string Parse(Auction a)
         {
+            var fullName = ItemReferences.RemoveReforges(a.Extra);
             // special items first
             if(fullName.EndsWith("Skull Item"))
             {
                 return "skull";
             }
 
+            // one word
+            var withoutSBName = fullName.Substring(ItemReferences.RemoveReforges(a.ItemName).Length).Split(' ');
+            
+            var nameTry = "";
+            string longestFound = null;
 
-            // exact match
-            foreach (var name in fullName.Split(' '))
+            for (int i = 0; i < withoutSBName.Length; i++)
             {
-                if(Items.ContainsKey(name))
+                nameTry+= withoutSBName[i];
+
+                if(Items.ContainsKey(nameTry.Trim()))
                 {
-                    return name;
+                    longestFound =  nameTry;
                 }
+                nameTry += " ";
+            }
+            if(longestFound != null)
+            {
+                return longestFound.Trim();
             }
 
-            foreach (var item in Items.Keys)
-            {
-                if(fullName.Contains(item))
-                {
-                    return item;
-                }
-            }
-
-            return fullName.Substring(fullName.IndexOf(' '));
+            return nameTry;
         }
 
         public Item GetDetails(string name)
