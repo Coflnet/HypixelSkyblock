@@ -19,6 +19,11 @@ namespace hypixel
             FileController.CreatePath("players/");
         }
 
+        public static void ClearCache()
+        {
+            players.Clear();
+        }
+
         public HashSet<PlayerResult> GetPlayers(string start)
         {
             if(start.Length < 3)

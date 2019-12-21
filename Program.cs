@@ -646,7 +646,12 @@ namespace hypixel
                 var req = e.Request;
                 var res = e.Response;
 
-                var path = req.RawUrl;
+                var path = req.RawUrl.Split('?')[0];
+
+                if(path == "/" || path.IsNullOrEmpty())
+                {
+                    path = "index.html";
+                }
 
                 byte[] contents;
                 var relativePath = $"files/{path}";
@@ -672,39 +677,18 @@ namespace hypixel
                         {
                             var baseImage = SixLabors.ImageSharp.Image.Load(inStream);
                             
-/*
-                            var overLay = baseImage.Clone(
-                                            i => i.Resize(17, 17)
-                                                .Crop(new Rectangle(16, 80, 16, 16)));
-*/
                             var lowerImage = baseImage.Clone(
                                             i => i.Resize(256, 256)
                                                 .Crop(new Rectangle(32, 32, 32, 32)));
-/*
-                           lowerImage.Mutate(o=>o.)
-
-                            outputImage.Mutate(o => o
-                                .DrawImage(lowerImage, new Point(0, 0), 1f) // draw the first one top left
-                                .DrawImage(overLay, new Point(0, 0), 1f) // draw the second next to it
-                            );     */
-
-                            //outputImage.Save(fullPath);     
-
+    
                             lowerImage.Save(fullPath+ ".png");        
                              
                         }
                         FileController.Move(relativePath + ".png",relativePath);
-                     /*   using (var image = Image.Load(inStream, out IImageFormat format))
-                        {
-                            var clone = image.Clone(
-                                            i => i.Resize(width, height)
-                                                .Crop(new Rectangle(x, y, cropWidth, cropHeight)));
-
-                            clone.Save(outStream, format);
-                        }*/
                     }
 
                 }
+
 
                 if (!FileController.Exists (relativePath)) {
                     res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
@@ -717,8 +701,16 @@ namespace hypixel
                     res.ContentType = "text/html";
                     res.ContentEncoding = Encoding.UTF8;
                 }
-                else if (path.EndsWith (".png")) {
+                else if (path.EndsWith (".png") || path.StartsWith("/static/skin")) {
                     res.ContentType = "image/png";
+                    res.ContentEncoding = Encoding.UTF8;
+                }
+                else if (path.EndsWith (".css")) {
+                    res.ContentType = "text/css";
+                    res.ContentEncoding = Encoding.UTF8;
+                }
+                else if (path.EndsWith (".js")) {
+                    res.ContentType = "text/javascript";
                     res.ContentEncoding = Encoding.UTF8;
                 }
 

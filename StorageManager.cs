@@ -80,6 +80,15 @@ namespace hypixel
 
         }
 
+        /// <summary>
+        /// Clears the cache, usefull if new data is available on disc
+        /// </summary>
+        public static void ClearCache()
+        {
+            dirty.Clear();
+            cache.Clear();
+        }
+
         private static void Save(Dictionary<string,User> users)
         {
             FileController.SaveAs ("users/"+users.Values.First().uuid.Substring(0,4), users);

@@ -124,7 +124,9 @@ namespace hypixel
             var f = new NbtFile();
             var stream = new MemoryStream(Convert.FromBase64String(data));
             f.LoadFromStream(stream,NbtCompression.GZip);
-            var base64 = f.RootTag.Get<NbtList>("i")
+            string base64 = null;
+            try{
+                base64 = f.RootTag.Get<NbtList>("i")
                     .Get<NbtCompound>(0)
                     .Get<NbtCompound>("tag")
                     .Get<NbtCompound>("SkullOwner")
@@ -132,6 +134,11 @@ namespace hypixel
                     .Get<NbtList>("textures")
                     .Get<NbtCompound>(0)
                     .Get<NbtString>("Value").StringValue;
+            } catch(Exception e)
+            {
+                Console.WriteLine("Error in parsing "+ f.ToString());
+            }
+            
 
             //Console.WriteLine(base64);
             base64 = base64.Replace('-', '+');

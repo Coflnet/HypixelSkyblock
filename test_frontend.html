@@ -1,10 +1,14 @@
 <script>
- //  var ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock");
-var ws = new WebSocket("ws://localhost:8008/skyblock");
+   var ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock");
+//var ws = new WebSocket("ws://localhost:8008/skyblock");
 
 ws.onmessage = function (evt) { 
-   var received_msg = evt.data;
-console.log(received_msg);
+   var received_msg = JSON.parse(evt.data);
+        console.log(received_msg);
+   if(received_msg.type == "itemDetailsResponse")
+   {
+        console.log(JSON.parse(received_msg.data).IconUrl)
+   }  
 };
 
 function send(type,data)
