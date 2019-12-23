@@ -199,8 +199,6 @@ namespace hypixel
         private static void BuildIndexes()
         {
             Console.WriteLine("building indexes");
-            // increase max items in cache
-            StorageManager.maxItemsInCache += 40000;
             var lastIndex = new DateTime(1970,1,1);
             var updateStart = DateTime.Now;
 
@@ -509,12 +507,22 @@ namespace hypixel
 
 
             int count = 0;
-            Parallel.ForEach(StorageManager.GetFileContents<SaveAuction>("awork"),item=>{
+            try{
+                Parallel.ForEach(StorageManager.GetFileContents<SaveAuction>("awork"),item=>{
                 StorageManager.GetOrCreateAuction(item.Uuid,item);
                 CreateIndex(item);
                 count ++;
                 Console.Write($"\r {count}");
             });
+            } catch(System.AggregateException e)
+            {
+                // oh no an error occured, attempt to merge the data back into the update dir
+                Console.WriteLine($"An error occured: {e.StackTrace}");
+                FileController.DeleteFolder("auctionpull");
+                Directory.Move(FileController.GetAbsolutePath("awork"),FileController.GetAbsolutePath("auctionpull"));
+
+            }
+
             ItemPrices.Instance.Save();
             StorageManager.Save().Wait();
 

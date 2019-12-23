@@ -14,6 +14,8 @@ namespace hypixel
     {
         public int hits;
         public object value;
+
+        public Action Save;
     }
     class StorageManager {
         static ConcurrentQueue<Action> dirty = new ConcurrentQueue<Action> ();
@@ -92,8 +94,11 @@ namespace hypixel
         private static void Save(Dictionary<string,User> users)
         {
             FileController.SaveAs ("users/"+users.Values.First().uuid.Substring(0,4), users);
-         
-            
+        }
+
+        private static void Save(Dictionary<string,SaveAuction> auctions)
+        {
+            FileController.SaveAs (AuctionFilePath(auctions.Values.First().Uuid).Replace("sauc","nauc"), auctions);
         }
 
 
@@ -207,7 +212,7 @@ namespace hypixel
             }
         }
 
-        public static Task Save (int removeUntil = 0) {
+        public static Task Save (int removeUntil = 0, Action afterSave = null) {
                 
             return Task.Run(()=>{
                 // save dirty
@@ -215,6 +220,8 @@ namespace hypixel
                 {
                     // also clear the cache
                     a?.Invoke();
+                    //Console.Write($"\rc: {dirty.Count}");
+                    afterSave?.Invoke();
                 }
             });
         }
@@ -237,42 +244,60 @@ namespace hypixel
 
         public static SaveAuction GetOrCreateAuction(string uuid,SaveAuction input = null,bool noWrite = false)
         {
-            if(TryFromCache<SaveAuction>(uuid, out SaveAuction result))
+            var cacheKey = uuid.Substring(0,5);
+            lock(cacheKey)
+            {
+
+
+            if(TryFromCache<Dictionary<string,SaveAuction>>(cacheKey,out Dictionary<string,SaveAuction> resultSet) 
+                && resultSet.TryGetValue(uuid,out SaveAuction result) )
             {
                 if(input !=null)
                 {
-                    var c = new CacheItem(){value=input};
-                    cache.AddOrUpdate(uuid,c,(id,old)=>c);
+                    //var c = new CacheItem(){value=input};
+                    //cache.AddOrUpdate(cacheKey,c,(id,old)=>c);
+                    // replace input (update)
+                    resultSet[input.Uuid] = input;
                 }
                 return result;
             }
 
+            var compactPath = AuctionFilePath(uuid).Replace("sauc","nauc");
 
-            var compactPath =AuctionFilePath(uuid);// "auctions/"+uuid.Substring(0,4);
-            if(input == null && FileController.Exists (compactPath))
+
+            if(FileController.Exists (compactPath))
             {
-                foreach (var auction in FileController.ReadLinesAs<SaveAuction> (compactPath))
+                resultSet = FileController.LoadAs<Dictionary<string,SaveAuction>>(compactPath);
+                if(noWrite)
+                    SaveToCache(cacheKey,resultSet,s=>{});
+                else
+                    SaveToCache(cacheKey,resultSet,Save);
+                if(resultSet != null && resultSet.TryGetValue(uuid,out result))
                 {
-                    if(auction.Uuid == uuid)
-                    {
-                        if(noWrite)
-                            SaveToCache<SaveAuction>(uuid,auction,s=>{});
-                        else
-                            SaveToCache<SaveAuction>(uuid,auction,Save);
-                        return auction;
-                    }
+                    return result;
                 }
             }
 
-            // not found
-            var a = new SaveAuction () { Uuid = uuid, ItemName = "not_found" };
+
+            var auction = new SaveAuction () { Uuid = uuid };
+            if(resultSet == null)
+            {
+                //Console.WriteLine("creating new " + compactPath);
+                resultSet = new Dictionary<string, SaveAuction>();
+                if(noWrite)
+                    SaveToCache(cacheKey,resultSet,s=>{});
+                else
+                    SaveToCache(cacheKey,resultSet,Save);
+                SaveToCache<Dictionary<string,SaveAuction>>(cacheKey,resultSet,Save);
+            }
             if(input != null)
             {
-                a=input;
+                auction=input;
             }
-            SaveToCache<SaveAuction>(uuid,a,Save);                     
-            return a;
-            
+            resultSet.Add(uuid,auction);
+
+            return auction;
+            }
         }
 
         public static void SaveToCache<T>(string key, T obj, Action<T> save)
@@ -293,7 +318,11 @@ namespace hypixel
                 }
                 lock(lockKey)
                 {
-                    cache.TryRemove(key,out CacheItem value);
+                    if(!cache.TryRemove(key,out CacheItem value))
+                    {
+                        // failed to remove
+                        // may not exist anymore
+                    }
                     try{
                         if(value == null)
                         {
@@ -353,36 +382,71 @@ namespace hypixel
            // db.CreateTable<SaveAuction>();
 
             var i = 0;
+            var checkPointHeight = 0;
             var files = 0;
             Console.WriteLine("migrating");
+            var checkPointName = "migrationCheckPoint";
+
+            if(FileController.Exists(checkPointName))
+            {
+                checkPointHeight = FileController.LoadAs<int>(checkPointName);
+            }
+
+            //maxItemsInCache = 10;
 
             Parallel.ForEach( FileController.FileNames( "*","auctions"),item=>
             {
                 var compactPath = Path.Combine("auctions/"+ item);
+                
+                if(checkPointHeight > files)
+                {
+                    files++;
+                    return;
+                }
                 try{
                     foreach (var auction in FileController.ReadLinesAs<SaveAuction>(compactPath))
                     {
-                        FileController.ReplaceLine<SaveAuction> (AuctionFilePath(auction.Uuid),(a)=>a.Uuid == auction.Uuid, auction);
-                        ItemPrices.Instance.AddAuction(auction);
+                        //FileController.ReplaceLine<SaveAuction> (AuctionFilePath(auction.Uuid),(a)=>a.Uuid == auction.Uuid, auction);
+                        //ItemPrices.Instance.AddAuction(auction);
+                        if(auction == null || auction.Uuid == null)
+                        {
+                            continue;
+                        }
+                        GetOrCreateAuction(auction.Uuid,auction);
                         i++;
                     }
                 } catch(Exception e)
                 {
-                    Console.WriteLine($"Could not process {item} {e.Message} {e.StackTrace?[0]}");
+                    Console.WriteLine($"Could not process {item} {e.Message} {e.StackTrace}");
                     return;
                 }
-                files++;
                 
-                Console.Write($"\r{i} - {files}");
+                lock(checkPointName)
+                    {
+                        files++;
+                
+                        Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})");
+                    if(files%1000==0)
+                    {
+                    
+                        checkPointHeight = files;
+                        Console.Write("Reached Checkpoint " + files/1000);
+                        Save(0,()=>Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})"));
+                        Save(0,()=>Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})")).Wait();
+                        FileController.SaveAs(checkPointName,checkPointHeight);
+                        Console.WriteLine($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})");
+                        Console.WriteLine(cache.Keys.First());
+                    }
+                }
             });
             Console.WriteLine("saving: " + dirty.Count);
             ItemPrices.Instance.Save();
-            Save().Wait();
+            Save(0,()=>Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})")).Wait();
         }
 
         private static string AuctionFilePath(string uuid)
         {
-            return "auctions/"+uuid.Substring(0,5).Insert(2,"/");
+            return "sauctions/"+uuid.Substring(0,5).Insert(2,"/");
             //return "fauctions/"+uuid.Substring(0,5);
         }
 
