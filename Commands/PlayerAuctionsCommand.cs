@@ -13,7 +13,7 @@ namespace hypixel
             return StorageManager.GetOrCreateUser(id).auctionIds;
         }
 
-        public override AuctionResult GetElement(string id)
+        public override AuctionResult GetElement(string id,string parentUuid)
         {
             return new AuctionResult(StorageManager.GetOrCreateAuction(id));
         }    

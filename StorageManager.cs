@@ -15,15 +15,18 @@ namespace hypixel
         public int hits;
         public object value;
 
-        public Action Save;
+        public Action<CacheItem> Save;
     }
     class StorageManager {
-        static ConcurrentQueue<Action> dirty = new ConcurrentQueue<Action> ();
         static ConcurrentDictionary<string,CacheItem> cache = new ConcurrentDictionary<string, CacheItem>();
 
-        public static int maxItemsInCache = 10000;
+        static int savedOnDisc = 0;
 
-        static object saveLock = new object();
+        public static int maxItemsInCache = 1000;
+
+
+        static bool StopPurging = false;
+
 
         public static User GetOrCreateUser (string uuid, bool cacheAll = false) {
 
@@ -31,8 +34,6 @@ namespace hypixel
             lock(cacheKey)
             {
               
-
-
             if(uuid?.Length < 30)
             {
                 // this is a username
@@ -57,12 +58,21 @@ namespace hypixel
 
             if(FileController.Exists (compactPath))
             {
-                var users = FileController.LoadAs<Dictionary<string,User>>(compactPath);
-                SaveToCache(cacheKey,users,Save);
-                if(users != null && users.TryGetValue(uuid,out result))
+                Dictionary<string,User> users;
+                try{
+                    users = FileController.LoadAs<Dictionary<string,User>>(compactPath);
+
+                    SaveToCache(cacheKey,users,Save);
+                    if(users != null && users.TryGetValue(uuid,out result))
+                    {
+                        Program.usersLoaded++;
+                        return result;
+                    }
+                } catch(InvalidOperationException e)
                 {
-                    Program.usersLoaded++;
-                    return result;
+                    Console.WriteLine($"Because of {e.Message} \n Removing corrupt user {compactPath}" );
+                    FileController.Delete(compactPath);
+
                 }
             }
 
@@ -87,17 +97,26 @@ namespace hypixel
         /// </summary>
         public static void ClearCache()
         {
-            dirty.Clear();
             cache.Clear();
         }
 
         private static void Save(Dictionary<string,User> users)
         {
+            if(users.Count == 0)
+            {
+                // nothing to save
+                return;
+            }
             FileController.SaveAs ("users/"+users.Values.First().uuid.Substring(0,4), users);
         }
 
         private static void Save(Dictionary<string,SaveAuction> auctions)
         {
+            if(auctions.Count == 0)
+            {
+                // nothing to save
+                return;
+            }
             FileController.SaveAs (AuctionFilePath(auctions.Values.First().Uuid).Replace("sauc","nauc"), auctions);
         }
 
@@ -139,15 +158,15 @@ namespace hypixel
         /// be careful when using this, will return minimum 20k auctions
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<SaveAuction> GetAllAuctions()
+        public static IEnumerable<SaveAuction> GetAllAuctions(bool deleteAfterRead = false)
         {
-            return GetContents<SaveAuction>("sauctions",true);
+            return GetContents<SaveAuction>("auctions",true,deleteAfterRead);
         }
 
 
 
 
-        public static IEnumerable<T> GetContents<T>(string path,bool subDirectories = false)
+        public static IEnumerable<T> GetContents<T>(string path,bool subDirectories = false, bool deleteAfterRead = false)
         {
             foreach (var item in FileController.DirectoriesNames("*",path))
             {
@@ -159,19 +178,29 @@ namespace hypixel
                         foreach (var auction in FileController.ReadLinesAs<T> (compactPath,()=>
                         {// read impossible
                             // move the file
-                            Console.WriteLine("Correupt " + compactPath);
-                            FileController.Move(compactPath,"corrupted/"+file);
+                            try{
+                                FileController.Move(compactPath,$"corrupted/{compactPath.Substring(compactPath.Length-6,6)}");
+                            } catch(Exception e)
+                            {
+                                Console.WriteLine($"Backup failed {e.Message} {e.StackTrace}" );
+                            }
+                            
                         }))
                         {
                             yield return auction;
                         }
+                    }
+
+                    if(deleteAfterRead && !StopPurging)
+                    {
+                        FileController.Delete(compactPath);
                     }
                 }
             }
         }
 
 
-         public static IEnumerable<T> GetFileContents<T>(string path,bool subDirectories = false)
+         public static IEnumerable<T> GetFileContents<T>(string path,bool subDirectories = false,bool deleteAfterRead = false)
         {
             foreach (var file in FileController.FileNames("*",path))
             {
@@ -183,6 +212,8 @@ namespace hypixel
                         yield return auction;
                     }
                 }
+                if(deleteAfterRead)
+                    FileController.Delete(compactPath);
             }
         }
 
@@ -216,12 +247,35 @@ namespace hypixel
                 
             return Task.Run(()=>{
                 // save dirty
-                while(dirty.TryDequeue(out Action a) && dirty.Count >= removeUntil)
+                while(cache.Count > removeUntil)// dirty.TryDequeue(out Action a) && dirty.Count >= removeUntil)
                 {
                     // also clear the cache
-                    a?.Invoke();
+                    //a?.Invoke();
+                    var keys = cache.Keys;
+
+                    foreach (var item in keys)
+                    {
+                        if(removeUntil > 0)
+                        {
+                            // decide what to remove
+                            if(cache.TryGetValue(item,out CacheItem elemet))
+                            {
+                                // skip this key if the hits are higher
+                                if(--elemet.hits > 0)
+                                    continue;
+                            }
+                        } 
+                        if(cache.TryRemove(item,out CacheItem element))
+                        {
+                            element.Save(element);
+                        }
+
+                        afterSave?.Invoke();
+                    }
+
+                    
+
                     //Console.Write($"\rc: {dirty.Count}");
-                    afterSave?.Invoke();
                 }
             });
         }
@@ -254,9 +308,6 @@ namespace hypixel
             {
                 if(input !=null)
                 {
-                    //var c = new CacheItem(){value=input};
-                    //cache.AddOrUpdate(cacheKey,c,(id,old)=>c);
-                    // replace input (update)
                     resultSet[input.Uuid] = input;
                 }
                 return result;
@@ -274,6 +325,10 @@ namespace hypixel
                     SaveToCache(cacheKey,resultSet,Save);
                 if(resultSet != null && resultSet.TryGetValue(uuid,out result))
                 {
+                    if(input !=null)
+                    {
+                        resultSet[input.Uuid] = input;
+                    }
                     return result;
                 }
             }
@@ -302,15 +357,14 @@ namespace hypixel
 
         public static void SaveToCache<T>(string key, T obj, Action<T> save)
         {
-            if(dirty.Count > maxItemsInCache)
+            if(cache.Count > maxItemsInCache)
             {
                 // save half
                 Save(maxItemsInCache/2);
             }
 
-            cache.AddOrUpdate(key,new CacheItem(){value=obj},(sk,ob)=>ob);
-            dirty.Enqueue(()=>{
 
+            var cacheItem = new CacheItem(){value=obj,Save=(self)=>{
                 var lockKey = key;
                 if(key.Length > 4)
                 {
@@ -318,25 +372,17 @@ namespace hypixel
                 }
                 lock(lockKey)
                 {
-                    if(!cache.TryRemove(key,out CacheItem value))
-                    {
-                        // failed to remove
-                        // may not exist anymore
-                    }
                     try{
-                        if(value == null)
-                        {
-                            // got remove in the meantime
-                            return;
-                        }
-
-                    save((T)value.value);
+                        save((T)self.value);
+                        savedOnDisc++;
                     } catch(Exception e)
                     {
                         Console.WriteLine($"Failed to save: {key} {e.Message} {e.StackTrace}");
                     }
                 }
-            });
+            }};
+            cache.AddOrUpdate(key,cacheItem,(sk,ob)=>cacheItem);
+      
         }
 
 
@@ -394,10 +440,10 @@ namespace hypixel
 
             //maxItemsInCache = 10;
 
-            Parallel.ForEach( FileController.FileNames( "*","auctions"),item=>
+            Parallel.ForEach(GetAllAuctions(true),(auction,state)=>// FileController.FileNames( "*","auctions"),item=>
             {
-                var compactPath = Path.Combine("auctions/"+ item);
-                
+                //var compactPath = Path.Combine("auctions/"+ item);
+                /*
                 if(checkPointHeight > files)
                 {
                     files++;
@@ -405,43 +451,47 @@ namespace hypixel
                 }
                 try{
                     foreach (var auction in FileController.ReadLinesAs<SaveAuction>(compactPath))
-                    {
-                        //FileController.ReplaceLine<SaveAuction> (AuctionFilePath(auction.Uuid),(a)=>a.Uuid == auction.Uuid, auction);
-                        //ItemPrices.Instance.AddAuction(auction);
+                    {*/
                         if(auction == null || auction.Uuid == null)
                         {
-                            continue;
+                            return;
                         }
                         GetOrCreateAuction(auction.Uuid,auction);
-                        i++;
+                        i++;/*
                     }
                 } catch(Exception e)
                 {
                     Console.WriteLine($"Could not process {item} {e.Message} {e.StackTrace}");
                     return;
-                }
+                }*/
                 
                 lock(checkPointName)
                     {
                         files++;
                 
-                        Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})");
-                    if(files%1000==0)
+                        Console.Write($"\r{i} - {files} cache: ({cache.Count})\t {savedOnDisc}\t");
+                    if(files%5000==0)
                     {
                     
                         checkPointHeight = files;
-                        Console.Write("Reached Checkpoint " + files/1000);
-                        Save(0,()=>Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})"));
-                        Save(0,()=>Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})")).Wait();
+                        Console.Write("Reached Checkpoint " + files/5000);
+                        Save(0,()=>Console.Write($"\r{i} - {files} cache: ({cache.Count})")).Wait();
                         FileController.SaveAs(checkPointName,checkPointHeight);
-                        Console.WriteLine($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})");
-                        Console.WriteLine(cache.Keys.First());
+                        Console.WriteLine($"\r{i} - {files} cache: ({cache.Count})");
+                        if(cache.Keys?.Count >0)
+                        Console.WriteLine(cache.Keys?.First());
+                    }
+
+                    if(i > 10000 && i % 10 == 0)
+                    {
+                        StopPurging = true;
+                        Console.WriteLine("Stopped at " + auction.Uuid);
+                        state.Break();
                     }
                 }
             });
-            Console.WriteLine("saving: " + dirty.Count);
             ItemPrices.Instance.Save();
-            Save(0,()=>Console.Write($"\r{i} - {files} cache: {dirty.Count} ({cache.Count})")).Wait();
+            Save(0,()=>Console.Write($"\r{i} - {files} cache: ({cache.Count}) {savedOnDisc}")).Wait();
         }
 
         private static string AuctionFilePath(string uuid)

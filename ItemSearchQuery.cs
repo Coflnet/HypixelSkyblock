@@ -22,6 +22,9 @@ namespace hypixel
         [Key("enchantments")]
         public List<Enchantment> Enchantments;
 
+        [Key("normalized")]
+        public bool Normalized;
+
 
         [Key("start")]
         public long StartTimeStamp
@@ -55,5 +58,34 @@ namespace hypixel
 
         [IgnoreMember]
         public DateTime End;
+
+        public override bool Equals(object obj)
+        {
+            return obj is ItemSearchQuery query &&
+                   name == query.name &&
+                   Count == query.Count &&
+                   Price == query.Price &&
+                   Reforge == query.Reforge &&
+                   EqualityComparer<List<Enchantment>>.Default.Equals(Enchantments, query.Enchantments) &&
+                   StartTimeStamp == query.StartTimeStamp &&
+                   Start == query.Start &&
+                   EndTimeStamp == query.EndTimeStamp &&
+                   End == query.End;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(name);
+            hash.Add(Count);
+            hash.Add(Price);
+            hash.Add(Reforge);
+            hash.Add(Enchantments);
+            hash.Add(StartTimeStamp);
+            hash.Add(Start);
+            hash.Add(EndTimeStamp);
+            hash.Add(End);
+            return hash.ToHashCode();
+        }
     }
 }

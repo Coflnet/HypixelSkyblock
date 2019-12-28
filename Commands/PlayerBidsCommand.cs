@@ -5,7 +5,7 @@ using MessagePack;
 
 namespace hypixel
 {
-    public class PlayerBidsCommand : PaginatedRequestCommand<SaveAuction>
+    public class PlayerBidsCommand : PaginatedRequestCommand<PlayerBidsCommand.BidResult>
     {
         public override string ResponseCommandName => "playerBidsResponse";
 
@@ -14,9 +14,9 @@ namespace hypixel
             return StorageManager.GetOrCreateUser(id).Bids.Select(b=>b.auctionId);
         }
 
-        public override SaveAuction GetElement(string id)
+        public override BidResult GetElement(string id,string parentUuId)
         {
-            return StorageManager.GetOrCreateAuction(id);
+            return new BidResult(StorageManager.GetOrCreateAuction(id),parentUuId);
         }   
 
 
@@ -34,14 +34,16 @@ namespace hypixel
             [Key("end")]
             public DateTime End;
 
-            public BidResult(SaveAuction a, User displayUser)
+            public BidResult(SaveAuction a, string userUuid)
             {
-                var highestOwn = a.Bids.Where(bid=>bid.Bidder == displayUser.uuid)
+                var highestOwn = a.Bids?.Where(bid=>bid.Bidder == userUuid)
                             .OrderByDescending(bid=>bid.Amount).FirstOrDefault();
 
                 AuctionId = a.Uuid;
-                HighestBid = a.Bids.Last().Amount;
-                HighestOwnBid = highestOwn.Amount;
+                if(a.Bids != null)
+                    HighestBid = a.Bids.Last().Amount;
+                if(highestOwn != null)
+                    HighestOwnBid = highestOwn.Amount;
                 ItemName = a.ItemName;
                 End=a.End;
             }

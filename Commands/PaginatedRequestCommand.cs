@@ -37,13 +37,13 @@ namespace hypixel
             return ids.Reverse()
                         .Skip(offset)
                         .Take(amount)
-                        .Select(id=>GetElement(id))
+                        .Select(id=>GetElement(id,uuid))
                         .ToList();
         }
 
         public abstract IEnumerable<string> GetAllIds(string id);
 
-        public abstract T GetElement(string id);
+        public abstract T GetElement(string id,string parentUuid);
 
         [MessagePackObject]
         public class Request

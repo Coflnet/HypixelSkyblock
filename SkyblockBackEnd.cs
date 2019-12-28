@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 using MessagePack;
-using Newtonsoft.Json;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
@@ -24,6 +22,7 @@ namespace hypixel
             Commands.Add("clearCache",new ClearCacheCommand());
             Commands.Add("playerAuctions",new PlayerAuctionsCommand());
             Commands.Add("playerBids",new PlayerBidsCommand());
+            Commands.Add("allItemNames",new AllItemNamesCommand());
 
             
 
@@ -63,16 +62,6 @@ namespace hypixel
         public void SendBack(MessageData data)
         {
             Send(MessagePackSerializer.ToJson(data));
-        }
-    }
-
-    public class ItemDetailsCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            Regex rgx = new Regex("[^a-zA-Z -]");
-            var search = rgx.Replace(data.Data, "");
-            data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search))));
         }
     }
 }

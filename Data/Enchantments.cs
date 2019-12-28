@@ -1,3 +1,4 @@
+using System;
 using MessagePack;
 
 namespace hypixel
@@ -80,6 +81,18 @@ namespace hypixel
 
         public Enchantment() {
 
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Enchantment enchantment &&
+                   Type == enchantment.Type &&
+                   Level == enchantment.Level;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Level);
         }
     }
 }

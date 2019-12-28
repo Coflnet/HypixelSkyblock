@@ -34,14 +34,15 @@ namespace hypixel
             
 
             var result = ItemPrices.Instance.Search(details)
-                .Where(item=>item.Price > 0)
+                .Where(item=>item.Price > 0 
+                        && (!details.Normalized || item.BidCount > 1))
                 .GroupBy(item=>ItemPrices.RoundDown(item.End,TimeSpan.FromHours(hourAmount)))
                 .Select(item=>
                 new Result(){
                     End = item.Key,
                     Price = (long) item.Average(a=>a.Price/(a.Count == 0 ? 1 : a.Count)),
-                    Count =  (long) item.Average(a=> a.Count),
-                    Bids =  (long) item.Average(a=> a.BidCount),
+                    Count =  (long) item.Sum(a=> a.Count),
+                    Bids =  (long) item.Sum(a=> a.BidCount),
                 }).ToList();
             data.SendBack (MessageData.Create("itemResponse",result));
         }

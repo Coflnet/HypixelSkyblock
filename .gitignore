@@ -26,6 +26,7 @@ nupkg/
 [Rr]elease/
 [Rr]eleases/
 bin/
+bin/*
 x64/
 x86/
 build/

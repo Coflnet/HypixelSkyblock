@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Coflnet;
 using ConcurrentCollections;
 
@@ -53,7 +54,11 @@ namespace hypixel
             {
                 foreach (var item in ItemsForDay(search.name,i))
                 {
-                    if(item.End < search.End && item.End > search.Start)
+                    if(item.End < search.End 
+                        && item.End > search.Start
+                        && (search.Reforge == item.Reforge || search.Reforge == ItemReferences.Reforge.None)
+                        && (search.Enchantments == null 
+                            || item.Enchantments != null && !search.Enchantments.Except(item.Enchantments).Any())  )
                         yield return item;
                 }
             }

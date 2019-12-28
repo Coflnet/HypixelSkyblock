@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Coflnet;
 using Hypixel.NET.SkyblockApi;
 using MessagePack;
@@ -24,6 +25,36 @@ namespace hypixel
         {
             if(FileController.Exists("itemDetails"))
                 Items = FileController.LoadAs<Dictionary<string,Item>>("itemDetails");
+
+            if(Items == null)
+            {
+                Items = new Dictionary<string, Item>();
+            }
+
+            foreach (var item in Items)
+            {
+                if(item.Value == null || item.Value.IconUrl == null)
+                {
+                    continue;
+                }
+
+                item.Value.IconUrl = item.Value.IconUrl.Replace("skyblock-backend.coflnet.com/static/skin","mc-heads.net/head");
+                if(item.Value.IconUrl.EndsWith("/50"))
+                {
+                    item.Value.IconUrl = item.Value.IconUrl.Replace("/50","");
+                }
+                
+                if(!item.Value.IconUrl.EndsWith("/50") && item.Value.IconUrl.StartsWith("https://mc"))
+                {
+                    item.Value.IconUrl += "/50";
+                }
+                
+            }
+        }
+
+        public List<string> AllItemNames()
+        {
+            return Items.Keys.ToList();
         }
 
         public void AddOrIgnoreDetails(Auction a)
@@ -54,7 +85,7 @@ namespace hypixel
                 //Console.WriteLine("Parsing bytes");
                 //Console.WriteLine(name);
                 try{
-                    i.IconUrl = $"https://skyblock-backend.coflnet.com/static/skin/{Path.GetFileName(NBT.SkullUrl(a.ItemBytes))}" ;
+                    i.IconUrl = $"https://mc-heads.net/head/{Path.GetFileName(NBT.SkullUrl(a.ItemBytes))}/50" ;
                 } catch(Exception e)
                 {
                     Console.WriteLine($"Error :O {i.Extra}\n {e.Message} \n {e.StackTrace}");

@@ -40,6 +40,8 @@ namespace hypixel
         /// <returns></returns>
         private static DateTime BlockedSince = new DateTime(0);
 
+        private static int RequestsSinceStart = 0;
+
         static void Main (string[] args) {
 
                       
@@ -189,6 +191,7 @@ namespace hypixel
                     break;
                     case 'p':
                     LastHourIndex();
+                    StorageManager.Migrate();
                     break;
                 default:
                     return true;
@@ -274,6 +277,8 @@ namespace hypixel
                 }catch(Exception e)
                 {
                     Console.WriteLine($"Corrupted user {bid.Bidder} {e.Message} {e.StackTrace}");
+                    // removing it
+
                 }
 
             }
@@ -395,6 +400,34 @@ namespace hypixel
             }
         }
 
+        static bool IsAnotherInstanceRunning(string typeId = "lock", bool placeLockIfNonexisting = false)
+        {
+            var lastUpdate = new DateTime (1970,1,1);
+            if (FileController.Exists ("lastUpdate"))
+                lastUpdate = FileController.LoadAs<DateTime> ("lastUpdate").ToLocalTime ();
+
+            var lastUpdateStart = new DateTime (0);
+            if (FileController.Exists ("lastUpdateStart"))
+                lastUpdateStart = FileController.LoadAs<DateTime> ("lastUpdateStart").ToLocalTime ();
+
+            if(lastUpdateStart > lastUpdate && DateTime.Now - lastUpdateStart  < new TimeSpan(0,5,0))
+            {
+                Console.WriteLine("Last update start was to recent");
+                return true;
+            }
+            Console.WriteLine($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
+            FileController.SaveAs("lastUpdateStart",DateTime.Now);
+
+            return false;
+        }
+
+        static void RemoveFileLock(string typeId)
+        {
+            FileController.Delete(typeId+"lock");
+        }
+
+        
+
         /// <summary>
         /// Downloads all auctions and save the ones that changed since the last update
         /// </summary>
@@ -426,7 +459,7 @@ namespace hypixel
             Console.WriteLine ("Updating Data");
 
             // add extra miniute to start to catch lost auctions
-            lastUpdate = lastUpdate - new TimeSpan(0,0,1);
+            lastUpdate = lastUpdate - new TimeSpan(0,1,0);
 
             var tasks = new List<Task>();
             int sum = 0;
@@ -497,23 +530,26 @@ namespace hypixel
         {
             Console.WriteLine($"{DateTime.Now}");
             var targetTmp = FileController.GetAbsolutePath("awork");
-            DeleteDir(targetTmp);
-            if(!FileController.Exists("auctionpull"))
+            var pullPath = FileController.GetAbsolutePath("auctionpull");
+            //DeleteDir(targetTmp);
+            if(!Directory.Exists(pullPath))
             {
                 // update first
                 Update();
             }
-            Directory.Move(FileController.GetAbsolutePath("auctionpull"),targetTmp);
+            // only copy the pull path if there is no temp work path yet
+            if(!Directory.Exists(targetTmp))
+                Directory.Move(pullPath,targetTmp);
 
 
             int count = 0;
             try{
-                Parallel.ForEach(StorageManager.GetFileContents<SaveAuction>("awork"),item=>{
-                StorageManager.GetOrCreateAuction(item.Uuid,item);
-                CreateIndex(item);
-                count ++;
-                Console.Write($"\r {count}");
-            });
+                Parallel.ForEach(StorageManager.GetFileContents<SaveAuction>("awork",false,true),item=>{
+                    StorageManager.GetOrCreateAuction(item.Uuid,item);
+                    CreateIndex(item);
+                    count ++;
+                    Console.Write($"\r Indexed: {count} NameRequests: {RequestsSinceStart}");
+                });
             } catch(System.AggregateException e)
             {
                 // oh no an error occured, attempt to merge the data back into the update dir
@@ -606,16 +642,45 @@ namespace hypixel
         /// <returns>The name or null if error occurs</returns>
         public static string GetPlayerNameFromUuid(string uuid)
         {
-            if(DateTime.Now.Subtract(new TimeSpan(0,10,0)) < BlockedSince)
+            if(DateTime.Now.Subtract(new TimeSpan(0,10,0)) < BlockedSince && RequestsSinceStart >= 2000)
             {
+                //Console.Write("Blocked");
                 // blocked
                 return null;
+            } else if(RequestsSinceStart >= 2000)
+            {
+                Console.Write("Freed");
+                RequestsSinceStart = 0;
             }
 
 
             //Create the request
-            var client = new RestClient("https://api.mojang.com/");
-            var request = new RestRequest($"user/profiles/{uuid}/names", Method.GET);
+            RestClient client = null;
+            RestRequest request ;
+            int type = 0;
+
+            if(RequestsSinceStart == 600)
+            {
+                BlockedSince = DateTime.Now;
+            }
+            
+            if(RequestsSinceStart < 600)
+            {
+                client = new RestClient("https://api.mojang.com/");
+                request = new RestRequest($"user/profiles/{uuid}/names", Method.GET);
+            } else if(RequestsSinceStart < 1500)
+            {
+                client = new RestClient("https://mc-heads.net/");
+                request = new RestRequest($"/minecraft/profile/{uuid}", Method.GET);
+                type = 1;
+            } else {
+                client = new RestClient("https://minecraft-api.com/");
+                request = new RestRequest($"/api/uuid/pseudo.php?uuid={uuid}", Method.GET);
+                type = 2;
+            }
+
+            RequestsSinceStart++;
+
 
             //Get the response and Deserialize
             var response = client.Execute(request);
@@ -629,18 +694,37 @@ namespace hypixel
             if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests
             || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                Console.WriteLine("Blocked");
-                BlockedSince = DateTime.Now;
+                //Console.WriteLine("Blocked");
+                //BlockedSince = DateTime.Now;
                 return null;
             }
 
+            if(type == 2)
+            {
+                return response.Content;
+            }
+
+
+
             dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
 
+            if(responseDeserialized == null)
+            {
+                return null;
+            }
+
+            switch(type)
+            {
+                case 0:
+                    return responseDeserialized[responseDeserialized.Count-1]?.name;
+                case 1:
+                    return responseDeserialized.name;
+            }
 
             
 
-            //Mojang stores the names as array so return the latest
-            return responseDeserialized[responseDeserialized.Count-1].name;
+
+            return responseDeserialized.name;
         }
 
         /// <summary>
