@@ -41,7 +41,7 @@ namespace hypixel
             frail,
             magnet,
             spiked_hook,
-            bane_of_anthropods,
+            bane_of_arthropods,
             fire_aspect,
             looting,
             knockback,
@@ -49,13 +49,13 @@ namespace hypixel
             smite,
             aqua_affinity,
             blast_protection,
-            death_strider,
+            depth_strider,
             feather_falling,
             fire_protection,
             frost_walker,
             projectile_protection,
             protection,
-            raspiration,
+            respiration,
             thorns,
             flame,
             power,
@@ -65,7 +65,10 @@ namespace hypixel
             silk_touch,
             lure,
             luck_of_the_sea,
-            true_protection
+            true_protection,
+            sugar_rush,
+            bane_of_arthropod
+            
         }
 
         [Key(0)]

@@ -42,7 +42,7 @@ namespace hypixel
                     End = item.Key,
                     Price = (long) item.Average(a=>a.Price/(a.Count == 0 ? 1 : a.Count)),
                     Count =  (long) item.Sum(a=> a.Count),
-                    Bids =  (long) item.Sum(a=> a.BidCount),
+                    Bids =  (long) item.Sum(a=> a.BidCount)
                 }).ToList();
             data.SendBack (MessageData.Create("itemResponse",result));
         }

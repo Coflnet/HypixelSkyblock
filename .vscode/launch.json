@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Migration test",
+            "name": "Build Index",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
-            "args": ["/media/ekwav/Daten1/dev/hypixel/ah","7"],
+            "args": ["/media/ekwav/Daten3/dev/hypixel/ah","p"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
@@ -32,7 +32,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
-            "args": ["/media/ekwav/Daten2/dev/hypixel/ah","s"],
+            "args": ["/media/ekwav/Daten3/dev/hypixel/ah","s"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
@@ -43,7 +43,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
-            "args": ["/media/ekwav/Daten2/dev/hypixel/ah","u"],
+            "args": ["/media/ekwav/Daten3/dev/hypixel/ah","u"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false

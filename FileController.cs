@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using MessagePack;
 
 namespace Coflnet {
@@ -18,7 +19,6 @@ namespace Coflnet {
 			_dataPaht = value;
 		}}
 
-		private static string dataPostFix = "/skyblock/ah";
 		public static string configPath = "/etc/coflnet";
 
 		static FileController () {
@@ -109,14 +109,14 @@ namespace Coflnet {
 		/// <param name="relativePath">Relative path.</param>
 		/// <param name="resolver">Resolver.</param>
 		/// <typeparam name="T">The type to deserialize to.</typeparam>
-		public static IEnumerable<T> ReadLinesAs<T> (string relativePath, IFormatterResolver resolver,Action corrupted=null) {
+		public static IEnumerable<T> ReadLinesAs<T> (string relativePath, IFormatterResolver resolver,Action corrupted=null, int brokenThreshold = 1000) {
 			var path = Path.Combine (dataPaht, relativePath);
 			if (!File.Exists (path)) {
 				// there is nothing to read
 				yield break;
 			}
 
-			bool broken = false;
+			int brokenCount = 0;
 
 			using (var file = File.Open (path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 				while (file.Position < file.Length) {
@@ -125,13 +125,18 @@ namespace Coflnet {
 						element = MessagePackSerializer.Deserialize<T> (file, resolver, true);
 					} catch(Exception )
 					{
-						broken = true;
+						brokenCount++;
 						continue;
 					}
+					if(brokenCount> brokenThreshold)
+					{
+						break;
+					}
+
 					yield return element;
 				}
 			}
-			if(broken)
+			if(brokenCount > 0)
 				corrupted?.Invoke();
 		}
 
@@ -218,7 +223,7 @@ namespace Coflnet {
 									found = true;
 								}
 								MessagePackSerializer.Serialize<T> (tempFile, item, resolver);
-							} catch(InvalidOperationException e)
+							} catch(InvalidOperationException)
 							{
 								Console.WriteLine($"Skipped correupted element {relativePath}");
 							}
@@ -236,7 +241,7 @@ namespace Coflnet {
 				File.Delete(path);
 				try{
 					File.Move(tempPath,path);
-				} catch(IOException e)
+				} catch(IOException)
 				{
 					Console.WriteLine($"Could not move {tempPath} retrying");
 					if(retryNum < 3)
@@ -257,20 +262,42 @@ namespace Coflnet {
 		/// <param name="relativePath">Relative path.</param>
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		public static T LoadAs<T> (string relativePath) {
+			lock(relativePath)
+			{
+				return RetryLoadAs<T>(Path.Combine(dataPaht,relativePath));
+			}
+		}
+
+		/// <summary>
+		/// Retries the loading if seralization fails (currupted data)
+		/// </summary>
+		/// <param name="absolutePath"></param>
+		/// <param name="attempt">The number of attempts left</param>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		private static T RetryLoadAs<T>(string absolutePath, short attempt = 2)
+		{
 			try{
-				using(var f = File.OpenRead(Path.Combine(dataPaht,relativePath)))
+				using(var f = File.OpenRead(absolutePath))
 				{
 					if(f.Length == 0)
 					{
-						return default(T);
+						throw new Exception("Empty File");
 					}
 					return Deserialize<T> (f);
 				}
 			}
-			catch(ArgumentException e)
+			catch(Exception e)
 			{
-				Console.WriteLine($"{relativePath} {e.Message}");
-				return default(T);
+				Console.WriteLine($"Loaderror {absolutePath} {e.Message}");
+				if(attempt <= 0 )
+					throw e;
+				else
+				{
+					// wait
+					Thread.Sleep(2);
+					return RetryLoadAs<T>(absolutePath,(short)(attempt-1));
+				}
 			}
 		}
 
@@ -289,7 +316,10 @@ namespace Coflnet {
 		/// <param name="data">Data.</param>
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		public static void SaveAs<T> (string relativePath, T data) {
-			WriteAllBytes (relativePath, MessagePackSerializer.Serialize (data));
+			lock(relativePath)
+			{
+				WriteAllBytes (relativePath, MessagePackSerializer.Serialize (data));
+			}
 		}
 
 		/// <summary>

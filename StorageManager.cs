@@ -22,7 +22,10 @@ namespace hypixel
 
         static int savedOnDisc = 0;
 
-        public static int maxItemsInCache = 1000;
+        public static int SavedOnDisc => savedOnDisc;
+        public static int CacheItems => cache.Count;
+
+        public static int maxItemsInCache = 16384/2;
 
 
         static bool StopPurging = false;
@@ -58,12 +61,11 @@ namespace hypixel
 
             if(FileController.Exists (compactPath))
             {
-                Dictionary<string,User> users;
                 try{
-                    users = FileController.LoadAs<Dictionary<string,User>>(compactPath);
+                    resultSet = FileController.LoadAs<Dictionary<string,User>>(compactPath);
 
-                    SaveToCache(cacheKey,users,Save);
-                    if(users != null && users.TryGetValue(uuid,out result))
+                    SaveToCache(cacheKey,resultSet,Save);
+                    if(resultSet != null && resultSet.TryGetValue(uuid,out result))
                     {
                         Program.usersLoaded++;
                         return result;
@@ -71,7 +73,7 @@ namespace hypixel
                 } catch(InvalidOperationException e)
                 {
                     Console.WriteLine($"Because of {e.Message} \n Removing corrupt user {compactPath}" );
-                    FileController.Delete(compactPath);
+                    FileController.Move(compactPath,$"corrupted/{compactPath.Substring(compactPath.Length-4,4)}");
 
                 }
             }
@@ -84,7 +86,10 @@ namespace hypixel
                 resultSet = new Dictionary<string, User>();
                 SaveToCache<Dictionary<string,User>>(cacheKey,resultSet,Save);
             }
-            resultSet.Add(uuid,usr);
+            if(!resultSet.TryAdd(uuid,usr))
+            {
+                Console.Write($"Failed to add user {uuid} key: {cacheKey}");
+            }
             
             return usr;  
             }
@@ -102,7 +107,7 @@ namespace hypixel
 
         private static void Save(Dictionary<string,User> users)
         {
-            if(users.Count == 0)
+            if(users == null || users.Count == 0)
             {
                 // nothing to save
                 return;
@@ -117,7 +122,7 @@ namespace hypixel
                 // nothing to save
                 return;
             }
-            FileController.SaveAs (AuctionFilePath(auctions.Values.First().Uuid).Replace("sauc","nauc"), auctions);
+            FileController.SaveAs (AuctionFilePath(auctions.Values.First().Uuid), auctions);
         }
 
 
@@ -160,7 +165,7 @@ namespace hypixel
         /// <returns></returns>
         public static IEnumerable<SaveAuction> GetAllAuctions(bool deleteAfterRead = false)
         {
-            return GetContents<SaveAuction>("auctions",true,deleteAfterRead);
+            return GetContents<SaveAuction>("sauctions",true,deleteAfterRead);
         }
 
 
@@ -207,7 +212,10 @@ namespace hypixel
                 var compactPath = Path.Combine(path,file);
                 if(FileController.Exists (compactPath))
                 {
-                    foreach (var auction in FileController.ReadLinesAs<T> (compactPath))
+                    Console.Write($"\r Readig {file}");
+                    foreach (var auction in FileController.ReadLinesAs<T> (compactPath,()=>{
+                        FileController.Move(compactPath,"corrupted/"+compactPath);
+                    }))
                     {
                         yield return auction;
                     }
@@ -238,8 +246,6 @@ namespace hypixel
                             yield return GetOrCreateAuction(auctionRef.uuId,null,true);
                     }
                 }
-              
-                
             }
         }
 
@@ -313,16 +319,18 @@ namespace hypixel
                 return result;
             }
 
-            var compactPath = AuctionFilePath(uuid).Replace("sauc","nauc");
+            var compactPath = AuctionFilePath(uuid);
 
 
             if(FileController.Exists (compactPath))
             {
                 resultSet = FileController.LoadAs<Dictionary<string,SaveAuction>>(compactPath);
+                
                 if(noWrite)
                     SaveToCache(cacheKey,resultSet,s=>{});
                 else
                     SaveToCache(cacheKey,resultSet,Save);
+                    
                 if(resultSet != null && resultSet.TryGetValue(uuid,out result))
                 {
                     if(input !=null)
@@ -360,7 +368,7 @@ namespace hypixel
             if(cache.Count > maxItemsInCache)
             {
                 // save half
-                Save(maxItemsInCache/2);
+                Save(maxItemsInCache/2).Wait();
             }
 
 
@@ -469,7 +477,7 @@ namespace hypixel
                     {
                         files++;
                 
-                        Console.Write($"\r{i} - {files} cache: ({cache.Count})\t {savedOnDisc}\t");
+                        Console.Write($"\r{i} - {files} cache: ({cache.Count})\t {savedOnDisc}\t  {auction.Uuid}");
                     if(files%5000==0)
                     {
                     
@@ -496,20 +504,10 @@ namespace hypixel
 
         private static string AuctionFilePath(string uuid)
         {
-            return "sauctions/"+uuid.Substring(0,5).Insert(2,"/");
+            return "nauctions/"+uuid.Substring(0,5).Insert(2,"/");
             //return "fauctions/"+uuid.Substring(0,5);
         }
 
-        public static void Save(User user)
-        {
-            FileController.ReplaceLine<User> ("users/"+user.uuid.Substring(0,4),(a)=>a.uuid == user.uuid, user);
-        }
-
-        public static void Save(SaveAuction auction)
-        {
-            //FileController.ReplaceLine<SaveAuction> ("auctions/"+auction.Uuid.Substring(0,4),(a)=>a.Uuid == auction.Uuid, auction);
-            FileController.ReplaceLine<SaveAuction> (AuctionFilePath(auction.Uuid),(a)=>a!= null && a.Uuid == auction.Uuid, auction);
-        }
 
         public static void Save(ItemReferences item)
         {

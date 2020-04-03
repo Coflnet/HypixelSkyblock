@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Coflnet;
+using fNbt;
 using Hypixel.NET.SkyblockApi;
-using MessagePack;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
-    public class ItemDetails
+    public partial class ItemDetails
     {
         public static ItemDetails Instance;
 
@@ -52,33 +53,78 @@ namespace hypixel
             }
         }
 
+    
+
         public List<string> AllItemNames()
         {
-            return Items.Keys.ToList();
+            var result = new List<string>();
+            foreach (var item in Items.Values)
+            {
+                if(item == null || item.AltNames == null)
+                {
+                    continue;
+                }
+                result.AddRange(item.AltNames);
+            } 
+            return result;
         }
 
         public void AddOrIgnoreDetails(Auction a)
         {
-            var name = ItemReferences.RemoveReforges(a.ItemName);
-            if(Items.ContainsKey(name))
+            var id = NBT.ItemID(a.ItemBytes);
+            string Tier = null;
+            if(id=="PET")
+            {
+                var nbt = new NbtData(a.ItemBytes);
+                var tag = nbt.Root().Get<NbtString>("petInfo");
+                PetInfo info = JsonConvert.DeserializeObject<PetInfo>(tag.StringValue);
+                Tier=info.Tier;
+                var petType = info.Type;
+                id+=$"_{petType}_{Tier}";
+                var view = nbt.Data;
+            }
+            if(Items.ContainsKey(id))
             {
                 // already exists
                 // try to get shorter lore
-                if(Items[name]?.Description?.Length > a?.ItemLore?.Length && a.ItemLore.Length > 10)
+                if(Items[id]?.Description?.Length > a?.ItemLore?.Length && a.ItemLore.Length > 10)
                 {
-                    Items[name].Description = a.ItemLore;
+                    Items[id].Description = a.ItemLore;
                 }
+                return;
+            }
+            // legacy item names
+            var name = ItemReferences.RemoveReforges(a.ItemName);
+            if(Items.ContainsKey(name))
+            {
+                var item = Items[name];
+                item.Id = id;
+                if(item.AltNames == null)
+                {
+                    item.AltNames = new HashSet<string>();
+                }
+                item.AltNames.Add(name);
+                Items[id] = item;
+                Items.Remove(name);
+
                 return;
             }
 
             // new item, add it
+            AddNewItem(a,name,id,Tier);
+        }
+
+        private void AddNewItem(Auction a, string name, string id, string Tier)
+        {
             var i = new Item();
-            i.Name = name;
-            i.Tier = a.Tier;
+            i.Id = id;
+            i.AltNames = new HashSet<string>(){name};
+            i.Tier = Tier?? a.Tier;
             i.Category = a.Category;
             i.Description = a.ItemLore;
             i.Extra = a.Extra;
             i.MinecraftType = MinecraftTypeParser.Instance.Parse(a);
+
             //Console.WriteLine($"New: {name} ({i.MinecraftType})" );
             if(i.MinecraftType == "skull" )
             {
@@ -121,34 +167,6 @@ namespace hypixel
         public void Save()
         {
             FileController.SaveAs("itemDetails",Items);
-        }
-
-
-
-        [MessagePackObject]
-        public class Item
-        {
-            public static Item Default = new Item(){Name = "unknown",Description="This item has not yet been reviewed by our team"};
-
-
-            [Key(0)]
-            public string Name;
-            [Key(1)]
-            public List<string> AltNames;
-            [Key(2)]
-            public string Description;
-            [Key(3)]
-            public string IconUrl;
-            [Key(4)]
-            public string Category;
-            [Key(5)]
-            public string Extra;
-            [Key(6)]
-            public string Tier;
-            [Key(7)]
-            public string MinecraftType;
-            [Key(8)]
-            public string color;
         }
     }
 }

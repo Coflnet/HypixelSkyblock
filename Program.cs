@@ -4,24 +4,14 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Coflnet;
 using Hypixel.NET;
-using Hypixel.NET.SkyblockApi;
 using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
-using WebSocketSharp.Server;
-using WebSocketSharp;
 using WebSocketSharp.Net;
-using RestSharp.Extensions;
 using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.Primitives;
+using dev;
 
 namespace hypixel
 {
@@ -40,7 +30,7 @@ namespace hypixel
         /// <returns></returns>
         private static DateTime BlockedSince = new DateTime(0);
 
-        private static int RequestsSinceStart = 0;
+        public static int RequestsSinceStart {get;private set;}
 
         static void Main (string[] args) {
 
@@ -96,11 +86,16 @@ namespace hypixel
                     // test
                     
                 break;
+                case 'b':
+                    BazaarUpdater.Update(apiKey);
+                    break;
                 case 's':
-                    StartServer();
+                    var server = new Server();
+                    server.Start();
                     break;
                 case 'u':
-                    Update();
+                    var updater = new Updater(apiKey);
+                    updater.Update();
                     break;
                 case '1':
                     var user = ReadUser();
@@ -183,106 +178,29 @@ namespace hypixel
                     Console.WriteLine(auction.ItemName);
                     //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
                     break;
-                    case 'a':
+                case 'a':
                     Indexed();
                     break;
                 case 'i':
-                    BuildIndexes();
+                    Indexer.BuildIndexes();
                     break;
-                    case 'p':
-                    LastHourIndex();
-                    StorageManager.Migrate();
+                case 'p':
+                    Indexer.LastHourIndex();
+                    //StorageManager.Migrate();
                     break;
+                case 'n':
+                    //Console.WriteLine(JsonConvert.SerializeObject(ItemDetails.Instance.Items));
+                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAFVUXW/bNhS9jpPGdpot6LACW7uNG5otQZbWH0lVZ9iDpziOUScNYs99NCjp2iYikYJI5WN/yP/DP2zYpSQ3i15Ennt4eXl5DmsAVSiJGgCU1mBNBKVXJdhwVSpNqQZlw2dVWEfpz8F+Jdj6W3oJ8hvuhVgqQ/VcBHgW8pmm6L812AyEjkP+QIsGKsEKoa/h1XLhnPKIz/CELRf+QcOp0x/3Dpr1fTig4NAkKGdmXoSbrS9hGnzYG8bCf2AHrX3YJbKbCMPcOZf+Kt3u/1mN3X3YW9Ge7Fp3nhBbTWL+SsyOMdy/YcMYMcipT4kO8QC+Xy7aboj8Ftn4d2YntIHwecjG8KOdpp7QURHrygATNqRG0G8MP1noHv3UrBZ372NMBPUVWb/ft+dqn4kEWUfH6BvCMhZB2jDqjrgh3hh+IawnuDTsowhDmzqj9aOYh0LOslQ/EzBAMyfEPBSEgZgipUEq1lK+s5BSpliSU1JqwRjscOjTIeWM0q+CwzlPYolas7yGEYZ4IwgQmuWM0Ty1Rw5VEhDnB0LGPIpF8tiSMUoVqdSmAPhtuXjfNxixjidsnSdsgDy2t75chNf93vmIuYO++xHe0P1kISGNYmaOjIuEcRmwwJ5mueCt47qtiROReVwju+Az4Rc3z2iRRJ54D/aOHJQYCdQsjZVkIWWxHaAh5bV35MwS0n3wtlgcsBX/jroNr4nAQ62Yh2yaqH9QsqlKbAmNt3XYzkvQ6CvKAN+Qfi645MxV2lhR2TJfEOgqFQbqTp5kC61rdpaLYzp196rvsuHnT9enFVi/5BHCSwrkErQdsKUO76i/UIOvu/cm4aTbRHikKV2Gnbkyk1gZbtTEt+alxLUKfEXwVYb+pWSq4eVwdN297I3O/2zW/zjtXHR6XTuqQCVSgZgKTGBD2y0rUFWJmAk54jP41r3unI36l71J77p/OnE/DQZdd1SxrwVsD7qdKxvKSq/Bc/tWkEIjlIbqqohCm1RPuQzrIcmMhhsU8Qv/5NNnfuatfLIZ5urMF1X1SpD5fMs8ys++SWW7KYlvojO/5Smqtyv95fOtKdlrwjN7EbJWhhp+8WCetxaSTSba2iQHNjH3bJ7h+cw6b3KTOa+AptagtMQalKB1OtZtofNiW/NojKIwvTLT6uDZw1EEw5Vz7RxICWlKTX7jNNt86mH78IPjNQ6PsNU+9OpB6/CYB/XG0ZHTxOM6HYDLWxFOUo029zbdoRERakOdgJ1G/V3z/btGmzknDYddXVAP4FkudPuy/wdXfv82CAYAAA\u003d\u003d"));
+                    break;
+                case 'g':
+
                 default:
                     return true;
             }
             return false;
         }
 
-        private static void BuildIndexes()
-        {
-            Console.WriteLine("building indexes");
-            var lastIndex = new DateTime(1970,1,1);
-            var updateStart = DateTime.Now;
-
-            if(FileController.Exists("lastIndex"))
-                lastIndex = FileController.LoadAs<DateTime>("lastIndex");
-
-            // add an extra hour to make sure we don't miss something
-            lastIndex = lastIndex.Subtract(new TimeSpan(1,0,0));
-
-            AddIndexes(StorageManager.GetAllAuctions());
-            ItemPrices.Instance.Save();
-
-            // we are done
-            FileController.SaveAs("lastIndex",updateStart);
-        }
-
-        private static void AddIndexes(IEnumerable<SaveAuction> auctions)
-        {
-            int count = 0;
-            Parallel.ForEach(auctions,item=>{
-                if(item == null || item.Uuid == null)
-                {
-                    return;
-                }
-
-                        CreateIndex(item,true);
-
-                        if(count++ % 10 == 0)
-                        Console.Write($"\r{count} {item.Uuid.Substring(0,5)} u{usersLoaded}");
-                    });
-                    StorageManager.Save().Wait();
-        }
-
-        private static void CreateIndex(SaveAuction item, bool excludeUser = false)
-        {
-            if(item == null || item.ItemName == null)
-            {
-                // broken, ignore this aucion
-                return;
-            }
-            try{
-                //StorageManager.GetOrCreateItemRef(item.ItemName)?.auctions.Add(new ItemReferences.AuctionReference(item.Uuid,item.End));
-                ItemPrices.Instance.AddAuction(item);
-            } catch(Exception e)
-            {
-                Console.WriteLine($"Error on {item.ItemName} {e.Message}" );
-                throw e;
-            }
-
-            if(excludeUser)
-            {
-                return;
-            }
-                        
-            try {
-                
-                var u = StorageManager.GetOrCreateUser(item.Auctioneer,true);
-                u?.auctionIds.Add(item.Uuid);
-                // for search load the name
-                PlayerSearch.Instance.LoadName(u);
-            }catch(Exception e)
-            {
-                Console.WriteLine("Corrupted " + item.Auctioneer + $" {e.Message} \n{e.StackTrace}");
-            }
-
-        
-            foreach (var bid in item.Bids)
-            {
-                try {
-                    var u = StorageManager.GetOrCreateUser(bid.Bidder,true);
-                    u.Bids.Add(new AuctionReference(null,item.Uuid));
-                    PlayerSearch.Instance.LoadName(u);
-                }catch(Exception e)
-                {
-                    Console.WriteLine($"Corrupted user {bid.Bidder} {e.Message} {e.StackTrace}");
-                    // removing it
-
-                }
-
-            }
-        }
+       
 
 
         static void Indexed()
@@ -428,196 +346,7 @@ namespace hypixel
 
         
 
-        /// <summary>
-        /// Downloads all auctions and save the ones that changed since the last update
-        /// </summary>
-        static void Update () {
-            Console.WriteLine($"Usage bevore update {System.GC.GetTotalMemory(false)}");
-            var hypixel = new HypixelApi (apiKey, 5);
-            long max = 1;
-            var lastUpdate = new DateTime (1970,1,1);
-            if (FileController.Exists ("lastUpdate"))
-                lastUpdate = FileController.LoadAs<DateTime> ("lastUpdate").ToLocalTime ();
-
-            var lastUpdateStart = new DateTime (0);
-            if (FileController.Exists ("lastUpdateStart"))
-                lastUpdateStart = FileController.LoadAs<DateTime> ("lastUpdateStart").ToLocalTime ();
-
-            if(lastUpdateStart > lastUpdate && DateTime.Now - lastUpdateStart  < new TimeSpan(0,5,0))
-            {
-                Console.WriteLine("Last update start was to recent");
-                return;
-            }
-            Console.WriteLine($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
-            FileController.SaveAs("lastUpdateStart",DateTime.Now);
-
-            var updateStartTime = DateTime.UtcNow.ToLocalTime ();
-
-            Console.WriteLine (updateStartTime);
-
-            TimeSpan timeEst = new TimeSpan(0,1,1);
-            Console.WriteLine ("Updating Data");
-
-            // add extra miniute to start to catch lost auctions
-            lastUpdate = lastUpdate - new TimeSpan(0,1,0);
-
-            var tasks = new List<Task>();
-            int sum = 0;
-            int doneCont=0;
-            object sumloc = new object();
-
-            for (int i = 0; i < max; i++) {
-                var res = hypixel.GetAuctionPage (i);
-                if(i == 0)
-                {
-                    // correct update time
-                    Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}");
-                    //lastUpdate = res.LastUpdated;
-                }
-                max = res.TotalPages;
-                
-                tasks.Add(Task.Run(()=>{
-                     var val = Save(res,lastUpdate);
-                     lock(sumloc)
-                     {
-                         sum += val;
-                         // process done
-                         doneCont++;
-                     }
-                    PrintUpdateEstimate(i,doneCont,sum,updateStartTime,max);
-                }));
-                PrintUpdateEstimate(i,doneCont,sum,updateStartTime,max);
-
-                
-                // try to stay under 100MB
-                if(System.GC.GetTotalMemory(false) > 100000000)
-                {
-                    Console.Write("\t\t mem: " + System.GC.GetTotalMemory(false));
-                    // to much memory wait on a thread
-                    //tasks[i/2].Wait();
-                    //tasks[i/2].Dispose();
-                    System.GC.Collect();
-                }
-            }
-
-            foreach (var item in tasks)
-            {
-                //Console.Write($"\r {index++}/{updateEstimation} \t({index}) {timeEst:mm\\:ss}");
-                item.Wait();
-                PrintUpdateEstimate(max,doneCont,sum,updateStartTime,max);
-            }
-
-            ItemDetails.Instance.Save();
-
-
-            StorageManager.Save ().Wait();
-            FileController.SaveAs ("lastUpdate", updateStartTime);
-            Console.WriteLine($"Done {sum} in {DateTime.Now.ToLocalTime()}");
-        }
-
-        static void PrintUpdateEstimate(long i,long doneCont,long sum,DateTime updateStartTime, long max)
-        {
-            var index = sum;
-            // max is doubled since it is counted twice (download and done)
-            var updateEstimation = index*max*2/(i+1+doneCont)+1;
-            var ticksPassed = (DateTime.Now.ToLocalTime().Ticks-updateStartTime.Ticks);
-            var timeEst = new TimeSpan(ticksPassed/(index+1)*updateEstimation-ticksPassed) ;
-            Console.Write($"\r Loading: ({i}/{max}) Done With: {doneCont} Total:{sum} {timeEst:mm\\:ss}");
-        }
-
-        // builds the index for all auctions in the last hour
-        static void LastHourIndex()
-        {
-            Console.WriteLine($"{DateTime.Now}");
-            var targetTmp = FileController.GetAbsolutePath("awork");
-            var pullPath = FileController.GetAbsolutePath("auctionpull");
-            //DeleteDir(targetTmp);
-            if(!Directory.Exists(pullPath))
-            {
-                // update first
-                Update();
-            }
-            // only copy the pull path if there is no temp work path yet
-            if(!Directory.Exists(targetTmp))
-                Directory.Move(pullPath,targetTmp);
-
-
-            int count = 0;
-            try{
-                Parallel.ForEach(StorageManager.GetFileContents<SaveAuction>("awork",false,true),item=>{
-                    StorageManager.GetOrCreateAuction(item.Uuid,item);
-                    CreateIndex(item);
-                    count ++;
-                    Console.Write($"\r Indexed: {count} NameRequests: {RequestsSinceStart}");
-                });
-            } catch(System.AggregateException e)
-            {
-                // oh no an error occured, attempt to merge the data back into the update dir
-                Console.WriteLine($"An error occured: {e.StackTrace}");
-                FileController.DeleteFolder("auctionpull");
-                Directory.Move(FileController.GetAbsolutePath("awork"),FileController.GetAbsolutePath("auctionpull"));
-
-            }
-
-            ItemPrices.Instance.Save();
-            StorageManager.Save().Wait();
-
-            DeleteDir(targetTmp);
-        }
-
-        private static void DeleteDir(string path)
-        {
-            if(!Directory.Exists(path))
-            {
-                // nothing to do
-                return;
-            }
-
-            System.IO.DirectoryInfo di = new DirectoryInfo(path);
-
-            foreach (FileInfo file in di.GetFiles())
-            {
-                file.Delete(); 
-            }
-            foreach (DirectoryInfo dir in di.GetDirectories())
-            {
-                dir.Delete(true); 
-            }
-            Directory.Delete(path);
-        }
-
-        static int Save(GetAuctionPage res,DateTime lastUpdate)
-        {
-            int count = 0;
-            foreach (var item in res.Auctions) {
-
-                ItemDetails.Instance.AddOrIgnoreDetails(item);
-
-
-     
-                // nothing changed if the last bid is older than the last update
-                if (item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
-                    item.Bids.Count == 0 && item.Start < lastUpdate) {
-                    continue;
-                }
-
-                try{
-                    //var a = StorageManager.GetOrCreateAuction(item.Uuid,new SaveAuction(item));
-                    var auction = new SaveAuction(item);
-                    FileController.ReplaceLine<SaveAuction> ("auctionpull/"+auction.Uuid.Substring(0,4),(a)=>a.Uuid == auction.Uuid, auction);
-                    //CreateIndex(a);
-                } catch(Exception e)
-                {
-                    Console.WriteLine($"Error {e.Message} on {item.ItemName} {item.Uuid} from {item.Auctioneer}");
-                    Console.WriteLine(e.StackTrace);
-                }
-
-                count++;
-            }
-
-            return count;
-        }
-
+       
         static void pastAuctions (string name) {
             var hypixel = new HypixelApi (apiKey, 300);
             var getProfilesByName = hypixel.GetSkyblockProfilesByName ("ekwav");
@@ -649,7 +378,7 @@ namespace hypixel
                 return null;
             } else if(RequestsSinceStart >= 2000)
             {
-                Console.Write("Freed");
+                Console.Write("\tFreed 2000 ");
                 RequestsSinceStart = 0;
             }
 
@@ -691,8 +420,7 @@ namespace hypixel
                 return null;
             }
 
-            if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests
-            || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            if(response.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 //Console.WriteLine("Blocked");
                 //BlockedSince = DateTime.Now;
@@ -727,95 +455,6 @@ namespace hypixel
             return responseDeserialized.name;
         }
 
-        /// <summary>
-        /// Starts the backend server
-        /// </summary>
-        private static void StartServer()
-        {
-            var server = new HttpServer(8008);
-            server.AddWebSocketService<SkyblockBackEnd> ("/skyblock");
-            server.OnGet += (sender, e) => {
-                var req = e.Request;
-                var res = e.Response;
-
-                var path = req.RawUrl.Split('?')[0];
-
-                if(path == "/" || path.IsNullOrEmpty())
-                {
-                    path = "index.html";
-                }
-
-                byte[] contents;
-                var relativePath = $"files/{path}";
-
-                if(path.StartsWith("/static/skin"))
-                {
-                    if(!FileController.Exists(relativePath))
-                    {
-                        // try to get it from mojang
-                        var client = new RestClient("https://textures.minecraft.net/");
-                        var request = new RestRequest("/texture/{id}");
-                        request.AddUrlSegment("id",Path.GetFileName(relativePath));
-                        Console.WriteLine(Path.GetFileName(relativePath));
-                        var fullPath = FileController.GetAbsolutePath(relativePath);
-                        FileController.CreatePath(fullPath);
-                        var inStream = new MemoryStream(client.DownloadData(request));
-                        
-                        client.DownloadData(request).SaveAs(fullPath+ "f.png" );
-
-                        // parse it to only show face
-                       // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
-                        using (var outputImage = new Image<Rgba32>(16, 16))
-                        {
-                            var baseImage = SixLabors.ImageSharp.Image.Load(inStream);
-                            
-                            var lowerImage = baseImage.Clone(
-                                            i => i.Resize(256, 256)
-                                                .Crop(new Rectangle(32, 32, 32, 32)));
-    
-                            lowerImage.Save(fullPath+ ".png");        
-                             
-                        }
-                        FileController.Move(relativePath + ".png",relativePath);
-                    }
-
-                }
-
-
-                if (!FileController.Exists (relativePath)) {
-                    res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                    return;
-                }
-
-                contents = FileController.ReadAllBytes(relativePath);
-
-                if (path.EndsWith (".html")) {
-                    res.ContentType = "text/html";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-                else if (path.EndsWith (".png") || path.StartsWith("/static/skin")) {
-                    res.ContentType = "image/png";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-                else if (path.EndsWith (".css")) {
-                    res.ContentType = "text/css";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-                else if (path.EndsWith (".js")) {
-                    res.ContentType = "text/javascript";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-
-                res.WriteContent (contents);
-            };
-
-
-
-            server.Start ();
-            //Console.ReadKey (true);
-            Thread.Sleep(Timeout.Infinite);
-            server.Stop ();
-        }
 
     }
 

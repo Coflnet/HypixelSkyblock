@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Coflnet;
@@ -12,6 +13,8 @@ namespace hypixel
         public static PlayerSearch Instance;
 
         public static Dictionary<string,HashSet<PlayerResult>> players = new Dictionary<string, HashSet<PlayerResult>>();
+
+        private static ConcurrentDictionary<string,int> nameRequests = new ConcurrentDictionary<string, int>();
 
         static PlayerSearch()
         {
@@ -31,7 +34,6 @@ namespace hypixel
         public void AddHitFor(PlayerResult player)
         {
             var name = player.Name;
-            Console.WriteLine($"Adding hit for {name}");
             var key = name.Substring(0,2).ToLower();
             if(!players.TryGetValue(key,out HashSet<PlayerResult> resultSet))
             {
@@ -130,8 +132,6 @@ namespace hypixel
             }
         }
 
-        private static int loadedNames = 0;
-
         public void LoadName(User user)
         {
             if(!user.Name.IsNullOrEmpty() && user.Name.Length > 2)
@@ -141,11 +141,23 @@ namespace hypixel
                 return;
             }
 
+            
+            lock(nameRequests)
+            {
+                if(nameRequests.ContainsKey(user.uuid))
+                {
+                    // already on its way
+                    return;
+                }
+                nameRequests[user.uuid] = 1;
+            }
+
 
             var name = Program.GetPlayerNameFromUuid(user.uuid);
 
             if(name.IsNullOrEmpty())
             {
+                //Console.WriteLine($"\rCould not get name for: {user.uuid} {user.Name}");
                 return;
             }
 

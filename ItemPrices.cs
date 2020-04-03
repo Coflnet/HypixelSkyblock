@@ -97,7 +97,7 @@ namespace hypixel
             lock(pathsToSave){
                 pathsToSave.Add(path);
             }
-            if(pathsToSave.Count > 20000)
+            if(pathsToSave.Count > 2000)
             {
                 // start saving
                 Save();

@@ -20,3 +20,14 @@
 /media/ekwav/Daten2/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.AssemblyInfo.cs
 /media/ekwav/Daten2/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.dll
 /media/ekwav/Daten2/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.pdb
+/media/ekwav/Daten3/dev/hypixel/dev/bin/Release/netcoreapp2.2/hypixel.deps.json
+/media/ekwav/Daten3/dev/hypixel/dev/bin/Release/netcoreapp2.2/hypixel.runtimeconfig.json
+/media/ekwav/Daten3/dev/hypixel/dev/bin/Release/netcoreapp2.2/hypixel.runtimeconfig.dev.json
+/media/ekwav/Daten3/dev/hypixel/dev/bin/Release/netcoreapp2.2/hypixel.dll
+/media/ekwav/Daten3/dev/hypixel/dev/bin/Release/netcoreapp2.2/hypixel.pdb
+/media/ekwav/Daten3/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.csprojAssemblyReference.cache
+/media/ekwav/Daten3/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.csproj.CoreCompileInputs.cache
+/media/ekwav/Daten3/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.AssemblyInfoInputs.cache
+/media/ekwav/Daten3/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.AssemblyInfo.cs
+/media/ekwav/Daten3/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.dll
+/media/ekwav/Daten3/dev/hypixel/dev/obj/Release/netcoreapp2.2/hypixel.pdb
