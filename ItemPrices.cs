@@ -22,24 +22,39 @@ namespace hypixel
 
         public void AddAuction(SaveAuction auction)
         {
-            var path = PathTo(auction.ItemName,auction.End);
+            var path = PathTo(auction.Tag ?? auction.ItemName,auction.End);
             lock(path)
             {
-                var auctions = ItemsForDaySet(auction.ItemName,auction.End);
-                if(auctions == null)
-                {
-                    auctions = new ConcurrentHashSet<ItemIndexElement>();
-                }
                 var index = new ItemIndexElement(auction);
-                
-                if(auctions.Contains(index))
-                {
-                    auctions.TryRemove(index);
-                }
-                auctions.Add(index);
-                Save(path,auctions);
+                AddElement(index,auction.ItemName,path);
             }
         }
+
+        public void AddIndex(ItemIndexElement element,string name)
+        {
+            var path = PathTo(name,element.End);
+            lock(path)
+            {
+                AddElement(element,name,path);
+            }
+        }
+
+        private void AddElement(ItemIndexElement element,string name,string path)
+        {
+            var auctions = ItemsForDaySet(name,element.End);
+            if(auctions == null)
+            {
+                auctions = new ConcurrentHashSet<ItemIndexElement>();
+            }
+            
+            if(auctions.Contains(element))
+            {
+                auctions.TryRemove(element);
+            }
+            auctions.Add(element);
+            Save(path,auctions);
+        }
+
 
         public IEnumerable<ItemIndexElement> Search(ItemSearchQuery search)
         {
@@ -105,11 +120,10 @@ namespace hypixel
             
         }
 
-        public void Save()
+        public string Save()
         {
             lock(pathsToSave)
             {
-                Console.Write($"\tSAVING {cache.Count}" );
                 int count = 0;
                 foreach (var item in pathsToSave)
                 {
@@ -119,16 +133,16 @@ namespace hypixel
                         count++;
                     }
                 }
-                Console.Write($"\tSaved {count}");
 
                 pathsToSave.Clear();
+                return ($"\tSaved {count} itemIndexes");
             }
         }
 
 
-        string PathTo(string itemName, DateTime date)
+        public string PathTo(string itemName, DateTime date)
         {
-            return $"sitems/{ItemReferences.RemoveReforges(itemName)}/{date.ToString("yyyy-MM-dd")}";
+            return $"sitems/{ItemDetails.Instance.GetIdForName(itemName)}/{date.ToString("yyyy-MM-dd")}";
         }
 
         public static DateTime RoundDown(DateTime date, TimeSpan span)

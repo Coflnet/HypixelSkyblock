@@ -54,7 +54,7 @@ namespace hypixel
             }
 
             // matching category
-            if(!String.IsNullOrEmpty(itemCategory) && auction.Category != itemCategory)
+            if(!String.IsNullOrEmpty(itemCategory) && auction.Category.ToString().ToLower() != itemCategory.ToLower())
             {
                 return false;
             }

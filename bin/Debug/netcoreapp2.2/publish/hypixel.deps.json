@@ -1,19 +1,38 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.2",
-    "signature": "b1d9c15572af8f81c4abcc629d7528a3d8f39056"
+    "signature": "9adc3974f8f340ea31aa1e489193a0e828a4bb11"
   },
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.2": {
       "hypixel/1.0.0": {
         "dependencies": {
+          "ConcurrentHashSet": "1.1.0",
           "Hypixel.NET": "1.0.6",
-          "MessagePack": "1.8.80",
-          "WebSocketSharp": "1.0.3-rc11"
+          "MessagePack": "1.9.3",
+          "SixLabors.ImageSharp": "1.0.0-beta0007",
+          "WebSocketSharp": "1.0.3-rc11",
+          "fNbt": "0.6.4"
         },
         "runtime": {
           "hypixel.dll": {}
+        }
+      },
+      "ConcurrentHashSet/1.1.0": {
+        "runtime": {
+          "lib/netstandard2.0/ConcurrentCollections.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "fNbt/0.6.4": {
+        "runtime": {
+          "lib/net35-client/fNbt.dll": {
+            "assemblyVersion": "0.6.4.0",
+            "fileVersion": "0.6.4.0"
+          }
         }
       },
       "Hypixel.NET/1.0.6": {
@@ -30,7 +49,7 @@
           }
         }
       },
-      "MessagePack/1.8.80": {
+      "MessagePack/1.9.3": {
         "dependencies": {
           "System.Reflection.Emit": "4.3.0",
           "System.Reflection.Emit.Lightweight": "4.3.0",
@@ -40,12 +59,13 @@
         },
         "runtime": {
           "lib/netstandard2.0/MessagePack.dll": {
-            "assemblyVersion": "1.8.0.0",
-            "fileVersion": "1.8.80.42183"
+            "assemblyVersion": "1.9.0.0",
+            "fileVersion": "1.9.3.37394"
           }
         }
       },
       "Microsoft.CSharp/4.5.0": {},
+      "Microsoft.Net.Compilers.Toolset/3.1.0": {},
       "Newtonsoft.Json/12.0.1": {
         "runtime": {
           "lib/netstandard2.0/Newtonsoft.Json.dll": {
@@ -59,6 +79,30 @@
           "lib/netstandard2.0/RestSharp.dll": {
             "assemblyVersion": "106.6.9.0",
             "fileVersion": "106.6.9.0"
+          }
+        }
+      },
+      "SixLabors.Core/1.0.0-beta0008": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "4.5.1"
+        },
+        "runtime": {
+          "lib/netcoreapp2.1/SixLabors.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "SixLabors.ImageSharp/1.0.0-beta0007": {
+        "dependencies": {
+          "Microsoft.Net.Compilers.Toolset": "3.1.0",
+          "SixLabors.Core": "1.0.0-beta0008",
+          "System.Runtime.CompilerServices.Unsafe": "4.5.1"
+        },
+        "runtime": {
+          "lib/netcoreapp2.1/SixLabors.ImageSharp.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -155,6 +199,14 @@
           }
         }
       },
+      "System.Runtime.CompilerServices.Unsafe/4.5.1": {
+        "runtime": {
+          "lib/netcoreapp2.0/System.Runtime.CompilerServices.Unsafe.dll": {
+            "assemblyVersion": "4.0.4.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      },
       "System.Runtime.Serialization.Primitives/4.3.0": {
         "dependencies": {
           "System.Resources.ResourceManager": "4.3.0",
@@ -239,6 +291,20 @@
       "serviceable": false,
       "sha512": ""
     },
+    "ConcurrentHashSet/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1SuuhZe0wUJbchXdjS23O+quojkw0IXqM9LtUp3RwgQreDI4cj1lfDbdHnD4fOYEnUrftzVIYoonvPlsXm30Bg==",
+      "path": "concurrenthashset/1.1.0",
+      "hashPath": "concurrenthashset.1.1.0.nupkg.sha512"
+    },
+    "fNbt/0.6.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ApHeYBciy/XixfMdHjknJ4ct4bCrg/rWCOgiI/YyHRp5JMtldEWnQFc23y+S7MOZbL7rG2L+cD8r9P2U1ardqQ==",
+      "path": "fnbt/0.6.4",
+      "hashPath": "fnbt.0.6.4.nupkg.sha512"
+    },
     "Hypixel.NET/1.0.6": {
       "type": "package",
       "serviceable": true,
@@ -246,12 +312,12 @@
       "path": "hypixel.net/1.0.6",
       "hashPath": "hypixel.net.1.0.6.nupkg.sha512"
     },
-    "MessagePack/1.8.80": {
+    "MessagePack/1.9.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xre56bjDEMxPEpF6AiNDHPo2TgcyASwI3Xm6ryD30Ui5ei2J42qOIrpMy1Y7j6RRNb2TYZtVJ3HGeFKLBJGEKQ==",
-      "path": "messagepack/1.8.80",
-      "hashPath": "messagepack.1.8.80.nupkg.sha512"
+      "sha512": "sha512-4WcgRNyez4aW1Ia8q4KFgCe9j+UQwCAM3hyJtaCDD8LWoynMaDMmulDWRQqOP5FOOEEZtNUrM2zFRAPPa+BEew==",
+      "path": "messagepack/1.9.3",
+      "hashPath": "messagepack.1.9.3.nupkg.sha512"
     },
     "Microsoft.CSharp/4.5.0": {
       "type": "package",
@@ -259,6 +325,13 @@
       "sha512": "sha512-kaj6Wb4qoMuH3HySFJhxwQfe8R/sJsNJnANrvv8WdFPMoNbKY5htfNscv+LHCu5ipz+49m2e+WQXpLXr9XYemQ==",
       "path": "microsoft.csharp/4.5.0",
       "hashPath": "microsoft.csharp.4.5.0.nupkg.sha512"
+    },
+    "Microsoft.Net.Compilers.Toolset/3.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/iwBIkmusIUlBrln8AbKpYIcSGnImCYUMFSC3QOpGuOmnle44w2ORyH8IFDi8rbQNKjDH9HBmtPML/kW3GuxyA==",
+      "path": "microsoft.net.compilers.toolset/3.1.0",
+      "hashPath": "microsoft.net.compilers.toolset.3.1.0.nupkg.sha512"
     },
     "Newtonsoft.Json/12.0.1": {
       "type": "package",
@@ -273,6 +346,20 @@
       "sha512": "sha512-/IAQTwlnlQcjlIyvelf+rhQcCRPy/r/0MftpNbff/D7PZVnmVXE4AnHk/F4NJJJEZbI4M+QTglB+xFkAyzr+9A==",
       "path": "restsharp/106.6.9",
       "hashPath": "restsharp.106.6.9.nupkg.sha512"
+    },
+    "SixLabors.Core/1.0.0-beta0008": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rrKPDN107tVOh+mUoNh+kHELa7WfYZREPPbYdiKJ3Rd6dex/UgDWDGBOjPJn4BBhmts/VGuaXMXyfT/BwiuH2g==",
+      "path": "sixlabors.core/1.0.0-beta0008",
+      "hashPath": "sixlabors.core.1.0.0-beta0008.nupkg.sha512"
+    },
+    "SixLabors.ImageSharp/1.0.0-beta0007": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-R7BMm1MPyE3n4kSmTrdhB6iQmIZmSjBhnHG8mYrfi9t5CmIIgXhmGHHLZTZHa17Ka4b5bhUUqssAVEHDlDqnuQ==",
+      "path": "sixlabors.imagesharp/1.0.0-beta0007",
+      "hashPath": "sixlabors.imagesharp.1.0.0-beta0007.nupkg.sha512"
     },
     "System.Configuration.ConfigurationManager/4.5.0": {
       "type": "package",
@@ -350,6 +437,13 @@
       "sha512": "sha512-95j9KShuaAENf2gLbQ/9YoJDHIWAnoaFYA71xo4QVQyLkOMginn34cD1+6RcYIrqJamLkMXgvgUnOzwzBk+U0w==",
       "path": "system.runtime.caching/4.5.0",
       "hashPath": "system.runtime.caching.4.5.0.nupkg.sha512"
+    },
+    "System.Runtime.CompilerServices.Unsafe/4.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Zh8t8oqolRaFa9vmOZfdQm/qKejdqz0J9kr7o2Fu0vPeoH3BL1EOXipKWwkWtLT1JPzjByrF19fGuFlNbmPpiw==",
+      "path": "system.runtime.compilerservices.unsafe/4.5.1",
+      "hashPath": "system.runtime.compilerservices.unsafe.4.5.1.nupkg.sha512"
     },
     "System.Runtime.Serialization.Primitives/4.3.0": {
       "type": "package",

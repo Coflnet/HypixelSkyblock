@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using MessagePack;
 
 namespace hypixel
@@ -119,15 +120,15 @@ namespace hypixel
         public ConcurrentBag<AuctionReference> auctions = new ConcurrentBag<AuctionReference>();
 
 
-        public static string RemoveReforges(string fullItemName)
+        public static string RemoveReforgesAndLevel(string fullItemName)
         {
-            if(reforges.Contains(fullItemName.Split(' ')[0]))
+            if(reforges.Contains(fullItemName.Split(' ')[0]) && fullItemName.Split(' ')[1] != "Dragon" || fullItemName.StartsWith('◆'))
             { 
                 int i = fullItemName.IndexOf(" ")+1;
-                return fullItemName.Substring(i);
+                fullItemName = fullItemName.Substring(i);
             }
-
-            return fullItemName;
+            // remove pet level
+            return  Regex.Replace(fullItemName,@"\[Lvl \d{1,3}\] ","").Trim();
         }
 
         /// <summary>

@@ -144,7 +144,7 @@ namespace hypixel
 
         static string RemoveReforgesAndEnchanted(string input)
         {
-            var fullName = ItemReferences.RemoveReforges(input);
+            var fullName = ItemReferences.RemoveReforgesAndLevel(input);
 
             if(fullName.StartsWith("Enchanted"))
             {

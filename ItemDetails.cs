@@ -15,6 +15,8 @@ namespace hypixel
 
         public Dictionary<string,Item> Items = new Dictionary<string, Item>();
 
+        public Dictionary<string,string> ReverseNames = new Dictionary<string, string>();
+
         static ItemDetails ()
         {
             Instance = new ItemDetails();
@@ -31,70 +33,68 @@ namespace hypixel
             {
                 Items = new Dictionary<string, Item>();
             }
+            // correct keys
+            foreach (var item in Items.Keys.ToList())
+            {
+                if(Items[item].Id != item)
+                {
+                    Items.TryAdd(Items[item].Id,Items[item]);
+                    Items.Remove(item);
+                }
+            }
 
             foreach (var item in Items)
             {
-                if(item.Value == null || item.Value.IconUrl == null)
-                {
+                if(item.Value.AltNames == null)
                     continue;
-                }
+                item.Value.AltNames = item.Value.AltNames?.Select(s=>ItemReferences.RemoveReforgesAndLevel(s)).ToHashSet();
 
-                item.Value.IconUrl = item.Value.IconUrl.Replace("skyblock-backend.coflnet.com/static/skin","mc-heads.net/head");
-                if(item.Value.IconUrl.EndsWith("/50"))
+                foreach (var name in item.Value.AltNames)
                 {
-                    item.Value.IconUrl = item.Value.IconUrl.Replace("/50","");
+                    if(!ReverseNames.TryAdd(name,item.Key))
+                    {
+                        // make a good guess, anyone?
+                    }
                 }
-                
-                if(!item.Value.IconUrl.EndsWith("/50") && item.Value.IconUrl.StartsWith("https://mc"))
-                {
-                    item.Value.IconUrl += "/50";
-                }
-                
             }
         }
 
+
+        public string GetIdForName(string name)
+        {
+            var normalizedName = ItemReferences.RemoveReforgesAndLevel(name);
+            return ReverseNames.GetValueOrDefault(normalizedName,normalizedName);
+        }
     
 
-        public List<string> AllItemNames()
+        public IEnumerable<string> AllItemNames()
         {
-            var result = new List<string>();
-            foreach (var item in Items.Values)
-            {
-                if(item == null || item.AltNames == null)
-                {
-                    continue;
-                }
-                result.AddRange(item.AltNames);
-            } 
-            return result;
+            return ReverseNames.Keys;
         }
 
         public void AddOrIgnoreDetails(Auction a)
         {
             var id = NBT.ItemID(a.ItemBytes);
             string Tier = null;
-            if(id=="PET")
-            {
-                var nbt = new NbtData(a.ItemBytes);
-                var tag = nbt.Root().Get<NbtString>("petInfo");
-                PetInfo info = JsonConvert.DeserializeObject<PetInfo>(tag.StringValue);
-                Tier=info.Tier;
-                var petType = info.Type;
-                id+=$"_{petType}_{Tier}";
-                var view = nbt.Data;
-            }
+            
+
+
+            var name = ItemReferences.RemoveReforgesAndLevel(a.ItemName);
             if(Items.ContainsKey(id))
             {
-                // already exists
+                var tragetItem = Items[id];
+                if(tragetItem.AltNames == null)
+                    tragetItem.AltNames = new HashSet<string>();
+
                 // try to get shorter lore
                 if(Items[id]?.Description?.Length > a?.ItemLore?.Length && a.ItemLore.Length > 10)
                 {
                     Items[id].Description = a.ItemLore;
                 }
+                tragetItem.AltNames.Add(name);
                 return;
             }
             // legacy item names
-            var name = ItemReferences.RemoveReforges(a.ItemName);
             if(Items.ContainsKey(name))
             {
                 var item = Items[name];
@@ -154,9 +154,10 @@ namespace hypixel
         {
             if(Items== null)
                 Load();
-            var name = ItemReferences.RemoveReforges(fullName);
+            var name = ItemReferences.RemoveReforgesAndLevel(fullName);
             Console.WriteLine("Getting "+ fullName);
-            if(Items.TryGetValue(name,out Item value))
+            if(ReverseNames.TryGetValue(name,out string key) 
+            && Items.TryGetValue(key,out Item value))
             {
                 return value;
             }

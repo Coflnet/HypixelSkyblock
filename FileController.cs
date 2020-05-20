@@ -290,12 +290,21 @@ namespace Coflnet {
 			catch(Exception e)
 			{
 				Console.WriteLine($"Loaderror {absolutePath} {e.Message}");
+				var info = new FileInfo(absolutePath);
+					Console.WriteLine(info.LastAccessTimeUtc);
+					Console.WriteLine(info.LastWriteTimeUtc);
+					Console.WriteLine(info.Length);
+
+
 				if(attempt <= 0 )
 					throw e;
 				else
 				{
 					// wait
-					Thread.Sleep(2);
+					Thread.Sleep(1000);
+
+					
+
 					return RetryLoadAs<T>(absolutePath,(short)(attempt-1));
 				}
 			}

@@ -25,11 +25,19 @@ namespace hypixel
         public static int SavedOnDisc => savedOnDisc;
         public static int CacheItems => cache.Count;
 
-        public static int maxItemsInCache = 16384/2;
+        public static int maxItemsInCache = 16384/3;
 
 
         static bool StopPurging = false;
+        private static bool abort;
 
+        /// <summary>
+        /// Stopps loading and deleting
+        /// </summary>
+        public static void Stop()
+        {
+            abort = true;
+        }
 
         public static User GetOrCreateUser (string uuid, bool cacheAll = false) {
 
@@ -177,6 +185,11 @@ namespace hypixel
             {
                 foreach (var file in Directory.GetFiles (item))
                 {
+                    if(abort)
+                    {
+                        yield break;
+                    }
+
                     var compactPath = Path.Combine(path,file);
                     if(FileController.Exists (compactPath))
                     {
@@ -209,10 +222,14 @@ namespace hypixel
         {
             foreach (var file in FileController.FileNames("*",path))
             {
+                if(abort)
+                {
+                    yield break;
+                }
                 var compactPath = Path.Combine(path,file);
                 if(FileController.Exists (compactPath))
                 {
-                    Console.Write($"\r Readig {file}");
+                    Console.Write($"\r{file}");
                     foreach (var auction in FileController.ReadLinesAs<T> (compactPath,()=>{
                         FileController.Move(compactPath,"corrupted/"+compactPath);
                     }))
@@ -277,6 +294,12 @@ namespace hypixel
                         }
 
                         afterSave?.Invoke();
+
+                        if(cache.Count % 500 == 0)
+                        {
+                            // force collection to stay under server memory limit
+                            System.GC.Collect();
+                        }
                     }
 
                     
@@ -397,7 +420,7 @@ namespace hypixel
 
         public static ItemReferences GetOrCreateItemRef(string name, bool noWrite = false)
         {
-            name = ItemReferences.RemoveReforges(name);
+            name = ItemReferences.RemoveReforgesAndLevel(name);
 
             if(TryFromCache<ItemReferences>(name, out ItemReferences result))
             {

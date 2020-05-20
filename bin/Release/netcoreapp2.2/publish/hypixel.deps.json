@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.2",
-    "signature": "4c27e152bc88db3fe3b52704c8455fa4094cf110"
+    "signature": "9adc3974f8f340ea31aa1e489193a0e828a4bb11"
   },
   "compilationOptions": {},
   "targets": {
@@ -10,7 +10,7 @@
         "dependencies": {
           "ConcurrentHashSet": "1.1.0",
           "Hypixel.NET": "1.0.6",
-          "MessagePack": "1.8.80",
+          "MessagePack": "1.9.3",
           "SixLabors.ImageSharp": "1.0.0-beta0007",
           "WebSocketSharp": "1.0.3-rc11",
           "fNbt": "0.6.4"
@@ -49,7 +49,7 @@
           }
         }
       },
-      "MessagePack/1.8.80": {
+      "MessagePack/1.9.3": {
         "dependencies": {
           "System.Reflection.Emit": "4.3.0",
           "System.Reflection.Emit.Lightweight": "4.3.0",
@@ -59,8 +59,8 @@
         },
         "runtime": {
           "lib/netstandard2.0/MessagePack.dll": {
-            "assemblyVersion": "1.8.0.0",
-            "fileVersion": "1.8.80.42183"
+            "assemblyVersion": "1.9.0.0",
+            "fileVersion": "1.9.3.37394"
           }
         }
       },
@@ -312,12 +312,12 @@
       "path": "hypixel.net/1.0.6",
       "hashPath": "hypixel.net.1.0.6.nupkg.sha512"
     },
-    "MessagePack/1.8.80": {
+    "MessagePack/1.9.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xre56bjDEMxPEpF6AiNDHPo2TgcyASwI3Xm6ryD30Ui5ei2J42qOIrpMy1Y7j6RRNb2TYZtVJ3HGeFKLBJGEKQ==",
-      "path": "messagepack/1.8.80",
-      "hashPath": "messagepack.1.8.80.nupkg.sha512"
+      "sha512": "sha512-4WcgRNyez4aW1Ia8q4KFgCe9j+UQwCAM3hyJtaCDD8LWoynMaDMmulDWRQqOP5FOOEEZtNUrM2zFRAPPa+BEew==",
+      "path": "messagepack/1.9.3",
+      "hashPath": "messagepack.1.9.3.nupkg.sha512"
     },
     "Microsoft.CSharp/4.5.0": {
       "type": "package",

@@ -35,7 +35,7 @@
           "lib/netstandard2.0/Hypixel.NET.dll": {}
         }
       },
-      "MessagePack/1.8.80": {
+      "MessagePack/1.9.3": {
         "type": "package",
         "dependencies": {
           "System.Reflection.Emit": "4.3.0",
@@ -652,10 +652,10 @@
         "lib/netstandard2.0/Hypixel.NET.dll"
       ]
     },
-    "MessagePack/1.8.80": {
-      "sha512": "xre56bjDEMxPEpF6AiNDHPo2TgcyASwI3Xm6ryD30Ui5ei2J42qOIrpMy1Y7j6RRNb2TYZtVJ3HGeFKLBJGEKQ==",
+    "MessagePack/1.9.3": {
+      "sha512": "4WcgRNyez4aW1Ia8q4KFgCe9j+UQwCAM3hyJtaCDD8LWoynMaDMmulDWRQqOP5FOOEEZtNUrM2zFRAPPa+BEew==",
       "type": "package",
-      "path": "messagepack/1.8.80",
+      "path": "messagepack/1.9.3",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -668,7 +668,7 @@
         "lib/netstandard1.6/MessagePack.xml",
         "lib/netstandard2.0/MessagePack.dll",
         "lib/netstandard2.0/MessagePack.xml",
-        "messagepack.1.8.80.nupkg.sha512",
+        "messagepack.1.9.3.nupkg.sha512",
         "messagepack.nuspec"
       ]
     },
@@ -2583,7 +2583,7 @@
     ".NETCoreApp,Version=v2.2": [
       "ConcurrentHashSet >= 1.1.0",
       "Hypixel.NET >= 1.0.6",
-      "MessagePack >= 1.8.80",
+      "MessagePack >= 1.9.3",
       "Microsoft.NETCore.App >= 2.2.0",
       "SixLabors.ImageSharp >= 1.0.0-beta0007",
       "WebSocketSharp >= 1.0.3-rc11",
@@ -2639,7 +2639,7 @@
           },
           "MessagePack": {
             "target": "Package",
-            "version": "[1.8.80, )"
+            "version": "[1.9.3, )"
           },
           "Microsoft.NETCore.App": {
             "suppressParent": "All",

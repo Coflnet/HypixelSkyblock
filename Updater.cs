@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Coflnet;
+using dev;
 using Hypixel.NET;
 using Hypixel.NET.SkyblockApi;
 
@@ -26,16 +27,17 @@ namespace hypixel
             
             try {
                 RunUpdate(updateStartTime);
+                FileController.SaveAs ("lastUpdate", updateStartTime);
             } catch(Exception e)
             {
-                Console.WriteLine($"Updating stopped because of {e.Message} {e.StackTrace}");
+                Logger.Instance.Error($"Updating stopped because of {e.Message} {e.StackTrace}  {e.InnerException?.StackTrace}");
+                FileController.Delete("lastUpdateStart");
             }
 
             ItemDetails.Instance.Save();
 
 
             StorageManager.Save ().Wait();
-            FileController.SaveAs ("lastUpdate", updateStartTime);
             Console.WriteLine($"Done in {DateTime.Now.ToLocalTime()}");
         }
 
@@ -74,7 +76,9 @@ namespace hypixel
             object sumloc = new object();
 
             for (int i = 0; i < max; i++) {
-                var res = hypixel.GetAuctionPage (i);
+                var res = hypixel?.GetAuctionPage (i);
+                if(res == null)
+                    continue;
                 if(i == 0)
                 {
                     // correct update time
@@ -110,7 +114,7 @@ namespace hypixel
             foreach (var item in tasks)
             {
                 //Console.Write($"\r {index++}/{updateEstimation} \t({index}) {timeEst:mm\\:ss}");
-                item.Wait();
+                item?.Wait();
                 PrintUpdateEstimate(max,doneCont,sum,updateStartTime,max);
             }
 
@@ -152,8 +156,8 @@ namespace hypixel
                     //CreateIndex(a);
                 } catch(Exception e)
                 {
-                    Console.WriteLine($"Error {e.Message} on {item.ItemName} {item.Uuid} from {item.Auctioneer}");
-                    Console.WriteLine(e.StackTrace);
+                    Logger.Instance.Error($"Error {e.Message} on {item.ItemName} {item.Uuid} from {item.Auctioneer}");
+                    Logger.Instance.Error(e.StackTrace);
                 }
 
                 count++;

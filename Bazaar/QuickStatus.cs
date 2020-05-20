@@ -8,30 +8,30 @@ namespace dev
     {
         [Key(0)]
         [JsonProperty("productId")]
-        public string ProductId { get; private set; }
+        public string ProductId { get; set; }
         [Key(1)]
         [JsonProperty("buyPrice")]
-        public double BuyPrice { get; private set; }
+        public double BuyPrice { get; set; }
         [Key(2)]
         [JsonProperty("buyVolume")]
-        public long BuyVolume { get; private set; }
+        public long BuyVolume { get; set; }
         [Key(3)]
         [JsonProperty("buyMovingWeek")]
-        public long BuyMovingWeek { get; private set; }
+        public long BuyMovingWeek { get; set; }
         [Key(4)]
         [JsonProperty("buyOrders")]
-        public int BuyOrders { get; private set; }
+        public int BuyOrders { get; set; }
         [Key(5)]
         [JsonProperty("sellPrice")]
-        public double SellPrice { get; private set; }
+        public double SellPrice { get; set; }
         [Key(6)]
         [JsonProperty("sellVolume")]
-        public long SellVolume { get; private set; }
+        public long SellVolume { get; set; }
         [Key(7)]
         [JsonProperty("sellMovingWeek")]
-        public long SellMovingWeek { get; private set; }
+        public long SellMovingWeek { get; set; }
         [Key(8)]
         [JsonProperty("sellOrders")]
-        public int SellOrders { get; private set; }
+        public int SellOrders { get; set; }
     }
 }

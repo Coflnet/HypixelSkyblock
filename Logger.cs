@@ -18,6 +18,8 @@ namespace dev
 
         public void Error(string message)
         {
+            message+="\n";
+            System.Console.WriteLine(message);
             FileController.AppendLineAs("errors",message);
         }
     }

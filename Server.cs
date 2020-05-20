@@ -76,8 +76,10 @@ namespace hypixel
 
 
                 if (!FileController.Exists (relativePath)) {
-                    res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                    return;
+                    //res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                    //return;
+                    // vue.js will handle it internaly
+                    relativePath = $"files/index.html";
                 }
 
                 contents = FileController.ReadAllBytes(relativePath);

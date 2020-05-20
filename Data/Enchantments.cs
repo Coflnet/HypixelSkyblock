@@ -1,5 +1,7 @@
 using System;
 using MessagePack;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace hypixel
 {
@@ -72,6 +74,7 @@ namespace hypixel
         }
 
         [Key(0)]
+        [JsonConverter(typeof(StringEnumConverter))]
         public EnchantmentType Type;
         [Key(1)]
         public short Level;

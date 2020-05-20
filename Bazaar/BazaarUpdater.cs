@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Coflnet;
+using hypixel;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -62,5 +64,17 @@ namespace dev
         public bool WasSuccessful { get; private set; }
         [JsonProperty("product_info")]
         public ProductInfo ProductInfo { get; private set; }
+    }
+
+
+    public class BazaarController
+    {
+        public static BazaarController Instance = new BazaarController();
+
+
+        public IEnumerable<ProductInfo> GetInfo(string id)
+        {
+            return StorageManager.GetFileContents<ProductInfo>($"product/{id.Trim('"')}");
+        }
     }
 }

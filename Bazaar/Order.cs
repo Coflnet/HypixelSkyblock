@@ -8,12 +8,12 @@ namespace dev
     {
         [Key(0)]
         [JsonProperty("amount")]
-        public int Amount { get; private set; }
+        public int Amount { get; set; }
         [Key(1)]
         [JsonProperty("pricePerUnit")]
-        public double PricePerUnit { get; private set; }
+        public double PricePerUnit { get; set; }
         [Key(2)]
         [JsonProperty("orders")]
-        public int Orders { get; private set; }
+        public int Orders { get; set; }
     }
 }

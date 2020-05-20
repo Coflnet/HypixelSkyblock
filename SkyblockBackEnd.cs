@@ -23,6 +23,7 @@ namespace hypixel
             Commands.Add("playerAuctions",new PlayerAuctionsCommand());
             Commands.Add("playerBids",new PlayerBidsCommand());
             Commands.Add("allItemNames",new AllItemNamesCommand());
+            Commands.Add("bazaarPrices",new BazaarPricesCommand());
 
             
 

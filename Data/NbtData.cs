@@ -18,6 +18,11 @@ namespace hypixel
             this.data = NBT.Extra(data);
         }
 
+        public void SetData(NbtFile data)
+        {
+            this.data = NBT.Extra(data);
+        }
+
         public NbtFile Content()
         {
             return NBT.File(data,NbtCompression.None);
@@ -83,17 +88,13 @@ namespace hypixel
 
         public NbtData() { }
 
-        private static int counter = 0;
-        private static int counterIn = 0;
         public NbtData(string data) 
         {
-            counter++;
             SetData(data);
-            if(this.data.Length > 24)
-            {
-                counterIn++;
-                var asString = Content().ToString();
-            }
+        }
+        public NbtData(NbtFile data) 
+        {
+            SetData(data);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace hypixel
             [Key(0)]
             public string Id;
             [Key(1)]
-            public HashSet<string> AltNames;
+            public HashSet<string> AltNames = new HashSet<string>();
             [Key(2)]
             public string Description;
             [Key(3)]
