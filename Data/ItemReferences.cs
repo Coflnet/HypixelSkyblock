@@ -138,7 +138,7 @@ namespace hypixel
         /// <returns></returns>
         public static Reforge GetReforges(string fullItemName)
         {
-            if(Enum.TryParse(fullItemName.Split(' ')[0], out Reforge reforge))
+            if(Enum.TryParse(fullItemName.Split(' ')[0],true, out Reforge reforge))
             {
                 return reforge;
             }

@@ -1,22 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Coflnet;
 using dev;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel {
     public class Indexer {
         private static bool abort;
+        static int count = 0;
         public static void LastHourIndex () {
             var indexStart = DateTime.Now;
             Console.WriteLine ($"{indexStart}");
             var lastIndexStart = new DateTime (2020, 4, 25);
             if (FileController.Exists ("lastIndex"))
                 lastIndexStart = FileController.LoadAs<DateTime> ("lastIndex");
-                lastIndexStart = lastIndexStart-new TimeSpan(0,20,0);
+            lastIndexStart = lastIndexStart - new TimeSpan (0, 20, 0);
             var targetTmp = FileController.GetAbsolutePath ("awork");
-            var pullPath = FileController.GetAbsolutePath ("auctionpull");
+            var pullPath = FileController.GetAbsolutePath ("apull");
             //DeleteDir(targetTmp);
             if (!Directory.Exists (pullPath) && !Directory.Exists (targetTmp)) {
                 // update first
@@ -29,34 +32,21 @@ namespace hypixel {
             else
                 Console.WriteLine ("Resuming work");
 
-            int count = 0;
             try {
                 Console.Write ("working");
-                Parallel.ForEach (StorageManager.GetFileContents<SaveAuction> ("awork", false, true), (item, handler) => {
-                    try {
-                        if (abort) {
-                            handler.Stop ();
-                        }
-                        if (item == null || item.Uuid == null) {
-                            // we can't identify this auction, drop it
-                            return;
-                        }
-                        StorageManager.GetOrCreateAuction (item.Uuid, item);
-                        CreateIndex (item, false, lastIndexStart);
-                        count++;
-                        if (count % 5 == 0)
-                            Console.Write ($"\r         Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
 
-                    } catch (Exception e) {
-                        Logger.Instance.Error ($"An exception was thrown {e.Message} {e.StackTrace}\n");
-                    }
-                });
+                var work = PullData ();
+                foreach (var item in work) {
+                    ToDb (item);
+                }
+
                 if (!abort)
                     // successful made this index save the startTime
                     FileController.SaveAs ("lastIndex", indexStart);
             } catch (System.AggregateException e) {
                 // oh no an error occured
                 Logger.Instance.Error ($"An error occured while indexing, abording: {e.Message} {e.StackTrace}");
+                return;
                 //FileController.DeleteFolder("auctionpull");
 
                 //Directory.Move(FileController.GetAbsolutePath("awork"),FileController.GetAbsolutePath("auctionpull"));
@@ -67,6 +57,73 @@ namespace hypixel {
             saveTask.Wait ();
 
             DeleteDir (targetTmp);
+        }
+
+        static IEnumerable<List<SaveAuction>> PullData () {
+            var path = "awork";
+            foreach (var item in FileController.FileNames ("*", path)) {
+                if (abort) {
+                    yield break;
+                }
+                var fullPath = $"{path}/{item}";
+                List<SaveAuction> data = null;
+                try {
+                    data = FileController.LoadAs<List<SaveAuction>> (fullPath);
+                } catch (Exception) {
+                    Console.WriteLine("could not load downloaded auction-buffer");
+                    FileController.Move (fullPath, "correupted/" + fullPath);
+                }
+                if (data != null) {
+                    yield return data;
+                    FileController.Delete (fullPath);
+                }
+            }
+        }
+
+        private static void ToDb (List<SaveAuction> auctions) {
+            using (var context = new HypixelContext ()) {
+                List<string> playerIds = new List<string> ();
+                // preload
+                var inDb = context.Auctions.Where (a => auctions.Select (oa => oa.Uuid)
+                    .Contains (a.Uuid)).Include (a => a.Bids).ToDictionary (a => a.Uuid);
+
+                foreach (var auction in auctions) {
+
+                    try {
+                        playerIds.Add (auction.AuctioneerId);
+                        foreach (var bid in auction.Bids) {
+                            //Program.AddPlayer (context, bid.Bidder);
+                            playerIds.Add (bid.Bidder);
+                        }
+
+                        var id = auction.Uuid;
+                        if (inDb.TryGetValue (id, out SaveAuction dbauction)) {
+                            foreach (var bid in auction.Bids) {
+                                if (!dbauction.Bids.Contains (bid)) {
+                                    context.Bids.Add (bid);
+                                    dbauction.HighestBidAmount = auction.HighestBidAmount;
+                                }
+                            }
+                            // update
+                            context.Auctions.Update (dbauction);
+                        } else {
+                            context.Auctions.Add (auction);
+                        }
+
+                        count++;
+                        if (count % 5 == 0)
+                            Console.Write ($"\r         Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
+
+                    } catch (Exception e) {
+                        Logger.Instance.Error ($"Error {e.Message} on {auction.ItemName} {auction.Uuid} from {auction.AuctioneerId}");
+                        Logger.Instance.Error (e.StackTrace);
+                    }
+
+                }
+                Program.AddPlayers (context, playerIds);
+
+                context.SaveChanges ();
+            }
         }
 
         internal static void Stop () {
@@ -129,14 +186,14 @@ namespace hypixel {
             try {
                 if (item.Start > lastIndex) {
                     // we already have this
-                    var u = StorageManager.GetOrCreateUser (item.Auctioneer, true);
+                    var u = StorageManager.GetOrCreateUser (item.AuctioneerId, true);
                     u?.auctionIds.Add (item.Uuid);
                     // for search load the name
                     PlayerSearch.Instance.LoadName (u);
                 }
 
             } catch (Exception e) {
-                Console.WriteLine ("Corrupted " + item.Auctioneer + $" {e.Message} \n{e.StackTrace}");
+                Console.WriteLine ("Corrupted " + item.AuctioneerId + $" {e.Message} \n{e.StackTrace}");
             }
 
             foreach (var bid in item.Bids) {

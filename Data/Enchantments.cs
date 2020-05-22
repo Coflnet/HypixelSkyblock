@@ -1,11 +1,10 @@
 using System;
-using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace hypixel
 {
-    [MessagePackObject]
+    [MessagePack.MessagePackObject]
     public class Enchantment
     {
         public enum EnchantmentType
@@ -73,11 +72,19 @@ namespace hypixel
             
         }
 
-        [Key(0)]
+        [System.ComponentModel.DataAnnotations.Key]
+        [MessagePack.IgnoreMember]
+        [JsonIgnore]
+        public int Id {get;set;}
+
+        [MessagePack.Key(0)]
         [JsonConverter(typeof(StringEnumConverter))]
-        public EnchantmentType Type;
-        [Key(1)]
-        public short Level;
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        public EnchantmentType Type {get;set;}
+
+        [MessagePack.Key(1)]
+        public short Level {get;set;}
+
 
         public Enchantment(EnchantmentType type, short level)
         {

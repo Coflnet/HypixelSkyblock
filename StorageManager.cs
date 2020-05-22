@@ -244,7 +244,7 @@ namespace hypixel
 
         public static IEnumerable<SaveAuction> GetAuctionsWith(string itemName,DateTime start, DateTime end)
         {
-            foreach (var item in FileController.FileNames( "*","items"))
+            foreach (var item in FileController.FileNames( "*","sitems"))
             {
                 if(item.ToLower() == itemName.ToLower())
                 {
@@ -327,6 +327,15 @@ namespace hypixel
 
         public static SaveAuction GetOrCreateAuction(string uuid,SaveAuction input = null,bool noWrite = false)
         {
+            using (var context = new HypixelContext ())
+            {
+                var res = context.Auctions.Where(a=>a.Uuid == uuid);
+                if(res.Any())
+                {
+                    return res.First();
+                }
+                
+            }
             var cacheKey = uuid.Substring(0,5);
             lock(cacheKey)
             {

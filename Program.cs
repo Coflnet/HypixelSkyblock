@@ -4,19 +4,22 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Coflnet;
 using dev;
 using Hypixel.NET;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
 using SixLabors.ImageSharp.Formats;
 using WebSocketSharp.Net;
+using static hypixel.Enchantment;
 
 namespace hypixel {
 
     class Program {
-        static string apiKey = "9be89f9a-74f9-4e90-a861-8e184aee685f";
+        static string apiKey = "7449745d-47a6-4bd7-b838-3074aaff669b";
 
         public static bool displayMode = false;
 
@@ -33,17 +36,17 @@ namespace hypixel {
         static void Main (string[] args) {
 
             Console.CancelKeyPress += delegate {
-                Console.WriteLine("\nAbording");
+                Console.WriteLine ("\nAbording");
 
                 var cacheCount = StorageManager.CacheItems;
-                StorageManager.Stop();
-                Indexer.Stop();
-                
-                var t = StorageManager.Save();
-                Console.WriteLine("Saving");
-                ItemPrices.Instance.Save();
-                t.Wait();
-                Console.WriteLine($"Saved {cacheCount}");
+                StorageManager.Stop ();
+                Indexer.Stop ();
+
+                var t = StorageManager.Save ();
+                Console.WriteLine ("Saving");
+                ItemPrices.Instance.Save ();
+                t.Wait ();
+                Console.WriteLine ($"Saved {cacheCount}");
             };
 
             if (args.Length > 0) {
@@ -96,7 +99,8 @@ namespace hypixel {
 
                     break;
                 case 'b':
-                    BazaarUpdater.Update (apiKey);
+                    var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
+                    BazaarUpdater.NewUpdate (key);
                     break;
                 case 's':
                     var server = new Server ();
@@ -113,11 +117,33 @@ namespace hypixel {
                     }
                     break;
                 case '2':
-                    foreach (var item in GetBiddedAuctions (ReadUser ())) {
-                        Console.WriteLine ($"{item.ItemName} highest bid {item.HighestBidAmount}, Ended: {item.End < DateTime.UtcNow.ToLocalTime()}");
-                        foreach (var bids in item.Bids) {
-                            Console.WriteLine ($"\t{bids.Amount} from {StorageManager.GetOrCreateUser(bids.Bidder).Name}");
+                    using (var context = new HypixelContext ()) {
+                        var result = context.BazaarPull
+                            .Include (p => p.Products)
+                            .ThenInclude (p => p.BuySummery)
+                            .Include (p => p.Products)
+                            .ThenInclude (p => p.QuickStatus)
+
+                            .Where (p => p.Timestamp > new DateTime (2020, 5, 22, 19, 32, 0)).ToList ();
+
+                        var a = result.Where (b => b.Products.Exists (p => p.ProductId == "SUPERIOR_FRAGMENT"))
+                            .ToList ();
+                        var res = new List<ProductInfo> ();
+                        foreach (var item in a) {
+                            res.AddRange (item.Products.Where (p => p.ProductId == "SUPERIOR_FRAGMENT"));
                         }
+                        foreach (var item in res) {
+                            if (item == null || item.BuySummery == null) {
+                                Console.WriteLine ("null");
+                                continue;
+                            }
+                            if (item.BuySummery.Count == 0) {
+                                Console.WriteLine ("empty");
+                                continue;
+                            }
+                            Console.WriteLine ($"Top: {item?.BuySummery?.First().PricePerUnit}  {item?.QuickStatus?.BuyPrice} {item?.QuickStatus?.BuyVolume}");
+                        }
+
                     }
                     break;
                 case '3':
@@ -149,9 +175,9 @@ namespace hypixel {
                             continue;
 
                         if (a.Bids == null || a.Bids.Count == 0)
-                            Console.WriteLine ($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.Auctioneer}) to noone");
+                            Console.WriteLine ($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.AuctioneerId}) to noone");
                         else
-                            Console.WriteLine ($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.Auctioneer}) to {a.Bids.Last().Bidder} id: {item.uuId} ");
+                            Console.WriteLine ($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.AuctioneerId}) to {a.Bids.Last().Bidder} id: {item.uuId} ");
 
                     }
 
@@ -193,7 +219,7 @@ namespace hypixel {
                     //StorageManager.Migrate();
                     break;
                 case 'n':
-                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAN1WTW/bRhAdx04iKy2cNHUbNy26aZMmjkObpPgh8abIsiRUsgxbbo/CklxKhCnSIFd23EPPPfXSa3Mr4P/ha/9FfkjTWUrWh+UYbhAUaHWgyNmZ2dmd995uFmAR5vwsACzcgBu+OyfNwc1S1A/5XBbmOe0swgILnS6I3xzc2Q/tmNEDagdsbh4Wq77LtgLaSXD0ryzcdv3kMKAnGFSPYpZB6+fw/OzULMU+J6UuDR1mkbNTZ814gn/5Z/vhYcBoQkNO0LQ69t2kPdoZ+uZmfXPoC/ApelcZDXhXONI1UyfVHfgErZvMY2HCBmZDhlW01ULOgsDvsGERdC03m1ekvXN2WqjE0THvkh/gG4ysxDiYnE+BJb15/QcZTIyj67CEATtxxJnD/SjEoG+ngxQRRN+8/oUM60qjPsaoVjeKw4TUajX4ehxDhbsui2WbTrpphEdp0pjZ2BtXjBfS4cgjbrpVxBX1wAO02dQ5IJQT3mX4x/GLxeuiFWenxlY/CMge4+RlFPYTi7RoeDDcHQcbm7Bken1iDvtksAp8hWf4oIMCptdDJryIF8XwBF/YEYuF2c69kGVZ5Cr3WEwDNyF+SE6ifgxfijVGQTDYu3XSoK9ITpcJo05XFH337FQ/Ow3KO7USedlstvbm4Sb64wTwFjKwsE17DB6h00Qbh5OQYtyLYlxpxBPIwlL5FY9pkfPYt/ucJZnzRLdlS9V1S85Aphe5vuezGLL9UboMLEax3/HDFu3Acmm3uNWqbVfald3aZrvUrNfLpVZGUAfulxvl3WJ9s13cbTR322m1WfhI0AfT9Bi2dh5u8bTluLL5ecgejlCDhps42klxJz7E4vp9TPuY2qajFFxZMry8K2kypRIt6Kak5jXbcBWPFTwHc9HwyA/afWyhoCpWzf0eSzjtHcJdc0PRN5QCURRLNkixAXADbg04BuJdMP/FBea/D9sXZ9mXk9H+4BLoVWnCGayMYS/wesxozGJy7OMmYFdNzHDI4h4NcfcGEUgWAbHjrh8wyODrMe6nQApJ3fOtro/o4qxHHBoSm5GYIRw7zH0kCEARS/vbpWaj0dwm9XKlgq0cQ+qnE/ccUl+gb8MPWfw0Ic0+91CT6qyDKOhciaU7iqpaiqpYiixPAef+NHD2qrWtIWyWG7Xt8m67ud/aqrXa5zWNum9rumZQsyCpzCtImucwyWa2KSkF0zY9nRqOqk81e8nYUAzR7LyV097R67UPrPKfwfIFLVbeIcYpHP6xwv7rWrlyCWCLdhLFNjwWMjYUtoIio2J1epSU+jZq54GPSuYKoXyKj45/xKZgnW7M9PLgO/wciar95vdfyeRBNYa6YINIgwhMUyaMD9RSlcdq+RCdJuv5Pq0n3XkZ7uFguhRszND0cGSaOR3la1FqeUKeS9XyXmunXmyVR4R6+9tIo1Ho9YEgYx+GNXYRsogklIErKLUoxFnRTOu6hFoZ6G9zq90oVhrF9riuq9X4UvHNu7KnuQUq5ZS8I2laTpdsXXUk3clrrks9zXa0i1qbU1KtVS1ZIzuX8u/5B+bfcnrcTvFPzWOb0wvOj37C8GqDn6uX8lEcwXuHbIiTNXUiSF1NE89enQx9wsvQ/8/Xpv+oFNybYGa1XG+UWyNW/vznyjkrv0KvtIkXqFllQY/xq2iZVVTDUuWcJY6f8cVp4RizXfvKtHyBqoNCr03TmRvUmLe6q5ieYlIpbzNP0nKaLeGdyZHyCCVN9xzqssLVl6YlvDTJKZEt3ZzhMfwNcS15lTsNAAA\u003d"));
+                    Console.WriteLine (NBT.Pretty ("H4sIAAAAAAAAAN1WTW/bRhAdx04iKy2cNHUbNy26aZMmjkObpPgh8abIsiRUsgxbbo/CklxKhCnSIFd23EPPPfXSa3Mr4P/ha/9FfkjTWUrWh+UYbhAUaHWgyNmZ2dmd995uFmAR5vwsACzcgBu+OyfNwc1S1A/5XBbmOe0swgILnS6I3xzc2Q/tmNEDagdsbh4Wq77LtgLaSXD0ryzcdv3kMKAnGFSPYpZB6+fw/OzULMU+J6UuDR1mkbNTZ814gn/5Z/vhYcBoQkNO0LQ69t2kPdoZ+uZmfXPoC/ApelcZDXhXONI1UyfVHfgErZvMY2HCBmZDhlW01ULOgsDvsGERdC03m1ekvXN2WqjE0THvkh/gG4ysxDiYnE+BJb15/QcZTIyj67CEATtxxJnD/SjEoG+ngxQRRN+8/oUM60qjPsaoVjeKw4TUajX4ehxDhbsui2WbTrpphEdp0pjZ2BtXjBfS4cgjbrpVxBX1wAO02dQ5IJQT3mX4x/GLxeuiFWenxlY/CMge4+RlFPYTi7RoeDDcHQcbm7Bken1iDvtksAp8hWf4oIMCptdDJryIF8XwBF/YEYuF2c69kGVZ5Cr3WEwDNyF+SE6ifgxfijVGQTDYu3XSoK9ITpcJo05XFH337FQ/Ow3KO7USedlstvbm4Sb64wTwFjKwsE17DB6h00Qbh5OQYtyLYlxpxBPIwlL5FY9pkfPYt/ucJZnzRLdlS9V1S85Aphe5vuezGLL9UboMLEax3/HDFu3Acmm3uNWqbVfald3aZrvUrNfLpVZGUAfulxvl3WJ9s13cbTR322m1WfhI0AfT9Bi2dh5u8bTluLL5ecgejlCDhps42klxJz7E4vp9TPuY2qajFFxZMry8K2kypRIt6Kak5jXbcBWPFTwHc9HwyA/afWyhoCpWzf0eSzjtHcJdc0PRN5QCURRLNkixAXADbg04BuJdMP/FBea/D9sXZ9mXk9H+4BLoVWnCGayMYS/wesxozGJy7OMmYFdNzHDI4h4NcfcGEUgWAbHjrh8wyODrMe6nQApJ3fOtro/o4qxHHBoSm5GYIRw7zH0kCEARS/vbpWaj0dwm9XKlgq0cQ+qnE/ccUl+gb8MPWfw0Ic0+91CT6qyDKOhciaU7iqpaiqpYiixPAef+NHD2qrWtIWyWG7Xt8m67ud/aqrXa5zWNum9rumZQsyCpzCtImucwyWa2KSkF0zY9nRqOqk81e8nYUAzR7LyV097R67UPrPKfwfIFLVbeIcYpHP6xwv7rWrlyCWCLdhLFNjwWMjYUtoIio2J1epSU+jZq54GPSuYKoXyKj45/xKZgnW7M9PLgO/wciar95vdfyeRBNYa6YINIgwhMUyaMD9RSlcdq+RCdJuv5Pq0n3XkZ7uFguhRszND0cGSaOR3la1FqeUKeS9XyXmunXmyVR4R6+9tIo1Ho9YEgYx+GNXYRsogklIErKLUoxFnRTOu6hFoZ6G9zq90oVhrF9riuq9X4UvHNu7KnuQUq5ZS8I2laTpdsXXUk3clrrks9zXa0i1qbU1KtVS1ZIzuX8u/5B+bfcnrcTvFPzWOb0wvOj37C8GqDn6uX8lEcwXuHbIiTNXUiSF1NE89enQx9wsvQ/8/Xpv+oFNybYGa1XG+UWyNW/vznyjkrv0KvtIkXqFllQY/xq2iZVVTDUuWcJY6f8cVp4RizXfvKtHyBqoNCr03TmRvUmLe6q5ieYlIpbzNP0nKaLeGdyZHyCCVN9xzqssLVl6YlvDTJKZEt3ZzhMfwNcS15lTsNAAA\u003d"));
                     //Console.WriteLine (JsonConvert.SerializeObject (ItemDetails.Instance.Items.Where (item => item.Value.AltNames != null && item.Value.AltNames.Count > 3 && !item.Key.Contains("DRAGON")).Select((item)=>new P(item.Value))));
                     break;
                 case 'g':
@@ -203,22 +229,108 @@ namespace hypixel {
                 case 'm':
                     Migrator.Migrate ();
                     break;
+                case 'd':
+                    DBTest ();
+                    break;
                 default:
                     return true;
             }
             return false;
         }
 
-        class P 
-        {
-            public string id;
-            public HashSet<string> AltNames;
+        static void DBTest () {
+            using (var context = new HypixelContext ()) {
+                // Creates the database if not exists
+                context.Database.EnsureCreated ();
 
-            public P(ItemDetails.Item item)
-            {
-                id = item.Id;
-                AltNames = item.AltNames;
+                var data = new NbtData ("H4sIAAAAAAAAAE1T3W7aSBQ+JO0WqLZ/6nU7Reld3DVg/iL1gkBCTGOHJEASqqoa28dmwD/IHidxql7sA+wj9JoX6BPwKH2Q1R5It6o00pyf73zfOUczRYAC5EQRAHJbsCWc3D85eNiJ0lDmirAtubcNhSPh4KHPvYRQ/xaheD5Pff/kJsQ4D1u6Azuu06w2uKYpTq3lKFW7bClc47ZSd3izbqlNB60K1Q3iaIGxFJgUIC/xVqYxJhvpPDwccz9F+I5ZX51cTlXnsu/bmV4nf3iu+if6bNHQw3FmdfS6HlD+qF0/zlq/YWuSX9T8q2p/OglPUysYq8fVMx+Pzsp2MLo2Z+b85MIU5mx0a1SuMqNrZ5PheG72Rqoxm8zNu/2pORyVzUp/ZtzNNbLVqztPM3qn6mToCLMynp30xoHZnavmxVgY3X5giH7LvVTf0wRFeOSIZOHzrAAPjqMY8xR8AX+uls1OFFhcsgFKCj1fLRvnMsbQk9M9tlpyFZ5RqIsuhgn+jAA8XS3r+9yOQnbI4wBjeEUgOgPhsUCEIgoTdhPF8w3+XfUtvCGD8i5PJMbsZip8ZFSdRWnMROLz0CHWJ8Q6WFcZGxi8vifdT103YXKKjOgDHrKEqB1mZbC7AZCCRkL2j29/sy4PuIfkNYjyXr3yMweP6f5/NlLb2RTjmfCmUrF9Yc+ZjBh3HJISCVugJH+9ENx0ufYDDNM3622ulrXV0j8Y6J08PDB5gPCS2D4eX/us/In0aved0tqfHtzKmLeljIWVSkzy8IiY9NCN4OJLSWYLLO2VBnrPaJul3RK3pbimiMv9BHdLeLso7anv1N0SPcqYgGtFgk3pwa8pfgFtmjYbJegQ/GseClEsPBEOuQdPTkd658Pnzln7cKibvfz6D8H24GBIjacp2TtVTaMfUOOK1WygommtltJqYUOx3Faj0bTLWC9zopQiwETyYAHPan9VVDqsrO6Vm6xtAGzBH/ebh22A/wDOxlWDtAMAAA\u003d\u003d");
+
+                int count = 0;
+                Console.Write ("starting");
+                foreach (var item in AllAuctions ()) {
+                    Console.Write ($"\r {count}  {item.AuctioneerId}");
+                    if (!context.Auctions.Contains (item) && item != null) {
+                        context.Auctions.Add (item);
+                        AddPlayer (context, item.AuctioneerId);
+                        if (item.Bids != null)
+                            foreach (var player in item.Bids) {
+                                AddPlayer (context, player.Bidder);
+                            }
+                        count++;
+                    }
+                    if (count % 1000 == 0)
+                        context.SaveChanges ();
+
+                    if (count > 10000)
+                        break;
+                }
+
+                // Saves changes
+                context.SaveChanges ();
             }
+        }
+
+        public static void AddPlayer (HypixelContext context, string uuid, string name = null) {
+            var p = new Player () { UuId = uuid };
+            if (context.Players.Find (p.UuId) == null && p.UuId != null) {
+                p.Name = name;
+                context.Players.Add (p);
+
+            }
+        }
+
+        public static void AddPlayers (HypixelContext context, List<string> ids) {
+            Console.WriteLine ($"Todo {ids.Count}");
+            var found = context.Players.Where (p => ids.Contains (p.UuId)).ToDictionary (p => p.UuId);
+            var names = new Dictionary<string, string> ();
+            try {
+                Parallel.ForEach (ids, id => {
+                    if (!found.ContainsKey (id)) {
+                        names[id] = GetPlayerNameFromUuid (id);
+                        Console.Write ($"\r            Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
+
+                    }
+
+                });
+            } catch (Exception) {
+                Console.WriteLine ("getting names failed");
+            }
+
+            //var notFound = new List<Player>();
+            var playerIndex = 0;
+            foreach (var item in ids) {
+                names.TryGetValue (item, out string name);
+                AddPlayer (context, item, name);
+                Console.Write ($"\r  p{playerIndex++}          Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
+
+            }
+        }
+
+        static IEnumerable<SaveAuction> AllAuctions () {
+            var path = "nauctions";
+            foreach (var item in FileController.DirectoriesNames ("*", path)) {
+                var dirName = Path.GetFileName (item);
+                foreach (var fileName in Directory.GetFiles (item).Select (Path.GetFileName)) {
+                    var compactPath = $"{path}/{dirName}/{fileName}";
+
+                    Dictionary<string, SaveAuction> auctions = null;
+                    try {
+                        auctions = FileController.LoadAs<Dictionary<string, SaveAuction>> (compactPath);
+
+                        FileController.Move (compactPath, compactPath.Replace ("nauctions", "importedAuctions"));
+                    } catch (Exception e) {
+
+                        Console.WriteLine ($"Skipping {compactPath} because of {e.Message}");
+                    }
+                    if (auctions == null)
+                        continue;
+                    foreach (var auction in auctions) {
+                        yield return auction.Value;
+                    }
+
+                }
+            }
+
         }
 
         static void Indexed () {

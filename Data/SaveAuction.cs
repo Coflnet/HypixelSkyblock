@@ -5,10 +5,15 @@ using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace hypixel {
+namespace hypixel
+{
+
     [MessagePackObject]
     public class SaveAuction {
+        [IgnoreMember]
+        public int Id {get;set;}
         [Key (0)]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string Uuid { get; set; }
 
         [Key (1)]
@@ -21,16 +26,27 @@ namespace hypixel {
         public long StartingBid { get; set; }
 
         [Key (4)]
-        public string OldTier { get; set; }
+        public string OldTier { set {
+            if(value == null)
+                return;
+            Tier =  (Tier)Enum.Parse(typeof(Tier),value,true);
+        } }
+
 
         [Key (5)]
-        public string OldCategory;
+        public string OldCategory {set{
+            if(value == null)
+                return;
+            Category =  (Category)Enum.Parse(typeof(Category),value,true);
+        }}
 
         [Key (6)]
-        public string Tag;
+        [System.ComponentModel.DataAnnotations.MaxLength(40)]
+        public string Tag {get; set;}
         // [Key (7)]
         //public string ItemLore;
         [Key (8)]
+        [System.ComponentModel.DataAnnotations.MaxLength(45)]
         public string ItemName { get; set; }
 
         [Key (9)]
@@ -40,45 +56,68 @@ namespace hypixel {
         public DateTime End { get; set; }
 
         [Key (11)]
-        public string Auctioneer { get; set; }
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        public string AuctioneerId { get; set; }
+    /*    [IgnoreMember]
+        [System.ComponentModel.DataAnnotations.Schema.ForeignKey("AuctioneerId")]
+        public Player Auctioneer {get;set;} */
+
         /// <summary>
         /// is <see cref="null"/> if it is the same as the <see cref="Auctioneer"/>
         /// </summary>
         [Key (12)]
-        public string ProfileId;
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        public string ProfileId {get; set;}
         /// <summary>
         /// All ProfileIds of the coop members without the <see cref="Auctioneer"/> because it would be redundant
         /// </summary>
         [Key (13)]
-        public List<string> Coop;
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public List<string> Coop {set{
+            CoopMembers = value?.Select(s=>new UuId(s??AuctioneerId)).ToList();
+        }}
+        [IgnoreMember]
+        public List<UuId> CoopMembers {get;set;}
+
+
         [Key (14)]
-        public List<object> ClaimedBidders;
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public List<object> ClaimedBidders {set{
+            ClaimedBids = value?.Select(s=>new UuId((string)s)).ToList();}
+        }
+        [IgnoreMember]
+        public List<UuId> ClaimedBids {get;set;}
+
+
         [Key (15)]
         public long HighestBidAmount { get; set; }
 
         [Key (16)]
-        public List<SaveBids> Bids;
+        public List<SaveBids> Bids {get; set;}
         [Key (17)]
-        public short AnvilUses;
+        public short AnvilUses {get; set;}
         [Key (18)]
-        public List<Enchantment> Enchantments;
+        public List<Enchantment> Enchantments {get; set;}
 
         [Key (19)]
-        public NbtData NbtData;
+        public NbtData NbtData {get; set;}
         [Key (20)]
-        public DateTime ItemCreatedAt;
+        public DateTime ItemCreatedAt{get;set;}
         [Key (21)]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public ItemReferences.Reforge Reforge;
-        [JsonConverter(typeof(StringEnumConverter))]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        [JsonConverter (typeof (StringEnumConverter))]
+        public ItemReferences.Reforge Reforge {get; set;}
+        [JsonConverter (typeof (StringEnumConverter))]
         [Key (22)]
-        public Category Category;
-        [JsonConverter(typeof(StringEnumConverter))]
-        [Key(23)]
-        public Tier Tier;
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        public Category Category {get; set;}
+        [JsonConverter (typeof (StringEnumConverter))]
+        [Key (23)]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        public Tier Tier {get; set;}
 
         public SaveAuction (Hypixel.NET.SkyblockApi.Auction auction) {
-            ClaimedBidders = auction.ClaimedBidders;
+            ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
             Claimed = auction.Claimed;
             //ItemBytes = auction.ItemBytes;
             StartingBid = auction.StartingBid;
@@ -86,7 +125,7 @@ namespace hypixel {
                 Tier = tier;
             else
                 OldTier = auction.Tier;
-            if (Enum.TryParse (auction.Category, true, out Category category))
+            if (Enum.TryParse (auction.Category, true,out Category category))
                 Category = category;
             else
                 OldCategory = auction.Category;
@@ -95,12 +134,9 @@ namespace hypixel {
             End = auction.End;
             Start = auction.Start;
             Coop = auction.Coop;
-            // remove the Auctioneer Id, because it has to be there anyways
-            if (Coop.Remove (auction.Auctioneer))
-                Coop.Add (null);
 
             ProfileId = auction.ProfileId == auction.Auctioneer ? null : auction.ProfileId;
-            Auctioneer = auction.Auctioneer;
+            AuctioneerId = auction.Auctioneer;
             Uuid = auction.Uuid;
             HighestBidAmount = auction.HighestBidAmount;
             Bids = new List<SaveBids> ();

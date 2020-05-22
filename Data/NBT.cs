@@ -133,7 +133,7 @@ namespace hypixel {
             var result = new List<Enchantment> ();
 
             foreach (var item in elements.Names) {
-                if (!Enum.TryParse (item, out Enchantment.EnchantmentType type)) {
+                if (!Enum.TryParse (item,true, out Enchantment.EnchantmentType type)) {
                     Logger.Instance.Error ("Did not find Enchantment " + item);
                 }
                 var level = elements.Get<NbtInt> (item).IntValue;

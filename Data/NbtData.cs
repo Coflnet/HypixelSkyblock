@@ -2,6 +2,7 @@ using fNbt;
 using MessagePack;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 namespace hypixel
@@ -9,9 +10,14 @@ namespace hypixel
     [MessagePackObject]
     public class NbtData
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [IgnoreMember]
+        public int Id {get;set;}
+
         [Key(0)]
         [JsonIgnore]
-        public byte[] data;
+        [System.ComponentModel.DataAnnotations.MaxLength(1000)]
+        public byte[] data {get;set;}
 
         public void SetData(string data)
         {

@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
-            "args": ["/media/ekwav/Daten3/dev/hypixel/ah","p"],
+            "args": ["/media/ekwav/Daten4/dev/hypixel/ah","p"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
@@ -43,7 +43,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
-            "args": ["/media/ekwav/Daten3/dev/hypixel/ah","u"],
+            "args": ["/media/ekwav/Daten4/dev/hypixel/ah","u"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
@@ -55,6 +55,39 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
             "args": ["/media/ekwav/Daten3/dev/hypixel/ah","m"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "db import",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
+            "args": ["/media/ekwav/Daten4/dev/hypixel/ah","d"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Bazaar",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
+            "args": ["/media/ekwav/Daten4/dev/hypixel/ah","b"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Select",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/hypixel.dll",
+            "args": ["/media/ekwav/Daten4/dev/hypixel/ah","2"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false

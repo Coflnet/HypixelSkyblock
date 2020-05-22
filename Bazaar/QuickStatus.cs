@@ -5,10 +5,31 @@ namespace dev
 {
     [MessagePackObject]
     public class QuickStatus
-    {
+    { 
+        public QuickStatus() { }
+        public QuickStatus(Hypixel.NET.SkyblockApi.Bazaar.QuickStatus quickStatus)
+        {
+            this.ProductId = quickStatus.ProductId;
+            this.BuyMovingWeek = quickStatus.BuyMovingWeek;
+            this.BuyOrders = (int)quickStatus.BuyOrders;
+            this.BuyPrice = quickStatus.BuyPrice;
+            this.BuyVolume = quickStatus.BuyVolume;
+            this.SellMovingWeek = quickStatus.SellMovingWeek;
+            this.SellOrders = (int)quickStatus.SellOrders;
+            this.SellPrice = quickStatus.SellPrice;
+            this.SellVolume = quickStatus.SellVolume;
+        }
+
+        [IgnoreMember]
+        public int ID {get;set;}
+
+        [IgnoreMember]
+        [System.ComponentModel.DataAnnotations.Schema.ForeignKey("QuickStatusID")]
+        public ProductInfo Info {get;set;}
+
         [Key(0)]
         [JsonProperty("productId")]
-        public string ProductId { get; set; }
+        public string ProductId;
         [Key(1)]
         [JsonProperty("buyPrice")]
         public double BuyPrice { get; set; }

@@ -41,7 +41,7 @@ namespace hypixel
             }
             if(type == Type.NewAuction)
             {
-                if(!String.IsNullOrEmpty(playerUUid) && auction.Auctioneer != playerUUid)
+                if(!String.IsNullOrEmpty(playerUUid) && auction.AuctioneerId != playerUUid)
                 {
                     return false;
                 }
