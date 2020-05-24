@@ -19,13 +19,14 @@ namespace hypixel
         public Server()
         {
         }
+            HttpServer server; 
 
         /// <summary>
         /// Starts the backend server
         /// </summary>
         public void Start(short port = 8008,string urlPath = "/skyblock")
         {
-            var server = new HttpServer(port);
+            server =  new HttpServer(port);;
             server.AddWebSocketService<SkyblockBackEnd> (urlPath);
             server.OnGet += (sender, e) => {
                 var req = e.Request;
@@ -110,6 +111,11 @@ namespace hypixel
             //Console.ReadKey (true);
             Thread.Sleep(Timeout.Infinite);
             server.Stop ();
+        }
+
+        public void Stop()
+        {
+            server.Stop();
         }
     }
 }

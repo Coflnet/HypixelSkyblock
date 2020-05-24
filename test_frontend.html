@@ -1,6 +1,6 @@
 <script>
-  var ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock");
-// var ws = new WebSocket("ws://localhost:8008/skyblock");
+//  var ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock");
+ var ws = new WebSocket("ws://localhost:8108/skyblock");
 
 var last = {};
 
@@ -25,4 +25,25 @@ function sendData(type, data)
     send(type, JSON.stringify(data));
 }
 
+</script>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyDW5Jpz0WFsxdNQakjUSEExmaOKmOgEoOQ",
+    authDomain: "hypixel-7c66e.firebaseapp.com",
+    databaseURL: "https://hypixel-7c66e.firebaseio.com",
+    projectId: "hypixel-7c66e",
+    storageBucket: "hypixel-7c66e.appspot.com",
+    messagingSenderId: "435373133126",
+    appId: "1:435373133126:web:95f49a0f27bb3f0ebfa947"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
 </script>

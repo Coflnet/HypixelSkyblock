@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet;
 using dev;
@@ -11,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 namespace hypixel {
     public class Updater {
         private string apiKey;
+        private bool abort;
+        private static bool minimumOutput;
 
         public Updater (string apiKey) {
             this.apiKey = apiKey;
@@ -20,7 +23,8 @@ namespace hypixel {
         /// Downloads all auctions and save the ones that changed since the last update
         /// </summary>
         public void Update () {
-            Console.WriteLine ($"Usage bevore update {System.GC.GetTotalMemory(false)}");
+            if (!minimumOutput)
+                Console.WriteLine ($"Usage bevore update {System.GC.GetTotalMemory(false)}");
             var updateStartTime = DateTime.UtcNow.ToLocalTime ();
 
             try {
@@ -49,11 +53,8 @@ namespace hypixel {
             if (FileController.Exists ("lastUpdateStart"))
                 lastUpdateStart = FileController.LoadAs<DateTime> ("lastUpdateStart").ToLocalTime ();
 
-            if (lastUpdateStart > lastUpdate && DateTime.Now - lastUpdateStart < new TimeSpan (0, 5, 0)) {
-                Console.WriteLine ("Last update start was to recent");
-                return;
-            }
-            Console.WriteLine ($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
+            if (!minimumOutput)
+                Console.WriteLine ($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
             FileController.SaveAs ("lastUpdateStart", DateTime.Now);
 
             Console.WriteLine (updateStartTime);
@@ -81,14 +82,14 @@ namespace hypixel {
                 max = res.TotalPages;
 
                 tasks.Add (Task.Run (() => {
-                var val = Save (res, lastUpdate);
-                lock (sumloc) {
-                    sum += val;
-                    // process done
-                    doneCont++;
-                }
-                PrintUpdateEstimate (i, doneCont, sum, updateStartTime, max);
-                 }));
+                    var val = Save (res, lastUpdate);
+                    lock (sumloc) {
+                        sum += val;
+                        // process done
+                        doneCont++;
+                    }
+                    PrintUpdateEstimate (i, doneCont, sum, updateStartTime, max);
+                }));
                 PrintUpdateEstimate (i, doneCont, sum, updateStartTime, max);
 
                 // try to stay under 100MB
@@ -109,34 +110,59 @@ namespace hypixel {
 
         }
 
+        internal void UpdateForEver () {
+            Task.Run (() => {
+                minimumOutput = true;
+                while (true) {
+                    var start = DateTime.Now;
+                    Update ();
+                    if (abort) {
+                        Console.WriteLine ("Stopped updater");
+                        break;
+                    }
+                    WaitForServerCacheRefresh (start);
+                }
+            });
+        }
+
+        private static void WaitForServerCacheRefresh (DateTime start) {
+            var timeToSleep = start.Add (new TimeSpan (0, 1, 0)) - DateTime.Now;
+            Console.WriteLine ($"Time to next Update {timeToSleep}");
+            if (timeToSleep.Seconds > 0)
+                Thread.Sleep (timeToSleep);
+        }
+
         static void PrintUpdateEstimate (long i, long doneCont, long sum, DateTime updateStartTime, long max) {
             var index = sum;
             // max is doubled since it is counted twice (download and done)
             var updateEstimation = index * max * 2 / (i + 1 + doneCont) + 1;
             var ticksPassed = (DateTime.Now.ToLocalTime ().Ticks - updateStartTime.Ticks);
             var timeEst = new TimeSpan (ticksPassed / (index + 1) * updateEstimation - ticksPassed);
-            Console.Write ($"\r Loading: ({i}/{max}) Done With: {doneCont} Total:{sum} {timeEst:mm\\:ss}");
+            if (!minimumOutput)
+                Console.Write ($"\r Loading: ({i}/{max}) Done With: {doneCont} Total:{sum} {timeEst:mm\\:ss}");
         }
 
         // builds the index for all auctions in the last hour
 
         static int Save (GetAuctionPage res, DateTime lastUpdate) {
             int count = 0;
-            FileController.SaveAs($"apull/{DateTime.Now.Ticks}",res.Auctions.Where(item=>
-            {
-                ItemDetails.Instance.AddOrIgnoreDetails (item);
+            FileController.SaveAs ($"apull/{DateTime.Now.Ticks}", res.Auctions.Where (item => {
+                    ItemDetails.Instance.AddOrIgnoreDetails (item);
 
-                // nothing changed if the last bid is older than the last update
-                return  !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
-                    item.Bids.Count == 0 && item.Start < lastUpdate) ;
-            })
-            .Select(a=>{
-                count++;
-                return new SaveAuction(a);
-            }));
+                    // nothing changed if the last bid is older than the last update
+                    return !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
+                        item.Bids.Count == 0 && item.Start < lastUpdate);
+                })
+                .Select (a => {
+                    count++;
+                    return new SaveAuction (a);
+                }));
 
             return count;
         }
 
+        internal void Stop () {
+            abort = true;
+        }
     }
 }

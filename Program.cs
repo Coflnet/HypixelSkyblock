@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -16,10 +17,11 @@ using SixLabors.ImageSharp.Formats;
 using WebSocketSharp.Net;
 using static hypixel.Enchantment;
 
-namespace hypixel {
+namespace hypixel
+{
 
     class Program {
-        static string apiKey = "7449745d-47a6-4bd7-b838-3074aaff669b";
+        static string apiKey = "1cef3df6-ff0e-49a6-b084-27295c330d4a";
 
         public static bool displayMode = false;
 
@@ -33,10 +35,13 @@ namespace hypixel {
 
         public static int RequestsSinceStart { get; private set; }
 
+        public static event Action onStop;
+
         static void Main (string[] args) {
 
             Console.CancelKeyPress += delegate {
                 Console.WriteLine ("\nAbording");
+                onStop?.Invoke ();
 
                 var cacheCount = StorageManager.CacheItems;
                 StorageManager.Stop ();
@@ -102,6 +107,10 @@ namespace hypixel {
                     var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
                     BazaarUpdater.NewUpdate (key);
                     break;
+                case 'f':
+                    FullServer ();
+                    break;
+
                 case 's':
                     var server = new Server ();
                     server.Start ();
@@ -118,6 +127,10 @@ namespace hypixel {
                     break;
                 case '2':
                     using (var context = new HypixelContext ()) {
+
+                        var auctionI = context.Auctions.Include (ac => ac.Bids).Where (ac => ac.Id == 169333).First ();
+                        var ares = (new BidComparer ()).Equals (auctionI.Bids[0], auctionI.Bids[2]);
+
                         var result = context.BazaarPull
                             .Include (p => p.Products)
                             .ThenInclude (p => p.BuySummery)
@@ -238,6 +251,73 @@ namespace hypixel {
             return false;
         }
 
+        private static void FullServer () {
+
+
+
+            Updater updater;
+            Server server;
+            updater = new Updater (apiKey);
+            updater.UpdateForEver ();
+
+            Console.WriteLine("waiting for db");
+            System.Threading.Thread.Sleep(5000);
+            using (var context = new HypixelContext())
+            {
+                try{
+                    var testAuction = new SaveAuction(){
+                        Uuid = "00000000000000000000000000000000",
+                        Enchantments = new List<Enchantment>(){new Enchantment(EnchantmentType.aiming,0)},
+                        Bids = new List<SaveBids>(){new SaveBids(){Amount=0}}
+                    };
+                    context.Auctions.Add(testAuction);
+                    context.SaveChanges();
+                    context.Auctions.Remove(testAuction);
+                    context.SaveChanges();
+                } catch(Exception)
+                {
+                    // looks like db doesn't exist yet
+                    Console.WriteLine("Waiting for db creating in the background");
+                    System.Threading.Thread.Sleep(10000);
+                }
+                context.Database.EnsureCreated();
+            }
+
+
+
+
+            var bazzar = new BazaarUpdater ();
+            bazzar.UpdateForEver (apiKey);
+            Task.Run (() => {
+                    Indexer.MiniumOutput ();
+                while (true) {
+                    try{
+                        Indexer.LastHourIndex ();
+                    } catch(Exception e)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message}");
+                    }
+                    System.Threading.Thread.Sleep (10000);
+                }
+            });
+
+            server = new Server ();
+
+            onStop += () => {
+                Console.WriteLine ("Stopping");
+                server.Stop ();
+                Indexer.Stop ();
+                updater.Stop ();
+                bazzar.Stop ();
+                System.Threading.Thread.Sleep (500);
+                Console.WriteLine("done");
+            };
+
+            server.Start ();
+
+        }
+
         static void DBTest () {
             using (var context = new HypixelContext ()) {
                 // Creates the database if not exists
@@ -280,28 +360,22 @@ namespace hypixel {
         }
 
         public static void AddPlayers (HypixelContext context, List<string> ids) {
-            Console.WriteLine ($"Todo {ids.Count}");
+            ids = ids.Distinct ().ToList ();
             var found = context.Players.Where (p => ids.Contains (p.UuId)).ToDictionary (p => p.UuId);
-            var names = new Dictionary<string, string> ();
+            var names = new ConcurrentDictionary<string, string> ();
             try {
                 Parallel.ForEach (ids, id => {
                     if (!found.ContainsKey (id)) {
                         names[id] = GetPlayerNameFromUuid (id);
-                        Console.Write ($"\r            Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
-
                     }
 
                 });
             } catch (Exception) {
                 Console.WriteLine ("getting names failed");
             }
-
-            //var notFound = new List<Player>();
-            var playerIndex = 0;
             foreach (var item in ids) {
                 names.TryGetValue (item, out string name);
                 AddPlayer (context, item, name);
-                Console.Write ($"\r  p{playerIndex++}          Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
 
             }
         }
@@ -440,10 +514,6 @@ namespace hypixel {
             if (FileController.Exists ("lastUpdateStart"))
                 lastUpdateStart = FileController.LoadAs<DateTime> ("lastUpdateStart").ToLocalTime ();
 
-            if (lastUpdateStart > lastUpdate && DateTime.Now - lastUpdateStart < new TimeSpan (0, 5, 0)) {
-                Console.WriteLine ("Last update start was to recent");
-                return true;
-            }
             Console.WriteLine ($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
             FileController.SaveAs ("lastUpdateStart", DateTime.Now);
 
@@ -542,7 +612,4 @@ namespace hypixel {
 
     }
 
-    public class SubscribeEngine {
-
-    }
 }

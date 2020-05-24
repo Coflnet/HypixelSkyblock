@@ -1,10 +1,27 @@
-version: '3'
+version: '2'
 services:
+  mariadb:
+    image: 'docker.io/bitnami/mariadb:10.3-debian-10'
+    environment:
+      - MARIADB_ROOT_PASSWORD=takenfrombitnami
+    volumes:
+      - './mariadb_data:/bitnami'
+  phpmyadmin:
+    image: 'docker.io/bitnami/phpmyadmin:5-debian-10'
+    ports:
+      - '8038:80'
+      - '4438:443'
+    depends_on:
+      - mariadb
+    volumes:
+      - './phpmyadmin_data:/bitnami'
   skyblock:
     build: .
     ports:
-    - "8008:8008"
+    - "8108:8008"
     volumes:
     - ./ah:/data
     restart: always
+    depends_on:
+      - mariadb
 

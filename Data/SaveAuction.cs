@@ -47,6 +47,7 @@ namespace hypixel
         //public string ItemLore;
         [Key (8)]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
+        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         public string ItemName { get; set; }
 
         [Key (9)]

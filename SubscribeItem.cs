@@ -4,86 +4,33 @@ using MessagePack;
 
 namespace hypixel
 {
-    [MessagePackObject]
     public class SubscribeItem
     {
-        [Key("name")]
-        public string itemName;
-        [Key("category")]
-        public string itemCategory;
-        [Key("count")]
-        public short itemCount;
-        [Key("playerId")]
-        public string playerUUid;
-        [Key("minPrice")]
-        public long minPrice;
-        [Key("maxPrice")]
-        public long maxPrice;
+        public int Id{get;set;}
+        [System.ComponentModel.DataAnnotations.MaxLength(45)]
+        public string ItemTag {get;set;}
+        
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        public string PlayerUuid {get;set;}
 
-        [Key("enchantments")]
-        public Enchantment[] enchantments;
+        public long Price {get;set;}
 
+        [System.ComponentModel.DataAnnotations.Timestamp]
+        public DateTime GeneratedAt {get;set;}
 
-        public enum Type
+        public enum SubType
         {
-            NewAuction = 1,
-            NewBid = 2
+            PRICE_LOWER_THAN = 1,
+            PRICE_HIGHER_THAN = 2,
+            OUTBID = 4
         }
 
-        public Type type;
+        public SubType Type  {get;set;}
 
+        public string Token {get;set;}
 
-        public bool Match(SaveAuction auction)
-        {
-            if(!String.IsNullOrEmpty(itemName) && !auction.ItemName.StartsWith(itemName))
-            {
-                return false;
-            }
-            if(type == Type.NewAuction)
-            {
-                if(!String.IsNullOrEmpty(playerUUid) && auction.AuctioneerId != playerUUid)
-                {
-                    return false;
-                }
-            } else if(type == Type.NewBid)
-            {
-                if(!String.IsNullOrEmpty(playerUUid) && !auction.Bids.Where(b=>b.Bidder == playerUUid).Any())
-                {
-                    return false;
-                }
-            }
+        [System.ComponentModel.DataAnnotations.MaxLength(32)]
+        public string Initiator {get;set;}
 
-            // matching category
-            if(!String.IsNullOrEmpty(itemCategory) && auction.Category.ToString().ToLower() != itemCategory.ToLower())
-            {
-                return false;
-            }
-
-            // matching count
-            if(itemCount != 0 && auction.Count != itemCount)
-            {
-                return false;
-            }
-
-            var itemPrice = auction.StartingBid;
-            if(auction.Bids.Count > 0)
-            {
-                itemPrice = auction.HighestBidAmount;
-            }
-
-            // in price range
-            if((maxPrice != 0 && itemPrice > maxPrice) ||itemPrice < minPrice)
-            {
-                return false;
-            }
-
-            if(enchantments != null)
-            {
-                // make sure there are all the required enchantments
-                return enchantments.Except(auction.Enchantments).Any();
-            }
-            
-            return true;
-        }
     }
 }

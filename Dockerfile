@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY  ./bin/Release/netcoreapp2.2/publish/ .
 
-ENTRYPOINT ["dotnet", "hypixel.dll", "/data", "s"]
+ENTRYPOINT ["dotnet", "hypixel.dll", "/data", "f"]
 
 VOLUME /data
 

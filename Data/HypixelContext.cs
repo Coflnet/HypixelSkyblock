@@ -38,9 +38,11 @@ namespace hypixel
 
         public DbSet<ProductInfo> BazaarPrices {get;set;}
         public DbSet<BazaarPull> BazaarPull {get;set;}
+        public DbSet<SubscribeItem> SubscribeItem {get;set;}
 
         protected override void OnConfiguring (DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseMySQL ("server=172.25.0.3;database=radio;user=root;password=test; convert zero datetime=True");
+            optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8");
+        
         }
 
         protected override void OnModelCreating (ModelBuilder modelBuilder) {

@@ -10,16 +10,13 @@ using Microsoft.EntityFrameworkCore;
 namespace hypixel {
     public class Indexer {
         private static bool abort;
+        private static bool minimumOutput;
         static int count = 0;
+
         public static void LastHourIndex () {
-            var indexStart = DateTime.Now;
-            Console.WriteLine ($"{indexStart}");
-            var lastIndexStart = new DateTime (2020, 4, 25);
-            if (FileController.Exists ("lastIndex"))
-                lastIndexStart = FileController.LoadAs<DateTime> ("lastIndex");
-            lastIndexStart = lastIndexStart - new TimeSpan (0, 20, 0);
-            var targetTmp = FileController.GetAbsolutePath ("awork");
-            var pullPath = FileController.GetAbsolutePath ("apull");
+            DateTime indexStart;
+            string targetTmp, pullPath;
+            VariableSetup (out indexStart, out targetTmp, out pullPath);
             //DeleteDir(targetTmp);
             if (!Directory.Exists (pullPath) && !Directory.Exists (targetTmp)) {
                 // update first
@@ -33,12 +30,13 @@ namespace hypixel {
                 Console.WriteLine ("Resuming work");
 
             try {
-                Console.Write ("working");
+                Console.WriteLine ("working");
 
                 var work = PullData ();
                 foreach (var item in work) {
                     ToDb (item);
                 }
+                Console.WriteLine ($"Indexing done, Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
 
                 if (!abort)
                     // successful made this index save the startTime
@@ -59,10 +57,22 @@ namespace hypixel {
             DeleteDir (targetTmp);
         }
 
+        private static void VariableSetup (out DateTime indexStart, out string targetTmp, out string pullPath) {
+            indexStart = DateTime.Now;
+            Console.WriteLine ($"{indexStart}");
+            var lastIndexStart = new DateTime (2020, 4, 25);
+            if (FileController.Exists ("lastIndex"))
+                lastIndexStart = FileController.LoadAs<DateTime> ("lastIndex");
+            lastIndexStart = lastIndexStart - new TimeSpan (0, 20, 0);
+            targetTmp = FileController.GetAbsolutePath ("awork");
+            pullPath = FileController.GetAbsolutePath ("apull");
+        }
+
         static IEnumerable<List<SaveAuction>> PullData () {
             var path = "awork";
             foreach (var item in FileController.FileNames ("*", path)) {
                 if (abort) {
+                    Console.WriteLine ("Stopped indexer");
                     yield break;
                 }
                 var fullPath = $"{path}/{item}";
@@ -70,7 +80,7 @@ namespace hypixel {
                 try {
                     data = FileController.LoadAs<List<SaveAuction>> (fullPath);
                 } catch (Exception) {
-                    Console.WriteLine("could not load downloaded auction-buffer");
+                    Console.WriteLine ("could not load downloaded auction-buffer");
                     FileController.Move (fullPath, "correupted/" + fullPath);
                 }
                 if (data != null) {
@@ -86,6 +96,7 @@ namespace hypixel {
                 // preload
                 var inDb = context.Auctions.Where (a => auctions.Select (oa => oa.Uuid)
                     .Contains (a.Uuid)).Include (a => a.Bids).ToDictionary (a => a.Uuid);
+                BidComparer comparer = new BidComparer ();
 
                 foreach (var auction in auctions) {
 
@@ -99,8 +110,11 @@ namespace hypixel {
                         var id = auction.Uuid;
                         if (inDb.TryGetValue (id, out SaveAuction dbauction)) {
                             foreach (var bid in auction.Bids) {
-                                if (!dbauction.Bids.Contains (bid)) {
+
+                                bid.Auction = dbauction;
+                                if (!dbauction.Bids.Contains (bid, comparer)) {
                                     context.Bids.Add (bid);
+                                    var shouldNotBeFalse = dbauction.Bids.Contains (bid, comparer);
                                     dbauction.HighestBidAmount = auction.HighestBidAmount;
                                 }
                             }
@@ -111,7 +125,7 @@ namespace hypixel {
                         }
 
                         count++;
-                        if (count % 5 == 0)
+                        if (!minimumOutput && count % 5 == 0)
                             Console.Write ($"\r         Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
 
                     } catch (Exception e) {
@@ -229,6 +243,10 @@ namespace hypixel {
                 dir.Delete (true);
             }
             Directory.Delete (path);
+        }
+
+        internal static void MiniumOutput () {
+            minimumOutput = true;
         }
     }
 }
