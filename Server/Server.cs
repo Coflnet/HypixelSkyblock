@@ -11,11 +11,15 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.Primitives;
+using WebSocketSharp.Net;
 
 namespace hypixel
 {
     public class Server 
     {
+
+
+
         public Server()
         {
         }
@@ -37,6 +41,12 @@ namespace hypixel
                 if(path == "/" || path.IsNullOrEmpty())
                 {
                     path = "index.html";
+                }
+
+                if(path == "/stats")
+                {
+                    PrintStatus(res);
+                    return;
                 }
 
                 byte[] contents;
@@ -111,6 +121,31 @@ namespace hypixel
             //Console.ReadKey (true);
             Thread.Sleep(Timeout.Infinite);
             server.Stop ();
+        }
+
+        private static void PrintStatus(HttpListenerResponse res)
+        {
+            var data = new Stats()
+            {
+                NameRequests = Program.RequestsSinceStart,
+                Indexed = Indexer.IndexedAmount,
+                LastIndexFinish = Indexer.LastFinish,
+                LastBazaarUpdate = dev.BazaarUpdater.LastUpdate,
+                LastNameUpdate = NameUpdater.LastUpdate
+            };
+            // determine status
+            res.StatusCode = 200;
+            var maxTime = DateTime.Now.Subtract(new TimeSpan(0,5,0));
+            if(data.LastIndexFinish < maxTime 
+                || data.LastBazaarUpdate < maxTime
+                || data.LastNameUpdate < maxTime)
+                {
+                    res.StatusCode = 500;
+                }
+
+
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+            res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
 
         public void Stop()

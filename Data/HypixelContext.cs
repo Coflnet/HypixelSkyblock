@@ -2,6 +2,7 @@ using dev;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
+
 namespace hypixel
 {
     public abstract class MyDbSet<TEntity> : DbSet<TEntity>  where TEntity : class
@@ -42,6 +43,7 @@ namespace hypixel
 
         protected override void OnConfiguring (DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8");
+                
         
         }
 
@@ -53,6 +55,7 @@ namespace hypixel
                 entity.HasIndex (e => e.Uuid).IsUnique();
                 entity.HasIndex (e => e.AuctioneerId);
                 entity.HasIndex(e=>e.ItemName);
+                entity.HasIndex(e=>e.End);
                 //entity.HasOne<NbtData>(d=>d.NbtData);
                 //entity.HasMany<Enchantment>(e=>e.Enchantments);
                 

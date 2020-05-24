@@ -11,7 +11,10 @@ namespace hypixel {
     public class Indexer {
         private static bool abort;
         private static bool minimumOutput;
-        static int count = 0;
+        public static int IndexedAmount => count;
+
+        private static int count;
+        public static DateTime LastFinish { get;internal set;  }
 
         public static void LastHourIndex () {
             DateTime indexStart;
@@ -53,6 +56,7 @@ namespace hypixel {
             var saveTask = StorageManager.Save ();
             ItemPrices.Instance.Save ();
             saveTask.Wait ();
+            LastFinish = DateTime.Now;
 
             DeleteDir (targetTmp);
         }

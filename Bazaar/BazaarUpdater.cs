@@ -28,6 +28,8 @@ namespace dev {
     public class BazaarUpdater {
         private bool abort;
 
+        public static DateTime LastUpdate { get; internal set; }
+
         public static void NewUpdate (string apiKey) {
             Console.WriteLine ($"Started at {DateTime.Now}");
 
@@ -108,10 +110,11 @@ namespace dev {
                 context.SaveChanges();
                 Console.Write("\r" + i);
             }
+            LastUpdate = DateTime.Now;
         }
 
         private static void WaitForServerCacheRefresh (int i, DateTime start) {
-            var timeToSleep = start.Add (new TimeSpan (0,0, 0, 9,980)) - DateTime.Now;
+            var timeToSleep = start.Add (new TimeSpan (0,0, 0, 9,999)) - DateTime.Now;
             Console.Write ($"\r {i} {timeToSleep}");
             if (timeToSleep.Seconds > 0)
                 Thread.Sleep (timeToSleep);
@@ -131,7 +134,8 @@ namespace dev {
                         i++;
                     } catch(Exception e)
                     {
-                        Console.WriteLine($"\nBazaar update failed {e.Message} \n{e.StackTrace} {e.InnerException?.Message}");
+                        Logger.Instance.Error($"\nBazaar update failed {e.Message} \n{e.StackTrace} \n{e.InnerException?.Message}");
+                        Console.WriteLine($"\nBazaar update failed {e.Message} \n{e.InnerException?.Message}");
                     }
                 }
                 Console.WriteLine("Stopped Bazaar");

@@ -31,6 +31,30 @@ namespace hypixel
             {
                 hourAmount = 2;
             }
+
+            using(var context = new HypixelContext())
+            {
+                var TagID = ItemDetails.Instance.GetIdForName(details.name);
+                var lastInterestDate = DateTime.Now.Subtract(new TimeSpan(7,0,0,0));
+                var time = TimeSpan.FromHours(hourAmount);
+                Console.WriteLine(TagID);
+                var res = context.Auctions.Where(auction=>auction.Tag == TagID)
+                            .Where(auction=>auction.HighestBidAmount>1)
+                            .Where(auction=>auction.End > details.Start)
+                            .ToList() // can't group by in db
+                            .GroupBy(item=>ItemPrices.RoundDown(item.End,time))
+                            .Select(item=>
+                            new Result(){
+                                End = item.Key,
+                                Price = (long) item.Average(a=>a.HighestBidAmount/(a.Count == 0 ? 1 : a.Count)),
+                                Count =  (long) item.Sum(a=> a.Count),
+                                Bids =  (long) item.Sum(a=> 0)
+                            }).ToList();
+                data.SendBack (MessageData.Create("itemResponse",res));
+            }
+
+            return;
+
             
 
             var result = ItemPrices.Instance.Search(details)

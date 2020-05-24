@@ -63,7 +63,7 @@ namespace hypixel {
             Console.WriteLine ("Updating Data");
 
             // add extra miniute to start to catch lost auctions
-            lastUpdate = lastUpdate - new TimeSpan (0, 1, 0);
+            lastUpdate = lastUpdate - new TimeSpan (0, 2, 0);
 
             var tasks = new List<Task> ();
             int sum = 0;

@@ -14,14 +14,5 @@ namespace hypixel
     }
     
 
-    public class PotionInfo
-    {
-        [JsonProperty("potion")]
-        public string Type {get;set;}
-        [JsonProperty("potion_level")]
-        public int Level {get;set;}
-        [JsonProperty("enhanced")]
-        public long Enhanced {get;set;}
-    }
 
 }

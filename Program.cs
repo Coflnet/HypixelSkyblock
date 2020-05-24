@@ -251,71 +251,96 @@ namespace hypixel
             return false;
         }
 
-        private static void FullServer () {
-
+        private static void FullServer ()
+        {
+            Console.WriteLine("\n - Starting FullServer 0.2.1b - \n");
 
 
             Updater updater;
             Server server;
-            updater = new Updater (apiKey);
-            updater.UpdateForEver ();
+            updater = new Updater(apiKey);
+            updater.UpdateForEver();
 
             Console.WriteLine("waiting for db");
             System.Threading.Thread.Sleep(5000);
+            WaitForDatabaseCreation();
+
+            var bazzar = new BazaarUpdater();
+            bazzar.UpdateForEver(apiKey);
+            RunIndexer();
+
+            server = new Server();
+
+            NameUpdater.Run();
+
+            onStop += () =>
+            {
+                Console.WriteLine("Stopping");
+                server.Stop();
+                Indexer.Stop();
+                updater.Stop();
+                bazzar.Stop();
+                System.Threading.Thread.Sleep(500);
+                Console.WriteLine("done");
+            };
+
+            server.Start();
+
+        }
+
+        private static void RunIndexer()
+        {
+            Task.Run(() =>
+            {
+                Indexer.MiniumOutput();
+                while (true)
+                {
+                    try
+                    {
+                        Indexer.LastHourIndex();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message}");
+                    }
+                    System.Threading.Thread.Sleep(5000);
+                }
+            });
+        }
+
+        private static void WaitForDatabaseCreation()
+        {
+            try {
+               
             using (var context = new HypixelContext())
             {
-                try{
-                    var testAuction = new SaveAuction(){
+                try
+                {
+                    var testAuction = new SaveAuction()
+                    {
                         Uuid = "00000000000000000000000000000000",
-                        Enchantments = new List<Enchantment>(){new Enchantment(EnchantmentType.aiming,0)},
-                        Bids = new List<SaveBids>(){new SaveBids(){Amount=0}}
+                        Enchantments = new List<Enchantment>() { new Enchantment(EnchantmentType.aiming, 0) },
+                        Bids = new List<SaveBids>() { new SaveBids() { Amount = 0 } }
                     };
                     context.Auctions.Add(testAuction);
                     context.SaveChanges();
                     context.Auctions.Remove(testAuction);
                     context.SaveChanges();
-                } catch(Exception)
+                }
+                catch (Exception)
                 {
                     // looks like db doesn't exist yet
                     Console.WriteLine("Waiting for db creating in the background");
                     System.Threading.Thread.Sleep(10000);
                 }
                 context.Database.EnsureCreated();
+            } 
+            }catch(Exception e)
+            {
+                Console.WriteLine($"Waiting for db creating in the background {e.Message} {e.InnerException?.Message}");
+                    System.Threading.Thread.Sleep(10000);
             }
-
-
-
-
-            var bazzar = new BazaarUpdater ();
-            bazzar.UpdateForEver (apiKey);
-            Task.Run (() => {
-                    Indexer.MiniumOutput ();
-                while (true) {
-                    try{
-                        Indexer.LastHourIndex ();
-                    } catch(Exception e)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message}");
-                    }
-                    System.Threading.Thread.Sleep (10000);
-                }
-            });
-
-            server = new Server ();
-
-            onStop += () => {
-                Console.WriteLine ("Stopping");
-                server.Stop ();
-                Indexer.Stop ();
-                updater.Stop ();
-                bazzar.Stop ();
-                System.Threading.Thread.Sleep (500);
-                Console.WriteLine("done");
-            };
-
-            server.Start ();
-
         }
 
         static void DBTest () {
