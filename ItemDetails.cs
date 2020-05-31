@@ -155,7 +155,6 @@ namespace hypixel
             if(Items== null)
                 Load();
             var name = ItemReferences.RemoveReforgesAndLevel(fullName);
-            Console.WriteLine("Getting "+ fullName);
             if(ReverseNames.TryGetValue(name,out string key) 
             && Items.TryGetValue(key,out Item value))
             {

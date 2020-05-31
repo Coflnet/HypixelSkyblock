@@ -43,7 +43,7 @@ namespace hypixel
                     path = "index.html";
                 }
 
-                if(path == "/stats")
+                if(path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
                 {
                     PrintStatus(res);
                     return;
@@ -93,7 +93,13 @@ namespace hypixel
                     relativePath = $"files/index.html";
                 }
 
-                contents = FileController.ReadAllBytes(relativePath);
+                try {
+                    contents = FileController.ReadAllBytes(relativePath);
+                } catch(Exception)
+                {
+                    res.WriteContent(Encoding.UTF8.GetBytes("File not found, maybe you fogot to upload the fronted"));
+                    return;
+                }
 
                 if (path.EndsWith (".html")) {
                     res.ContentType = "text/html";
@@ -131,7 +137,9 @@ namespace hypixel
                 Indexed = Indexer.IndexedAmount,
                 LastIndexFinish = Indexer.LastFinish,
                 LastBazaarUpdate = dev.BazaarUpdater.LastUpdate,
-                LastNameUpdate = NameUpdater.LastUpdate
+                LastNameUpdate = NameUpdater.LastUpdate,
+                CacheSize = ItemPricesCommand.CacheSize,
+                QueueSize = Indexer.QueueCount
             };
             // determine status
             res.StatusCode = 200;

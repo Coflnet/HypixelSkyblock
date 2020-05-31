@@ -21,6 +21,7 @@ services:
     - "8108:8008"
     volumes:
     - ./ah:/data
+    - ./import:/import
     restart: always
     depends_on:
       - mariadb

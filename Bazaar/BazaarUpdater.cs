@@ -53,17 +53,23 @@ namespace dev {
             {
                 context.Database.EnsureCreated();
 
-                var lastPull = context.BazaarPull
+                var lastMinPulls = context.BazaarPull
                             .Include(b => b.Products)
                             .ThenInclude(p => p.QuickStatus)
-                            .Where(b => b.Timestamp == context.BazaarPull.Max(ba => ba.Timestamp))
-                            .FirstOrDefault();
+                            .OrderByDescending(b=>b.Timestamp)
+                            .Take(8).ToList();
+                            //.Where(b => b.Timestamp == context.BazaarPull.Max(ba => ba.Timestamp))
+                            //.FirstOrDefault();
 
+                //Console.WriteLine($"Got {lastMinPulls.Count} pulls total of {lastMinPulls.Sum(p=>p.Products.Count)} products ");
+
+                //var lastKnownPrices = lastMinPulls.ToDictionary(p=>p)
 
                 var pull = new BazaarPull(result);
 
-                if (lastPull != null)
+                if (lastMinPulls.Any())
                 {
+                    var lastPull = lastMinPulls.First();
                     var lastPullDic = lastPull
                             .Products.ToDictionary(p => p.ProductId);
 
@@ -71,14 +77,25 @@ namespace dev {
                     var buyChange = 0;
                     var productCount = pull.Products.Count;
 
+                    var toRemove = new List<ProductInfo>();
 
                     for (int index = 0; index < productCount; index++)
                     {
                         var currentProduct = pull.Products[index];
                         var currentStatus = currentProduct.QuickStatus;
-                        var lastStatus = lastPullDic[currentStatus.ProductId].QuickStatus;
+                        var lastProduct = lastMinPulls.SelectMany(p=>p.Products)
+                                        .Where(p=>p.ProductId ==currentStatus.ProductId)
+                                        .OrderByDescending(p=>p.Id)
+                                        .FirstOrDefault();
 
-                        var takeFactor = i % 30 == 0 ? 30 : 3;
+                        var lastStatus =  new QuickStatus();            
+                        if(lastProduct != null)
+                        {
+                            lastStatus =lastProduct.QuickStatus;
+                        } 
+                        // = lastPullDic[currentStatus.ProductId].QuickStatus;
+
+                        var takeFactor = i % 60 == 0 ? 30 : 3;
 
                         if (currentStatus.BuyOrders == lastStatus.BuyOrders)
                         {
@@ -100,6 +117,16 @@ namespace dev {
                         {
                             currentProduct.SellSummary = currentProduct.SellSummary.Take(takeFactor).ToList();
                         }
+                        if(currentProduct.BuySummery == null && currentProduct.SellSummary == null)
+                        {
+                            toRemove.Add(currentProduct);
+                        }
+                    }
+                    //Console.WriteLine($"Not saving {toRemove.Count}");
+
+                    foreach (var item in toRemove)
+                    {
+                        pull.Products.Remove(item);
                     }
 
                     Console.WriteLine($"BuyChange: {productCount - buyChange}  SellChange: {productCount - sellChange}");
@@ -114,7 +141,7 @@ namespace dev {
         }
 
         private static void WaitForServerCacheRefresh (int i, DateTime start) {
-            var timeToSleep = start.Add (new TimeSpan (0,0, 0, 9,999)) - DateTime.Now;
+            var timeToSleep = start.Add (new TimeSpan (0,0, 0,10)) - DateTime.Now;
             Console.Write ($"\r {i} {timeToSleep}");
             if (timeToSleep.Seconds > 0)
                 Thread.Sleep (timeToSleep);

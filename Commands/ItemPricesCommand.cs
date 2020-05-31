@@ -1,11 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
     public class ItemPricesCommand : Command
     {
+        public class DayCache 
+        {
+            public List<Result> Results {get;set;}
+        }
+
         public override void Execute(MessageData data)
         {
             ItemSearchQuery details;
@@ -23,52 +30,125 @@ namespace hypixel
             }
             Console.WriteLine($"Start: {details.Start} End: {details.End}");
 
-            int hourAmount = 1;
-            if(details.End - details.Start > TimeSpan.FromDays(20))
-            {
-                hourAmount = 6;
-            } else if(details.End - details.Start > TimeSpan.FromDays(6))
-            {
-                hourAmount = 2;
-            }
 
+            var fromCache = GetFromCache(details.name,details.Start,details.End);
+
+            // determine the last
+            DateTime dbQueryStart = details.Start;
+            if(fromCache.Count > 0)
+            {
+                dbQueryStart = fromCache.Last().End;
+            }
+            Console.WriteLine($"Found {fromCache.Count} in cache");
+
+            var fromDB = QueryDBFor(details.name,dbQueryStart,details.End);
+
+
+            var res = new List<Result>();
+            res.AddRange(fromCache);
+            res.AddRange(fromDB);
+
+            data.SendBack (MessageData.Create("itemResponse",res));
+
+
+            // cache db
+            Cache(details.name, fromDB);
+
+     
+
+        }
+
+        private IEnumerable<Result> QueryDBFor(string itemName, DateTime start, DateTime end)
+        {
             using(var context = new HypixelContext())
             {
-                var TagID = ItemDetails.Instance.GetIdForName(details.name);
-                var lastInterestDate = DateTime.Now.Subtract(new TimeSpan(7,0,0,0));
-                var time = TimeSpan.FromHours(hourAmount);
-                Console.WriteLine(TagID);
-                var res = context.Auctions.Where(auction=>auction.Tag == TagID)
+                //Console.WriteLine(TagID);  item.End.Ticks / time.Ticks *time.Ticks 
+                return context.Auctions.Where(auction=>auction.ItemName == itemName)
+                            .Where(auction=>auction.End > start && auction.End < end)
                             .Where(auction=>auction.HighestBidAmount>1)
-                            .Where(auction=>auction.End > details.Start)
-                            .ToList() // can't group by in db
-                            .GroupBy(item=>ItemPrices.RoundDown(item.End,time))
+                            .GroupBy(item=> new {item.End.Year, item.End.Month,item.End.Day,item.End.Hour} )
                             .Select(item=>
-                            new Result(){
-                                End = item.Key,
-                                Price = (long) item.Average(a=>a.HighestBidAmount/(a.Count == 0 ? 1 : a.Count)),
-                                Count =  (long) item.Sum(a=> a.Count),
-                                Bids =  (long) item.Sum(a=> 0)
-                            }).ToList();
-                data.SendBack (MessageData.Create("itemResponse",res));
+                            new {
+                                End = new DateTime(item.Key.Year,item.Key.Month,item.Key.Day,item.Key.Hour,0,0),
+                                Price =  (int)item.Average(a=>((int)a.HighestBidAmount)/a.Count),///(a.Count == 0 ? 1 : a.Count)),
+                                Count =   item.Sum(a=> a.Count)
+                                //Bids =  (long) item.Sum(a=> a.Bids.Count)
+                            }).ToList().Select(i=>new Result(){Count=i.Count,End=i.End,Price=i.Price});
+
+                // cache result
+                
+            }
+        }
+
+        private static Dictionary<string,Dictionary<int,DayCache>> cache = new Dictionary<string, Dictionary<int, DayCache>>();
+
+        public static int CacheSize => cache.Sum(c=>c.Value.Count);
+
+        DateTime earliest = new DateTime(2019,10,10);
+
+        private void Cache(string name, IEnumerable<Result> result)
+        {
+            var byDay = result.GroupBy(r=>r.End.Date).OrderByDescending(r=>r.Key);
+
+            Console.WriteLine($"Caching total of {byDay.Count()}");
+
+            // today 
+            if(byDay.Count() < 2)
+                return;
+            
+            if(!cache.TryGetValue(name,out Dictionary<int,DayCache> dayCache))
+            {
+                dayCache = new Dictionary<int, DayCache>();
+                cache[name] = dayCache;
+            }
+            foreach (var day in byDay)
+            {
+                dayCache[GetKey(day.Key)] = new DayCache(){Results=day.ToList()};
+            }
+        }
+
+        private List<Result> GetFromCache(string itemName, DateTime start, DateTime end)
+        {
+            SetBoundaries(ref start, ref end);
+            List<Result> result = new List<Result>();
+
+            if (!cache.ContainsKey(itemName))
+                return result;
+
+            var cacheForItem = cache[itemName];
+
+            Console.WriteLine($"{start} {end} {itemName} ");
+
+            // find cacheItems
+            for (var index = start; index < end; index = index.AddDays(1))
+            {
+                var key = GetKey(index);
+                if (cacheForItem.ContainsKey(key))
+                    result.AddRange(cacheForItem[key].Results);
             }
 
-            return;
+            return result;
+        }
 
-            
+        private void SetBoundaries(ref DateTime start, ref DateTime end)
+        {
+            if (start > end)
+            {
+                start = end;
+            }
+            if (end > DateTime.Now.Add(new TimeSpan(7, 0, 0, 0)))
+            {
+                end = DateTime.Now;
+            }
+            if (start < earliest)
+            {
+                start = earliest;
+            }
+        }
 
-            var result = ItemPrices.Instance.Search(details)
-                .Where(item=>item.Price > 0 
-                        && (!details.Normalized || item.BidCount > 1))
-                .GroupBy(item=>ItemPrices.RoundDown(item.End,TimeSpan.FromHours(hourAmount)))
-                .Select(item=>
-                new Result(){
-                    End = item.Key,
-                    Price = (long) item.Average(a=>a.Price/(a.Count == 0 ? 1 : a.Count)),
-                    Count =  (long) item.Sum(a=> a.Count),
-                    Bids =  (long) item.Sum(a=> a.BidCount)
-                }).ToList();
-            data.SendBack (MessageData.Create("itemResponse",result));
+        private int GetKey(DateTime index)
+        {
+            return (int)(index - earliest).TotalDays;
         }
 
         [MessagePackObject]
@@ -77,11 +157,9 @@ namespace hypixel
             [Key("end")]
             public DateTime End;
             [Key("price")]
-            public long Price;
+            public int Price;
             [Key("count")]
-            public long Count;
-            [Key("bids")]
-            public long Bids;
+            public int Count;
 
         }
 

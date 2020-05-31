@@ -12,5 +12,8 @@ namespace hypixel
             public DateTime LastBazaarUpdate {get;set;}
 
             public DateTime LastNameUpdate {get;set;}
+
+            public int CacheSize {get;set;}
+            public int QueueSize {get;set;}
         }
 }

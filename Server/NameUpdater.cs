@@ -44,7 +44,7 @@ namespace hypixel {
                 } catch (Exception e) {
                     Logger.Instance.Error ($"NameUpdater encountered an error \n {e.Message} {e.StackTrace} \n{e.InnerException?.Message} {e.InnerException?.StackTrace}");
                 }
-                    System.Threading.Thread.Sleep (10000);
+                    System.Threading.Thread.Sleep (30000);
             }
         }
     }

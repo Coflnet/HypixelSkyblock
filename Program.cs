@@ -21,9 +21,11 @@ namespace hypixel
 {
 
     class Program {
-        static string apiKey = "1cef3df6-ff0e-49a6-b084-27295c330d4a";
+        static string apiKey = "9be89f9a-74f9-4e90-a861-8e184aee685f";
 
         public static bool displayMode = false;
+
+        public static bool FullServerMode {get;private set;}
 
         public static int usersLoaded = 0;
 
@@ -104,8 +106,8 @@ namespace hypixel
 
                     break;
                 case 'b':
-                    var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
-                    BazaarUpdater.NewUpdate (key);
+                    //var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
+                    BazaarUpdater.NewUpdate (apiKey);
                     break;
                 case 'f':
                     FullServer ();
@@ -253,8 +255,8 @@ namespace hypixel
 
         private static void FullServer ()
         {
-            Console.WriteLine("\n - Starting FullServer 0.2.1b - \n");
-
+            Console.WriteLine("\n - Starting FullServer 0.2.2 - \n");
+            FullServerMode = true;
 
             Updater updater;
             Server server;
@@ -297,12 +299,13 @@ namespace hypixel
                 {
                     try
                     {
+                        Indexer.ProcessQueue();
                         Indexer.LastHourIndex();
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine();
-                        Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message}");
+                        Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message} {e.StackTrace} {e.InnerException?.StackTrace}");
                     }
                     System.Threading.Thread.Sleep(5000);
                 }
@@ -610,8 +613,8 @@ namespace hypixel
             }
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK) {
-                //Console.WriteLine("Blocked");
-                //BlockedSince = DateTime.Now;
+                // Shift out to another ip
+                RequestsSinceStart+=1000;
                 return null;
             }
 

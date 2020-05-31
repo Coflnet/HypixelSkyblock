@@ -146,7 +146,8 @@ namespace hypixel {
 
         static int Save (GetAuctionPage res, DateTime lastUpdate) {
             int count = 0;
-            FileController.SaveAs ($"apull/{DateTime.Now.Ticks}", res.Auctions.Where (item => {
+
+            var processed = res.Auctions.Where (item => {
                     ItemDetails.Instance.AddOrIgnoreDetails (item);
 
                     // nothing changed if the last bid is older than the last update
@@ -156,7 +157,12 @@ namespace hypixel {
                 .Select (a => {
                     count++;
                     return new SaveAuction (a);
-                }));
+                });
+
+            if(Program.FullServerMode)
+                Indexer.AddToQueue(processed);
+            else 
+                FileController.SaveAs ($"apull/{DateTime.Now.Ticks}", processed);
 
             return count;
         }

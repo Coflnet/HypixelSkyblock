@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,9 +13,23 @@ namespace hypixel {
         private static bool abort;
         private static bool minimumOutput;
         public static int IndexedAmount => count;
+        public static int QueueCount => auctionsQueue.Count;
 
         private static int count;
-        public static DateTime LastFinish { get;internal set;  }
+        public static DateTime LastFinish { get; internal set; }
+
+        private static ConcurrentQueue<SaveAuction> auctionsQueue = new ConcurrentQueue<SaveAuction> ();
+
+        public static void AddToQueue (SaveAuction auction) {
+            auctionsQueue.Enqueue (auction);
+        }
+
+        public static void AddToQueue (IEnumerable<SaveAuction> auctionsToAdd) {
+            //Console.WriteLine($"Adding {auctionsToAdd.Count()} todoauctions");
+            foreach (var item in auctionsToAdd) {
+                AddToQueue (item);
+            }
+        }
 
         public static void LastHourIndex () {
             DateTime indexStart;
@@ -23,7 +38,8 @@ namespace hypixel {
             //DeleteDir(targetTmp);
             if (!Directory.Exists (pullPath) && !Directory.Exists (targetTmp)) {
                 // update first
-                Console.WriteLine ("nothing to build indexes from, run again with option u first");
+                if (!Program.FullServerMode)
+                    Console.WriteLine ("nothing to build indexes from, run again with option u first");
                 return;
             }
             // only copy the pull path if there is no temp work path yet
@@ -39,6 +55,7 @@ namespace hypixel {
                 foreach (var item in work) {
                     ToDb (item);
                 }
+
                 Console.WriteLine ($"Indexing done, Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
 
                 if (!abort)
@@ -59,6 +76,18 @@ namespace hypixel {
             LastFinish = DateTime.Now;
 
             DeleteDir (targetTmp);
+        }
+
+        public static void ProcessQueue () {
+            var chuckCount = 1000;
+            for (int i = 0; i < auctionsQueue.Count / 1000 + 1; i++) {
+                var batch = new List<SaveAuction> ();
+                for (int index = 0; index < chuckCount; index++) {
+                    if (auctionsQueue.TryDequeue (out SaveAuction a))
+                        batch.Add (a);
+                }
+                ToDb (batch);
+            }
         }
 
         private static void VariableSetup (out DateTime indexStart, out string targetTmp, out string pullPath) {
@@ -95,24 +124,24 @@ namespace hypixel {
         }
 
         private static void ToDb (List<SaveAuction> auctions) {
+
+            auctions = auctions.Distinct (new AuctionComparer ()).ToList ();
+
             using (var context = new HypixelContext ()) {
                 List<string> playerIds = new List<string> ();
-                // preload
-                var inDb = context.Auctions.Where (a => auctions.Select (oa => oa.Uuid)
-                    .Contains (a.Uuid)).Include (a => a.Bids).ToDictionary (a => a.Uuid);
-                BidComparer comparer = new BidComparer ();
+                Dictionary<string, SaveAuction> inDb = GetExistingAuctions (auctions, context);
+
+                var comparer = new BidComparer ();
 
                 foreach (var auction in auctions) {
 
                     try {
-                        playerIds.Add (auction.AuctioneerId);
-                        foreach (var bid in auction.Bids) {
-                            //Program.AddPlayer (context, bid.Bidder);
-                            playerIds.Add (bid.Bidder);
-                        }
+                        AddPlayerId (playerIds, auction);
 
                         var id = auction.Uuid;
+
                         if (inDb.TryGetValue (id, out SaveAuction dbauction)) {
+
                             foreach (var bid in auction.Bids) {
 
                                 bid.Auction = dbauction;
@@ -138,9 +167,27 @@ namespace hypixel {
                     }
 
                 }
-                Program.AddPlayers (context, playerIds);
+                foreach (var player in playerIds) {
+                    Program.AddPlayer (context, player);
+
+                }
+                //Program.AddPlayers (context, playerIds);
 
                 context.SaveChanges ();
+            }
+        }
+
+        private static Dictionary<string, SaveAuction> GetExistingAuctions (List<SaveAuction> auctions, HypixelContext context) {
+            // preload
+            return context.Auctions.Where (a => auctions.Select (oa => oa.Uuid)
+                .Contains (a.Uuid)).Include (a => a.Bids).ToDictionary (a => a.Uuid);
+        }
+
+        private static void AddPlayerId (List<string> playerIds, SaveAuction auction) {
+            playerIds.Add (auction.AuctioneerId);
+            foreach (var bid in auction.Bids) {
+                //Program.AddPlayer (context, bid.Bidder);
+                playerIds.Add (bid.Bidder);
             }
         }
 

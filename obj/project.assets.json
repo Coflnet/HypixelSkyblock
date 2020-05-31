@@ -6019,11 +6019,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/media/ekwav/Daten5/dev/hypixel/dev/hypixel.csproj",
+      "projectUniqueName": "/media/ekwav/Daten6/dev/hypixel/dev/hypixel.csproj",
       "projectName": "hypixel",
-      "projectPath": "/media/ekwav/Daten5/dev/hypixel/dev/hypixel.csproj",
+      "projectPath": "/media/ekwav/Daten6/dev/hypixel/dev/hypixel.csproj",
       "packagesPath": "/home/ekwav/.nuget/packages/",
-      "outputPath": "/media/ekwav/Daten5/dev/hypixel/dev/obj/",
+      "outputPath": "/media/ekwav/Daten6/dev/hypixel/dev/obj/",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "/usr/share/dotnet/sdk/NuGetFallbackFolder"
