@@ -22,7 +22,7 @@ public class Migrator {
     /// Converts the file db to the pull-Format and saves it to be picket up by the indexer
     /// </summary>
     private static void GenerateDBIndexable () {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             var list = GetAThousand ();
             Console.Write ($"Got a total of {list.Count}");
             FileController.SaveAs ($"apull/{list.First().Uuid}", list);

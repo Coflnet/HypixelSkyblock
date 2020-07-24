@@ -57,42 +57,71 @@ namespace hypixel {
             Regex rgx = new Regex ("[^a-f0-9]");
             var search = rgx.Replace (data.Data, "");
 
+            result.Bids.Add (new BidResult () { ItemName = "Loading ..." });
+            result.Bids.Add (new BidResult () { ItemName = "This takes a minute :/" });
+            result.Auctions.Add (new AuctionResult () { ItemName = "Loading the latest data" });
+            data.SendBack (MessageData.Create ("playerResponse", result));
+
             using (var context = new HypixelContext ()) {
-                var databaseResult = context.Players.Where(p=>p.UuId==search).Include (p => p.Auctions)
-                    .Include (p => p.Bids)
-                    .ThenInclude (b => b.Auction)
-                    .ThenInclude (a => a.Bids).First ();
+                var playerQuery = context.Players.Where (p => p.UuId == search);
+                var playerWithAuctions = playerQuery
+                    .Include (p => p.Auctions)
+                    .First();
 
-                result.Auctions = databaseResult.Auctions.Select (a => new AuctionResult (a)).ToList ();
+                result.Auctions = playerWithAuctions.Auctions
+                    .Select (a => new AuctionResult (a))
+                    .OrderByDescending (a => a.End)
+                    .ToList ();
 
-                foreach (var item in databaseResult.Bids)
-                {
-                    var a = item.Auction;
+                // just the auctions for now
+                data.SendBack (MessageData.Create ("playerResponse", result));
 
-                    if (a.Bids == null || a.Bids.Count == 0)
-                    {
-                        Console.WriteLine("Auction has no bids");
-                        continue;
-                    }
-                    SaveBids highestOwn = FindHighestOwnBid(databaseResult, a);
 
-                    if (highestOwn == null)
-                    {
-                        Console.WriteLine("no highest own");
-                        continue;
-                    }
+                var playerBids = context.Bids.Where(b=>b.Bidder == search)
+                    //.Include (p => p.Auction)
+                    .Select(b=>new {
+                        b.Auction.Uuid,
+                        b.Auction.ItemName,
+                        b.Auction.HighestBidAmount,
+                        b.Auction.End,
+                        b.Amount,
+                        
+                    }).GroupBy(b=>b.Uuid)
+                    .Select(bid=> new {
+                        bid.Key,
+                        Amount = bid.Max(b=>b.Amount),
+                        HighestBid = bid.Max(b=>b.HighestBidAmount),
+                        ItemName = bid.Max(b=>b.ItemName),
+                        HighestOwnBid = bid.Max(b=>b.Amount),
+                        End = bid.Max(b=>b.End)
+                    })
+                    //.ThenInclude (b => b.Auction)
+                    .ToList ();
 
-                    result.Bids.Add(NewBidResult(a, highestOwn));
-                }
+                var aggregatedBids = playerBids
+                                .Select(b=>new BidResult(){
+                                    HighestBid = b.HighestBid,
+                                    AuctionId=b.Key,
+                                    End = b.End,
+                                    HighestOwnBid = b.HighestOwnBid,
+                                    ItemName = b.ItemName
+                                })
+                                .OrderByDescending (b => b.End)
+                                .ToList();
+
+                result.Bids = aggregatedBids;
+                //data.SendBack (MessageData.Create ("playerResponse", result));
+
+                // fetch full auction data
+                //var auctionsForBids = context.Auctions.Where(a=>result.Bids.Any(b=>b.==a.Id))
             }
 
             data.SendBack (MessageData.Create ("playerResponse", result));
         }
 
-        private static SaveBids FindHighestOwnBid(Player databaseResult, SaveAuction a)
-        {
-            return a.Bids.Where(bid => bid.Bidder == databaseResult.UuId)
-                .OrderByDescending(bid => bid.Amount).FirstOrDefault();
+        private static SaveBids FindHighestOwnBid (Player databaseResult, SaveAuction a) {
+            return a.Bids.Where (bid => bid.Bidder == databaseResult.UuId)
+                .OrderByDescending (bid => bid.Amount).FirstOrDefault ();
         }
 
         private static BidResult NewBidResult (SaveAuction a, SaveBids highestOwn) {

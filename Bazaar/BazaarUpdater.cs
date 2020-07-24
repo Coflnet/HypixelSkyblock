@@ -30,6 +30,8 @@ namespace dev {
 
         public static DateTime LastUpdate { get; internal set; }
 
+        public static Dictionary<string,QuickStatus> LastStats = new Dictionary<string, QuickStatus>();
+
         public static void NewUpdate (string apiKey) {
             Console.WriteLine ($"Started at {DateTime.Now}");
 
@@ -49,6 +51,7 @@ namespace dev {
         private static void PullAndSave(HypixelApi api, int i)
         {
             var result = api.GetBazaarProducts();
+                var pull = new BazaarPull(result);
             using (var context = new HypixelContext())
             {
                 context.Database.EnsureCreated();
@@ -65,7 +68,6 @@ namespace dev {
 
                 //var lastKnownPrices = lastMinPulls.ToDictionary(p=>p)
 
-                var pull = new BazaarPull(result);
 
                 if (lastMinPulls.Any())
                 {
@@ -137,6 +139,8 @@ namespace dev {
                 context.SaveChanges();
                 Console.Write("\r" + i);
             }
+
+            LastStats = pull.Products.Select(p=>p.QuickStatus).ToDictionary(qs=>qs.ProductId);
             LastUpdate = DateTime.Now;
         }
 
@@ -163,9 +167,10 @@ namespace dev {
                     {
                         Logger.Instance.Error($"\nBazaar update failed {e.Message} \n{e.StackTrace} \n{e.InnerException?.Message}");
                         Console.WriteLine($"\nBazaar update failed {e.Message} \n{e.InnerException?.Message}");
+                        Thread.Sleep(5000);
                     }
                 }
-                Console.WriteLine("Stopped Bazaar");
+                Console.WriteLine("Stopped Bazaar :/");
             });
         }
 

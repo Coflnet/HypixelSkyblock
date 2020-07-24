@@ -20,7 +20,10 @@ namespace dev
         {
             message+="\n";
             System.Console.WriteLine(message);
-            FileController.AppendLineAs("errors",message);
+            try {
+                FileController.AppendLineAs("errors",message);
+            } catch(System.Exception)
+            { }
         }
     }
 }

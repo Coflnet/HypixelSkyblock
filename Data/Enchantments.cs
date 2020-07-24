@@ -68,7 +68,16 @@ namespace hypixel
             luck_of_the_sea,
             true_protection,
             sugar_rush,
-            bane_of_arthropod
+            bane_of_arthropod,
+            replenish,
+            rejuvenate,
+            ultimate_bank,
+            ultimate_combo,
+            ultimate_jerry,
+            ultimate_last_stand,
+            ultimate_no_pain_no_gain,
+            ultimate_wisdom,
+            ultimate_wise
             
         }
 

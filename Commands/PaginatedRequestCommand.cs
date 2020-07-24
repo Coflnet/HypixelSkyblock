@@ -19,31 +19,18 @@ namespace hypixel
 
         private List<T> GetResult(string uuid, int amount, int offset)
         {
-            var ids = GetAllIds(uuid);
-            var count = ids.Count();
-            List<T> result = new List<T>();
+            //var ids = GetAllIds(uuid);
+            //var count = ids.Count();
+ 
 
-            var availableAmount = count - offset;
-            if(availableAmount < amount)
-            {
-                amount = availableAmount;
-            }
-            if(amount <= 0)
-            {
-                // there are not enough
-                return result;
-            }
-
-            return ids.Reverse()
-                        .Skip(offset)
-                        .Take(amount)
-                        .Select(id=>GetElement(id,uuid))
-                        .ToList();
+            return GetAllElements(uuid,amount,offset).ToList();
         }
 
         public abstract IEnumerable<string> GetAllIds(string id);
 
         public abstract T GetElement(string id,string parentUuid);
+
+        public abstract IEnumerable<T> GetAllElements(string selector,int offset,int amount);
 
         [MessagePackObject]
         public class Request

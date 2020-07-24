@@ -169,7 +169,9 @@ namespace hypixel
         RARE,
         EPIC,
         LEGENDARY,
-        SPECIAL
+        SPECIAL,
+        VERY_SPECIAL,
+        MYTHIC
 
     }
 

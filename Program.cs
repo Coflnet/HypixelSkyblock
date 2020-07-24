@@ -128,38 +128,7 @@ namespace hypixel
                     }
                     break;
                 case '2':
-                    using (var context = new HypixelContext ()) {
-
-                        var auctionI = context.Auctions.Include (ac => ac.Bids).Where (ac => ac.Id == 169333).First ();
-                        var ares = (new BidComparer ()).Equals (auctionI.Bids[0], auctionI.Bids[2]);
-
-                        var result = context.BazaarPull
-                            .Include (p => p.Products)
-                            .ThenInclude (p => p.BuySummery)
-                            .Include (p => p.Products)
-                            .ThenInclude (p => p.QuickStatus)
-
-                            .Where (p => p.Timestamp > new DateTime (2020, 5, 22, 19, 32, 0)).ToList ();
-
-                        var a = result.Where (b => b.Products.Exists (p => p.ProductId == "SUPERIOR_FRAGMENT"))
-                            .ToList ();
-                        var res = new List<ProductInfo> ();
-                        foreach (var item in a) {
-                            res.AddRange (item.Products.Where (p => p.ProductId == "SUPERIOR_FRAGMENT"));
-                        }
-                        foreach (var item in res) {
-                            if (item == null || item.BuySummery == null) {
-                                Console.WriteLine ("null");
-                                continue;
-                            }
-                            if (item.BuySummery.Count == 0) {
-                                Console.WriteLine ("empty");
-                                continue;
-                            }
-                            Console.WriteLine ($"Top: {item?.BuySummery?.First().PricePerUnit}  {item?.QuickStatus?.BuyPrice} {item?.QuickStatus?.BuyVolume}");
-                        }
-
-                    }
+                    OptionTwo();
                     break;
                 case '3':
                     DisplayUser ();
@@ -253,6 +222,47 @@ namespace hypixel
             return false;
         }
 
+        private static void OptionTwo()
+        {
+            using (var context = new HypixelContext())
+            {
+
+                var auctionI = context.Auctions.Include(ac => ac.Bids).Where(ac => ac.Id == 169333).First();
+                var ares = (new BidComparer()).Equals(auctionI.Bids[0], auctionI.Bids[2]);
+
+                var result = context.BazaarPull
+                    .Include(p => p.Products)
+                    .ThenInclude(p => p.BuySummery)
+                    .Include(p => p.Products)
+                    .ThenInclude(p => p.QuickStatus)
+
+                    .Where(p => p.Timestamp > new DateTime(2020, 5, 22, 19, 32, 0)).ToList();
+
+                var a = result.Where(b => b.Products.Exists(p => p.ProductId == "SUPERIOR_FRAGMENT"))
+                    .ToList();
+                var res = new List<ProductInfo>();
+                foreach (var item in a)
+                {
+                    res.AddRange(item.Products.Where(p => p.ProductId == "SUPERIOR_FRAGMENT"));
+                }
+                foreach (var item in res)
+                {
+                    if (item == null || item.BuySummery == null)
+                    {
+                        Console.WriteLine("null");
+                        continue;
+                    }
+                    if (item.BuySummery.Count == 0)
+                    {
+                        Console.WriteLine("empty");
+                        continue;
+                    }
+                    Console.WriteLine($"Top: {item?.BuySummery?.First().PricePerUnit}  {item?.QuickStatus?.BuyPrice} {item?.QuickStatus?.BuyVolume}");
+                }
+
+            }
+        }
+
         private static void FullServer ()
         {
             Console.WriteLine("\n - Starting FullServer 0.2.2 - \n");
@@ -307,7 +317,7 @@ namespace hypixel
                         Console.WriteLine();
                         Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message} {e.StackTrace} {e.InnerException?.StackTrace}");
                     }
-                    System.Threading.Thread.Sleep(5000);
+                    System.Threading.Thread.Sleep(1000);
                 }
             });
         }
@@ -550,19 +560,6 @@ namespace hypixel
 
         static void RemoveFileLock (string typeId) {
             FileController.Delete (typeId + "lock");
-        }
-
-        static void pastAuctions (string name) {
-            var hypixel = new HypixelApi (apiKey, 300);
-            var getProfilesByName = hypixel.GetSkyblockProfilesByName ("ekwav");
-            foreach (var profile in getProfilesByName) {
-                Console.WriteLine ("---" + profile.Profile.ProfileId);
-                var auctionsByPlayerName = hypixel.GetAuctionsByProfileId (profile.Profile.ProfileId);
-
-                foreach (var item in auctionsByPlayerName.Auctions) {
-                    Console.WriteLine ($"->{item.ItemName} {item.HighestBidAmount} {item.Start} {item.End}");
-                }
-            }
         }
 
         /// <summary>

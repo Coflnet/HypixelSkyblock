@@ -24,6 +24,9 @@ namespace hypixel
             Commands.Add("playerBids",new PlayerBidsCommand());
             Commands.Add("allItemNames",new AllItemNamesCommand());
             Commands.Add("bazaarPrices",new BazaarPricesCommand());
+            Commands.Add("getAllEnchantments",new GetAllEnchantmentsCommand());
+
+            
 
             
 
@@ -38,7 +41,7 @@ namespace hypixel
                 mId = data.mId;
                 data.Connection = this;
                  data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
-                 Console.WriteLine(data.Data);
+                // Console.WriteLine(data.Data);
 
                 if(!Commands.ContainsKey(data.Type))
                 {

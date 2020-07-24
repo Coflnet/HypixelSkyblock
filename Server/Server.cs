@@ -139,14 +139,17 @@ namespace hypixel
                 LastBazaarUpdate = dev.BazaarUpdater.LastUpdate,
                 LastNameUpdate = NameUpdater.LastUpdate,
                 CacheSize = ItemPricesCommand.CacheSize,
-                QueueSize = Indexer.QueueCount
+                QueueSize = Indexer.QueueCount,
+                LastAuctionPull = Updater.LastPull,
+                LastUpdateSize = Updater.UpdateSize
             };
             // determine status
             res.StatusCode = 200;
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0,5,0));
             if(data.LastIndexFinish < maxTime 
                 || data.LastBazaarUpdate < maxTime
-                || data.LastNameUpdate < maxTime)
+                || data.LastNameUpdate < maxTime
+                || data.LastAuctionPull < maxTime)
                 {
                     res.StatusCode = 500;
                 }

@@ -98,7 +98,7 @@
           "lib/netstandard2.0/K4os.Hash.xxHash.dll": {}
         }
       },
-      "MessagePack/1.9.3": {
+      "MessagePack/1.9.11": {
         "type": "package",
         "dependencies": {
           "System.Reflection.Emit": "4.3.0",
@@ -586,6 +586,21 @@
         },
         "runtime": {
           "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NUnit/3.12.0": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "2.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/nunit.framework.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/nunit.framework.dll": {}
+        },
+        "build": {
+          "build/NUnit.props": {}
         }
       },
       "RestSharp/106.6.10": {
@@ -1703,10 +1718,10 @@
         "lib/netstandard2.0/K4os.Hash.xxHash.xml"
       ]
     },
-    "MessagePack/1.9.3": {
-      "sha512": "4WcgRNyez4aW1Ia8q4KFgCe9j+UQwCAM3hyJtaCDD8LWoynMaDMmulDWRQqOP5FOOEEZtNUrM2zFRAPPa+BEew==",
+    "MessagePack/1.9.11": {
+      "sha512": "vS21kQ7dm7STWkA9QITlnyjKIAssbhgrhMIptfk+TwsLlR1eov6ABTHcLtcMJjQrbJSk7WRS3CRuhi/jQCWOKw==",
       "type": "package",
-      "path": "messagepack/1.9.3",
+      "path": "messagepack/1.9.11",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1719,7 +1734,7 @@
         "lib/netstandard1.6/MessagePack.xml",
         "lib/netstandard2.0/MessagePack.dll",
         "lib/netstandard2.0/MessagePack.xml",
-        "messagepack.1.9.3.nupkg.sha512",
+        "messagepack.1.9.11.nupkg.sha512",
         "messagepack.nuspec"
       ]
     },
@@ -2812,6 +2827,36 @@
         "newtonsoft.json.12.0.3.nupkg.sha512",
         "newtonsoft.json.nuspec",
         "packageIcon.png"
+      ]
+    },
+    "NUnit/3.12.0": {
+      "sha512": "3oJTrcUcT9wmweBUwgUf0f1XIYy6RZq2ziV+RM95HMKAJGsHPN2i3MKK1dAPvDPMRLz799Llj4eyu/STB9Q7OA==",
+      "type": "package",
+      "path": "nunit/3.12.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "CHANGES.md",
+        "LICENSE.txt",
+        "NOTICES.txt",
+        "build/NUnit.props",
+        "lib/net35/nunit.framework.dll",
+        "lib/net35/nunit.framework.pdb",
+        "lib/net35/nunit.framework.xml",
+        "lib/net40/nunit.framework.dll",
+        "lib/net40/nunit.framework.pdb",
+        "lib/net40/nunit.framework.xml",
+        "lib/net45/nunit.framework.dll",
+        "lib/net45/nunit.framework.pdb",
+        "lib/net45/nunit.framework.xml",
+        "lib/netstandard1.4/nunit.framework.dll",
+        "lib/netstandard1.4/nunit.framework.pdb",
+        "lib/netstandard1.4/nunit.framework.xml",
+        "lib/netstandard2.0/nunit.framework.dll",
+        "lib/netstandard2.0/nunit.framework.pdb",
+        "lib/netstandard2.0/nunit.framework.xml",
+        "nunit.3.12.0.nupkg.sha512",
+        "nunit.nuspec"
       ]
     },
     "RestSharp/106.6.10": {
@@ -6004,9 +6049,10 @@
     ".NETCoreApp,Version=v2.2": [
       "ConcurrentHashSet >= 1.1.0",
       "Hypixel.NET >= 1.0.9",
-      "MessagePack >= 1.9.3",
+      "MessagePack >= 1.9.11",
       "Microsoft.NETCore.App >= 2.2.0",
       "MySql.Data.EntityFrameworkCore >= 8.0.20",
+      "NUnit >= 3.12.0",
       "SixLabors.ImageSharp >= 1.0.0-beta0007",
       "WebSocketSharp >= 1.0.3-rc11",
       "fNbt >= 0.6.4"
@@ -6019,11 +6065,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/media/ekwav/Daten6/dev/hypixel/dev/hypixel.csproj",
+      "projectUniqueName": "/media/ekwav/Daten12/dev/hypixel/dev/hypixel.csproj",
       "projectName": "hypixel",
-      "projectPath": "/media/ekwav/Daten6/dev/hypixel/dev/hypixel.csproj",
+      "projectPath": "/media/ekwav/Daten12/dev/hypixel/dev/hypixel.csproj",
       "packagesPath": "/home/ekwav/.nuget/packages/",
-      "outputPath": "/media/ekwav/Daten6/dev/hypixel/dev/obj/",
+      "outputPath": "/media/ekwav/Daten12/dev/hypixel/dev/obj/",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "/usr/share/dotnet/sdk/NuGetFallbackFolder"
@@ -6061,7 +6107,7 @@
           },
           "MessagePack": {
             "target": "Package",
-            "version": "[1.9.3, )"
+            "version": "[1.9.11, )"
           },
           "Microsoft.NETCore.App": {
             "suppressParent": "All",
@@ -6072,6 +6118,10 @@
           "MySql.Data.EntityFrameworkCore": {
             "target": "Package",
             "version": "[8.0.20, )"
+          },
+          "NUnit": {
+            "target": "Package",
+            "version": "[3.12.0, )"
           },
           "SixLabors.ImageSharp": {
             "target": "Package",

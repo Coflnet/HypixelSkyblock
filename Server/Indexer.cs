@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace hypixel {
     public class Indexer {
+        private const int MAX_QUEUE_SIZE = 10000;
+        private const int AUCTION_CHUNK_SIZE = 1000;
         private static bool abort;
         private static bool minimumOutput;
         public static int IndexedAmount => count;
@@ -22,6 +24,9 @@ namespace hypixel {
 
         public static void AddToQueue (SaveAuction auction) {
             auctionsQueue.Enqueue (auction);
+
+            if(QueueCount > MAX_QUEUE_SIZE)
+                PersistQueueBatch();
         }
 
         public static void AddToQueue (IEnumerable<SaveAuction> auctionsToAdd) {
@@ -29,6 +34,11 @@ namespace hypixel {
             foreach (var item in auctionsToAdd) {
                 AddToQueue (item);
             }
+        }
+
+        private static void PersistQueueBatch()
+        {
+            FileController.SaveAs ($"apull/{DateTime.Now.Ticks+1}", TakeBatch(AUCTION_CHUNK_SIZE));
         }
 
         public static void LastHourIndex () {
@@ -52,8 +62,11 @@ namespace hypixel {
                 Console.WriteLine ("working");
 
                 var work = PullData ();
+                var earlybreak = 100;
                 foreach (var item in work) {
                     ToDb (item);
+                    if(earlybreak--<=0)
+                        break;
                 }
 
                 Console.WriteLine ($"Indexing done, Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
@@ -80,19 +93,36 @@ namespace hypixel {
 
         public static void ProcessQueue () {
             var chuckCount = 1000;
-            for (int i = 0; i < auctionsQueue.Count / 1000 + 1; i++) {
-                var batch = new List<SaveAuction> ();
-                for (int index = 0; index < chuckCount; index++) {
-                    if (auctionsQueue.TryDequeue (out SaveAuction a))
-                        batch.Add (a);
+            for (int i = 0; i < auctionsQueue.Count / 1000 + 1; i++)
+            {
+                List<SaveAuction> batch = TakeBatch(chuckCount);
+                try {
+                    ToDb(batch);
+                } catch(Exception e)
+                {
+                    AddToQueue(batch);
+                    throw e;
                 }
-                ToDb (batch);
             }
+            LastFinish = DateTime.Now;
+        }
+
+        private static List<SaveAuction> TakeBatch(int chuckCount)
+        {
+            var batch = new List<SaveAuction>();
+            for (int index = 0; index < chuckCount; index++)
+            {
+                if (auctionsQueue.TryDequeue(out SaveAuction a))
+                    batch.Add(a);
+            }
+
+            return batch;
         }
 
         private static void VariableSetup (out DateTime indexStart, out string targetTmp, out string pullPath) {
             indexStart = DateTime.Now;
-            Console.WriteLine ($"{indexStart}");
+            if(!Program.FullServerMode)
+                Console.WriteLine ($"{indexStart}");
             var lastIndexStart = new DateTime (2020, 4, 25);
             if (FileController.Exists ("lastIndex"))
                 lastIndexStart = FileController.LoadAs<DateTime> ("lastIndex");
@@ -133,38 +163,9 @@ namespace hypixel {
 
                 var comparer = new BidComparer ();
 
-                foreach (var auction in auctions) {
-
-                    try {
-                        AddPlayerId (playerIds, auction);
-
-                        var id = auction.Uuid;
-
-                        if (inDb.TryGetValue (id, out SaveAuction dbauction)) {
-
-                            foreach (var bid in auction.Bids) {
-
-                                bid.Auction = dbauction;
-                                if (!dbauction.Bids.Contains (bid, comparer)) {
-                                    context.Bids.Add (bid);
-                                    var shouldNotBeFalse = dbauction.Bids.Contains (bid, comparer);
-                                    dbauction.HighestBidAmount = auction.HighestBidAmount;
-                                }
-                            }
-                            // update
-                            context.Auctions.Update (dbauction);
-                        } else {
-                            context.Auctions.Add (auction);
-                        }
-
-                        count++;
-                        if (!minimumOutput && count % 5 == 0)
-                            Console.Write ($"\r         Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
-
-                    } catch (Exception e) {
-                        Logger.Instance.Error ($"Error {e.Message} on {auction.ItemName} {auction.Uuid} from {auction.AuctioneerId}");
-                        Logger.Instance.Error (e.StackTrace);
-                    }
+                foreach (var auction in auctions)
+                {
+                    ProcessAuction(context, playerIds, inDb, comparer, auction);
 
                 }
                 foreach (var player in playerIds) {
@@ -177,6 +178,52 @@ namespace hypixel {
             }
         }
 
+        private static void ProcessAuction(HypixelContext context, List<string> playerIds, Dictionary<string, SaveAuction> inDb, BidComparer comparer, SaveAuction auction)
+        {
+            try
+            {
+                AddPlayerId(playerIds, auction);
+
+                var id = auction.Uuid;
+
+                if (inDb.TryGetValue(id, out SaveAuction dbauction))
+                {
+                    UpdateAuction(context, comparer, auction, dbauction);
+                }
+                else
+                {
+                    context.Auctions.Add(auction);
+                }
+
+                count++;
+                if (!minimumOutput && count % 5 == 0)
+                    Console.Write($"\r         Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
+
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Error($"Error {e.Message} on {auction.ItemName} {auction.Uuid} from {auction.AuctioneerId}");
+                Logger.Instance.Error(e.StackTrace);
+            }
+        }
+
+        private static void UpdateAuction(HypixelContext context, BidComparer comparer, SaveAuction auction, SaveAuction dbauction)
+        {
+            foreach (var bid in auction.Bids)
+            {
+
+                bid.Auction = dbauction;
+                if (!dbauction.Bids.Contains(bid, comparer))
+                {
+                    context.Bids.Add(bid);
+                    var shouldNotBeFalse = dbauction.Bids.Contains(bid, comparer);
+                    dbauction.HighestBidAmount = auction.HighestBidAmount;
+                }
+            }
+            // update
+            context.Auctions.Update(dbauction);
+        }
+
         private static Dictionary<string, SaveAuction> GetExistingAuctions (List<SaveAuction> auctions, HypixelContext context) {
             // preload
             return context.Auctions.Where (a => auctions.Select (oa => oa.Uuid)
@@ -184,8 +231,13 @@ namespace hypixel {
         }
 
         private static void AddPlayerId (List<string> playerIds, SaveAuction auction) {
-            playerIds.Add (auction.AuctioneerId);
-            foreach (var bid in auction.Bids) {
+            if(auction?.AuctioneerId == null)
+                return;
+            
+            playerIds?.Add (auction?.AuctioneerId);
+            if(auction?.Bids == null)
+                return;
+            foreach (var bid in auction?.Bids) {
                 //Program.AddPlayer (context, bid.Bidder);
                 playerIds.Add (bid.Bidder);
             }

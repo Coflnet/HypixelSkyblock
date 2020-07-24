@@ -19,6 +19,50 @@ namespace hypixel
             return new BidResult(StorageManager.GetOrCreateAuction(id),parentUuId);
         }   
 
+        public override IEnumerable<PlayerBidsCommand.BidResult> GetAllElements(string selector,int amount,int offset)
+        {
+            using(var context = new HypixelContext())
+            {
+                var playerBids = context.Bids.Where(b=>b.Bidder == selector)
+                    // filtering
+                    .OrderByDescending(auction=>auction.Timestamp)
+                        .Skip(offset)
+                        .Take(amount)
+                    //.Include (p => p.Auction)
+                    .Select(b=>new {
+                        b.Auction.Uuid,
+                        b.Auction.ItemName,
+                        b.Auction.HighestBidAmount,
+                        b.Auction.End,
+                        b.Amount,
+                        
+                    }).GroupBy(b=>b.Uuid)
+                    .Select(bid=> new {
+                        bid.Key,
+                        Amount = bid.Max(b=>b.Amount),
+                        HighestBid = bid.Max(b=>b.HighestBidAmount),
+                        ItemName = bid.Max(b=>b.ItemName),
+                        HighestOwnBid = bid.Max(b=>b.Amount),
+                        End = bid.Max(b=>b.End)
+                    })
+                    
+                    //.ThenInclude (b => b.Auction)
+                    .ToList ();
+
+                var aggregatedBids = playerBids
+                                .Select(b=>new PlayerBidsCommand.BidResult(){
+                                    HighestBid = b.HighestBid,
+                                    AuctionId=b.Key,
+                                    End = b.End,
+                                    HighestOwnBid = b.HighestOwnBid,
+                                    ItemName = b.ItemName
+                                })
+                                .OrderByDescending (b => b.End)
+                                .ToList();
+                return aggregatedBids;
+            }
+        }
+
 
         [MessagePackObject]
         public class BidResult

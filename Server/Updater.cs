@@ -15,6 +15,9 @@ namespace hypixel {
         private bool abort;
         private static bool minimumOutput;
 
+        public static DateTime LastPull { get; internal set; }
+        public static int UpdateSize { get; internal set; }
+
         public Updater (string apiKey) {
             this.apiKey = apiKey;
         }
@@ -28,8 +31,8 @@ namespace hypixel {
             var updateStartTime = DateTime.UtcNow.ToLocalTime ();
 
             try {
-                RunUpdate (updateStartTime);
-                FileController.SaveAs ("lastUpdate", updateStartTime);
+                lastUpdateDone = RunUpdate (lastUpdateDone);
+                FileController.SaveAs ("lastUpdate", lastUpdateDone);
                 FileController.Delete ("lastUpdateStart");
             } catch (Exception e) {
                 Logger.Instance.Error ($"Updating stopped because of {e.Message} {e.StackTrace}  {e.InnerException?.Message} {e.InnerException?.StackTrace}");
@@ -42,12 +45,14 @@ namespace hypixel {
             Console.WriteLine ($"Done in {DateTime.Now.ToLocalTime()}");
         }
 
-        void RunUpdate (DateTime updateStartTime) {
+        DateTime lastUpdateDone = new DateTime (1970, 1, 1);
+
+        DateTime RunUpdate (DateTime updateStartTime) {
             var hypixel = new HypixelApi (apiKey, 50);
             long max = 1;
-            var lastUpdate = new DateTime (1970, 1, 1);
-            if (FileController.Exists ("lastUpdate"))
-                lastUpdate = FileController.LoadAs<DateTime> ("lastUpdate").ToLocalTime ();
+            var lastUpdate = lastUpdateDone;// new DateTime (1970, 1, 1);
+            //if (FileController.Exists ("lastUpdate"))
+            //    lastUpdate = FileController.LoadAs<DateTime> ("lastUpdate").ToLocalTime ();
 
             var lastUpdateStart = new DateTime (0);
             if (FileController.Exists ("lastUpdateStart"))
@@ -63,7 +68,8 @@ namespace hypixel {
             Console.WriteLine ("Updating Data");
 
             // add extra miniute to start to catch lost auctions
-            lastUpdate = lastUpdate - new TimeSpan (0, 2, 0);
+            lastUpdate = lastUpdate - new TimeSpan (0, 1, 0);
+            DateTime timestamp = lastUpdate;
 
             var tasks = new List<Task> ();
             int sum = 0;
@@ -72,6 +78,7 @@ namespace hypixel {
 
             for (int i = 0; i < max; i++) {
                 var res = hypixel?.GetAuctionPage (i);
+                timestamp = res.LastUpdated;
                 if (res == null)
                     continue;
                 if (i == 0) {
@@ -94,7 +101,7 @@ namespace hypixel {
 
                 // try to stay under 100MB
                 if (System.GC.GetTotalMemory (false) > 100000000) {
-                    Console.Write ("\t\t mem: " + System.GC.GetTotalMemory (false));
+                    Console.Write ("\t mem: " + System.GC.GetTotalMemory (false));
                     // to much memory wait on a thread
                     //tasks[i/2].Wait();
                     //tasks[i/2].Dispose();
@@ -108,19 +115,33 @@ namespace hypixel {
                 PrintUpdateEstimate (max, doneCont, sum, updateStartTime, max);
             }
 
+            if (sum > 10)
+                LastPull = DateTime.Now;
+
+            UpdateSize = sum;
+
+            return timestamp;
         }
 
         internal void UpdateForEver () {
             Task.Run (() => {
                 minimumOutput = true;
                 while (true) {
-                    var start = DateTime.Now;
-                    Update ();
-                    if (abort) {
-                        Console.WriteLine ("Stopped updater");
-                        break;
+                    try 
+                    {
+                        var start = DateTime.Now;
+                        Update ();
+                        if (abort) {
+                            Console.WriteLine ("Stopped updater");
+                            break;
+                        }
+                        WaitForServerCacheRefresh (start);
+                    } catch(Exception e)
+                    {
+                        Logger.Instance.Error("Updater encountered an outside error " + e.Message);
+                        Thread.Sleep(5000);
                     }
-                    WaitForServerCacheRefresh (start);
+
                 }
             });
         }
@@ -159,9 +180,9 @@ namespace hypixel {
                     return new SaveAuction (a);
                 });
 
-            if(Program.FullServerMode)
-                Indexer.AddToQueue(processed);
-            else 
+            if (Program.FullServerMode)
+                Indexer.AddToQueue (processed);
+            else
                 FileController.SaveAs ($"apull/{DateTime.Now.Ticks}", processed);
 
             return count;
