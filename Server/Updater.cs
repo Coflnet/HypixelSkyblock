@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace hypixel {
     public class Updater {
+        private const int Miniute = 60000;
         private string apiKey;
         private bool abort;
         private static bool minimumOutput;
@@ -37,6 +38,7 @@ namespace hypixel {
             } catch (Exception e) {
                 Logger.Instance.Error ($"Updating stopped because of {e.Message} {e.StackTrace}  {e.InnerException?.Message} {e.InnerException?.StackTrace}");
                 FileController.Delete ("lastUpdateStart");
+                throw e;
             }
 
             ItemDetails.Instance.Save ();
@@ -50,7 +52,7 @@ namespace hypixel {
         DateTime RunUpdate (DateTime updateStartTime) {
             var hypixel = new HypixelApi (apiKey, 50);
             long max = 1;
-            var lastUpdate = lastUpdateDone;// new DateTime (1970, 1, 1);
+            var lastUpdate = lastUpdateDone; // new DateTime (1970, 1, 1);
             //if (FileController.Exists ("lastUpdate"))
             //    lastUpdate = FileController.LoadAs<DateTime> ("lastUpdate").ToLocalTime ();
 
@@ -75,36 +77,43 @@ namespace hypixel {
             int sum = 0;
             int doneCont = 0;
             object sumloc = new object ();
-
+            var firstPage = hypixel?.GetAuctionPage (0);
+            max = firstPage.TotalPages;
             for (int i = 0; i < max; i++) {
-                var res = hypixel?.GetAuctionPage (i);
-                timestamp = res.LastUpdated;
-                if (res == null)
-                    continue;
-                if (i == 0) {
-                    // correct update time
-                    Console.WriteLine ($"Updating difference {lastUpdate} {res.LastUpdated}");
-                    //lastUpdate = res.LastUpdated;
-                }
-                max = res.TotalPages;
-
+                var index = i;
                 tasks.Add (Task.Run (() => {
-                    var val = Save (res, lastUpdate);
-                    lock (sumloc) {
-                        sum += val;
-                        // process done
-                        doneCont++;
+                    
+                    try {
+                        var res = index != 0 ? hypixel?.GetAuctionPage (index) : firstPage;
+                        if (res == null)
+                            return;;
+
+                        timestamp = res.LastUpdated;
+                        max = res.TotalPages;
+
+                        if (index == 0) {
+                            // correct update time
+                            Console.WriteLine ($"Updating difference {lastUpdate} {res.LastUpdated}");
+                            //lastUpdate = res.LastUpdated;
+                        }
+
+                        var val = Save (res, lastUpdate);
+                        lock (sumloc) {
+                            sum += val;
+                            // process done
+                            doneCont++;
+                        }
+                        PrintUpdateEstimate (index, doneCont, sum, updateStartTime, max);
+                    } catch (Exception e) {
+                        Logger.Instance.Error ($"Single page ({index}) could not be loaded because of {e.Message}");
                     }
-                    PrintUpdateEstimate (i, doneCont, sum, updateStartTime, max);
+
                 }));
                 PrintUpdateEstimate (i, doneCont, sum, updateStartTime, max);
 
                 // try to stay under 100MB
                 if (System.GC.GetTotalMemory (false) > 100000000) {
                     Console.Write ("\t mem: " + System.GC.GetTotalMemory (false));
-                    // to much memory wait on a thread
-                    //tasks[i/2].Wait();
-                    //tasks[i/2].Dispose();
                     System.GC.Collect ();
                 }
             }
@@ -118,6 +127,7 @@ namespace hypixel {
             if (sum > 10)
                 LastPull = DateTime.Now;
 
+            Console.WriteLine ($"Updated {sum} auctions {doneCont} pages");
             UpdateSize = sum;
 
             return timestamp;
@@ -127,8 +137,7 @@ namespace hypixel {
             Task.Run (() => {
                 minimumOutput = true;
                 while (true) {
-                    try 
-                    {
+                    try {
                         var start = DateTime.Now;
                         Update ();
                         if (abort) {
@@ -136,10 +145,9 @@ namespace hypixel {
                             break;
                         }
                         WaitForServerCacheRefresh (start);
-                    } catch(Exception e)
-                    {
-                        Logger.Instance.Error("Updater encountered an outside error " + e.Message);
-                        Thread.Sleep(5000);
+                    } catch (Exception e) {
+                        Logger.Instance.Error ("Updater encountered an outside error " + e.Message);
+                        Thread.Sleep (5000);
                     }
 
                 }

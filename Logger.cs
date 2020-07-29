@@ -18,7 +18,6 @@ namespace dev
 
         public void Error(string message)
         {
-            message+="\n";
             System.Console.WriteLine(message);
             try {
                 FileController.AppendLineAs("errors",message);

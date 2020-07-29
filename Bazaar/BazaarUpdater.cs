@@ -57,82 +57,15 @@ namespace dev {
                 context.Database.EnsureCreated();
 
                 var lastMinPulls = context.BazaarPull
+
+                            .OrderByDescending(b=>b.Timestamp)
                             .Include(b => b.Products)
                             .ThenInclude(p => p.QuickStatus)
-                            .OrderByDescending(b=>b.Timestamp)
                             .Take(8).ToList();
-                            //.Where(b => b.Timestamp == context.BazaarPull.Max(ba => ba.Timestamp))
-                            //.FirstOrDefault();
-
-                //Console.WriteLine($"Got {lastMinPulls.Count} pulls total of {lastMinPulls.Sum(p=>p.Products.Count)} products ");
-
-                //var lastKnownPrices = lastMinPulls.ToDictionary(p=>p)
-
 
                 if (lastMinPulls.Any())
                 {
-                    var lastPull = lastMinPulls.First();
-                    var lastPullDic = lastPull
-                            .Products.ToDictionary(p => p.ProductId);
-
-                    var sellChange = 0;
-                    var buyChange = 0;
-                    var productCount = pull.Products.Count;
-
-                    var toRemove = new List<ProductInfo>();
-
-                    for (int index = 0; index < productCount; index++)
-                    {
-                        var currentProduct = pull.Products[index];
-                        var currentStatus = currentProduct.QuickStatus;
-                        var lastProduct = lastMinPulls.SelectMany(p=>p.Products)
-                                        .Where(p=>p.ProductId ==currentStatus.ProductId)
-                                        .OrderByDescending(p=>p.Id)
-                                        .FirstOrDefault();
-
-                        var lastStatus =  new QuickStatus();            
-                        if(lastProduct != null)
-                        {
-                            lastStatus =lastProduct.QuickStatus;
-                        } 
-                        // = lastPullDic[currentStatus.ProductId].QuickStatus;
-
-                        var takeFactor = i % 60 == 0 ? 30 : 3;
-
-                        if (currentStatus.BuyOrders == lastStatus.BuyOrders)
-                        {
-                            // nothing changed
-                            currentProduct.BuySummery = null;
-                            buyChange++;
-                        }
-                        else
-                        {
-                            currentProduct.BuySummery = currentProduct.BuySummery.Take(takeFactor).ToList();
-                        }
-                        if (currentStatus.SellOrders == lastStatus.SellOrders)
-                        {
-                            // nothing changed
-                            currentProduct.SellSummary = null;
-                            sellChange++;
-                        }
-                        else
-                        {
-                            currentProduct.SellSummary = currentProduct.SellSummary.Take(takeFactor).ToList();
-                        }
-                        if(currentProduct.BuySummery == null && currentProduct.SellSummary == null)
-                        {
-                            toRemove.Add(currentProduct);
-                        }
-                    }
-                    //Console.WriteLine($"Not saving {toRemove.Count}");
-
-                    foreach (var item in toRemove)
-                    {
-                        pull.Products.Remove(item);
-                    }
-
-                    Console.WriteLine($"BuyChange: {productCount - buyChange}  SellChange: {productCount - sellChange}");
-                    context.Update(lastPull);
+                    RemoveRedundandInformation(i, pull, context, lastMinPulls);
                 }
 
                 context.BazaarPull.Add(pull);
@@ -142,6 +75,72 @@ namespace dev {
 
             LastStats = pull.Products.Select(p=>p.QuickStatus).ToDictionary(qs=>qs.ProductId);
             LastUpdate = DateTime.Now;
+        }
+
+        private static void RemoveRedundandInformation(int i, BazaarPull pull, HypixelContext context, List<BazaarPull> lastMinPulls)
+        {
+            var lastPull = lastMinPulls.First();
+            var lastPullDic = lastPull
+                    .Products.ToDictionary(p => p.ProductId);
+
+            var sellChange = 0;
+            var buyChange = 0;
+            var productCount = pull.Products.Count;
+
+            var toRemove = new List<ProductInfo>();
+
+            for (int index = 0; index < productCount; index++)
+            {
+                var currentProduct = pull.Products[index];
+                var currentStatus = currentProduct.QuickStatus;
+                var lastProduct = lastMinPulls.SelectMany(p => p.Products)
+                                .Where(p => p.ProductId == currentStatus.ProductId)
+                                .OrderByDescending(p => p.Id)
+                                .FirstOrDefault();
+
+                var lastStatus = new QuickStatus();
+                if (lastProduct != null)
+                {
+                    lastStatus = lastProduct.QuickStatus;
+                }
+                // = lastPullDic[currentStatus.ProductId].QuickStatus;
+
+                var takeFactor = i % 60 == 0 ? 30 : 3;
+
+                if (currentStatus.BuyOrders == lastStatus.BuyOrders)
+                {
+                    // nothing changed
+                    currentProduct.BuySummery = null;
+                    buyChange++;
+                }
+                else
+                {
+                    currentProduct.BuySummery = currentProduct.BuySummery.Take(takeFactor).ToList();
+                }
+                if (currentStatus.SellOrders == lastStatus.SellOrders)
+                {
+                    // nothing changed
+                    currentProduct.SellSummary = null;
+                    sellChange++;
+                }
+                else
+                {
+                    currentProduct.SellSummary = currentProduct.SellSummary.Take(takeFactor).ToList();
+                }
+                if (currentProduct.BuySummery == null && currentProduct.SellSummary == null)
+                {
+                    toRemove.Add(currentProduct);
+                }
+            }
+            //Console.WriteLine($"Not saving {toRemove.Count}");
+
+            foreach (var item in toRemove)
+            {
+                pull.Products.Remove(item);
+            }
+
+            Console.WriteLine($"BuyChange: {productCount - buyChange}  SellChange: {productCount - sellChange}");
+            context.Update(lastPull);
         }
 
         private static void WaitForServerCacheRefresh (int i, DateTime start) {
@@ -172,10 +171,6 @@ namespace dev {
                 }
                 Console.WriteLine("Stopped Bazaar :/");
             });
-        }
-
-        static string Path (ProductInfo product) {
-            return $"product/{product.ProductId}/{product.Timestamp.ToFileTimeUtc()}";
         }
 
         internal void Stop()

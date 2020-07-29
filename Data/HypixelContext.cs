@@ -73,6 +73,10 @@ namespace hypixel
             modelBuilder.Entity<ProductInfo>(entity=> {
                 entity.HasKey(e=>e.Id);
                 entity.HasIndex(e=>e.ProductId);
+            });
+
+            modelBuilder.Entity<BazaarPull>(entity=> {
+                entity.HasKey(e=>e.Id);
                 entity.HasIndex(e=>e.Timestamp);
             });
 

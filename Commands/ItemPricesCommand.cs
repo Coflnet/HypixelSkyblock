@@ -55,7 +55,7 @@ namespace hypixel {
             data.SendBack(MessageData.Create("itemResponse", response));
 
             // cache db, if no filters were applied
-            if(details.Reforge == Reforge.None && details.Enchantments != null && !details.Enchantments.Any())
+            if(details.Reforge == Reforge.None && (details.Enchantments == null || !details.Enchantments.Any()))
                 Cache(details.name, fromDB);
 
         }

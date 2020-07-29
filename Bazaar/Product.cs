@@ -43,6 +43,8 @@ namespace dev
         [JsonProperty("quick_status")]
         public QuickStatus QuickStatus { get;  set; }
         [Key(4)]
+        [JsonIgnore]
+         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public DateTime Timestamp {get;set;}
     }
 }

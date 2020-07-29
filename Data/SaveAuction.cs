@@ -45,10 +45,12 @@ namespace hypixel
         public string Tag {get; set;}
         // [Key (7)]
         //public string ItemLore;
+
+        private string _itemName;
         [Key (8)]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
-        public string ItemName { get; set; }
+        public string ItemName { get {return _itemName;} set {_itemName=value?.Substring(0, Math.Min(value.Length, 45));} }
 
         [Key (9)]
         public DateTime Start { get; set; }
@@ -130,7 +132,7 @@ namespace hypixel
                 Category = category;
             else
                 OldCategory = auction.Category;
-            //ItemLore = auction.ItemLore;
+            // make sure that the lenght is shorter than max
             ItemName = auction.ItemName;
             End = auction.End;
             Start = auction.Start;

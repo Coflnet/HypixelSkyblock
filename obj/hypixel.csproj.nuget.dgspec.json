@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/media/ekwav/Daten12/dev/hypixel/dev/hypixel.csproj": {}
+    "/media/ekwav/Daten13/dev/hypixel/dev/hypixel.csproj": {}
   },
   "projects": {
-    "/media/ekwav/Daten12/dev/hypixel/dev/hypixel.csproj": {
+    "/media/ekwav/Daten13/dev/hypixel/dev/hypixel.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/media/ekwav/Daten12/dev/hypixel/dev/hypixel.csproj",
+        "projectUniqueName": "/media/ekwav/Daten13/dev/hypixel/dev/hypixel.csproj",
         "projectName": "hypixel",
-        "projectPath": "/media/ekwav/Daten12/dev/hypixel/dev/hypixel.csproj",
+        "projectPath": "/media/ekwav/Daten13/dev/hypixel/dev/hypixel.csproj",
         "packagesPath": "/home/ekwav/.nuget/packages/",
-        "outputPath": "/media/ekwav/Daten12/dev/hypixel/dev/obj/",
+        "outputPath": "/media/ekwav/Daten13/dev/hypixel/dev/obj/",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "/usr/share/dotnet/sdk/NuGetFallbackFolder"
@@ -51,6 +51,10 @@
               "target": "Package",
               "version": "[1.9.11, )"
             },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "target": "Package",
+              "version": "[*, )"
+            },
             "Microsoft.NETCore.App": {
               "suppressParent": "All",
               "target": "Package",
@@ -79,10 +83,16 @@
             }
           },
           "imports": [
-            "net461"
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
           ],
           "assetTargetFallback": true,
-          "warn": true
+          "warn": true,
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/3.1.302/RuntimeIdentifierGraph.json"
         }
       }
     }
