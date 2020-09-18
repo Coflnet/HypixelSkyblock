@@ -16,8 +16,14 @@
     </PackageReference>
     <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.20" />
     <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="SimplerConfig" Version="1.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+
+
+    <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always"/-->
+    <None Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always"/>
+
   </ItemGroup>
 
 </Project>

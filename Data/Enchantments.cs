@@ -77,7 +77,12 @@ namespace hypixel
             ultimate_last_stand,
             ultimate_no_pain_no_gain,
             ultimate_wisdom,
-            ultimate_wise
+            ultimate_wise,
+            expertise,
+            ultimate_chimera,
+            ultimate_rend,
+            overload,
+            ultimate_legion
             
         }
 

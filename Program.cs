@@ -21,7 +21,7 @@ namespace hypixel
 {
 
     class Program {
-        static string apiKey = "9be89f9a-74f9-4e90-a861-8e184aee685f";
+        static string apiKey = SimplerConfig.Config.Instance["apiKey"];
 
         public static bool displayMode = false;
 

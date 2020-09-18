@@ -42,4 +42,5 @@ msbuild.log
 msbuild.err
 msbuild.wrn
 ah/apull/637258457948752953
-obj/Debug/netcoreapp2.2/hypixel.csproj.CoreCompileInputs.cache
+obj/
+custom.conf.json
