@@ -21,7 +21,7 @@
     <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
 
 
-    <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always"/-->
+    <None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always"/>
     <None Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always"/>
 
   </ItemGroup>
