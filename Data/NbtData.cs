@@ -12,6 +12,7 @@ namespace hypixel
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [IgnoreMember]
+        [JsonIgnore]
         public int Id {get;set;}
 
         [Key(0)]

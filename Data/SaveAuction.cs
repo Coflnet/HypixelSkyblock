@@ -13,6 +13,7 @@ namespace hypixel
         [IgnoreMember]
         public int Id {get;set;}
         [Key (0)]
+        [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string Uuid { get; set; }
 
@@ -173,7 +174,8 @@ namespace hypixel
         LEGENDARY,
         SPECIAL,
         VERY_SPECIAL,
-        MYTHIC
+        MYTHIC,
+        SUPREME
 
     }
 

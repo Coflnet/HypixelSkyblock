@@ -47,7 +47,8 @@ namespace hypixel {
                                 details.Enchantments);
 
             var result = new List<Result>();
-            result.AddRange(fromCache);
+            if(details.Enchantments == null)
+                result.AddRange(fromCache);
             result.AddRange(fromDB);
 
             var response = GroupResponseByHour(result, hourAmount);
