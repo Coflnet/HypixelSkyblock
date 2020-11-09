@@ -119,6 +119,8 @@ namespace hypixel
         [Key (23)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         public Tier Tier {get; set;}
+        [Key (24)]
+        public bool Bin {get; set;}
 
         public SaveAuction (Hypixel.NET.SkyblockApi.Auction auction) {
             ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
@@ -148,6 +150,7 @@ namespace hypixel
                 Bids.Add (new SaveBids (item));
             }
             NBT.FillDetails (this, auction.ItemBytes);
+            //Bin=auction.BuyItNow; // missing from nuget package
         }
 
         public SaveAuction () { }

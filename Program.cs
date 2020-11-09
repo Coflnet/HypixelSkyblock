@@ -347,6 +347,7 @@ namespace hypixel
                     Console.WriteLine("Waiting for db creating in the background");
                     System.Threading.Thread.Sleep(10000);
                 }
+                // TODO: switch to .Migrate()
                 context.Database.EnsureCreated();
             } 
             }catch(Exception e)

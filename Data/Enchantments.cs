@@ -82,7 +82,12 @@ namespace hypixel
             ultimate_chimera,
             ultimate_rend,
             overload,
-            ultimate_legion
+            ultimate_legion,
+            ultimate_swarm,
+            big_brain,
+            compact,
+            vicious,
+            counter_strike
             
         }
 
