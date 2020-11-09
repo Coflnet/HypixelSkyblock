@@ -87,7 +87,17 @@ namespace hypixel
             big_brain,
             compact,
             vicious,
-            counter_strike
+            counter_strike,
+            turbo_carrot,
+            turbo_cactus,
+            turbo_cane,
+            turbo_coco,
+            turbo_melon,
+            turbo_mushrooms,
+            turbo_pumpkin,
+            turbo_potato,
+            turbo_warts,
+            turbo_wheat
             
         }
 

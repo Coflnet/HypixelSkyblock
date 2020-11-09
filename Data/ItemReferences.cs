@@ -144,6 +144,8 @@ namespace hypixel
             rich_sword,
             warped,
             odd_bow,
+            candied,
+            submerged,
 
 
 
