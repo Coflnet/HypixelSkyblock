@@ -97,7 +97,16 @@ namespace hypixel
             turbo_pumpkin,
             turbo_potato,
             turbo_warts,
-            turbo_wheat
+            turbo_wheat,
+            chance,
+            PROSECUTE,
+            syphon,
+            respite,
+            thunderbolt,
+            titan_killer,
+            triple_strike,
+            ultimate_soul_eater,
+            ultimate_one_for_all
             
         }
 

@@ -265,8 +265,17 @@ namespace hypixel
 
         private static void FullServer ()
         {
-            Console.WriteLine("\n - Starting FullServer 0.2.2 - \n");
+                System.Threading.Thread.Sleep(10000);
+            Console.WriteLine("\n - Starting FullServer 0.2.3 - \n");
             FullServerMode = true;
+                System.Threading.Thread.Sleep(20000);
+            using (var context = new HypixelContext ()) {
+                // Creates the database if not exists
+                context.Database.Migrate ();
+                Console.WriteLine("migated");
+                System.Threading.Thread.Sleep(2000);
+            }
+                System.Threading.Thread.Sleep(5000);
 
             Updater updater;
             Server server;
@@ -348,7 +357,7 @@ namespace hypixel
                     System.Threading.Thread.Sleep(10000);
                 }
                 // TODO: switch to .Migrate()
-                context.Database.EnsureCreated();
+                context.Database.Migrate();
             } 
             }catch(Exception e)
             {
@@ -360,7 +369,7 @@ namespace hypixel
         static void DBTest () {
             using (var context = new HypixelContext ()) {
                 // Creates the database if not exists
-                context.Database.EnsureCreated ();
+                context.Database.Migrate ();
 
                 var data = new NbtData ("H4sIAAAAAAAAAE1T3W7aSBQ+JO0WqLZ/6nU7Reld3DVg/iL1gkBCTGOHJEASqqoa28dmwD/IHidxql7sA+wj9JoX6BPwKH2Q1R5It6o00pyf73zfOUczRYAC5EQRAHJbsCWc3D85eNiJ0lDmirAtubcNhSPh4KHPvYRQ/xaheD5Pff/kJsQ4D1u6Azuu06w2uKYpTq3lKFW7bClc47ZSd3izbqlNB60K1Q3iaIGxFJgUIC/xVqYxJhvpPDwccz9F+I5ZX51cTlXnsu/bmV4nf3iu+if6bNHQw3FmdfS6HlD+qF0/zlq/YWuSX9T8q2p/OglPUysYq8fVMx+Pzsp2MLo2Z+b85MIU5mx0a1SuMqNrZ5PheG72Rqoxm8zNu/2pORyVzUp/ZtzNNbLVqztPM3qn6mToCLMynp30xoHZnavmxVgY3X5giH7LvVTf0wRFeOSIZOHzrAAPjqMY8xR8AX+uls1OFFhcsgFKCj1fLRvnMsbQk9M9tlpyFZ5RqIsuhgn+jAA8XS3r+9yOQnbI4wBjeEUgOgPhsUCEIgoTdhPF8w3+XfUtvCGD8i5PJMbsZip8ZFSdRWnMROLz0CHWJ8Q6WFcZGxi8vifdT103YXKKjOgDHrKEqB1mZbC7AZCCRkL2j29/sy4PuIfkNYjyXr3yMweP6f5/NlLb2RTjmfCmUrF9Yc+ZjBh3HJISCVugJH+9ENx0ufYDDNM3622ulrXV0j8Y6J08PDB5gPCS2D4eX/us/In0aved0tqfHtzKmLeljIWVSkzy8IiY9NCN4OJLSWYLLO2VBnrPaJul3RK3pbimiMv9BHdLeLso7anv1N0SPcqYgGtFgk3pwa8pfgFtmjYbJegQ/GseClEsPBEOuQdPTkd658Pnzln7cKibvfz6D8H24GBIjacp2TtVTaMfUOOK1WygommtltJqYUOx3Faj0bTLWC9zopQiwETyYAHPan9VVDqsrO6Vm6xtAGzBH/ebh22A/wDOxlWDtAMAAA\u003d\u003d");
 

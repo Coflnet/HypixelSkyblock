@@ -146,6 +146,9 @@ namespace hypixel
             odd_bow,
             candied,
             submerged,
+            ancient,
+            withered,
+            sweet,
 
 
 
