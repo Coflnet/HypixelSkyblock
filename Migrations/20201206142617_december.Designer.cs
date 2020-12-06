@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using hypixel;
 
 namespace hypixel.Migrations
 {
     [DbContext(typeof(HypixelContext))]
-    partial class HypixelContextModelSnapshot : ModelSnapshot
+    [Migration("20201206142617_december")]
+    partial class december
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -185,9 +187,8 @@ namespace hypixel.Migrations
 
             modelBuilder.Entity("hypixel.Player", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("UuId")
+                        .HasColumnType("char(32)");
 
                     b.Property<bool>("ChangedFlag")
                         .HasColumnType("bit");
@@ -201,14 +202,9 @@ namespace hypixel.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime");
 
-                    b.Property<string>("UuId")
-                        .HasColumnType("char(32)");
-
-                    b.HasKey("Id");
+                    b.HasKey("UuId");
 
                     b.HasIndex("Name");
-
-                    b.HasIndex("UuId");
 
                     b.ToTable("Players");
                 });
@@ -224,9 +220,6 @@ namespace hypixel.Migrations
 
                     b.Property<string>("AuctioneerId")
                         .HasColumnType("char(32)");
-
-                    b.Property<int>("AuctioneerIntId")
-                        .HasColumnType("int");
 
                     b.Property<byte>("Category")
                         .HasColumnType("TINYINT(2)");
@@ -278,7 +271,7 @@ namespace hypixel.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuctioneerIntId");
+                    b.HasIndex("AuctioneerId");
 
                     b.HasIndex("End");
 
@@ -304,9 +297,6 @@ namespace hypixel.Migrations
                     b.Property<string>("Bidder")
                         .HasColumnType("char(32)");
 
-                    b.Property<int>("BidderId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ProfileId")
                         .HasColumnType("char(32)");
 
@@ -319,8 +309,6 @@ namespace hypixel.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Bidder");
-
-                    b.HasIndex("BidderId");
 
                     b.HasIndex("Uuid");
 
@@ -426,9 +414,7 @@ namespace hypixel.Migrations
                 {
                     b.HasOne("hypixel.Player", null)
                         .WithMany("Auctions")
-                        .HasForeignKey("AuctioneerIntId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AuctioneerId");
 
                     b.HasOne("hypixel.NbtData", "NbtData")
                         .WithMany()
@@ -439,9 +425,7 @@ namespace hypixel.Migrations
                 {
                     b.HasOne("hypixel.Player", null)
                         .WithMany("Bids")
-                        .HasForeignKey("BidderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Bidder");
 
                     b.HasOne("hypixel.SaveAuction", "Auction")
                         .WithMany("Bids")

@@ -54,7 +54,7 @@ namespace dev {
                 var pull = new BazaarPull(result);
             using (var context = new HypixelContext())
             {
-                context.Database.EnsureCreated();
+                context.Database.Migrate();
 
                 var lastMinPulls = context.BazaarPull
 

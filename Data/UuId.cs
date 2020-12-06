@@ -22,15 +22,17 @@ namespace hypixel
 
     public class Player
     {
+
+        public int Id {get;set;}
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string UuId {get;set;}
         [MaxLength(16)]
         public string Name {get;set;}
         
-        [ForeignKey("AuctioneerId")]
+        [ForeignKey("AuctioneerIntId")]
         public List<SaveAuction> Auctions {get;set;}
 
-        [ForeignKey("Bidder")]
+        [ForeignKey("BidderId")]
         public List<SaveBids> Bids {get;set;}
         
         [Timestamp]

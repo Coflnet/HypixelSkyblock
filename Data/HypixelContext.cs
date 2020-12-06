@@ -53,7 +53,8 @@ namespace hypixel
 
             modelBuilder.Entity<SaveAuction> (entity => {
                 entity.HasIndex (e => e.Uuid).IsUnique();
-                entity.HasIndex (e => e.AuctioneerId);
+                //entity.HasIndex (e => e.AuctioneerId);
+                entity.HasIndex (e => e.AuctioneerIntId);
                 entity.HasIndex(e=>e.ItemName);
                 entity.HasIndex(e=>e.End);
                 //entity.HasOne<NbtData>(d=>d.NbtData);
@@ -82,8 +83,9 @@ namespace hypixel
 
 
             modelBuilder.Entity<Player>(entity=> {
-                entity.HasKey(e=>e.UuId);
+                entity.HasIndex(e=>e.UuId);
                 entity.HasIndex(e=>e.Name);
+                entity.HasKey(e=>e.Id);
             });
 
 

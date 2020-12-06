@@ -121,6 +121,8 @@ namespace hypixel
         public Tier Tier {get; set;}
         //[Key (24)]
         //public bool Bin {get; set;}
+        [Key(25)]
+        public int AuctioneerIntId {get;set;}
 
         public SaveAuction (Hypixel.NET.SkyblockApi.Auction auction) {
             ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
