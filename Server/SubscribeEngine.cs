@@ -5,6 +5,7 @@ using dev;
 
 namespace hypixel
 {
+    /*
     public class SubscribeEngine {
 
         public static void AddNew(SubscribeItem subscription)
@@ -116,6 +117,6 @@ namespace hypixel
         {
             Console.WriteLine("Notifications are not implemented yet");
         }
-    }
+    }*/
 
 }

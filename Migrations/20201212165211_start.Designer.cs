@@ -9,8 +9,8 @@ using hypixel;
 namespace hypixel.Migrations
 {
     [DbContext(typeof(HypixelContext))]
-    [Migration("20200729100209_test")]
-    partial class test
+    [Migration("20201212165211_start")]
+    partial class start
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

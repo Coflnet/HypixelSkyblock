@@ -268,14 +268,18 @@ namespace hypixel
                 System.Threading.Thread.Sleep(10000);
             Console.WriteLine("\n - Starting FullServer 0.2.3 - \n");
             FullServerMode = true;
-                System.Threading.Thread.Sleep(20000);
+                System.Threading.Thread.Sleep(2000);
             using (var context = new HypixelContext ()) {
+                try {
+                   context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
+                } catch(Exception) {
+                    Console.WriteLine("creating migrations table failed");
+                }
                 // Creates the database if not exists
                 context.Database.Migrate ();
                 Console.WriteLine("migated");
                 System.Threading.Thread.Sleep(2000);
             }
-                System.Threading.Thread.Sleep(5000);
 
             Updater updater;
             Server server;
