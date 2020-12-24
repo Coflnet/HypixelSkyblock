@@ -172,7 +172,7 @@ namespace hypixel
                     Logger.Instance.Error("Did not find Enchantment " + item);
                 }
                 var level = elements.Get<NbtInt>(item).IntValue;
-                result.Add(new Enchantment(type, (short) level));
+                result.Add(new Enchantment(type, (byte) level));
             }
 
             return result;

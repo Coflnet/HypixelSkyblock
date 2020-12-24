@@ -9,10 +9,10 @@ namespace hypixel {
 
         public static void UpdateHundredNames () {
             using (var context = new HypixelContext ()) {
-                var players = context.Players.Where (p => p.Name == null).Take (100);
+                var players = context.Players.Where (p => p.Name == null && p.Id > 0).Take (100);
 
                 if (players.Count () == 0) {
-                    players = context.Players.OrderBy (p => p.UpdatedAt).Take (100);
+                    players = context.Players.Where(p=>p.Id > 0).OrderBy (p => p.UpdatedAt).Take (100);
                 }
 
                 foreach (var player in players) {

@@ -65,10 +65,11 @@ namespace hypixel {
             using (var context = new HypixelContext ()) {
                 var playerQuery = context.Players.Where (p => p.UuId == search);
                 var playerWithAuctions = playerQuery
-                    .Include (p => p.Auctions)
+                 //   .Include (p => p.Auctions)
                     .First();
 
-                result.Auctions = playerWithAuctions.Auctions
+                result.Auctions = context.Auctions
+                    .Where(e=>e.SellerId == playerWithAuctions.Id)
                     .Select (a => new AuctionResult (a))
                     .OrderByDescending (a => a.End)
                     .ToList ();

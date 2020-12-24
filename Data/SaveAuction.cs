@@ -119,8 +119,15 @@ namespace hypixel
         [Key (23)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         public Tier Tier {get; set;}
-        //[Key (24)]
-        //public bool Bin {get; set;}
+        [Key (24)]
+        public bool Bin {get; set;}
+        [Key (25)]
+        [JsonIgnore]
+        public int SellerId {get; set;}
+        [IgnoreMember]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
+        public int ItemId {get; set;}
 
         public SaveAuction (Hypixel.NET.SkyblockApi.Auction auction) {
             ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
@@ -150,7 +157,38 @@ namespace hypixel
                 Bids.Add (new SaveBids (item));
             }
             NBT.FillDetails (this, auction.ItemBytes);
-            //Bin=auction.BuyItNow; // missing from nuget package
+            Bin=auction.BuyItNow; // missing from nuget package
+        }
+
+        public SaveAuction (Hypixel.NET.SkyblockApi.Auctions.Auction auction) {
+            ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
+            Claimed = auction.Claimed;
+            //ItemBytes = auction.ItemBytes;
+            StartingBid = auction.StartingBid;
+            if (Enum.TryParse (auction.Tier, true, out Tier tier))
+                Tier = tier;
+            else
+                OldTier = auction.Tier;
+            if (Enum.TryParse (auction.Category, true,out Category category))
+                Category = category;
+            else
+                OldCategory = auction.Category;
+            // make sure that the lenght is shorter than max
+            ItemName = auction.ItemName;
+            End = auction.End;
+            Start = auction.Start;
+            Coop = auction.Coop;
+
+            ProfileId = auction.ProfileId == auction.Auctioneer ? null : auction.ProfileId;
+            AuctioneerId = auction.Auctioneer;
+            Uuid = auction.Uuid;
+            HighestBidAmount = auction.HighestBidAmount;
+            Bids = new List<SaveBids> ();
+            foreach (var item in auction.Bids) {
+                Bids.Add (new SaveBids (item));
+            }
+            NBT.FillDetails (this, auction.ItemBytes.Data);
+            Bin=auction.BuyItNow; // missing from nuget package
         }
 
         public SaveAuction () { }

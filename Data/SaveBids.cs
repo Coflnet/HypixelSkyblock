@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Hypixel.NET.SkyblockApi.Auctions;
 using MessagePack;
 
 namespace hypixel
@@ -27,6 +28,8 @@ namespace hypixel
         public long Amount {get; set;}
         [Key (4)]
         public DateTime Timestamp {get; set;}
+        [Key(5)]
+        public int BidderId {get;set;}
 
         [IgnoreMember]
         public Player player;
@@ -40,6 +43,24 @@ namespace hypixel
         }
 
         public SaveBids () { }
+
+        public SaveBids(Bid bid)
+        {
+            AuctionId = bid.AuctionId.Substring (0, 5);
+            Bidder = bid.Bidder;
+            ProfileId = bid.ProfileId == bid.Bidder ? null : bid.ProfileId;
+            Amount = bid.Amount;
+
+            Timestamp = JavaTimeStampToDateTime(bid.Timestamp);
+        }
+
+        public static DateTime JavaTimeStampToDateTime( double javaTimeStamp )
+        {
+            // Java timestamp is milliseconds past epoch
+            System.DateTime dtDateTime = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddMilliseconds( javaTimeStamp ).ToLocalTime();
+            return dtDateTime;
+        }
 
         public override bool Equals(object obj)
         {
