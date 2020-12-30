@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Coflnet;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using RestSharp;
 using WebSocketSharp;
 
 namespace hypixel
@@ -12,14 +15,27 @@ namespace hypixel
     {
         public static PlayerSearch Instance;
 
-        public static Dictionary<string,HashSet<PlayerResult>> players = new Dictionary<string, HashSet<PlayerResult>>();
+        public static Dictionary<string, HashSet<PlayerResult>> players = new Dictionary<string, HashSet<PlayerResult>>();
 
-        private static ConcurrentDictionary<string,int> nameRequests = new ConcurrentDictionary<string, int>();
+        private static ConcurrentDictionary<string, int> nameRequests = new ConcurrentDictionary<string, int>();
+
+        ConcurrentDictionary<string, int> playerHits = new ConcurrentDictionary<string, int>();
 
         static PlayerSearch()
         {
             Instance = new PlayerSearch();
             FileController.CreatePath("players/");
+        }
+
+        internal string GetName(string uuid)
+        {
+            using(var context = new HypixelContext())
+            {
+                return context.Players
+                    .Where(player => player.UuId == uuid)
+                    .Select(player => player.Name)
+                    .FirstOrDefault();
+            }
         }
 
         public static void ClearCache()
@@ -31,120 +47,52 @@ namespace hypixel
         /// Registers that a specific player was looked up and modifies the search order acordingly
         /// </summary>
         /// <param name="name"></param>
-        public void AddHitFor(PlayerResult player)
+        public void AddHitFor(string uuid)
         {
-            var name = player.Name;
-            var key = name.Substring(0,2).ToLower();
-            if(!players.TryGetValue(key,out HashSet<PlayerResult> resultSet))
-            {
-                resultSet = new HashSet<PlayerResult>();
-                players.Add(key,resultSet);
-            }
-            // just increment the hit counter if he is in the set
-            foreach (var item in resultSet)
-            {
-                if(item.Name == name)
-                {
-                    item.AuctionCount++;
-                    return;
-                }
-            }
-
-            // we have to throw someone out of the set
-            if(resultSet.Count > 10)
-            {
-                resultSet.Remove(resultSet.Where(e=> e.AuctionCount == resultSet.Min(p=>p.AuctionCount)).First());
-            }
-
-            resultSet.Add(player);
+            playerHits.AddOrUpdate(uuid, 1, (key, value) => value + 1);
         }
 
-        public HashSet<PlayerResult> GetPlayers(string start)
+        public void SaveHits(HypixelContext context)
         {
-            int length = start.Length;
-            if(length < 2)
+            var hits = playerHits;
+            playerHits = new ConcurrentDictionary<string, int>();
+            foreach (var hit in hits)
             {
-                throw new ValidationException("The search term has to be 2 characters or longer");
-            }
-            
-            // enable 2 long
-            if(length > 3)
-            {
-                length = 3;
-
-                // 4 and more are already pretty accurate, add a hit
-            }
-            
-            var startOfName = start.Substring(0,length).ToLower();
-            
-            var result = FromCacheOrFile(startOfName);
-
-            if(start.Length > 3)
-            {
-                // Add all of these names to cache
-                foreach (var item in result)
-                {
-                    AddHitFor(item);
-                }
-            }
-            return result;
-
-        }
-
-        private HashSet<PlayerResult> FromCacheOrFile(string startOfName)
-        {
-            var path = "players/"+startOfName;
-            if(players.TryGetValue(startOfName,out HashSet<PlayerResult> result))
-            {
-                return result;
-            } else if(FileController.Exists(path))
-            {
-                // maybe in the file
-                result = FileController.LoadAs<HashSet<PlayerResult>>(path);
-                // is the cache to large?
-                if(players.Count > StorageManager.maxItemsInCache / 10)
-                {
-                    players.Remove(players.Keys.First());
-                }
-                // cache
-                players[startOfName] = result;
-                return result;
-                
-            } else {
-                return new HashSet<PlayerResult>();
+                var player = context.Players.Where(player => player.UuId == hit.Key).First();
+                player.HitCount += hit.Value;
+                context.Update(player);
             }
         }
 
         public void SaveNameForPlayer(string name, string uuid)
         {
             //Console.WriteLine($"Saving {name} ({uuid})");
-            var index = name.Substring(0,3).ToLower();
-            string path = "players/"+index;
+            var index = name.Substring(0, 3).ToLower();
+            string path = "players/" + index;
             lock(path)
             {
                 HashSet<PlayerResult> list = null;
-                if(FileController.Exists(path))
+                if (FileController.Exists(path))
                     list = FileController.LoadAs<HashSet<PlayerResult>>(path);
-                if(list == null)
+                if (list == null)
                     list = new HashSet<PlayerResult>();
-                list.Add(new PlayerResult(name,uuid));
-                FileController.SaveAs(path,list);
+                list.Add(new PlayerResult(name, uuid));
+                FileController.SaveAs(path, list);
             }
         }
 
         public void LoadName(User user)
         {
-            if(!user.Name.IsNullOrEmpty() && user.Name.Length > 2)
+            if (!user.Name.IsNullOrEmpty() && user.Name.Length > 2)
             {
 
                 // already loaded
                 return;
             }
 
-            
             lock(nameRequests)
             {
-                if(nameRequests.ContainsKey(user.uuid))
+                if (nameRequests.ContainsKey(user.uuid))
                 {
                     // already on its way
                     return;
@@ -152,17 +100,57 @@ namespace hypixel
                 nameRequests[user.uuid] = 1;
             }
 
-
             var name = Program.GetPlayerNameFromUuid(user.uuid);
 
-            if(name.IsNullOrEmpty())
+            if (name.IsNullOrEmpty())
             {
                 //Console.WriteLine($"\rCould not get name for: {user.uuid} {user.Name}");
                 return;
             }
 
             user.Name = name;
-            SaveNameForPlayer(name,user.uuid);
+            SaveNameForPlayer(name, user.uuid);
+        }
+
+        public IEnumerable<PlayerResult> Search(string search, int count, bool forceResolution = true)
+        {
+            if (count <= 0 || search.Contains(' '))
+                return new PlayerResult[0];
+
+            List<PlayerResult> result;
+
+            using(var context = new HypixelContext())
+            {
+
+                result = context.Players
+                    .Where(e => EF.Functions.Like(e.Name, $"{search.Replace("_","\\_")}%"))
+                    .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search ? 10000000 : 0))
+                    .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
+                    .Take(count)
+                    .ToList();
+
+                if (result.Count() == 0)
+                {
+                    var client = new RestClient("https://mc-heads.net/");
+                    var request = new RestRequest($"/minecraft/profile/{search}", Method.GET);
+                    var response = client.Execute(request);
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                        if (forceResolution)
+                            throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
+                        else
+                        { // nothing to do 
+                        }
+                    else
+                    {
+                        var value = JsonConvert.DeserializeObject<SearchCommand.MinecraftProfile>(response.Content);
+                        NameUpdater.UpdateUUid(value.Id, value.Name);
+                        result.Add(new PlayerResult(value.Name, value.Id));
+                    }
+
+                }
+
+            }
+            return result;
         }
     }
 }

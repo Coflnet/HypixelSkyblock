@@ -9,54 +9,11 @@ namespace hypixel
     [MessagePackObject]
     public class ItemReferences
     {
-        private static HashSet<string> reforges = new HashSet<string>(){
-            "Demonic",
-            "Forceful",
-            "Gentle",
-            "Godly",
-            "Hurtful",
-            "Keen",
-            "Strong",
-            "Superior",
-            "Unpleasant",
-            "Zealous",
-            "Odd",
-            "Rich",
-            "Epic",
-            "Fair",
-            "Fast",
-            "Heroic",
-            "Legendary",
-            "Spicy",
-            "Deadly",
-            "Fine",
-            "Grand",
-            "Hasty",
-            "Neat",
-            "Papid",
-            "Unreal",
-            "Clean",
-            "Fierce",
-            "Heavy",
-            "Light",
-            "Mythic",
-            "Pure",
-            "Smart",
-            "Titanic",
-            "Wise",
-            "Very", 
-            "Highly",
-            "Bizarre",
-            "Itchy",
-            "Omnious",
-            "Pleasant",
-            "Pretty",
-            "Shiny",
-            "Simple",
-            "Strange",
-            "Vivid",
-            "Ominous"
-        };
+        /// <summary>
+        /// Reforges as strings to compare name against.
+        /// Loaded in the static constructor
+        /// </summary>
+        private static HashSet<string> reforges;
 
         public enum Reforge 
         {
@@ -166,10 +123,18 @@ namespace hypixel
         [Key(2)]
         public ConcurrentBag<AuctionReference> auctions = new ConcurrentBag<AuctionReference>();
 
+        static ItemReferences()
+        {
+            reforges = new HashSet<string>(Enum.GetNames(typeof(Reforge)));
+        }
 
         public static string RemoveReforgesAndLevel(string fullItemName)
         {
-            if(reforges.Contains(fullItemName.Split(' ')[0]) && fullItemName.Split(' ')[1] != "Dragon" || fullItemName.StartsWith('◆'))
+            if(fullItemName == null)
+            {
+                return fullItemName;
+            }
+            if(reforges.Contains(fullItemName.Split(' ')[0].ToLower()) && fullItemName.Split(' ')[1] != "Dragon" || fullItemName.StartsWith('◆'))
             { 
                 int i = fullItemName.IndexOf(" ")+1;
                 fullItemName = fullItemName.Substring(i);

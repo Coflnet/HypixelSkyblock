@@ -8,7 +8,7 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             Regex rgx = new Regex("[^a-zA-Z -]");
-            var search = rgx.Replace(data.Data, "");
+            var search = data.Data.Replace("\"",""); // rgx.Replace(data.Data, "");
             data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search))));
         }
     }

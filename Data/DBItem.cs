@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace hypixel
 {
-    public class DBItem  : IItem
+    public class DBItem  : IItem,IHitCount
     {
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
         public int Id { get; set; }
@@ -32,6 +32,8 @@ namespace hypixel
 
         [System.ComponentModel.DataAnnotations.MaxLength(12)]
         public string color { get; set; }
+
+        public int HitCount {get;set;}
 
         public DBItem()
         {

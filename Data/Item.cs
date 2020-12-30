@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -38,12 +39,56 @@ namespace hypixel
 
         }
 
+        public class ItemSearchResult
+        {
+            [Key(0)]
+            public string Name;
+
+            [Key(1)]
+            public string Tag;
+
+            [Key(2)]
+            public string IconUrl;
+
+            [Key(2)]
+            public int HitCount;
+        }
+
+        internal IEnumerable<ItemSearchResult> Search(string search, int count = 5)
+        {
+            //return this.ReverseNames.Keys
+            //    .Where(key => key.StartsWith(search))
+            //    .Select(key => new ItemSearchResult() { Name = key, Tag = ReverseNames[key] });
+            using(var context = new HypixelContext())
+            {
+                var items = context.Items
+                    .Include(item => item.Names)
+                    .Where(item =>
+                        item.Names
+                        .Where(name => EF.Functions.Like(name.Name, search + '%')).Any()
+                    ).OrderBy(item => item.Name.Length - item.HitCount)
+                    .Take(count);
+
+                return items.ToList()
+                    .Select(item => new ItemSearchResult()
+                    {
+                        Name = ItemReferences.RemoveReforgesAndLevel(item.Names
+                                .Where(n => n != null && n.Name != null && n.Name.ToLower().StartsWith(search.ToLower()))
+                                .FirstOrDefault()?.Name) ?? item.Name,
+                            Tag = item.Tag,
+                            IconUrl = item.IconUrl,
+                            HitCount = item.HitCount
+                    });
+            }
+        }
+
         private const int MAX_MEDIUM_INT = 8388607;
         private static ConcurrentDictionary<string, DBItem> ToFillDetails = new ConcurrentDictionary<string, DBItem>();
 
         public int GetOrCreateItemIdForAuction(SaveAuction auction, HypixelContext context)
         {
             var tag = GetIdForName(auction.ItemName);
+            var clearedName = ItemReferences.RemoveReforgesAndLevel(auction.ItemName);
             if (tag != null && TagLookup.TryGetValue(tag, out int value))
                 return value;
 
@@ -52,8 +97,13 @@ namespace hypixel
             if (itemByTag != null)
             {
                 // new alternative name
-                this.ReverseNames[auction.ItemName] = auction.Tag;
-                context.AltItemNames.Add(new AlternativeName() { DBItemId = itemByTag.Id, Name = auction.ItemName });
+                if (clearedName != null)
+                    this.ReverseNames[clearedName] = auction.Tag;
+                var exists = context.AltItemNames
+                    .Where(name => name.Name == clearedName && name.DBItemId == itemByTag.Id)
+                    .Any();
+                if (!exists)
+                    context.AltItemNames.Add(new AlternativeName() { DBItemId = itemByTag.Id, Name = clearedName });
                 return itemByTag.Id;
             }
             // new Item

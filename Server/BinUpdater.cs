@@ -23,10 +23,39 @@ namespace hypixel
         public BinUpdater(IEnumerable<string> apiKeys)
         {
             this.apiKeys.AddRange(apiKeys);
-            historyLimit = DateTime.Now-TimeSpan.FromHours(1);
+            historyLimit = DateTime.Now - TimeSpan.FromHours(1);
         }
 
         private DateTime historyLimit;
+
+        public static void GrabAuctions(HypixelApi hypixelApi)
+        {
+            var expired = hypixelApi.getAuctionsEnded();
+            foreach (var item in expired.Auctions)
+            {
+                var a = new SaveAuction()
+                {
+                    Uuid = item.Uuid,
+                        AuctioneerId = item.Seller,
+                        Bids = new List<SaveBids>()
+                        {
+                            new SaveBids()
+                            {
+                                Amount = item.Price,
+                                    Bidder = item.Buyer,
+                                    Timestamp = item.TimeStamp,
+                                    ProfileId = "unknown"
+                            }
+                        },
+                        HighestBidAmount = item.Price,
+                        Bin = item.BuyItemNow
+                };
+
+                NBT.FillDetails(a, item.ItemBytes);
+                Indexer.AddToQueue(a);
+            }
+            Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
+        }
 
         public void GrabAuctionsWithIds(IEnumerable<BinInfo> info)
         {
@@ -67,22 +96,22 @@ namespace hypixel
                 Console.WriteLine($"+++ Updated {updatedCount} bin auctions of {auctioneerIdsBasic.Count()} ({totalCount} total) +++");
                 context.SaveChanges();
             }
-            if(PulledAlready.Count() > 50000)
+            if (PulledAlready.Count() > 50000)
                 PulledAlready.Clear();
         }
 
-        private  void RunWorker(ConcurrentQueue<string> sellerIds, ref int updatedCount, ref int totalCount, string key)
+        private void RunWorker(ConcurrentQueue<string> sellerIds, ref int updatedCount, ref int totalCount, string key)
         {
             try
             {
                 var hypixelApi = new HypixelApi(key, 10);
                 var index = 0;
-                while (index++ < 100 && sellerIds.TryDequeue(out string uuid))
+                while (index++ < 60 && sellerIds.TryDequeue(out string uuid))
                 {
                     var playerPage = hypixelApi.GetAuctionsByPlayerUuid(uuid);
-                    var shortId = Convert.ToUInt32(uuid.Substring(24,8), 16);  //uuid.Substring(24);
+                    var shortId = Convert.ToUInt32(uuid.Substring(24, 8), 16); //uuid.Substring(24);
                     var ignoreHistory = false;
-                    if(PulledAlready.TryGetValue(shortId,out short value) )
+                    if (PulledAlready.TryGetValue(shortId, out short value))
                     {
                         ignoreHistory = true;
                     }
@@ -90,7 +119,7 @@ namespace hypixel
                     {
                         // exclude items we certainly already have
                         if ((!item.BuyItNow || item.Bids.Count == 0) &&
-                            item.End > DateTime.Now || 
+                            item.End > DateTime.Now ||
                             ignoreHistory && item.End < historyLimit)
                             continue;
                         Indexer.AddToQueue(new SaveAuction(item));
@@ -106,7 +135,7 @@ namespace hypixel
                     }
                 }
             }
-            catch(ApplicationException e)
+            catch (ApplicationException e)
             {
                 Console.Write($" xx {e.Message} for {key} xx ");
             }

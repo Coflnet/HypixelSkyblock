@@ -12,6 +12,7 @@ namespace hypixel {
                 var result = context.Auctions
                             .Include(a=>a.NbtData)
                             .Include(a=>a.Enchantments)
+                            .Include(a=>a.Bids)
                             .Where (a => a.Uuid == search).ToList ();
                 if (result.Count == 0) {
                     throw new CoflnetException ("error", $"The Auction `{search}` wasn't found");

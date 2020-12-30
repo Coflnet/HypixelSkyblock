@@ -270,19 +270,19 @@ namespace hypixel
 
         private static void FullServer()
         {
-            Console.WriteLine("\n - Starting FullServer 0.2.3b - \n");
+            Console.WriteLine("\n - Starting FullServer 0.2.4 - \n");
+            Console.Write("Key: " + apiKey);
             FullServerMode = true;
 
-            Updater  updater = new Updater(apiKey);
+            Updater updater = new Updater(apiKey);
             updater.UpdateForEver();
+            Server server = new Server();
+            Task.Run(() => server.Start());
 
             // bring the db up to date
             GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
             FastIndexPrototype();
-
-            Server server;
-            
 
             Console.WriteLine("booting db dependend stuff");
             WaitForDatabaseCreation();
@@ -291,9 +291,8 @@ namespace hypixel
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
 
-            server = new Server();
-
             NameUpdater.Run();
+            SearchService.Instance.RunForEver();
 
             onStop += () =>
             {
@@ -306,8 +305,28 @@ namespace hypixel
                 Console.WriteLine("done");
             };
 
-            server.Start();
+            CleanDB();
 
+            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+
+        }
+
+        private static void CleanDB()
+        {
+            using(var context = new HypixelContext())
+            {
+                // remove dupplicate itemnames
+                context.Database.ExecuteSqlRaw(@"
+                DELETE
+                FROM AltItemNames
+                WHERE ID NOT IN
+                (
+                    SELECT MIN(ID)
+                    FROM AltItemNames
+                    GROUP BY Name,DBItemId
+                )
+                ");
+            }
         }
 
         private static void FastIndexPrototype()
@@ -326,7 +345,7 @@ namespace hypixel
 
         private static void GetDBToDesiredState()
         {
-            using (var context = new HypixelContext())
+            using(var context = new HypixelContext())
             {
                 try
                 {
@@ -474,10 +493,13 @@ namespace hypixel
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {
-            var p = new Player() { UuId = uuid, Id = highestId };
-            if (context.Players.Find(p.UuId) == null && p.UuId != null)
-            {
+            var p = new Player() { UuId = uuid, Id = highestId, ChangedFlag = true };
+            var existingPlayer = context.Players.Find(p.UuId);
+            if (existingPlayer != null)
+                return existingPlayer.Id;
 
+            if (p.UuId != null)
+            {
                 p.Name = name;
                 p.Id = System.Threading.Interlocked.Increment(ref highestId);
                 context.Players.Add(p);

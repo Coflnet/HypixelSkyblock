@@ -25,6 +25,11 @@ namespace hypixel
             Commands.Add("allItemNames",new AllItemNamesCommand());
             Commands.Add("bazaarPrices",new BazaarPricesCommand());
             Commands.Add("getAllEnchantments",new GetAllEnchantmentsCommand());
+            Commands.Add("fullSearch",new FullSearchCommand());
+            Commands.Add("trackSearch",new TrackSearchCommand());
+            Commands.Add("playerName",new PlayerNameCommand());
+
+            
 
             
 
@@ -51,6 +56,7 @@ namespace hypixel
                 Commands[data.Type].Execute(data);
             } catch(CoflnetException ex)
             {
+
                 SendBack(new MessageData(ex.Slug,ex.Message){mId =mId});
             }catch (Exception ex)
             {

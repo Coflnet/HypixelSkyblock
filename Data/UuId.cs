@@ -20,7 +20,7 @@ namespace hypixel
     }
 
 
-    public class Player
+    public class Player : IHitCount
     {
         public int Id {get;set;}
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
@@ -38,6 +38,8 @@ namespace hypixel
         public System.DateTime UpdatedAt {get;set;}
         
         public bool ChangedFlag {get;set;}
+
+        public int HitCount {get;set;}
 
         public Player() { }
 

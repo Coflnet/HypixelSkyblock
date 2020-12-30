@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,8 +45,8 @@ namespace hypixel
                 {
                     ToFillDetails.TryAdd(item.Tag, item);
                 }
-                TagLookup = context.Items.Where(item=>item.Tag != null).Select(item=>new {item.Tag,item.Id})
-                .ToDictionary(item=>item.Tag,item=>item.Id);
+                TagLookup = context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
+                    .ToDictionary(item => item.Tag, item => item.Id);
             }
         }
 
@@ -87,6 +88,10 @@ namespace hypixel
 
         public string GetIdForName(string name)
         {
+            if (name == null)
+            {
+                return "NULL";
+            }
             var normalizedName = ItemReferences.RemoveReforgesAndLevel(name);
             return ReverseNames.GetValueOrDefault(normalizedName, normalizedName);
         }
@@ -219,6 +224,26 @@ namespace hypixel
             }
         }
 
+        private ConcurrentDictionary<int, int> itemHits = new ConcurrentDictionary<int, int>();
+
+        public void AddHitFor(string tag)
+        {
+            if (TagLookup.TryGetValue(tag, out int id))
+                itemHits.AddOrUpdate(id, 1, (key, value) => value + 1);
+        }
+
+        public void SaveHits(HypixelContext context)
+        {
+            var hits = itemHits;
+            itemHits = new ConcurrentDictionary<int, int>();
+            foreach (var hit in hits)
+            {
+                var item = context.Items.Where(item => item.Id == hit.Key).First();
+                item.HitCount += hit.Value;
+                context.Update(item);
+            }
+        }
+
         /// <summary>
         /// Tries to find and return an item by name
         /// </summary>
@@ -228,7 +253,7 @@ namespace hypixel
         {
             if (Items == null)
                 Load();
-            var name = ItemReferences.RemoveReforgesAndLevel(fullName);
+            var cleanedName = ItemReferences.RemoveReforgesAndLevel(fullName);
             /*if (ReverseNames.TryGetValue(name, out string key) &&
                 Items.TryGetValue(key, out Item value))
             {
@@ -237,17 +262,20 @@ namespace hypixel
 
             using(var context = new HypixelContext())
             {
-                var id = context.AltItemNames.Where(name => name.Name == fullName || name.Name == name)
-                    .Select(name => name.Id).FirstOrDefault();
+                var id = context.AltItemNames.Where(name => name.Name == fullName || name.Name == cleanedName)
+                    .Select(name => name.DBItemId).FirstOrDefault();
                 if (id > 1)
                 {
                     var item = context.Items.Where(i => i.Id == id).First();
                     item.Name = fullName;
+                    // cooler icons 
+                    if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
+                        item.IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                     return item;
                 }
             }
 
-            return new DBItem() { Tag = "Unknown" };
+            return new DBItem() { Tag = "Unknown", Name = fullName };
         }
 
         public void Save()

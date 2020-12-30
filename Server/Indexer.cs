@@ -197,7 +197,7 @@ namespace hypixel
 
                 foreach (var player in playerIds)
                 {
-                    Program.AddPlayer(context, player,ref highestPlayerId);
+                    Program.AddPlayer(context, player, ref highestPlayerId);
                 }
                 //Program.AddPlayers (context, playerIds);
 
@@ -258,6 +258,17 @@ namespace hypixel
             {
                 dbauction.Bin = true;
             }
+            if (dbauction.ItemName == null)
+                dbauction.ItemName = auction.ItemName;
+            if (dbauction.ProfileId == null)
+                dbauction.ProfileId = auction.ProfileId;
+            if (dbauction.Start == default(DateTime))
+                dbauction.Start = auction.Start;
+            if (dbauction.End == default(DateTime))
+                dbauction.End = auction.End;
+            if (dbauction.Category == Category.UNKNOWN)
+                dbauction.Category = auction.Category;
+
             // update
             context.Auctions.Update(dbauction);
         }
@@ -479,13 +490,14 @@ namespace hypixel
                 else
                 {
                     // all players in the db have an id now
-                    var auctionsWithoutSellerId = context.Auctions.Where(a => a.SellerId == 0).Include(a=>a.Enchantments).Take(5000).ToList();
+                    var bidNumberTask = Task.Run(() => NumberBids());
+                    var auctionsWithoutSellerId = context.Auctions.Where(a => a.SellerId == 0).Include(a => a.Enchantments).Take(5000).ToList();
                     if (auctionsWithoutSellerId.Count() > 0)
                         Console.Write(" -#- idex ahh");
                     foreach (var auction in auctionsWithoutSellerId)
                     {
-                        auction.SellerId = GetOrCreatePlayerId(context,auction.AuctioneerId);// context.Players.Where(p => p.UuId == auction.AuctioneerId).Select(p => p.Id).FirstOrDefault();
- 
+                        auction.SellerId = GetOrCreatePlayerId(context, auction.AuctioneerId); // context.Players.Where(p => p.UuId == auction.AuctioneerId).Select(p => p.Id).FirstOrDefault();
+
                         auction.ItemId = ItemDetails.Instance.GetOrCreateItemIdForAuction(auction, context);
                         foreach (var enchant in auction.Enchantments)
                         {
@@ -493,14 +505,23 @@ namespace hypixel
                         }
                         context.Auctions.Update(auction);
                     }
-                    var bidsWithoutSellerId = context.Bids.Where(a => a.BidderId == 0).Take(10000).ToList();
-                    foreach (var bid in bidsWithoutSellerId)
-                    {
-                        bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
-                        context.Bids.Update(bid);
-                    }
+                    bidNumberTask.Wait();
                 }
 
+                context.SaveChanges();
+            }
+        }
+
+        private static void NumberBids()
+        {
+            using(var context = new HypixelContext())
+            {
+                var bidsWithoutSellerId = context.Bids.Where(a => a.BidderId == 0).Take(10000).ToList();
+                foreach (var bid in bidsWithoutSellerId)
+                {
+                    bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
+                    context.Bids.Update(bid);
+                }
                 context.SaveChanges();
             }
         }
@@ -508,12 +529,12 @@ namespace hypixel
         private static int GetOrCreatePlayerId(HypixelContext context, string uuid)
         {
             var id = context.Players.Where(p => p.UuId == uuid).Select(p => p.Id).FirstOrDefault();
-            if(id == 0)
+            if (id == 0)
             {
-                id = Program.AddPlayer(context, uuid,ref highestPlayerId);
+                id = Program.AddPlayer(context, uuid, ref highestPlayerId);
                 Console.WriteLine($"Adding player {id} ");
             }
-            return id; 
+            return id;
         }
     }
 }

@@ -62,6 +62,10 @@ namespace hypixel
         DateTime RunUpdate(DateTime updateStartTime)
         {
             var hypixel = new HypixelApi(apiKey, 50);
+           /* Task.Run(()
+                 => BinUpdater.GrabAuctions(hypixel)
+            );*/
+            BinUpdater.GrabAuctions(hypixel);
             long max = 1;
             var lastUpdate = lastUpdateDone; // new DateTime (1970, 1, 1);
             //if (FileController.Exists ("lastUpdate"))
@@ -147,7 +151,7 @@ namespace hypixel
                 PrintUpdateEstimate(max, doneCont, sum, updateStartTime, max);
             }
 
-            BinUpdateSold(currentUpdateBins);
+            //BinUpdateSold(currentUpdateBins);
 
             if (sum > 10)
                 LastPull = DateTime.Now;
@@ -208,7 +212,7 @@ namespace hypixel
 
         private static void WaitForServerCacheRefresh(DateTime start)
         {
-            var timeToSleep = start.Add(new TimeSpan(0, 1, 0)) - DateTime.Now;
+            var timeToSleep = start.Add(TimeSpan.FromSeconds(59.5)) - DateTime.Now;
             Console.WriteLine($"Time to next Update {timeToSleep}");
             if (timeToSleep.Seconds > 0)
                 Thread.Sleep(timeToSleep);

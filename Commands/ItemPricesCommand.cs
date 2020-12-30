@@ -26,7 +26,8 @@ namespace hypixel {
 
             // send back cache
             var cacheResponse = GroupResponseByHour(fromCache, hourAmount);
-            data.SendBack(MessageData.Create("itemResponse", cacheResponse));
+            
+            //data.SendBack(MessageData.Create("itemResponse", cacheResponse));
 
             // determine the last
             DateTime excludeStart = default(DateTime);

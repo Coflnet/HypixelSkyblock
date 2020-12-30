@@ -13,19 +13,20 @@ namespace hypixel
         public string UUid;
 
         [Key(2)]
-        public int AuctionCount;
+        public int HitCount;
 
-        public PlayerResult(string name, string uUid)
+        public PlayerResult(string name, string uUid,int hitCount = 0)
         {
             Name = name;
             UUid = uUid;
+            HitCount = hitCount;
         }
 
         public PlayerResult(){ }
 
         public int CompareTo(PlayerResult other)
         {
-            return (other.AuctionCount - AuctionCount) * 1000 + Name.CompareTo(other.Name);
+            return (other.HitCount - HitCount) * 1000 + Name.CompareTo(other.Name);
         }
 
         public override bool Equals(object obj)

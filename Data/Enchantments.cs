@@ -116,11 +116,13 @@ namespace hypixel
         public int Id {get;set;}
 
         [MessagePack.Key(0)]
+        [JsonProperty("type")]
         [JsonConverter(typeof(StringEnumConverter))]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(3)")]
         public EnchantmentType Type {get;set;}
 
         [MessagePack.Key(1)]
+        [JsonProperty("level")]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(3)")]
         public byte Level {get;set;}
         /// <summary>
@@ -129,6 +131,7 @@ namespace hypixel
         /// <value>The ItemType this enchantment coresponds to</value>
         [MessagePack.IgnoreMember]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
+        [JsonIgnore]
         public int ItemType {get;set;}
 
         /// <summary>
@@ -136,6 +139,7 @@ namespace hypixel
         /// </summary>
         /// <value></value>
         [MessagePack.IgnoreMember]
+        [JsonIgnore]
         public int SaveAuctionId {get;set;}
 
 

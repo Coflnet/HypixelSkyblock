@@ -1,52 +1,121 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using dev;
 
-namespace hypixel {
-    public class NameUpdater {
+namespace hypixel
+{
+    public class NameUpdater
+    {
         public static DateTime LastUpdate { get; internal set; }
+        private static ConcurrentQueue<IdAndName> newPlayers = new ConcurrentQueue<IdAndName>();
 
-        public static void UpdateHundredNames () {
-            using (var context = new HypixelContext ()) {
-                var players = context.Players.Where (p => p.Name == null && p.Id > 0).Take (100);
+        private static int updateCount= 0;
 
-                if (players.Count () == 0) {
-                    players = context.Players.Where(p=>p.Id > 0).OrderBy (p => p.UpdatedAt).Take (100);
-                }
-
-                foreach (var player in players) {
-                    player.Name = Program.GetPlayerNameFromUuid (player.UuId);
-                    if(player.Name == null)
-                    {
-                        // this is not what we wanted
-                        continue;
-                    }
-                    context.Players.Update (player);
-                }
-
-                context.SaveChanges ();
-            }
-            LastUpdate = DateTime.Now;
+        private class IdAndName 
+        {
+            public string Uuid;
+            public string Name;
         }
 
-        public static void Run () {
-            Task.Run (() => {
-                RunForever ();
+        public static int UpdateHundredNames()
+        {
+            var updated = 0;
+            var targetAmount = 100;
+            using(var context = new HypixelContext())
+            {
+                var players = context.Players.Where(p => p.ChangedFlag && p.Id > 0)
+                    .OrderBy(p => p.UpdatedAt)
+                    .Take(targetAmount).ToList();
+
+                foreach (var player in players)
+                {
+                    player.Name = Program.GetPlayerNameFromUuid(player.UuId);
+                    player.ChangedFlag = false;
+                    player.UpdatedAt = DateTime.Now;
+                    context.Players.Update(player);
+                }
+                Console.WriteLine("Updated player: " + players.Last().UuId);
+
+                updated = context.SaveChanges();
+            }
+            LastUpdate = DateTime.Now;
+            updateCount++;
+            return updated;
+        }
+
+        public static void Run()
+        {
+            Task.Run(() =>
+            {
+                RunForever();
             });
         }
 
-        static void RunForever () {
-            while (true) {
-                try {
-                    UpdateHundredNames ();
-                    Console.WriteLine (" - Updated hundret player names - ");
-                } catch (Exception e) {
-                    Logger.Instance.Error ($"NameUpdater encountered an error \n {e.Message} {e.StackTrace} \n{e.InnerException?.Message} {e.InnerException?.StackTrace}");
+        internal static void UpdateUUid(string id,string name = null)
+        {
+            newPlayers.Enqueue(new IdAndName(){Name=name,Uuid=id});
+        }
+
+        static void RunForever()
+        {
+            while (true)
+            {
+                try
+                {
+                    FlagChanged();
+                    var count = UpdateHundredNames();
+                    FlagOldest();
+                    Console.WriteLine($" - Updated hundret player names ({count}) - ");
                 }
-                    System.Threading.Thread.Sleep (30000);
+                catch (Exception e)
+                {
+                    Logger.Instance.Error($"NameUpdater encountered an error \n {e.Message} {e.StackTrace} \n{e.InnerException?.Message} {e.InnerException?.StackTrace}");
+                }
+                System.Threading.Thread.Sleep(20000);
             }
         }
+
+        private static void FlagChanged()
+        {
+            if (newPlayers.Count() == 0)
+                return;
+            using(var context = new HypixelContext())
+            {
+                while(newPlayers.TryDequeue(out IdAndName result))
+                {
+                    var player = context.Players.Where(p=>p.UuId == result.Uuid).FirstOrDefault();
+                    if(player != null)
+                    {
+                        player.ChangedFlag = true;
+                        player.Name = result.Name;
+                        context.Players.Update(player);
+                        continue;
+                    } 
+                    Program.AddPlayer(context,result.Uuid,ref Indexer.highestPlayerId,result.Name); 
+                }
+                context.SaveChanges();
+            }
+        }
+
+        static void FlagOldest()
+        {
+            // this is a workaround, because the "updatedat" field is only updated when there is a change
+            using(var context = new HypixelContext())
+            {
+                var players = context.Players.Where(p => p.Id > 0)
+                    .OrderBy(p => p.UpdatedAt).Take(60);
+                foreach (var p in players)
+                {
+                    p.ChangedFlag = true;
+                    context.Players.Update(p);
+                }
+                context.SaveChanges();
+            }
+        }
+
+
     }
 
 }

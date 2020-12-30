@@ -2,36 +2,46 @@ using System;
 using System.Collections.Generic;
 using Hypixel.NET.SkyblockApi.Auctions;
 using MessagePack;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
     [MessagePackObject]
     public class SaveBids {
         [IgnoreMember]
+        [JsonIgnore]
         public int Id {get;set;}
         [IgnoreMember]
+        [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.ForeignKey("Uuid")]
         public SaveAuction Auction {get;set;}
         [Key (0)]
+        [JsonProperty("auctionId")]
         public string AuctionId;
         [Key (1)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        [JsonProperty("bidder")]
         public string Bidder {get;set;}
 
         [Key (2)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        [JsonProperty("profileId")]
         /// <summary>
         /// Will be null if it is the same as <see cref="Bidder"/>
         /// </summary>
         public string ProfileId {get; set;}
         [Key (3)]
+        [JsonProperty("amount")]
         public long Amount {get; set;}
         [Key (4)]
+        [JsonProperty("timestamp")]
         public DateTime Timestamp {get; set;}
         [Key(5)]
+        [JsonIgnore]
         public int BidderId {get;set;}
 
         [IgnoreMember]
+        [JsonIgnore]
         public Player player;
 
         public SaveBids (Hypixel.NET.SkyblockApi.AuctionByPage.Bids bid) {
