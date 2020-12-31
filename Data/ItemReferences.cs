@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using MessagePack;
 
@@ -125,7 +126,7 @@ namespace hypixel
 
         static ItemReferences()
         {
-            reforges = new HashSet<string>(Enum.GetNames(typeof(Reforge)));
+            reforges = new HashSet<string>(Enum.GetNames(typeof(Reforge)).Select(name=>name.ToLower()));
         }
 
         public static string RemoveReforgesAndLevel(string fullItemName)
@@ -134,7 +135,8 @@ namespace hypixel
             {
                 return fullItemName;
             }
-            if(reforges.Contains(fullItemName.Split(' ')[0].ToLower()) && fullItemName.Split(' ')[1] != "Dragon" || fullItemName.StartsWith('◆'))
+            var splitName = fullItemName.Split(' ');
+            if(reforges.Contains(splitName[0].ToLower()) && (splitName.Count() == 1 || splitName[1] != "Dragon") || fullItemName.StartsWith('◆'))
             { 
                 int i = fullItemName.IndexOf(" ")+1;
                 fullItemName = fullItemName.Substring(i);

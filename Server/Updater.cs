@@ -108,16 +108,19 @@ namespace hypixel
                         var res = index != 0 ? hypixel?.GetAuctionPage(index) : firstPage;
                         if (res == null)
                             return;;
-
-                        timestamp = res.LastUpdated;
+                
                         max = res.TotalPages;
 
                         if (index == 0)
                         {
+                            timestamp = res.LastUpdated;
                             // correct update time
                             Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}");
-                            //lastUpdate = res.LastUpdated;
                         }
+
+                        // spread out the saving load burst
+                        Thread.Sleep(index * 200);
+
 
                         var val = Save(res, lastUpdate, currentUpdateBins);
                         lock(sumloc)
@@ -192,7 +195,7 @@ namespace hypixel
                     try
                     {
                         var start = DateTime.Now;
-                        Update();
+                        Task.Run(()=>Update());
                         if (abort)
                         {
                             Console.WriteLine("Stopped updater");

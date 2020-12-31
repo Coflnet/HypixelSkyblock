@@ -31,8 +31,7 @@ namespace hypixel
         public static void GrabAuctions(HypixelApi hypixelApi)
         {
             var expired = hypixelApi.getAuctionsEnded();
-            foreach (var item in expired.Auctions)
-            {
+            var auctions = expired.Auctions.Select(item=>{
                 var a = new SaveAuction()
                 {
                     Uuid = item.Uuid,
@@ -52,8 +51,9 @@ namespace hypixel
                 };
 
                 NBT.FillDetails(a, item.ItemBytes);
-                Indexer.AddToQueue(a);
-            }
+                return a;
+            });
+            Indexer.AddToQueue(auctions);
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
         }
 
@@ -122,8 +122,11 @@ namespace hypixel
                             item.End > DateTime.Now ||
                             ignoreHistory && item.End < historyLimit)
                             continue;
-                        Indexer.AddToQueue(new SaveAuction(item));
+                        //Indexer.AddToQueue(new SaveAuction(item));
                         Interlocked.Increment(ref totalCount);
+                        throw new Exception("enque was deprecated");
+
+
                     }
                     Interlocked.Increment(ref updatedCount);
                     if (playerPage.Auctions.Count > 2)

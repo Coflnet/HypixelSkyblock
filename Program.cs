@@ -304,8 +304,12 @@ namespace hypixel
                 System.Threading.Thread.Sleep(500);
                 Console.WriteLine("done");
             };
-
+            try {
             CleanDB();
+            } catch(Exception e)
+            {
+                Console.WriteLine($"Cleaning failed {e.Message}");
+            }
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 
@@ -412,7 +416,7 @@ namespace hypixel
                     catch (Exception e)
                     {
                         Console.WriteLine();
-                        Console.WriteLine($"Error occured while userIndexing: {e.Message} {e.InnerException?.Message} {e.StackTrace} {e.InnerException?.StackTrace}");
+                        Console.WriteLine($"Error occured while userIndexing: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
                     }
                     System.Threading.Thread.Sleep(1000);
                 }

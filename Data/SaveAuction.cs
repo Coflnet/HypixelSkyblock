@@ -20,6 +20,7 @@ namespace hypixel
         public string Uuid { get; set; }
 
         [Key (1)]
+        [JsonIgnore]
         public bool Claimed { get; set; }
 
         [Key (2)]

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
@@ -87,11 +88,13 @@ namespace hypixel
 
         public int GetOrCreateItemIdForAuction(SaveAuction auction, HypixelContext context)
         {
-            var tag = GetIdForName(auction.ItemName);
             var clearedName = ItemReferences.RemoveReforgesAndLevel(auction.ItemName);
+            var tag = GetIdForName(clearedName ?? auction.Tag) ;
             if (tag != null && TagLookup.TryGetValue(tag, out int value))
                 return value;
+            
 
+            Console.WriteLine($"Creating item {auction.ItemName}");
             // doesn't exist yet, create it
             var itemByTag = context.Items.Where(item => item.Tag == auction.Tag).FirstOrDefault();
             if (itemByTag != null)
@@ -106,12 +109,14 @@ namespace hypixel
                     context.AltItemNames.Add(new AlternativeName() { DBItemId = itemByTag.Id, Name = clearedName });
                 return itemByTag.Id;
             }
+            Console.WriteLine($"!! completely new !! {JsonConvert.SerializeObject(auction)}");
             // new Item
             //var tempAuction = new Hypixel.NET.SkyblockApi.Auction(){Category=auction.Category,};
             //AddNewItem(tempAuction,auction.ItemName,auction.Tag,null);
             var item = new DBItem()
             {
-                Tag = auction.Tag, Name = auction.ItemName,
+                Tag = auction.Tag, 
+                Name = auction.ItemName,
                 Names = new List<AlternativeName>() { new AlternativeName() { Name = auction.ItemName } }
             };
             if (item.Tag == null)

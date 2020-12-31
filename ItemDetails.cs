@@ -7,6 +7,7 @@ using Coflnet;
 using fNbt;
 using Hypixel.NET.SkyblockApi;
 using Newtonsoft.Json;
+using dev;
 
 namespace hypixel
 {
@@ -117,6 +118,15 @@ namespace hypixel
         public void AddOrIgnoreDetails(Auction a)
         {
             var id = NBT.ItemID(a.ItemBytes);
+            if(id == null)
+            {
+                if(a.ItemName == "Revive Stone") {
+                    // known item, has no tag, nothing to do
+                    return;
+                }
+                Logger.Instance.Error($"item has no tag {JsonConvert.SerializeObject(a)}");
+                return;
+            }
 
             var name = ItemReferences.RemoveReforgesAndLevel(a.ItemName);
 
@@ -219,7 +229,14 @@ namespace hypixel
             using(var context = new HypixelContext())
             {
                 context.Items.Add(item);
-                context.SaveChanges();
+                try 
+                {
+                    context.SaveChanges();
+                } catch (Exception )
+                {
+                    Console.WriteLine($"Ran into an error while saving {JsonConvert.SerializeObject(item)}");
+                    throw;
+                }
                 return item.Id;
             }
         }

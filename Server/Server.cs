@@ -32,6 +32,8 @@ namespace hypixel
         {
             server =  new HttpServer(port);;
             server.AddWebSocketService<SkyblockBackEnd> (urlPath);
+            // do NOT timeout after 60 sec
+            server.KeepClean = false;
             server.OnGet += (sender, e) => {
                 var req = e.Request;
                 var res = e.Response;

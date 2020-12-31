@@ -50,6 +50,7 @@ namespace hypixel {
             var result = new List<Result>();
             if(details.Enchantments == null)
                 result.AddRange(fromCache);
+                
             result.AddRange(fromDB);
 
             var response = GroupResponseByHour(result, hourAmount);
@@ -101,8 +102,9 @@ namespace hypixel {
         private IEnumerable<Result> QueryDBFor (string itemName, DateTime start, DateTime end, DateTime excludeStart, DateTime excludeEnd, ItemReferences.Reforge reforge, List<Enchantment> enchantments) {
             using (var context = new HypixelContext ()) {
                 var tag = ItemDetails.Instance.GetIdForName (itemName);
+                var itemId = ItemDetails.Instance.GetItemIdForName(itemName);
                 var mainSelect = context.Auctions
-                    .Where (auction => /*auction.ItemName == itemName || */auction.Tag == tag);
+                    .Where (auction => /*auction.ItemName == itemName || */auction.ItemId == itemId);
 
 
                 var selectWithTime = mainSelect.Where (auction => auction.End > start && auction.End < end && (auction.End < excludeStart || auction.End > excludeEnd)); 
