@@ -493,7 +493,11 @@ namespace hypixel
                 {
                     // all players in the db have an id now
                     bidNumberTask = Task.Run(() => NumberBids());
-                    var auctionsWithoutSellerId = context.Auctions.Where(a => a.SellerId == 0).Include(a => a.Enchantments).Take(5000).ToList();
+                    var auctionsWithoutSellerId = context
+                        .Auctions.Where(a => a.SellerId == 0)
+                        .Include(a => a.Enchantments)
+                        .OrderByDescending(a => a.Id)
+                        .Take(5000).ToList();
                     if (auctionsWithoutSellerId.Count() > 0)
                         Console.Write(" -#-");
                     foreach (var auction in auctionsWithoutSellerId)

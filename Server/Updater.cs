@@ -206,7 +206,7 @@ namespace hypixel
                     catch (Exception e)
                     {
                         Logger.Instance.Error("Updater encountered an outside error " + e.Message);
-                        Thread.Sleep(5000);
+                        Thread.Sleep(10000);
                     }
 
                 }

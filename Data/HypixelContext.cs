@@ -61,8 +61,6 @@ namespace hypixel
 
             modelBuilder.Entity<SaveAuction> (entity => {
                 entity.HasIndex (e => e.Uuid).IsUnique();
-                entity.HasIndex (e => e.AuctioneerId);
-                entity.HasIndex(e=>e.ItemName);
                 entity.HasIndex(e=>e.End);
                 entity.HasIndex(e=>e.SellerId);
                 entity.HasIndex(e=>new {e.ItemId,e.End});

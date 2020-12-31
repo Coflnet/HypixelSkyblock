@@ -39,7 +39,7 @@ namespace hypixel
 
         public void LoadFromDB()
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 var items = context.Items.Where(item => item.Description == null);
                 foreach (var item in items)
@@ -102,10 +102,10 @@ namespace hypixel
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public int GetItemIdForName(string name)
+        public int GetItemIdForName(string name, bool forceGet = true)
         {
             var tag = GetIdForName(name);
-            if (!TagLookup.TryGetValue(tag, out int value))
+            if (!TagLookup.TryGetValue(tag, out int value) && forceGet)
                 throw new CoflnetException("item_not_found", $"could not find the item with the name `{name}`");
             return value;
         }
@@ -118,9 +118,10 @@ namespace hypixel
         public void AddOrIgnoreDetails(Auction a)
         {
             var id = NBT.ItemID(a.ItemBytes);
-            if(id == null)
+            if (id == null)
             {
-                if(a.ItemName == "Revive Stone") {
+                if (a.ItemName == "Revive Stone")
+                {
                     // known item, has no tag, nothing to do
                     return;
                 }
@@ -195,7 +196,7 @@ namespace hypixel
         private void UpdateItem(DBItem existingItem, DBItem newItem)
         {
             Console.WriteLine("updating item");
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 newItem.Id = existingItem.Id;
                 context.Items.Update(newItem);
@@ -226,13 +227,14 @@ namespace hypixel
 
         private int AddItemToDB(DBItem item)
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 context.Items.Add(item);
-                try 
+                try
                 {
                     context.SaveChanges();
-                } catch (Exception )
+                }
+                catch (Exception)
                 {
                     Console.WriteLine($"Ran into an error while saving {JsonConvert.SerializeObject(item)}");
                     throw;
@@ -277,10 +279,13 @@ namespace hypixel
                 return value;
             }*/
 
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
-                var id = context.AltItemNames.Where(name => name.Name == fullName || name.Name == cleanedName)
-                    .Select(name => name.DBItemId).FirstOrDefault();
+                var id = GetItemIdForName(cleanedName, false);
+                if (id == 0)
+                    id = context.AltItemNames.Where(name => name.Name == fullName || name.Name == cleanedName)
+                       .Select(name => name.DBItemId).FirstOrDefault();
+                       
                 if (id > 1)
                 {
                     var item = context.Items.Where(i => i.Id == id).First();

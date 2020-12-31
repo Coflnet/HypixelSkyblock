@@ -32,6 +32,7 @@ namespace hypixel
                     .Select(b=>new {
                         b.Auction.Uuid,
                         b.Auction.ItemName,
+                        b.Auction.Tag,
                         b.Auction.HighestBidAmount,
                         b.Auction.End,
                         b.Amount,
@@ -42,6 +43,7 @@ namespace hypixel
                         Amount = bid.Max(b=>b.Amount),
                         HighestBid = bid.Max(b=>b.HighestBidAmount),
                         ItemName = bid.Max(b=>b.ItemName),
+                        Tag = bid.Max(b=>b.Tag),
                         HighestOwnBid = bid.Max(b=>b.Amount),
                         End = bid.Max(b=>b.End)
                     })
@@ -55,7 +57,8 @@ namespace hypixel
                                     AuctionId=b.Key,
                                     End = b.End,
                                     HighestOwnBid = b.HighestOwnBid,
-                                    ItemName = b.ItemName
+                                    ItemName = b.ItemName,
+                                    Tag = b.Tag
                                 })
                                 .OrderByDescending (b => b.End)
                                 .ToList();

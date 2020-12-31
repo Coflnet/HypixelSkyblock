@@ -393,7 +393,7 @@ namespace hypixel
                         Console.WriteLine();
                         Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message} {e.StackTrace} {e.InnerException?.StackTrace}");
                     }
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(2000);
                 }
             });
             RunUserIndexer();
@@ -418,7 +418,7 @@ namespace hypixel
                         Console.WriteLine();
                         Console.WriteLine($"Error occured while userIndexing: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
                     }
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(2000);
                 }
             });
         }
