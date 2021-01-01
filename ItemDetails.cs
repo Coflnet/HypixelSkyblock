@@ -190,11 +190,12 @@ namespace hypixel
             if (existingItem == null)
                 AddItemToDB(newItem);
             else
-                UpdateItem(existingItem, newItem);
+                System.Threading.Tasks.Task.Run(()=>UpdateItem(existingItem, newItem));
         }
 
         private void UpdateItem(DBItem existingItem, DBItem newItem)
         {
+            System.Threading.Thread.Sleep(5000);
             Console.WriteLine("updating item");
             using (var context = new HypixelContext())
             {
