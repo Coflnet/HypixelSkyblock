@@ -55,9 +55,9 @@ namespace hypixel
             using(var context = new HypixelContext())
             {
 
-                if (updateCount % 1000 == 500)
+                if (updateCount % 10000 == 500)
                     ShrinkHits(context);
-                if (updateCount % 6 == 5)
+                if (updateCount % 12 == 5)
                     PartialUpdateCache(context);
                 ItemDetails.Instance.SaveHits(context);
                 PlayerSearch.Instance.SaveHits(context);

@@ -9,7 +9,7 @@ namespace hypixel
         {
             Regex rgx = new Regex("[^a-zA-Z -]");
             var search = data.Data.Replace("\"",""); // rgx.Replace(data.Data, "");
-            data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search))));
+            data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search)),A_WEEK));
         }
     }
 }

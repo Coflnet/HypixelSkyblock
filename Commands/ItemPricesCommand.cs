@@ -55,7 +55,13 @@ namespace hypixel {
 
             var response = GroupResponseByHour(result, hourAmount);
 
-            data.SendBack(MessageData.Create("itemResponse", response));
+            var maxAge = 100;
+            if(details.Start < DateTime.Now-TimeSpan.FromDays(2))
+            {
+                maxAge = (int)TimeSpan.FromDays(1).TotalSeconds;
+            }
+
+            data.SendBack(MessageData.Create("itemResponse", response,maxAge));
 
             // cache db, if no filters were applied
             if(details.Reforge == Reforge.None && (details.Enchantments == null || !details.Enchantments.Any()))

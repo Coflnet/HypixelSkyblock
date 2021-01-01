@@ -6,7 +6,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            data.SendBack(new MessageData("itemNamesResponse",JsonConvert.SerializeObject(ItemDetails.Instance.AllItemNames())));
+            data.SendBack(new MessageData("itemNamesResponse",JsonConvert.SerializeObject(ItemDetails.Instance.AllItemNames()),A_WEEK));
         }
     }
 }

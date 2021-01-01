@@ -58,6 +58,10 @@ namespace hypixel
                     data.SendBack(new MessageData("error",$"The command `{data.Type}` is Unkown, please check your spelling"));
                     return;
                 }
+                
+                if(CacheService.Instance.TryFromCache(data))
+                    return;
+
                 Action command = ()=>{Commands[data.Type].Execute(data);};
                 if(this.Id != 0)
                 {

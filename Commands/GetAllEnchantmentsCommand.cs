@@ -11,7 +11,8 @@ namespace hypixel {
                     .ToList ();
 
             data.SendBack (new MessageData ("getAllEnchantmentsResponse",
-                JsonConvert.SerializeObject (values)
+                JsonConvert.SerializeObject (values),
+                A_DAY
             ));
         }
     }

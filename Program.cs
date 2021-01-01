@@ -293,6 +293,7 @@ namespace hypixel
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
+            CacheService.Instance.RunForEver();
 
             onStop += () =>
             {

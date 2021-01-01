@@ -16,7 +16,7 @@ namespace hypixel
             var search = rgx.Replace(data.Data, "").ToLower();
             var result = SearchService.Instance.Search(search);
 
-            data.SendBack(MessageData.Create("searchResponse", result));
+            data.SendBack(MessageData.Create("searchResponse", result,A_HOUR));
 
         }
 

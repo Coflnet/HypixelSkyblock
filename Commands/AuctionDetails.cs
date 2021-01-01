@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace hypixel {
     class AuctionDetails : Command {
@@ -13,12 +14,17 @@ namespace hypixel {
                             .Include(a=>a.NbtData)
                             .Include(a=>a.Enchantments)
                             .Include(a=>a.Bids)
-                            .Where (a => a.Uuid == search).ToList ();
-                if (result.Count == 0) {
+                            .Where (a => a.Uuid == search).FirstOrDefault ();
+                if (result == null) {
                     throw new CoflnetException ("error", $"The Auction `{search}` wasn't found");
                 }
-                var resultJson = JsonConvert.SerializeObject (result[0]);
-                data.SendBack (new MessageData ("auctionDetailsResponse", resultJson));
+                var resultJson = JsonConvert.SerializeObject (result);
+                var maxAge = A_MINUTE;
+                if(result.End > DateTime.Now)
+                    // won't change anymore
+                    maxAge = A_WEEK;
+
+                data.SendBack (new MessageData ("auctionDetailsResponse", resultJson,maxAge));
             }
 
         }
