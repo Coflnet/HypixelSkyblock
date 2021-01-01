@@ -47,9 +47,8 @@ namespace hypixel
         public DbSet<Enchantment> Enchantment {get;set;}
 
         protected override void OnConfiguring (DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=600",
-            opts=>opts.CommandTimeout(600))
-            ;
+            optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=120",
+            opts=>opts.CommandTimeout(120));
             
         }
 
@@ -66,11 +65,9 @@ namespace hypixel
                 entity.HasIndex(e=>new {e.ItemId,e.End});
                 //entity.HasOne<NbtData>(d=>d.NbtData);
                 //entity.HasMany<Enchantment>(e=>e.Enchantments);
-                
             });
 
             modelBuilder.Entity<SaveBids> (entity => {
-                entity.HasIndex (e => e.Bidder);
                 entity.HasIndex (e => e.BidderId);
             });
 

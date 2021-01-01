@@ -114,6 +114,7 @@ namespace hypixel
         [JsonProperty("bids")]
         public List<SaveBids> Bids {get; set;}
         [Key (17)]
+        [JsonProperty("anvilUses")]
         public short AnvilUses {get; set;}
         [Key (18)]
         [JsonProperty("enchantments")]
@@ -128,14 +129,18 @@ namespace hypixel
         [Key (21)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         [JsonConverter (typeof (StringEnumConverter))]
+        [JsonProperty("reforge")]
         public ItemReferences.Reforge Reforge {get; set;}
+
         [JsonConverter (typeof (StringEnumConverter))]
+        [JsonProperty("category")]
         [Key (22)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         public Category Category {get; set;}
         [JsonConverter (typeof (StringEnumConverter))]
         [Key (23)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        [JsonProperty("tier")]
         public Tier Tier {get; set;}
         [Key (24)]
         [JsonProperty("bin")]

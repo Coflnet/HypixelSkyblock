@@ -67,7 +67,7 @@ namespace hypixel
                         FileController.CreatePath(fullPath);
                         var inStream = new MemoryStream(client.DownloadData(request));
                         
-                        client.DownloadData(request).SaveAs(fullPath+ "f.png" );
+                        //client.DownloadData(request).SaveAs(fullPath+ "f.png" );
 
                         // parse it to only show face
                        // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
