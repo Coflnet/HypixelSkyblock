@@ -14,9 +14,18 @@ namespace hypixel
         {
             Regex rgx = new Regex("[^a-zA-Z0-9_ ]");
             var search = rgx.Replace(data.Data, "").ToLower();
-            var result = SearchService.Instance.Search(search);
+            var task = SearchService.Instance.Search(search);
+            task.Wait();
+            var result = task.Result;
 
-            data.SendBack(MessageData.Create("searchResponse", result,A_HOUR));
+            var maxAge = A_HOUR;
+            if(result.Count <= 2)
+            {
+                // looks like a specific search, very unlikely to change 
+                maxAge = A_WEEK;
+            }
+
+            data.SendBack(MessageData.Create("searchResponse", result,maxAge));
 
         }
 

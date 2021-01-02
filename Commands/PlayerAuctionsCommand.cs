@@ -53,6 +53,8 @@ namespace hypixel
             public string Tag;
             [Key("end")]
             public DateTime End;
+            [Key("startingBid")]
+            public long StartingBid;
 
             public AuctionResult(SaveAuction a)
             {
@@ -61,6 +63,7 @@ namespace hypixel
                 ItemName = a.ItemName;
                 End = a.End;
                 Tag = a.Tag;
+                StartingBid = a.StartingBid;
             }
 
             public AuctionResult()

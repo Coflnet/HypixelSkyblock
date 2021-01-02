@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
@@ -10,6 +11,8 @@ namespace hypixel
         public static CacheService Instance {get;protected set;}
 
         private ConcurrentDictionary<string,CacheElement> cache = new ConcurrentDictionary<string, CacheElement>();
+
+        public int CacheSize => cache.Count;
 
         static CacheService()
         {
@@ -83,10 +86,10 @@ namespace hypixel
         internal void RunForEver()
         {
             var tenMin = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
-            System.Threading.Tasks.Task.Run(()=>{
+            Task.Run(async ()=>{
                 while(true)
                 {
-                    System.Threading.Thread.Sleep(tenMin);
+                    await Task.Delay(tenMin);
                     ClearStale();
                 }
             });

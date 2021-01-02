@@ -131,6 +131,8 @@ namespace hypixel
         private ConcurrentDictionary<string, List<SubLookup>> OnlineSubscriptions = new ConcurrentDictionary<string, List<SubLookup>>();
         private ConcurrentQueue<UnSub> ToUnsubscribe = new ConcurrentQueue<UnSub>();
 
+        public int SubCount => OnlineSubscriptions.Count; 
+
         public void NotifyChange(string topic, SaveAuction auction)
         {
             if (OnlineSubscriptions.TryGetValue(topic.Truncate(32), out List<SubLookup> value))

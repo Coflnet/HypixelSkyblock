@@ -46,7 +46,6 @@ namespace hypixel
 
                 var t = StorageManager.Save();
                 Console.WriteLine("Saving");
-                ItemPrices.Instance.Save();
                 t.Wait();
                 Console.WriteLine($"Saved {cacheCount}");
             };
@@ -201,7 +200,8 @@ namespace hypixel
                     Indexed();
                     break;
                 case 'i':
-                    Indexer.BuildIndexes();
+                    Console.WriteLine("got removed");
+                    //Indexer.BuildIndexes();
                     break;
                 case 'p':
                     Indexer.LastHourIndex();
@@ -405,14 +405,14 @@ namespace hypixel
         /// </summary>
         private static void RunUserIndexer()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 Indexer.MiniumOutput();
                 while (true)
                 {
                     try
                     {
-                        Indexer.NumberUsers();
+                        await Indexer.NumberUsers();
                     }
                     catch (Exception e)
                     {
@@ -691,7 +691,7 @@ namespace hypixel
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns>The name or null if error occurs</returns>
-        public static string GetPlayerNameFromUuid(string uuid)
+        public static async Task<string> GetPlayerNameFromUuid(string uuid)
         {
             if (DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2000)
             {
@@ -736,7 +736,7 @@ namespace hypixel
             RequestsSinceStart++;
 
             //Get the response and Deserialize
-            var response = client.Execute(request);
+            var response = await client.ExecuteAsync(request);
 
             if (response.Content == "")
             {

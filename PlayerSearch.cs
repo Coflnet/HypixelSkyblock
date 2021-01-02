@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Coflnet;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
@@ -81,7 +82,7 @@ namespace hypixel
             }
         }
 
-        public void LoadName(User user)
+        public async void LoadName(User user)
         {
             if (!user.Name.IsNullOrEmpty() && user.Name.Length > 2)
             {
@@ -100,7 +101,7 @@ namespace hypixel
                 nameRequests[user.uuid] = 1;
             }
 
-            var name = Program.GetPlayerNameFromUuid(user.uuid);
+            var name = await Program.GetPlayerNameFromUuid(user.uuid);
 
             if (name.IsNullOrEmpty())
             {
@@ -112,7 +113,7 @@ namespace hypixel
             SaveNameForPlayer(name, user.uuid);
         }
 
-        public IEnumerable<PlayerResult> Search(string search, int count, bool forceResolution = true)
+        public async Task<IEnumerable<PlayerResult>> Search(string search, int count, bool forceResolution = true)
         {
             if (count <= 0 || search.Contains(' '))
                 return new PlayerResult[0];
@@ -122,18 +123,18 @@ namespace hypixel
             using(var context = new HypixelContext())
             {
 
-                result = context.Players
+                result = await context.Players
                     .Where(e => EF.Functions.Like(e.Name, $"{search.Replace("_","\\_")}%"))
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)
-                    .ToList();
+                    .ToListAsync();
 
                 if (result.Count() == 0)
                 {
                     var client = new RestClient("https://mc-heads.net/");
                     var request = new RestRequest($"/minecraft/profile/{search}", Method.GET);
-                    var response = client.Execute(request);
+                    var response = await client.ExecuteAsync(request);
                     if (response.StatusCode != System.Net.HttpStatusCode.OK)
                         if (forceResolution)
                             throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");

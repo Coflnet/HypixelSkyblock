@@ -32,7 +32,7 @@ namespace hypixel
         /// <summary>
         /// Downloads all auctions and save the ones that changed since the last update
         /// </summary>
-        public void Update()
+        public async Task Update()
         {
             if (!minimumOutput)
                 Console.WriteLine($"Usage bevore update {System.GC.GetTotalMemory(false)}");
@@ -40,7 +40,7 @@ namespace hypixel
 
             try
             {
-                lastUpdateDone = RunUpdate(lastUpdateDone);
+                lastUpdateDone = await RunUpdate(lastUpdateDone);
                 FileController.SaveAs("lastUpdate", lastUpdateDone);
                 FileController.Delete("lastUpdateStart");
             }
@@ -53,18 +53,18 @@ namespace hypixel
 
             ItemDetails.Instance.Save();
 
-            StorageManager.Save().Wait();
+            await StorageManager.Save();
             Console.WriteLine($"Done in {DateTime.Now.ToLocalTime()}");
         }
 
         DateTime lastUpdateDone = new DateTime(1970, 1, 1);
 
-        DateTime RunUpdate(DateTime updateStartTime)
+        async Task<DateTime> RunUpdate(DateTime updateStartTime)
         {
             var hypixel = new HypixelApi(apiKey, 50);
-           /* Task.Run(()
-                 => BinUpdater.GrabAuctions(hypixel)
-            );*/
+            /* Task.Run(()
+                  => BinUpdater.GrabAuctions(hypixel)
+             );*/
             BinUpdater.GrabAuctions(hypixel);
             long max = 1;
             var lastUpdate = lastUpdateDone; // new DateTime (1970, 1, 1);
@@ -82,7 +82,7 @@ namespace hypixel
             Console.WriteLine(updateStartTime);
 
             TimeSpan timeEst = new TimeSpan(0, 1, 1);
-            Console.WriteLine("Updating Data");
+            Console.WriteLine($"Updating Data {DateTime.Now}");
 
             // add extra miniute to start to catch lost auctions
             lastUpdate = lastUpdate - new TimeSpan(0, 1, 0);
@@ -92,7 +92,7 @@ namespace hypixel
             int sum = 0;
             int doneCont = 0;
             object sumloc = new object();
-            var firstPage = hypixel?.GetAuctionPage(0);
+            var firstPage = await hypixel?.GetAuctionPageAsync(0);
             max = firstPage.TotalPages;
 
             ConcurrentDictionary<string, BinInfo> currentUpdateBins = new ConcurrentDictionary<string, BinInfo>();
@@ -100,30 +100,30 @@ namespace hypixel
             for (int i = 0; i < max; i++)
             {
                 var index = i;
-                tasks.Add(Task.Run(() =>
+                tasks.Add(Task.Run(async () =>
                 {
 
                     try
                     {
-                        var res = index != 0 ? hypixel?.GetAuctionPage(index) : firstPage;
+                        var res = index != 0 ? await hypixel?.GetAuctionPageAsync(index) : firstPage;
                         if (res == null)
-                            return;;
-                
+                            return;
+
                         max = res.TotalPages;
 
                         if (index == 0)
                         {
                             timestamp = res.LastUpdated;
                             // correct update time
-                            Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}");
+                            Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}\n");
                         }
 
                         // spread out the saving load burst
-                        Thread.Sleep(index * 200);
+                        //Thread.Sleep(index * 300);
 
 
                         var val = Save(res, lastUpdate, currentUpdateBins);
-                        lock(sumloc)
+                        lock (sumloc)
                         {
                             sum += val;
                             // process done
@@ -150,7 +150,8 @@ namespace hypixel
             foreach (var item in tasks)
             {
                 //Console.Write($"\r {index++}/{updateEstimation} \t({index}) {timeEst:mm\\:ss}");
-                item?.Wait();
+                if(item != null)
+                    await item;
                 PrintUpdateEstimate(max, doneCont, sum, updateStartTime, max);
             }
 
@@ -177,7 +178,7 @@ namespace hypixel
             Console.WriteLine($"Bought {bought.Count()}, expired {LastUpdateBins.Count() - bought.Count()}, TotalBinCount {currentUpdateBins.Count()} - ");
 
             var updater = new BinUpdater(SimplerConfig.Config.Instance["apiKeys"].Split(','));
-            
+
             Task.Run(()
                  => updater.GrabAuctionsWithIds(bought.Select(a => a.Value))
             );
@@ -187,7 +188,7 @@ namespace hypixel
 
         internal void UpdateForEver()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 minimumOutput = true;
                 while (true)
@@ -195,13 +196,13 @@ namespace hypixel
                     try
                     {
                         var start = DateTime.Now;
-                        Task.Run(()=>Update());
+                        Task.Run(() => Update());
                         if (abort)
                         {
                             Console.WriteLine("Stopped updater");
                             break;
                         }
-                        WaitForServerCacheRefresh(start);
+                        await WaitForServerCacheRefresh(start);
                     }
                     catch (Exception e)
                     {
@@ -213,12 +214,11 @@ namespace hypixel
             });
         }
 
-        private static void WaitForServerCacheRefresh(DateTime start)
+        private static async Task WaitForServerCacheRefresh(DateTime start)
         {
             var timeToSleep = start.Add(TimeSpan.FromSeconds(59.5)) - DateTime.Now;
-            Console.WriteLine($"Time to next Update {timeToSleep}");
             if (timeToSleep.Seconds > 0)
-                Thread.Sleep(timeToSleep);
+                await Task.Delay(timeToSleep);
         }
 
         static void PrintUpdateEstimate(long i, long doneCont, long sum, DateTime updateStartTime, long max)

@@ -15,6 +15,7 @@ namespace hypixel
     {
         public static Dictionary<string,Command> Commands = new Dictionary<string, Command>();
         private static ConcurrentDictionary<long,SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
+        public static int ConnectionCount => Subscribers.Count;
 
         public long Id;
 
@@ -40,7 +41,7 @@ namespace hypixel
             Commands.Add("subscribe",new SubscribeCommand());
             Commands.Add("unsubscribe",new UnsubscribeCommand());
 
-            
+            Subscribers[5] = null;
         }
 
         protected override void OnMessage (MessageEventArgs e)
@@ -106,25 +107,29 @@ namespace hypixel
         protected override void OnError(ErrorEventArgs e)
         {
             base.OnError(e);
+            Console.WriteLine("=============================\nclosed socket because error");
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.Exception.Message);
             Close();
         }
 
         protected override void OnClose(CloseEventArgs e)
         {
             base.OnClose(e);
+            Console.WriteLine("=============================\nclosed socket");
+            Console.WriteLine(e.Reason);
             Close();
         }
 
         private void Close()
         {
-            Subscribers.TryRemove(Id,out SkyblockBackEnd value);
+            if(Subscribers.TryRemove(Id,out SkyblockBackEnd value))
+                Console.WriteLine("removed closed conection");
         }
 
         protected override void OnOpen()
         {
             base.OnOpen();
-            this.Context.CookieCollection.Add(new WebSocketSharp.Net.Cookie("test", "abc123"));
-
             long id = GetSessionId();
             this.Id = id;
             if (id == 0)
@@ -137,6 +142,7 @@ namespace hypixel
             }
 
             Subscribers.AddOrUpdate(id, this, (key, old) => this);
+            Console.WriteLine(ConnectionCount);
         }
 
         private long GetSessionId()
@@ -148,7 +154,7 @@ namespace hypixel
             if (stringId != null && stringId.Length > 4)
                 id = ((long)stringId.Substring(0, stringId.Length / 2).GetHashCode()) << 32 + stringId.Substring(stringId.Length / 2, stringId.Length / 2).GetHashCode();
 
-            Console.WriteLine($"\n got connection with itd {stringId} {id} ");
+            Console.WriteLine($"\n got connection, id: {stringId} {id} ");
             return id;
         }
         public static bool SendTo(MessageData data, long connectionId)

@@ -126,6 +126,7 @@ namespace hypixel
 
 
             server.Start ();
+            Console.WriteLine("started http");
             //Console.ReadKey (true);
             Thread.Sleep(Timeout.Infinite);
             server.Stop ();
@@ -140,11 +141,14 @@ namespace hypixel
                 LastIndexFinish = Indexer.LastFinish,
                 LastBazaarUpdate = dev.BazaarUpdater.LastUpdate,
                 LastNameUpdate = NameUpdater.LastUpdate,
-                CacheSize = ItemPricesCommand.CacheSize,
+                CacheSize = CacheService.Instance.CacheSize,
                 QueueSize = Indexer.QueueCount,
                 LastAuctionPull = Updater.LastPull,
-                LastUpdateSize = Updater.UpdateSize
+                LastUpdateSize = Updater.UpdateSize,
+                SubscriptionTobics = SubscribeEngine.Instance.SubCount,
+                ConnectionCount = SkyblockBackEnd.ConnectionCount
             };
+
             // determine status
             res.StatusCode = 200;
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0,5,0));

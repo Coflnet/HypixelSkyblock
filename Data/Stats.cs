@@ -17,5 +17,9 @@ namespace hypixel
             public int CacheSize {get;set;}
             public int QueueSize {get;set;}
             public int LastUpdateSize {get;set;}
+            public int SubscriptionTobics {get;set;}
+            public int ConnectionCount {get;set;}
+
+            
         }
 }

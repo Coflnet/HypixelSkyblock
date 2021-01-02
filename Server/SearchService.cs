@@ -24,22 +24,22 @@ namespace hypixel
         private int updateCount = 0;
         public static SearchService Instance { get; private set; }
 
-        internal List<SearchResultItem> Search(string search)
+        internal async Task<List<SearchResultItem>> Search(string search)
         {
             if (search.Length > 40)
                 return null;
             if (!cache.TryGetValue(search, out CacheItem result))
             {
-                result = CreateAndCache(search);
+                result = await CreateAndCache(search);
             }
             result.hitCount++;
             return result.response;
         }
 
-        private CacheItem CreateAndCache(string search)
+        private async Task<CacheItem> CreateAndCache(string search)
         {
             CacheItem result;
-            var response = CreateResponse(search);
+            var response = await CreateResponse(search);
             result = new CacheItem(response);
             cache.AddOrUpdate(search, result, (key, old) => result);
             return result;
@@ -50,18 +50,18 @@ namespace hypixel
             Instance = new SearchService();
         }
 
-        private void Work()
+        private async Task Work()
         {
             using(var context = new HypixelContext())
             {
 
-                if (updateCount % 10000 == 500)
+                if (updateCount % 10000 == 9999)
                     ShrinkHits(context);
                 if (updateCount % 12 == 5)
                     PartialUpdateCache(context);
                 ItemDetails.Instance.SaveHits(context);
                 PlayerSearch.Instance.SaveHits(context);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
             updateCount++;
         }
@@ -111,11 +111,12 @@ namespace hypixel
 
         internal void RunForEver()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 PopulateCache();
                 while (true)
                 {
+                    await Task.Delay(10000);
                     try
                     {
                         Work();
@@ -124,7 +125,6 @@ namespace hypixel
                     {
                         Logger.Instance.Error("Searchserive got an error " + e.Message + e.StackTrace);
                     }
-                    Thread.Sleep(5000);
 
                 }
             });
@@ -143,18 +143,22 @@ namespace hypixel
             Console.WriteLine("populated Cache");
         }
 
-        private static List<SearchResultItem> CreateResponse(string search)
+        private static async  Task<List<SearchResultItem>> CreateResponse(string search)
         {
             var result = new List<SearchResultItem>();
 
-            var items = ItemDetails.Instance.Search(search, 20);
-            var players = PlayerSearch.Instance.Search(search, targetAmount, false);
+            var items = await ItemDetails.Instance.Search(search, 20);
+            var players = await PlayerSearch.Instance.Search(search, targetAmount, false);
+
+            if(items.Count() == 0 && players.Count() == 0)
+                items = await ItemDetails.Instance.FindClosest(search);
 
             result.AddRange(items.Select(item => new SearchResultItem(item)));
             result.AddRange(players.Select(player => new SearchResultItem(player)));
 
 
-            return result.OrderBy(r => r.Name?.Length - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0))
+
+            return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0))
                 .Take(targetAmount).ToList();
         }
 
@@ -175,6 +179,7 @@ namespace hypixel
         [MessagePackObject]
         public class SearchResultItem
         {
+            private const int ITEM_EXTRA_IMPORTANCE = 5;
             [Key("name")]
             public string Name;
             [Key("id")]
@@ -198,7 +203,7 @@ namespace hypixel
                     IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                 else
                     this.IconUrl = item.IconUrl;
-                this.HitCount = item.HitCount;
+                this.HitCount = item.HitCount + ITEM_EXTRA_IMPORTANCE;
             }
 
             public SearchResultItem(PlayerResult player)

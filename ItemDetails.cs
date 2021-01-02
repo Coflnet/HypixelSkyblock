@@ -8,6 +8,7 @@ using fNbt;
 using Hypixel.NET.SkyblockApi;
 using Newtonsoft.Json;
 using dev;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
@@ -190,18 +191,18 @@ namespace hypixel
             if (existingItem == null)
                 AddItemToDB(newItem);
             else
-                System.Threading.Tasks.Task.Run(()=>UpdateItem(existingItem, newItem));
+                System.Threading.Tasks.Task.Run(()=> UpdateItem(existingItem, newItem));
         }
 
-        private void UpdateItem(DBItem existingItem, DBItem newItem)
+        private async Task UpdateItem(DBItem existingItem, DBItem newItem)
         {
-            System.Threading.Thread.Sleep(5000);
+            await Task.Delay(5000);
             Console.WriteLine("updating item");
             using (var context = new HypixelContext())
             {
                 newItem.Id = existingItem.Id;
                 context.Items.Update(newItem);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
         }
 
@@ -292,8 +293,8 @@ namespace hypixel
                     var item = context.Items.Where(i => i.Id == id).First();
                     item.Name = fullName;
                     // cooler icons 
-                    if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
-                        item.IconUrl = "https://sky.lea.moe/item/" + item.Tag;
+                    //if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
+                    //    item.IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                     return item;
                 }
             }

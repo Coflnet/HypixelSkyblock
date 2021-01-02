@@ -47,7 +47,7 @@ namespace hypixel
             FileController.SaveAs($"apull/{DateTime.Now.Ticks + 1}", TakeBatch(AUCTION_CHUNK_SIZE));
         }
 
-        public static void LastHourIndex()
+        public static async Task LastHourIndex()
         {
             DateTime indexStart;
             string targetTmp, pullPath;
@@ -74,7 +74,7 @@ namespace hypixel
                 var earlybreak = 100;
                 foreach (var item in work)
                 {
-                    ToDb(item);
+                    await ToDb(item);
                     if (earlybreak-- <= 0)
                         break;
                 }
@@ -96,14 +96,13 @@ namespace hypixel
 
             }
             var saveTask = StorageManager.Save();
-            ItemPrices.Instance.Save();
             saveTask.Wait();
             LastFinish = DateTime.Now;
 
             DeleteDir(targetTmp);
         }
 
-        public static void ProcessQueue()
+        public static async void ProcessQueue()
         {
             var chuckCount = 1000;
             for (int i = 0; i < auctionsQueue.Count / 1000 + 1; i++)
@@ -111,7 +110,7 @@ namespace hypixel
                 List<SaveAuction> batch = TakeBatch(chuckCount);
                 try
                 {
-                    ToDb(batch);
+                    await ToDb(batch);
                 }
                 catch (Exception e)
                 {
@@ -178,7 +177,7 @@ namespace hypixel
 
         public static int highestPlayerId = 1;
 
-        private static void ToDb(List<SaveAuction> auctions)
+        private static async Task ToDb(List<SaveAuction> auctions)
         {
 
             auctions = auctions.Distinct(new AuctionComparer()).ToList();
@@ -186,7 +185,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 List<string> playerIds = new List<string>();
-                Dictionary<string, SaveAuction> inDb = GetExistingAuctions(auctions, context);
+                Dictionary<string, SaveAuction> inDb = await GetExistingAuctions(auctions, context);
 
                 var comparer = new BidComparer();
 
@@ -202,7 +201,7 @@ namespace hypixel
                 }
                 //Program.AddPlayers (context, playerIds);
 
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 context.Dispose();
             }
         }
@@ -274,11 +273,12 @@ namespace hypixel
             context.Auctions.Update(dbauction);
         }
 
-        private static Dictionary<string, SaveAuction> GetExistingAuctions(List<SaveAuction> auctions, HypixelContext context)
+        private static async Task<Dictionary<string, SaveAuction>> GetExistingAuctions(List<SaveAuction> auctions, HypixelContext context)
         {
             // preload
-            return context.Auctions.Where(a => auctions.Select(oa => oa.Uuid)
-                .Contains(a.Uuid)).Include(a => a.Bids).ToList().ToDictionary(a => a.Uuid);
+            return (await context.Auctions.Where(a => auctions.Select(oa => oa.Uuid)
+                .Contains(a.Uuid)).Include(a => a.Bids).ToListAsync())
+                .ToDictionary(a => a.Uuid);
         }
 
         private static void AddPlayerId(List<string> playerIds, SaveAuction auction)
@@ -303,109 +303,6 @@ namespace hypixel
                 PersistQueueBatch();
         }
 
-        public static void BuildIndexes()
-        {
-            Console.WriteLine("building indexes");
-            var lastIndex = new DateTime(1970, 1, 1);
-            var updateStart = DateTime.Now;
-
-            if (FileController.Exists("lastIndex"))
-                lastIndex = FileController.LoadAs<DateTime>("lastIndex");
-
-            // add an extra hour to make sure we don't miss something
-            lastIndex = lastIndex.Subtract(new TimeSpan(1, 0, 0));
-
-            AddIndexes(StorageManager.GetAllAuctions());
-            ItemPrices.Instance.Save();
-
-            // we are done
-            FileController.SaveAs("lastIndex", updateStart);
-        }
-
-        private static void AddIndexes(IEnumerable<SaveAuction> auctions)
-        {
-            int count = 0;
-            Parallel.ForEach(auctions, (item, handler) =>
-            {
-                if (abort)
-                {
-                    handler.Stop();
-                }
-                if (item == null || item.Uuid == null)
-                {
-                    return;
-                }
-
-                CreateIndex(item, true);
-
-                if (count++ % 10 == 0)
-                    Console.Write($"\r{count} {item.Uuid.Substring(0, 5)} u{Program.usersLoaded}");
-            });
-            StorageManager.Save().Wait();
-        }
-
-        private static void CreateIndex(SaveAuction item, bool excludeUser = false, DateTime lastIndex = default(DateTime))
-        {
-            if (item == null || item.ItemName == null)
-            {
-                // broken, ignore this aucion
-                return;
-            }
-            try
-            {
-                //StorageManager.GetOrCreateItemRef(item.ItemName)?.auctions.Add(new ItemReferences.AuctionReference(item.Uuid,item.End));
-                ItemPrices.Instance.AddAuction(item);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error on {item.ItemName} {e.Message}");
-                throw e;
-            }
-
-            if (excludeUser)
-            {
-                return;
-            }
-
-            try
-            {
-                if (item.Start > lastIndex)
-                {
-                    // we already have this
-                    var u = StorageManager.GetOrCreateUser(item.AuctioneerId, true);
-                    u?.auctionIds.Add(item.Uuid);
-                    // for search load the name
-                    PlayerSearch.Instance.LoadName(u);
-                }
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Corrupted " + item.AuctioneerId + $" {e.Message} \n{e.StackTrace}");
-            }
-
-            foreach (var bid in item.Bids)
-            {
-                try
-                {
-                    if (bid.Timestamp < lastIndex)
-                    {
-                        // we already have this
-                        continue;
-                    }
-                    var u = StorageManager.GetOrCreateUser(bid.Bidder, true);
-                    u.Bids.Add(new AuctionReference(null, item.Uuid));
-                    PlayerSearch.Instance.LoadName(u);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Corrupted user {bid.Bidder} {e.Message} {e.StackTrace}");
-                    // removing it
-
-                }
-
-            }
-        }
 
         private static void DeleteDir(string path)
         {
@@ -473,13 +370,13 @@ namespace hypixel
             }
         }
 
-        internal static void NumberUsers()
+        internal static async Task NumberUsers()
         {
 
             Task bidNumberTask = null;
             using (var context = new HypixelContext())
             {
-                var unindexedPlayers = context.Players.Where(p => p.Id == 0).Take(2000).ToList();
+                var unindexedPlayers = await context.Players.Where(p => p.Id == 0).Take(2000).ToListAsync();
                 if (unindexedPlayers.Any())
                 {
                     Console.Write($"  numbering: {unindexedPlayers.Count()} ");
@@ -492,12 +389,12 @@ namespace hypixel
                 else
                 {
                     // all players in the db have an id now
-                    bidNumberTask = Task.Run(() => NumberBids());
-                    var auctionsWithoutSellerId = context
+                    bidNumberTask = Task.Run(NumberBids);
+                    var auctionsWithoutSellerId = await context
                         .Auctions.Where(a => a.SellerId == 0)
                         .Include(a => a.Enchantments)
                         .OrderByDescending(a => a.Id)
-                        .Take(5000).ToList();
+                        .Take(5000).ToListAsync();
                     if (auctionsWithoutSellerId.Count() > 0)
                         Console.Write(" -#-");
                     foreach (var auction in auctionsWithoutSellerId)
@@ -524,18 +421,19 @@ namespace hypixel
                         }
                     }
                 }
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
-            bidNumberTask?.Wait();
+            if (bidNumberTask != null)
+                await bidNumberTask;
         }
 
         static int batchSize = 10000;
 
-        private static void NumberBids()
+        private static async void NumberBids()
         {
             using (var context = new HypixelContext())
             {
-                var bidsWithoutSellerId = context.Bids.Where(a => a.BidderId == 0).Take(batchSize).ToList();
+                var bidsWithoutSellerId = await context.Bids.Where(a => a.BidderId == 0).Take(batchSize).ToListAsync();
                 foreach (var bid in bidsWithoutSellerId)
                 {
 
@@ -543,7 +441,7 @@ namespace hypixel
                     context.Bids.Update(bid);
                 }
 
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
         }
 

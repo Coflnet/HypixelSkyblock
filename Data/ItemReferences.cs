@@ -142,7 +142,7 @@ namespace hypixel
                 fullItemName = fullItemName.Substring(i);
             }
             // remove pet level
-            return  Regex.Replace(fullItemName,@"\[Lvl \d{1,3}\] ","").Trim();
+            return  Regex.Replace(fullItemName,@"\[Lvl \d{1,3}\] ","").Trim().Trim('✪');
         }
 
         /// <summary>

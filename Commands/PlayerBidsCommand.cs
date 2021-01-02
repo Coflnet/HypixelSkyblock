@@ -36,6 +36,7 @@ namespace hypixel
                         b.Auction.HighestBidAmount,
                         b.Auction.End,
                         b.Amount,
+                        b.Auction.StartingBid
                         
                     }).GroupBy(b=>b.Uuid)
                     .Select(bid=> new {
@@ -45,7 +46,8 @@ namespace hypixel
                         ItemName = bid.Max(b=>b.ItemName),
                         Tag = bid.Max(b=>b.Tag),
                         HighestOwnBid = bid.Max(b=>b.Amount),
-                        End = bid.Max(b=>b.End)
+                        End = bid.Max(b=>b.End),
+                        StartBid = bid.Max(b=>b.StartingBid)
                     })
                     
                     //.ThenInclude (b => b.Auction)
@@ -58,7 +60,8 @@ namespace hypixel
                                     End = b.End,
                                     HighestOwnBid = b.HighestOwnBid,
                                     ItemName = b.ItemName,
-                                    Tag = b.Tag
+                                    Tag = b.Tag,
+                                    StartingBid=b.StartBid
                                 })
                                 .OrderByDescending (b => b.End)
                                 .ToList();
@@ -68,20 +71,10 @@ namespace hypixel
 
 
         [MessagePackObject]
-        public class BidResult
+        public class BidResult : PlayerAuctionsCommand.AuctionResult
         {
             [Key("highestOwn")]
             public long HighestOwnBid;
-            [Key("highestBid")]
-            public long HighestBid;
-            [Key("itemName")]
-            public string ItemName;
-            [Key("tag")]
-            public string Tag;
-            [Key("uuid")]
-            public string AuctionId;
-            [Key("end")]
-            public DateTime End;
 
             public BidResult(SaveAuction a, string userUuid)
             {

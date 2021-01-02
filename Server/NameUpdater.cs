@@ -19,7 +19,7 @@ namespace hypixel
             public string Name;
         }
 
-        public static int UpdateHundredNames()
+        public static async Task<int> UpdateFlaggedNames()
         {
             var updated = 0;
             var targetAmount = 100;
@@ -31,14 +31,14 @@ namespace hypixel
 
                 foreach (var player in players)
                 {
-                    player.Name = Program.GetPlayerNameFromUuid(player.UuId);
+                    player.Name = await Program.GetPlayerNameFromUuid(player.UuId);
                     player.ChangedFlag = false;
                     player.UpdatedAt = DateTime.Now;
                     context.Players.Update(player);
                 }
                 Console.WriteLine("Updated player: " + players.Last().UuId);
 
-                updated = context.SaveChanges();
+                updated = await context.SaveChangesAsync();
             }
             LastUpdate = DateTime.Now;
             updateCount++;
@@ -58,22 +58,22 @@ namespace hypixel
             newPlayers.Enqueue(new IdAndName(){Name=name,Uuid=id});
         }
 
-        static void RunForever()
+        static async Task RunForever()
         {
             while (true)
             {
                 try
                 {
                     FlagChanged();
-                    var count = UpdateHundredNames();
-                    FlagOldest();
-                    Console.WriteLine($" - Updated hundret player names ({count}) - ");
+                    var count = await UpdateFlaggedNames();
+                    await FlagOldest();
+                    Console.WriteLine($" - Updated flagged player names ({count}) - ");
                 }
                 catch (Exception e)
                 {
                     Logger.Instance.Error($"NameUpdater encountered an error \n {e.Message} {e.StackTrace} \n{e.InnerException?.Message} {e.InnerException?.StackTrace}");
                 }
-                System.Threading.Thread.Sleep(20000);
+                await Task.Delay(30000);
             }
         }
 
@@ -99,19 +99,19 @@ namespace hypixel
             }
         }
 
-        static void FlagOldest()
+        static async Task FlagOldest()
         {
             // this is a workaround, because the "updatedat" field is only updated when there is a change
             using(var context = new HypixelContext())
             {
                 var players = context.Players.Where(p => p.Id > 0)
-                    .OrderBy(p => p.UpdatedAt).Take(60);
+                    .OrderBy(p => p.UpdatedAt).Take(50);
                 foreach (var p in players)
                 {
                     p.ChangedFlag = true;
                     context.Players.Update(p);
                 }
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
         }
 
