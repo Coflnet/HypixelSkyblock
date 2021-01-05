@@ -2,19 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using hypixel;
 
 namespace hypixel.Migrations
 {
     [DbContext(typeof(HypixelContext))]
-    partial class HypixelContextModelSnapshot : ModelSnapshot
+    [Migration("20201223154830_v2")]
+    partial class v2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.8")
+                .HasAnnotation("ProductVersion", "3.1.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("dev.BazaarPull", b =>
@@ -217,9 +219,6 @@ namespace hypixel.Migrations
                         .HasColumnType("text")
                         .HasAnnotation("MySQL:Charset", "utf8");
 
-                    b.Property<int>("HitCount")
-                        .HasColumnType("int");
-
                     b.Property<string>("IconUrl")
                         .HasColumnType("text");
 
@@ -295,15 +294,11 @@ namespace hypixel.Migrations
 
             modelBuilder.Entity("hypixel.Player", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("UuId")
+                        .HasColumnType("char(32)");
 
                     b.Property<bool>("ChangedFlag")
                         .HasColumnType("bit");
-
-                    b.Property<int>("HitCount")
-                        .HasColumnType("int");
 
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -317,16 +312,11 @@ namespace hypixel.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime");
 
-                    b.Property<string>("UuId")
-                        .HasColumnType("char(32)");
-
-                    b.HasKey("Id");
+                    b.HasKey("UuId");
 
                     b.HasIndex("Id");
 
                     b.HasIndex("Name");
-
-                    b.HasIndex("UuId");
 
                     b.ToTable("Players");
                 });
@@ -402,7 +392,11 @@ namespace hypixel.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AuctioneerId");
+
                     b.HasIndex("End");
+
+                    b.HasIndex("ItemName");
 
                     b.HasIndex("NbtDataId");
 
@@ -442,7 +436,7 @@ namespace hypixel.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BidderId");
+                    b.HasIndex("Bidder");
 
                     b.HasIndex("BidderId");
 
@@ -559,7 +553,6 @@ namespace hypixel.Migrations
 
             modelBuilder.Entity("hypixel.SaveAuction", b =>
                 {
-
                     b.HasOne("hypixel.NbtData", "NbtData")
                         .WithMany()
                         .HasForeignKey("NbtDataId");

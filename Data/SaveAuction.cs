@@ -11,19 +11,24 @@ namespace hypixel
     [MessagePackObject]
     public class SaveAuction {
         [IgnoreMember]
+        [JsonIgnore]
         public int Id {get;set;}
         [Key (0)]
-        [JsonIgnore]
+        //[JsonIgnore]
+        [JsonProperty("uuid")]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string Uuid { get; set; }
 
         [Key (1)]
+        [JsonIgnore]
         public bool Claimed { get; set; }
 
         [Key (2)]
+        [JsonProperty("count")]
         public int Count { get; set; }
 
         [Key (3)]
+        [JsonProperty("startingBid")]
         public long StartingBid { get; set; }
 
         [Key (4)]
@@ -43,6 +48,7 @@ namespace hypixel
 
         [Key (6)]
         [System.ComponentModel.DataAnnotations.MaxLength(40)]
+        [JsonProperty("tag")]
         public string Tag {get; set;}
         // [Key (7)]
         //public string ItemLore;
@@ -51,16 +57,20 @@ namespace hypixel
         [Key (8)]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [JsonProperty("itemName")]
         public string ItemName { get {return _itemName;} set {_itemName=value?.Substring(0, Math.Min(value.Length, 45));} }
 
         [Key (9)]
+        [JsonProperty("start")]
         public DateTime Start { get; set; }
 
         [Key (10)]
+        [JsonProperty("end")]
         public DateTime End { get; set; }
 
         [Key (11)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        [JsonProperty("auctioneerId")]
         public string AuctioneerId { get; set; }
     /*    [IgnoreMember]
         [System.ComponentModel.DataAnnotations.Schema.ForeignKey("AuctioneerId")]
@@ -71,6 +81,7 @@ namespace hypixel
         /// </summary>
         [Key (12)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        [JsonProperty("profileId")]
         public string ProfileId {get; set;}
         /// <summary>
         /// All ProfileIds of the coop members without the <see cref="Auctioneer"/> because it would be redundant
@@ -86,43 +97,63 @@ namespace hypixel
 
         [Key (14)]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        [JsonIgnore]
         public List<object> ClaimedBidders {set{
             ClaimedBids = value?.Select(s=>new UuId((string)s)).ToList();}
         }
         [IgnoreMember]
+        [JsonIgnore]
         public List<UuId> ClaimedBids {get;set;}
 
 
         [Key (15)]
+        [JsonProperty("highestBidAmount")]
         public long HighestBidAmount { get; set; }
 
         [Key (16)]
+        [JsonProperty("bids")]
         public List<SaveBids> Bids {get; set;}
         [Key (17)]
+        [JsonProperty("anvilUses")]
         public short AnvilUses {get; set;}
         [Key (18)]
+        [JsonProperty("enchantments")]
         public List<Enchantment> Enchantments {get; set;}
 
         [Key (19)]
+        [JsonProperty("nbtData")]
         public NbtData NbtData {get; set;}
         [Key (20)]
+        [JsonProperty("itemCreatedAt")]
         public DateTime ItemCreatedAt{get;set;}
         [Key (21)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         [JsonConverter (typeof (StringEnumConverter))]
+        [JsonProperty("reforge")]
         public ItemReferences.Reforge Reforge {get; set;}
+
         [JsonConverter (typeof (StringEnumConverter))]
+        [JsonProperty("category")]
         [Key (22)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         public Category Category {get; set;}
         [JsonConverter (typeof (StringEnumConverter))]
         [Key (23)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        [JsonProperty("tier")]
         public Tier Tier {get; set;}
-        //[Key (24)]
-        //public bool Bin {get; set;}
-        [Key(25)]
-        public int AuctioneerIntId {get;set;}
+
+        [Key (24)]
+        [JsonProperty("bin")]
+        public bool Bin {get; set;}
+        [Key (25)]
+        [JsonIgnore]
+        public int SellerId {get; set;}
+        [IgnoreMember]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
+        public int ItemId {get; set;}
+
 
         public SaveAuction (Hypixel.NET.SkyblockApi.Auction auction) {
             ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
@@ -152,7 +183,38 @@ namespace hypixel
                 Bids.Add (new SaveBids (item));
             }
             NBT.FillDetails (this, auction.ItemBytes);
-            //Bin=auction.BuyItNow; // missing from nuget package
+            Bin=auction.BuyItNow; // missing from nuget package
+        }
+
+        public SaveAuction (Hypixel.NET.SkyblockApi.Auctions.Auction auction) {
+            ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
+            Claimed = auction.Claimed;
+            //ItemBytes = auction.ItemBytes;
+            StartingBid = auction.StartingBid;
+            if (Enum.TryParse (auction.Tier, true, out Tier tier))
+                Tier = tier;
+            else
+                OldTier = auction.Tier;
+            if (Enum.TryParse (auction.Category, true,out Category category))
+                Category = category;
+            else
+                OldCategory = auction.Category;
+            // make sure that the lenght is shorter than max
+            ItemName = auction.ItemName;
+            End = auction.End;
+            Start = auction.Start;
+            Coop = auction.Coop;
+
+            ProfileId = auction.ProfileId == auction.Auctioneer ? null : auction.ProfileId;
+            AuctioneerId = auction.Auctioneer;
+            Uuid = auction.Uuid;
+            HighestBidAmount = auction.HighestBidAmount;
+            Bids = new List<SaveBids> ();
+            foreach (var item in auction.Bids) {
+                Bids.Add (new SaveBids (item));
+            }
+            NBT.FillDetails (this, auction.ItemBytes.Data);
+            Bin=auction.BuyItNow; // missing from nuget package
         }
 
         public SaveAuction () { }

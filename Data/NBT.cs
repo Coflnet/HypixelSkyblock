@@ -83,7 +83,7 @@ namespace hypixel
         public static ItemReferences.Reforge GetReforge(NbtFile f)
         {
             var extra = GetExtraTag(f);
-            if (!extra.TryGet<NbtString>("modifier", out NbtString modifier))
+            if (extra == null || !extra.TryGet<NbtString>("modifier", out NbtString modifier))
             {
                 return 0;
             }
@@ -99,7 +99,7 @@ namespace hypixel
         public static DateTime GetDateTime(NbtFile file)
         {
             var extra = GetExtraTag(file);
-            if (!extra.TryGet<NbtString>("timestamp", out NbtString timestamp))
+            if (extra == null || !extra.TryGet<NbtString>("timestamp", out NbtString timestamp))
             {
                 return new DateTime();
             }
@@ -118,7 +118,7 @@ namespace hypixel
         public static short AnvilUses(NbtFile data)
         {
             var extra = GetExtraTag(data);
-            if (!extra.TryGet<NbtInt>("anvil_uses", out NbtInt anvilUses))
+            if (extra == null || !extra.TryGet<NbtInt>("anvil_uses", out NbtInt anvilUses))
             {
                 return 0;
             }
@@ -139,26 +139,23 @@ namespace hypixel
 
         public static byte Count(NbtFile file)
         {
-            return file.RootTag.Get<NbtList>("i")
-                .Get<NbtCompound>(0)
-                .Get<NbtByte>("Count").ByteValue;
+            return file.RootTag?.Get<NbtList>("i")
+                ?.Get<NbtCompound>(0)
+                ?.Get<NbtByte>("Count")?.ByteValue ?? 0;
         }
 
         private static NbtCompound GetExtraTag(NbtFile file)
         {
-            return file.RootTag.Get<NbtList>("i")
-                .Get<NbtCompound>(0)
-                .Get<NbtCompound>("tag")
-                .Get<NbtCompound>("ExtraAttributes");
+            return file?.RootTag?.Get<NbtList>("i")
+                ?.Get<NbtCompound>(0)
+                ?.Get<NbtCompound>("tag")
+                ?.Get<NbtCompound>("ExtraAttributes");
         }
 
         public static List<Enchantment> Enchantments(NbtFile data)
         {
-            var extra = data.RootTag.Get<NbtList>("i")
-                .Get<NbtCompound>(0)
-                .Get<NbtCompound>("tag")
-                .Get<NbtCompound>("ExtraAttributes");
-            if (!extra.TryGet<NbtCompound>("enchantments", out NbtCompound elements))
+            var extra = GetExtraTag(data);
+            if (extra == null || !extra.TryGet<NbtCompound>("enchantments", out NbtCompound elements))
             {
                 return new List<Enchantment>();
             }
@@ -172,7 +169,7 @@ namespace hypixel
                     Logger.Instance.Error("Did not find Enchantment " + item);
                 }
                 var level = elements.Get<NbtInt>(item).IntValue;
-                result.Add(new Enchantment(type, (short) level));
+                result.Add(new Enchantment(type, (byte) level));
             }
 
             return result;
@@ -188,7 +185,7 @@ namespace hypixel
         private static string ItemID(NbtFile file)
         {
             var nbt = GetExtraTag(file);
-            var id = nbt.Get<NbtString>("id").StringValue;
+            var id = nbt?.Get<NbtString>("id")?.StringValue;
 
             if (id == "PET")
             {
@@ -223,10 +220,9 @@ namespace hypixel
 
         public static byte[] Extra(NbtFile file)
         {
-            var tag = file.RootTag.Get<NbtList>("i")
-                .Get<NbtCompound>(0)
-                .Get<NbtCompound>("tag")
-                .Get<NbtCompound>("ExtraAttributes");
+            var tag = GetExtraTag(file);
+            if(tag == null)
+                return null;
 
             tag.Remove("enchantments");
             tag.Remove("modifier");

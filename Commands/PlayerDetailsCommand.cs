@@ -60,21 +60,22 @@ namespace hypixel {
             result.Bids.Add (new BidResult () { ItemName = "Loading ..." });
             result.Bids.Add (new BidResult () { ItemName = "This takes a minute :/" });
             result.Auctions.Add (new AuctionResult () { ItemName = "Loading the latest data" });
-            data.SendBack (MessageData.Create ("playerResponse", result));
+            data.SendBack (MessageData.Create ("playerResponse", result,A_HOUR));
 
             using (var context = new HypixelContext ()) {
                 var playerQuery = context.Players.Where (p => p.UuId == search);
                 var playerWithAuctions = playerQuery
-                    .Include (p => p.Auctions)
+                 //   .Include (p => p.Auctions)
                     .First();
 
-                result.Auctions = playerWithAuctions.Auctions
+                result.Auctions = context.Auctions
+                    .Where(e=>e.SellerId == playerWithAuctions.Id)
                     .Select (a => new AuctionResult (a))
                     .OrderByDescending (a => a.End)
                     .ToList ();
 
                 // just the auctions for now
-                data.SendBack (MessageData.Create ("playerResponse", result));
+                data.SendBack (MessageData.Create ("playerResponse", result,A_HOUR));
 
 
                 var playerBids = context.Bids.Where(b=>b.Bidder == search)
@@ -116,7 +117,7 @@ namespace hypixel {
                 //var auctionsForBids = context.Auctions.Where(a=>result.Bids.Any(b=>b.==a.Id))
             }
 
-            data.SendBack (MessageData.Create ("playerResponse", result));
+            data.SendBack (MessageData.Create ("playerResponse", result,A_HOUR));
         }
 
         private static SaveBids FindHighestOwnBid (Player databaseResult, SaveAuction a) {

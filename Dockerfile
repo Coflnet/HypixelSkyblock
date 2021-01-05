@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:2.2
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1
 WORKDIR /app
 
-COPY  ./bin/Release/netcoreapp2.2/publish/ .
+COPY  ./bin/Release/netcoreapp3.1/publish/ .
 
 ENTRYPOINT ["dotnet", "hypixel.dll", "/data", "f"]
 

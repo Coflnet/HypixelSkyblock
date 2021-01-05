@@ -17,7 +17,7 @@ namespace hypixel
             using(var context = new HypixelContext())
             {
                 var auctions = context.Auctions
-                        .Where(a=>a.AuctioneerId == selector)
+                        .Where(a=>a.SellerId == context.Players.Where(p=>p.UuId == selector).Select(p=>p.Id).FirstOrDefault())
                         .OrderByDescending(a=>a.End)
                         
                         .Skip(offset)
@@ -49,8 +49,14 @@ namespace hypixel
             public long HighestBid;
             [Key("itemName")]
             public string ItemName;
+            [Key("tag")]
+            public string Tag;
             [Key("end")]
             public DateTime End;
+            [Key("startingBid")]
+            public long StartingBid;
+            [Key("bin")]
+            public bool Bin;
 
             public AuctionResult(SaveAuction a)
             {
@@ -58,6 +64,9 @@ namespace hypixel
                 HighestBid = a.HighestBidAmount;
                 ItemName = a.ItemName;
                 End = a.End;
+                Tag = a.Tag;
+                StartingBid = a.StartingBid;
+                Bin = a.Bin;
             }
 
             public AuctionResult()

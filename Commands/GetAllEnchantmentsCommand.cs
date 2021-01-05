@@ -7,11 +7,13 @@ namespace hypixel {
         public override void Execute (MessageData data) {
             var values = Enum.GetValues (typeof (Enchantment.EnchantmentType))
                     .Cast<Enchantment.EnchantmentType> ()
+                    .Where(ench=>ench != Enchantment.EnchantmentType.unknown)
                     .Select (ench => ench.ToString ())
                     .ToList ();
 
             data.SendBack (new MessageData ("getAllEnchantmentsResponse",
-                JsonConvert.SerializeObject (values)
+                JsonConvert.SerializeObject (values),
+                A_DAY
             ));
         }
     }

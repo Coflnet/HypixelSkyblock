@@ -17,10 +17,18 @@ namespace hypixel
         [Key("mId")]
         public long mId;
 
-        public MessageData(string type, string data)
+        [Key("maxAge")]
+        public int MaxAxe;
+
+        [IgnoreMember]
+        [Newtonsoft.Json.JsonIgnore]
+        public string CustomCacheKey;
+
+        public MessageData(string type, string data, int maxAge = 0)
         {
             Type = type;
             Data = data;
+            MaxAxe = maxAge;
         }
         public MessageData()
         {
@@ -28,25 +36,28 @@ namespace hypixel
 
         public T GetAs<T>()
         {
-            return MessagePackSerializer.Deserialize<T>( MessagePackSerializer.FromJson(Data));
+            return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
         }
 
-        public void Set<T>(T data)
-        {
-            Data = MessagePackSerializer.ToJson(data);
-        }
+        private int responseCounter = 0;
 
-        public void SendBack(MessageData data)
+        public void SendBack(MessageData data, bool cache = true)
         {
             data.mId = mId;
+            if (cache)
+                CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);
         }
 
-        public static MessageData Create<T>(string type, T data)
+        public static MessageData Create<T>(string type, T data, int maxAge = 0)
         {
-            var d = new MessageData();
-            d.Type = type;
-            d.Set(data);
+            var d = new MessageData(type, MessagePackSerializer.ToJson(data), maxAge);
+            return d;
+        }
+
+        public static MessageData Copy(MessageData original)
+        {
+            var d = new MessageData(original.Type, original.Data, original.MaxAxe);
             return d;
         }
     }

@@ -530,7 +530,6 @@ namespace hypixel
                     }
                 }
             });
-            ItemPrices.Instance.Save();
             Save(0,()=>Console.Write($"\r{i} - {files} cache: ({cache.Count}) {savedOnDisc}")).Wait();
         }
 

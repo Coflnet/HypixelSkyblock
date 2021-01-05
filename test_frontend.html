@@ -1,29 +1,30 @@
 <script>
-  var ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock");
- //var ws = new WebSocket("ws://localhost:8008/skyblock");
+  var ws;
+  var last = {};
+  function connect() {
+    //var ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock?id=testVerbindung");
+    ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
 
-var last = {};
 
-ws.onmessage = function (evt) { 
-   var received_msg = JSON.parse(evt.data);
-        console.log(received_msg);
+    ws.onmessage = function (evt) {
+      var received_msg = JSON.parse(evt.data);
+      console.log(received_msg);
 
-        last = JSON.parse(received_msg.data);
-   if(received_msg.type == "itemDetailsResponse")
-   {
+      last = JSON.parse(received_msg.data);
+      if (received_msg.type == "itemDetailsResponse") {
         console.log(JSON.parse(received_msg.data).IconUrl)
-   }  
-};
+      }
+    };
+  }
+  connect();
 
-function send(type,data)
-{
-    ws.send(JSON.stringify({type:type,data:btoa(data)}));
-}
+  function send(type, data) {
+    ws.send(JSON.stringify({ type: type, data: btoa(data) }));
+  }
 
-function sendData(type, data)
-{
+  function sendData(type, data) {
     send(type, JSON.stringify(data));
-}
+  }
 
 </script>
 

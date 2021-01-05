@@ -116,18 +116,38 @@ namespace hypixel
         public int Id {get;set;}
 
         [MessagePack.Key(0)]
+        [JsonProperty("type")]
         [JsonConverter(typeof(StringEnumConverter))]
-        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(3)")]
         public EnchantmentType Type {get;set;}
 
         [MessagePack.Key(1)]
-        public short Level {get;set;}
+        [JsonProperty("level")]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(3)")]
+        public byte Level {get;set;}
+        /// <summary>
+        /// ItemType is here for faster sorting
+        /// </summary>
+        /// <value>The ItemType this enchantment coresponds to</value>
+        [MessagePack.IgnoreMember]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
+        [JsonIgnore]
+        public int ItemType {get;set;}
+
+        /// <summary>
+        /// The id of the auctions this coresponds to
+        /// </summary>
+        /// <value></value>
+        [MessagePack.IgnoreMember]
+        [JsonIgnore]
+        public int SaveAuctionId {get;set;}
 
 
-        public Enchantment(EnchantmentType type, short level)
+        public Enchantment(EnchantmentType type, byte level,int itemType = 0)
         {
             Type = type;
             Level = level;
+            ItemType = itemType;
         }
 
         public Enchantment() {

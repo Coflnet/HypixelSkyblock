@@ -9,15 +9,18 @@ using Hypixel.NET.SkyblockApi.Bazaar;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
+using System.Threading.Tasks;
 
-namespace dev {
+namespace dev
+{
 
-    public class BazaarPull {
-        public BazaarPull() {}
+    public class BazaarPull
+    {
+        public BazaarPull() { }
         public BazaarPull(GetBazaarProducts result)
         {
             this.Timestamp = result.LastUpdated;
-            this.Products = result.Products.Select(p=>new ProductInfo(p.Value,this)).ToList();
+            this.Products = result.Products.Select(p => new ProductInfo(p.Value, this)).ToList();
         }
 
         public int Id { get; set; }
@@ -25,43 +28,45 @@ namespace dev {
 
         public DateTime Timestamp { get; set; }
     }
-    public class BazaarUpdater {
+    public class BazaarUpdater
+    {
         private bool abort;
 
         public static DateTime LastUpdate { get; internal set; }
 
-        public static Dictionary<string,QuickStatus> LastStats = new Dictionary<string, QuickStatus>();
+        public static Dictionary<string, QuickStatus> LastStats = new Dictionary<string, QuickStatus>();
 
-        public static void NewUpdate (string apiKey) {
-            Console.WriteLine ($"Started at {DateTime.Now}");
+        public static async Task NewUpdate(string apiKey)
+        {
+            Console.WriteLine($"Started at {DateTime.Now}");
 
-            var api = new HypixelApi (apiKey, 2);
+            var api = new HypixelApi(apiKey, 2);
 
             for (int i = 0; i < 1; i++)
             {
                 var start = DateTime.Now;
-                PullAndSave(api, i);
-                WaitForServerCacheRefresh(i, start);
+                await PullAndSave(api, i);
+                await WaitForServerCacheRefresh(i, start);
             }
 
-            Console.WriteLine ($"done {DateTime.Now}");
+            Console.WriteLine($"done {DateTime.Now}");
 
         }
 
-        private static void PullAndSave(HypixelApi api, int i)
+        private static async Task PullAndSave(HypixelApi api, int i)
         {
-            var result = api.GetBazaarProducts();
-                var pull = new BazaarPull(result);
+            var result = await api.GetBazaarProductsAsync();
+            var pull = new BazaarPull(result);
             using (var context = new HypixelContext())
             {
                 context.Database.Migrate();
 
-                var lastMinPulls = context.BazaarPull
+                var lastMinPulls = await context.BazaarPull
 
-                            .OrderByDescending(b=>b.Timestamp)
+                            .OrderByDescending(b => b.Timestamp)
                             .Include(b => b.Products)
                             .ThenInclude(p => p.QuickStatus)
-                            .Take(8).ToList();
+                            .Take(8).ToListAsync();
 
                 if (lastMinPulls.Any())
                 {
@@ -69,11 +74,13 @@ namespace dev {
                 }
 
                 context.BazaarPull.Add(pull);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 Console.Write("\r" + i);
             }
+            ItemPrices.Instance.AddBazaarData(pull);
+            SubscribeEngine.Instance.NewBazaar(pull);
 
-            LastStats = pull.Products.Select(p=>p.QuickStatus).ToDictionary(qs=>qs.ProductId);
+            LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
             LastUpdate = DateTime.Now;
         }
 
@@ -143,30 +150,34 @@ namespace dev {
             context.Update(lastPull);
         }
 
-        private static void WaitForServerCacheRefresh (int i, DateTime start) {
-            var timeToSleep = start.Add (new TimeSpan (0,0, 0,10)) - DateTime.Now;
-            Console.Write ($"\r {i} {timeToSleep}");
+        private static async Task WaitForServerCacheRefresh(int i, DateTime start)
+        {
+            var timeToSleep = start.Add(new TimeSpan(0, 0, 0, 10)) - DateTime.Now;
+            Console.Write($"\r {i} {timeToSleep}");
             if (timeToSleep.Seconds > 0)
-                Thread.Sleep (timeToSleep);
+                await Task.Delay(timeToSleep);
         }
 
         public void UpdateForEver(string apiKey)
         {
-            System.Threading.Tasks.Task.Run(()=>{
+            Task.Run(async () =>
+            {
                 int i = 0;
-                while(!abort)
+                while (!abort)
                 {
-                    try {
-                        var api = new HypixelApi(apiKey,9);
+                    try
+                    {
+                        var api = new HypixelApi(apiKey, 9);
                         var start = DateTime.Now;
-                        PullAndSave(api, i);
-                        WaitForServerCacheRefresh(i, start);
+                        await PullAndSave(api, i);
+                        await WaitForServerCacheRefresh(i, start);
                         i++;
-                    } catch(Exception e)
+                    }
+                    catch (Exception e)
                     {
                         Logger.Instance.Error($"\nBazaar update failed {e.Message} \n{e.StackTrace} \n{e.InnerException?.Message}");
                         Console.WriteLine($"\nBazaar update failed {e.Message} \n{e.InnerException?.Message}");
-                        Thread.Sleep(5000);
+                        await Task.Delay(5000);
                     }
                 }
                 Console.WriteLine("Stopped Bazaar :/");
@@ -179,19 +190,22 @@ namespace dev {
         }
     }
 
-    public class BazzarResponse {
-        [JsonProperty ("success")]
+    public class BazzarResponse
+    {
+        [JsonProperty("success")]
         public bool WasSuccessful { get; private set; }
 
-        [JsonProperty ("product_info")]
+        [JsonProperty("product_info")]
         public ProductInfo ProductInfo { get; private set; }
     }
 
-    public class BazaarController {
-        public static BazaarController Instance = new BazaarController ();
+    public class BazaarController
+    {
+        public static BazaarController Instance = new BazaarController();
 
-        public IEnumerable<ProductInfo> GetInfo (string id) {
-            return StorageManager.GetFileContents<ProductInfo> ($"product/{id.Trim('"')}");
+        public IEnumerable<ProductInfo> GetInfo(string id)
+        {
+            return StorageManager.GetFileContents<ProductInfo>($"product/{id.Trim('"')}");
         }
     }
 }

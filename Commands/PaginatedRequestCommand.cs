@@ -11,10 +11,10 @@ namespace hypixel
         {
             var request = data.GetAs<Request>();
             
-
+            //PlayerSearch.Instance.AddHitFor(request.Uuid);
 
             var result = GetResult(request.Uuid,request.Amount,request.Offset);
-            data.SendBack(MessageData.Create(ResponseCommandName,result));
+            data.SendBack(MessageData.Create(ResponseCommandName,result,TEN_MINUTES));
         }
 
         private List<T> GetResult(string uuid, int amount, int offset)

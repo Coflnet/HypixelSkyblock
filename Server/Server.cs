@@ -32,6 +32,8 @@ namespace hypixel
         {
             server =  new HttpServer(port);;
             server.AddWebSocketService<SkyblockBackEnd> (urlPath);
+            // do NOT timeout after 60 sec
+            server.KeepClean = false;
             server.OnGet += (sender, e) => {
                 var req = e.Request;
                 var res = e.Response;
@@ -65,7 +67,7 @@ namespace hypixel
                         FileController.CreatePath(fullPath);
                         var inStream = new MemoryStream(client.DownloadData(request));
                         
-                        client.DownloadData(request).SaveAs(fullPath+ "f.png" );
+                        //client.DownloadData(request).SaveAs(fullPath+ "f.png" );
 
                         // parse it to only show face
                        // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
@@ -124,6 +126,7 @@ namespace hypixel
 
 
             server.Start ();
+            Console.WriteLine("started http");
             //Console.ReadKey (true);
             Thread.Sleep(Timeout.Infinite);
             server.Stop ();
@@ -138,11 +141,14 @@ namespace hypixel
                 LastIndexFinish = Indexer.LastFinish,
                 LastBazaarUpdate = dev.BazaarUpdater.LastUpdate,
                 LastNameUpdate = NameUpdater.LastUpdate,
-                CacheSize = ItemPricesCommand.CacheSize,
+                CacheSize = CacheService.Instance.CacheSize,
                 QueueSize = Indexer.QueueCount,
                 LastAuctionPull = Updater.LastPull,
-                LastUpdateSize = Updater.UpdateSize
+                LastUpdateSize = Updater.UpdateSize,
+                SubscriptionTobics = SubscribeEngine.Instance.SubCount,
+                ConnectionCount = SkyblockBackEnd.ConnectionCount
             };
+
             // determine status
             res.StatusCode = 200;
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0,5,0));

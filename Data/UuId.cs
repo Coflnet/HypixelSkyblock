@@ -20,25 +20,21 @@ namespace hypixel
     }
 
 
-    public class Player
+    public class Player : IHitCount
     {
-
         public int Id {get;set;}
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string UuId {get;set;}
         [MaxLength(16)]
         public string Name {get;set;}
         
-        [ForeignKey("AuctioneerIntId")]
-        public List<SaveAuction> Auctions {get;set;}
-
-        [ForeignKey("BidderId")]
-        public List<SaveBids> Bids {get;set;}
         
         [Timestamp]
         public System.DateTime UpdatedAt {get;set;}
         
         public bool ChangedFlag {get;set;}
+
+        public int HitCount {get;set;}
 
         public Player() { }
 
