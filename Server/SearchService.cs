@@ -119,7 +119,7 @@ namespace hypixel
                     await Task.Delay(10000);
                     try
                     {
-                        Work();
+                        await Work();
                     }
                     catch (Exception e)
                     {

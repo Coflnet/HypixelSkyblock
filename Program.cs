@@ -106,7 +106,7 @@ namespace hypixel
                     break;
                 case 'b':
                     //var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
-                    BazaarUpdater.NewUpdate(apiKey);
+                    BazaarUpdater.NewUpdate(apiKey).Wait();
                     break;
                 case 'f':
                     FullServer();
@@ -118,77 +118,9 @@ namespace hypixel
                     break;
                 case 'u':
                     var updater = new Updater(apiKey);
-                    updater.Update();
-                    break;
-                case '1':
-                    var user = ReadUser();
-                    foreach (var item in user.auctionIds)
-                    {
-                        Console.WriteLine(StorageManager.GetOrCreateAuction(item).ItemName);
-                    }
-                    break;
-                case '2':
-                    OptionTwo();
-                    break;
-                case '3':
-                    DisplayUser();
+                    updater.Update().Wait();
                     break;
 
-                case '4':
-                    var targetUser = ReadUser();
-                    Console.WriteLine("Won Auctions");
-                    foreach (var item in GetBiddedAuctions(targetUser))
-                    {
-                        if (item.Bids[item.Bids.Count - 1].Bidder == targetUser.uuid)
-                            Console.WriteLine($"{item.ItemName} for {item.HighestBidAmount}, Ended: {item.End < DateTime.UtcNow.ToLocalTime()}, End {item.End}");
-
-                    }
-                    break;
-                case '5':
-                    var itemName = "Enchanted Glowstone";
-                    var time = DateTime.Parse("12.12.2019 9:53:55");
-
-                    var matchedAuctions = StorageManager.GetOrCreateItemRef(itemName, true).auctions;
-                    //.Where(a=>a.End > (time-new TimeSpan(24,0,5)) );//&& a.End < time+new TimeSpan(1,0,5) );
-
-                    Console.WriteLine("Searching");
-
-                    foreach (var item in matchedAuctions)
-                    {
-                        var a = StorageManager.GetOrCreateAuction(item.uuId);
-
-                        if (a.Count == 0 || a.HighestBidAmount / a.Count > 10 || a.HighestBidAmount == 0)
-                            continue;
-
-                        if (a.Bids == null || a.Bids.Count == 0)
-                            Console.WriteLine($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.AuctioneerId}) to noone");
-                        else
-                            Console.WriteLine($"{a.ItemName}(x{a.Count}) for {a.HighestBidAmount} End {a.End} ({a.AuctioneerId}) to {a.Bids.Last().Bidder} id: {item.uuId} ");
-
-                    }
-
-                    break;
-                case '6':
-                    var targetItemName = Console.ReadLine();
-                    Console.WriteLine($"Overview for the last 2 weeks for {targetItemName}");
-                    var twoWeeksAgo = DateTime.UtcNow.ToLocalTime().Subtract(new TimeSpan(14, 0, 0, 0));
-                    var collection = AuctionsForItem(targetItemName, default(DateTime), DateTime.MaxValue)
-                        .Where(
-                            item =>
-                            {
-                                if (item == null)
-                                {
-                                    Console.WriteLine("ein null :/");
-                                }
-                                return item != null && item.Bids != null && item.Bids.Count > 0
-                                    //&& item.Start > twoWeeksAgo
-                                    &&
-                                    item.End < DateTime.UtcNow.ToLocalTime();
-                            });
-
-                    Console.WriteLine(collection.First().ItemName);
-                    CalculateAggregates(collection);
-                    break;
                 case '7':
                     displayMode = false;
                     StorageManager.Migrate();
@@ -196,15 +128,12 @@ namespace hypixel
                     Console.WriteLine(auction.ItemName);
                     //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
                     break;
-                case 'a':
-                    Indexed();
-                    break;
                 case 'i':
                     Console.WriteLine("got removed");
                     //Indexer.BuildIndexes();
                     break;
                 case 'p':
-                    Indexer.LastHourIndex();
+                    Indexer.LastHourIndex().Wait();
                     //StorageManager.Migrate();
                     break;
                 case 'n':
@@ -218,55 +147,12 @@ namespace hypixel
                 case 'm':
                     Migrator.Migrate();
                     break;
-                case 'd':
-                    DBTest();
-                    break;
                 default:
                     return true;
             }
             return false;
         }
 
-        private static void OptionTwo()
-        {
-            using (var context = new HypixelContext())
-            {
-
-                var auctionI = context.Auctions.Include(ac => ac.Bids).Where(ac => ac.Id == 169333).First();
-                var ares = (new BidComparer()).Equals(auctionI.Bids[0], auctionI.Bids[2]);
-
-                var result = context.BazaarPull
-                    .Include(p => p.Products)
-                    .ThenInclude(p => p.BuySummery)
-                    .Include(p => p.Products)
-                    .ThenInclude(p => p.QuickStatus)
-
-                    .Where(p => p.Timestamp > new DateTime(2020, 5, 22, 19, 32, 0)).ToList();
-
-                var a = result.Where(b => b.Products.Exists(p => p.ProductId == "SUPERIOR_FRAGMENT"))
-                    .ToList();
-                var res = new List<ProductInfo>();
-                foreach (var item in a)
-                {
-                    res.AddRange(item.Products.Where(p => p.ProductId == "SUPERIOR_FRAGMENT"));
-                }
-                foreach (var item in res)
-                {
-                    if (item == null || item.BuySummery == null)
-                    {
-                        Console.WriteLine("null");
-                        continue;
-                    }
-                    if (item.BuySummery.Count == 0)
-                    {
-                        Console.WriteLine("empty");
-                        continue;
-                    }
-                    Console.WriteLine($"Top: {item?.BuySummery?.First().PricePerUnit}  {item?.QuickStatus?.BuyPrice} {item?.QuickStatus?.BuyVolume}");
-                }
-
-            }
-        }
 
         private static void FullServer()
         {
@@ -282,7 +168,6 @@ namespace hypixel
             // bring the db up to date
             GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
-            FastIndexPrototype();
             Task.Run(async () =>
             {
                 try
@@ -309,13 +194,7 @@ namespace hypixel
 
             onStop += () =>
             {
-                Console.WriteLine("Stopping");
-                server.Stop();
-                Indexer.Stop();
-                updater.Stop();
-                bazzar.Stop();
-                System.Threading.Thread.Sleep(500);
-                Console.WriteLine("done");
+                StopServices(updater, server, bazzar);
             };
             try
             {
@@ -328,6 +207,17 @@ namespace hypixel
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 
+        }
+
+        private static void StopServices(Updater updater, Server server, BazaarUpdater bazzar)
+        {
+            Console.WriteLine("Stopping");
+            server.Stop();
+            Indexer.Stop();
+            updater.Stop();
+            bazzar.Stop();
+            System.Threading.Thread.Sleep(500);
+            Console.WriteLine("done");
         }
 
         private static void CleanDB()
@@ -350,20 +240,6 @@ namespace hypixel
             }
         }
 
-        private static void FastIndexPrototype()
-        {
-            Console.WriteLine($"Start making index {DateTime.Now}");
-
-            try
-            {
-                Indexer.AvgPriceHistory();
-            }
-            catch (Exception)
-            {
-
-            }
-            Console.WriteLine($"Done making index {DateTime.Now}");
-        }
 
         private static void GetDBToDesiredState()
         {
@@ -394,26 +270,11 @@ namespace hypixel
 
         private static void RunIndexer()
         {
-            Task.Run(() =>
-            {
-                Indexer.MiniumOutput();
-                Indexer.LoadFromDB();
-                while (true)
-                {
-                    try
-                    {
-                        Indexer.ProcessQueue();
-                        Indexer.LastHourIndex();
-                        //Indexer.NumberUsers();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine($"An error occured while indexing {e.Message} {e.InnerException?.Message} {e.StackTrace} {e.InnerException?.StackTrace}");
-                    }
-                    System.Threading.Thread.Sleep(2000);
-                }
-            });
+            RunIsolatedForever(Task.Run(async()=>{
+                 Indexer.ProcessQueue();
+                        await Indexer.LastHourIndex();
+            }),"An error occured while indexing");
+          
             RunUserIndexer();
         }
 
@@ -422,23 +283,27 @@ namespace hypixel
         /// </summary>
         private static void RunUserIndexer()
         {
+            RunIsolatedForever(Numberer.NumberUsers(),"Error occured while userIndexing");
+        }
+
+        private static void RunIsolatedForever(Task todo, string message)
+        {
             Task.Run(async () =>
-            {
-                Indexer.MiniumOutput();
-                while (true)
-                {
-                    try
-                    {
-                        await Indexer.NumberUsers();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine($"Error occured while userIndexing: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
-                    }
-                    System.Threading.Thread.Sleep(2000);
-                }
-            });
+                        {
+                            while (true)
+                            {
+                                try
+                                {
+                                    await todo;
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine();
+                                    Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
+                                }
+                                await Task.Delay(2000);
+                            }
+                        });
         }
 
         private static void WaitForDatabaseCreation()
@@ -476,42 +341,6 @@ namespace hypixel
             }
         }
 
-        static void DBTest()
-        {
-            using (var context = new HypixelContext())
-            {
-                // Creates the database if not exists
-                context.Database.Migrate();
-
-                var data = new NbtData("H4sIAAAAAAAAAE1T3W7aSBQ+JO0WqLZ/6nU7Reld3DVg/iL1gkBCTGOHJEASqqoa28dmwD/IHidxql7sA+wj9JoX6BPwKH2Q1R5It6o00pyf73zfOUczRYAC5EQRAHJbsCWc3D85eNiJ0lDmirAtubcNhSPh4KHPvYRQ/xaheD5Pff/kJsQ4D1u6Azuu06w2uKYpTq3lKFW7bClc47ZSd3izbqlNB60K1Q3iaIGxFJgUIC/xVqYxJhvpPDwccz9F+I5ZX51cTlXnsu/bmV4nf3iu+if6bNHQw3FmdfS6HlD+qF0/zlq/YWuSX9T8q2p/OglPUysYq8fVMx+Pzsp2MLo2Z+b85MIU5mx0a1SuMqNrZ5PheG72Rqoxm8zNu/2pORyVzUp/ZtzNNbLVqztPM3qn6mToCLMynp30xoHZnavmxVgY3X5giH7LvVTf0wRFeOSIZOHzrAAPjqMY8xR8AX+uls1OFFhcsgFKCj1fLRvnMsbQk9M9tlpyFZ5RqIsuhgn+jAA8XS3r+9yOQnbI4wBjeEUgOgPhsUCEIgoTdhPF8w3+XfUtvCGD8i5PJMbsZip8ZFSdRWnMROLz0CHWJ8Q6WFcZGxi8vifdT103YXKKjOgDHrKEqB1mZbC7AZCCRkL2j29/sy4PuIfkNYjyXr3yMweP6f5/NlLb2RTjmfCmUrF9Yc+ZjBh3HJISCVugJH+9ENx0ufYDDNM3622ulrXV0j8Y6J08PDB5gPCS2D4eX/us/In0aved0tqfHtzKmLeljIWVSkzy8IiY9NCN4OJLSWYLLO2VBnrPaJul3RK3pbimiMv9BHdLeLso7anv1N0SPcqYgGtFgk3pwa8pfgFtmjYbJegQ/GseClEsPBEOuQdPTkd658Pnzln7cKibvfz6D8H24GBIjacp2TtVTaMfUOOK1WygommtltJqYUOx3Faj0bTLWC9zopQiwETyYAHPan9VVDqsrO6Vm6xtAGzBH/ebh22A/wDOxlWDtAMAAA\u003d\u003d");
-
-                int count = 0;
-                Console.Write("starting");
-                foreach (var item in AllAuctions())
-                {
-                    Console.Write($"\r {count}  {item.AuctioneerId}");
-                    if (!context.Auctions.Contains(item) && item != null)
-                    {
-                        context.Auctions.Add(item);
-                        AddPlayer(context, item.AuctioneerId, ref count);
-                        if (item.Bids != null)
-                            foreach (var player in item.Bids)
-                            {
-                                AddPlayer(context, player.Bidder, ref count);
-                            }
-                        count++;
-                    }
-                    if (count % 1000 == 0)
-                        context.SaveChanges();
-
-                    if (count > 10000)
-                        break;
-                }
-
-                // Saves changes
-                context.SaveChanges();
-            }
-        }
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {
@@ -530,177 +359,6 @@ namespace hypixel
             return highestId;
         }
 
-        static IEnumerable<SaveAuction> AllAuctions()
-        {
-            var path = "nauctions";
-            foreach (var item in FileController.DirectoriesNames("*", path))
-            {
-                var dirName = Path.GetFileName(item);
-                foreach (var fileName in Directory.GetFiles(item).Select(Path.GetFileName))
-                {
-                    var compactPath = $"{path}/{dirName}/{fileName}";
-
-                    Dictionary<string, SaveAuction> auctions = null;
-                    try
-                    {
-                        auctions = FileController.LoadAs<Dictionary<string, SaveAuction>>(compactPath);
-
-                        FileController.Move(compactPath, compactPath.Replace("nauctions", "importedAuctions"));
-                    }
-                    catch (Exception e)
-                    {
-
-                        Console.WriteLine($"Skipping {compactPath} because of {e.Message}");
-                    }
-                    if (auctions == null)
-                        continue;
-                    foreach (var auction in auctions)
-                    {
-                        yield return auction.Value;
-                    }
-
-                }
-            }
-
-        }
-
-        static void Indexed()
-        {
-            long count = 0;
-
-            foreach (var item in FileController.FileNames("*", "items"))
-            {
-                var itemsAuctions = StorageManager.GetOrCreateItemRef(item);
-                if (itemsAuctions == null)
-                {
-                    Console.WriteLine($"{itemsAuctions.Name} emtpy");
-                    continue;
-                }
-
-                //Console.WriteLine($"{itemsAuctions.Name} has {itemsAuctions.auctionIds.Count}");
-
-                count += itemsAuctions.auctions.Count;
-            }
-            Console.WriteLine($"Total: {count}");
-        }
-
-        static void CalculateAggregates(IEnumerable<SaveAuction> collection)
-        {
-            Console.WriteLine();
-            long sum = 0;
-            int count = 0;
-            long min = long.MaxValue;
-            long max = 0;
-            foreach (var item in collection)
-            {
-
-                var perPice = item.HighestBidAmount / item.Count;
-
-                if (perPice > 100000)
-                    continue;
-                count++;
-                sum += perPice;
-                if (perPice < min)
-                {
-                    min = perPice;
-                }
-                if (perPice > max)
-                {
-                    max = perPice;
-                }
-                Console.Write($"\rAvg: {sum / count} Sum: {sum} Min: {min} Max: {max} Count: {count} ");
-            }
-            Console.WriteLine();
-        }
-
-        static void DisplayUser()
-        {
-            var displayUser = ReadUser();
-
-            Console.WriteLine("Bids");
-            foreach (var item in displayUser.Bids)
-            {
-                var a = StorageManager.GetOrCreateAuction(item.auctionId);
-                if (a.Bids == null || a.Bids.Count == 0)
-                {
-                    continue;
-                }
-                var highestOwn = a.Bids.Where(bid => bid.Bidder == displayUser.uuid)
-                    .OrderByDescending(bid => bid.Amount).FirstOrDefault();
-
-                if (highestOwn == null)
-                {
-                    continue;
-                }
-
-                Console.WriteLine($"On {a.ItemName} {highestOwn.Amount} \tTop {highestOwn.Amount == a.HighestBidAmount} {highestOwn.Timestamp} ({item.auctionId.Substring(0, 10)})");
-            }
-
-            Console.WriteLine("Auctions:");
-            foreach (var item in displayUser.auctionIds)
-            {
-                var a = StorageManager.GetOrCreateAuction(item);
-                if (a.Enchantments != null && a.Enchantments.Count > 0)
-                {
-                    // enchanted is only one item
-                    Console.WriteLine($"{a.ItemName}  for {a.HighestBidAmount} End {a.End} ({item.Substring(0, 10)})");
-                    foreach (var enachant in a.Enchantments)
-                    {
-                        Console.WriteLine($"-- {enachant.Type} {enachant.Level}");
-                    }
-                }
-                else
-                    // not enchanted may be multiple (Count)
-                    Console.WriteLine($"{a.ItemName} (x{a.Count}) for {a.HighestBidAmount} End {a.End} ({item.Substring(0, 10)})");
-            }
-        }
-
-        static User ReadUser()
-        {
-            return StorageManager.GetOrCreateUser(Console.ReadLine().Trim());
-        }
-
-        public static IEnumerable<SaveAuction> AuctionsForItem(string itemName, DateTime start, DateTime end)
-        {
-            itemName = itemName.ToLower();
-            return StorageManager.GetAuctionsWith(itemName, start, end);
-        }
-
-        /// <summary>
-        /// Gets all the Auctions the User bidded on/in
-        /// </summary>
-        /// <param name="target">The user to search bids for</param>
-        /// <returns></returns>
-        static IEnumerable<SaveAuction> GetBiddedAuctions(User target)
-        {
-            var bids = new List<SaveAuction>();
-            foreach (var bidReference in target?.Bids)
-            {
-                var seller = StorageManager.GetOrCreateUser(bidReference.sellerId);
-                yield return seller.auctions[bidReference.auctionId];
-            }
-        }
-
-        static bool IsAnotherInstanceRunning(string typeId = "lock", bool placeLockIfNonexisting = false)
-        {
-            var lastUpdate = new DateTime(1970, 1, 1);
-            if (FileController.Exists("lastUpdate"))
-                lastUpdate = FileController.LoadAs<DateTime>("lastUpdate").ToLocalTime();
-
-            var lastUpdateStart = new DateTime(0);
-            if (FileController.Exists("lastUpdateStart"))
-                lastUpdateStart = FileController.LoadAs<DateTime>("lastUpdateStart").ToLocalTime();
-
-            Console.WriteLine($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
-            FileController.SaveAs("lastUpdateStart", DateTime.Now);
-
-            return false;
-        }
-
-        static void RemoveFileLock(string typeId)
-        {
-            FileController.Delete(typeId + "lock");
-        }
 
         /// <summary>
         /// Downloads username for a given uuid from mojang.

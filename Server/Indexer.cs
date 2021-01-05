@@ -330,39 +330,6 @@ namespace hypixel
         {
             minimumOutput = true;
         }
-
-        public static void AvgPriceHistory()
-        {
-            using (var context = new HypixelContext())
-            {
-                var itemId = 1;
-
-                context.Prices.AddRange(
-                    context.Auctions.Where(item => item.ItemId == itemId && item.HighestBidAmount > 0)
-                    .GroupBy(item => item.End.Date)
-                    .Select(item =>
-                        new
-                        {
-                            End = item.Key,
-                            Avg = (int)item.Average(a => ((int)a.HighestBidAmount) / a.Count),
-                            Max = (int)item.Max(a => ((int)a.HighestBidAmount) / a.Count),
-                            Min = (int)item.Min(a => ((int)a.HighestBidAmount) / a.Count),
-                            Count = item.Sum(a => a.Count)
-                        }).ToList()
-                    .Select(i => new AveragePrice()
-                    {
-                        Volume = i.Count,
-                        Avg = i.Avg,
-                        Max = i.Max,
-                        Min = i.Min,
-                        Date = i.End,
-                        ItemId = itemId
-                    }));
-
-                context.SaveChanges();
-            }
-        }
-
        
 
         internal static void LoadFromDB()
@@ -372,92 +339,6 @@ namespace hypixel
                 if (context.Players.Any())
                     highestPlayerId = context.Players.Max(p => p.Id) + 1;
             }
-        }
-
-        internal static async Task NumberUsers()
-        {
-
-            Task bidNumberTask = null;
-            using (var context = new HypixelContext())
-            {
-                var unindexedPlayers = await context.Players.Where(p => p.Id == 0).Take(2000).ToListAsync();
-                if (unindexedPlayers.Any())
-                {
-                    Console.Write($"  numbering: {unindexedPlayers.Count()} ");
-                    foreach (var player in unindexedPlayers)
-                    {
-                        player.Id = System.Threading.Interlocked.Increment(ref highestPlayerId);
-                        context.Players.Update(player);
-                    }
-                }
-                else
-                {
-                    // all players in the db have an id now
-                    bidNumberTask = Task.Run(NumberBids);
-                    var auctionsWithoutSellerId = await context
-                        .Auctions.Where(a => a.SellerId == 0)
-                        .Include(a => a.Enchantments)
-                        .OrderByDescending(a => a.Id)
-                        .Take(5000).ToListAsync();
-                    if (auctionsWithoutSellerId.Count() > 0)
-                        Console.Write(" -#-");
-                    foreach (var auction in auctionsWithoutSellerId)
-                    {
-
-                        try
-                        {
-                            auction.SellerId = GetOrCreatePlayerId(context, auction.AuctioneerId); // context.Players.Where(p => p.UuId == auction.AuctioneerId).Select(p => p.Id).FirstOrDefault();
-                            var id = ItemDetails.Instance.GetOrCreateItemIdForAuction(auction, context);
-                            auction.ItemId = id;
-
-
-                            foreach (var enchant in auction.Enchantments)
-                            {
-                                enchant.ItemType = auction.ItemId;
-                            }
-                            context.Auctions.Update(auction);
-
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Problem with item {Newtonsoft.Json.JsonConvert.SerializeObject(auction)}");
-                            Console.WriteLine($"Error occured while userIndexing: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace}");
-                        }
-                    }
-                }
-                await context.SaveChangesAsync();
-            }
-            if (bidNumberTask != null)
-                await bidNumberTask;
-        }
-
-        static int batchSize = 10000;
-
-        private static async void NumberBids()
-        {
-            using (var context = new HypixelContext())
-            {
-                var bidsWithoutSellerId = await context.Bids.Where(a => a.BidderId == 0).Take(batchSize).ToListAsync();
-                foreach (var bid in bidsWithoutSellerId)
-                {
-
-                    bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
-                    context.Bids.Update(bid);
-                }
-
-                await context.SaveChangesAsync();
-            }
-        }
-
-        private static int GetOrCreatePlayerId(HypixelContext context, string uuid)
-        {
-            var id = context.Players.Where(p => p.UuId == uuid).Select(p => p.Id).FirstOrDefault();
-            if (id == 0)
-            {
-                id = Program.AddPlayer(context, uuid, ref highestPlayerId);
-                Console.WriteLine($"Adding player {id} ");
-            }
-            return id;
         }
     }
 }
