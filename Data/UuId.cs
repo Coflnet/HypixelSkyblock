@@ -28,11 +28,6 @@ namespace hypixel
         [MaxLength(16)]
         public string Name {get;set;}
         
-        //[ForeignKey("SellerId")]
-        //public List<SaveAuction> Auctions {get;set;}
-
-        //[ForeignKey("BidderId")]
-        //public List<SaveBids> Bids {get;set;}
         
         [Timestamp]
         public System.DateTime UpdatedAt {get;set;}

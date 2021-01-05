@@ -88,12 +88,13 @@ namespace hypixel
 
 
             modelBuilder.Entity<Player>(entity=> {
-                entity.HasKey(e=>e.UuId);
+                entity.HasIndex(e=>e.UuId);
                 entity.HasIndex(e=>e.Name);
                 entity.HasIndex(e=>e.Id);
                 //entity.Property(e=>e.Id).ValueGeneratedOnAdd();
                 //entity.HasMany(p=>p.Auctions).WithOne().HasForeignKey(a=>a.SellerId).HasPrincipalKey(p=>p.Id);
                 //entity.HasMany(p=>p.Bids).WithOne().HasForeignKey(a=>a.BidderId).HasPrincipalKey(p=>p.Id);
+
             });
 
 

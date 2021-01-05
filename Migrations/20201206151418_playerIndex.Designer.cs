@@ -2,19 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using hypixel;
 
 namespace hypixel.Migrations
 {
     [DbContext(typeof(HypixelContext))]
-    partial class HypixelContextModelSnapshot : ModelSnapshot
+    [Migration("20201206151418_playerIndex")]
+    partial class playerIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.8")
+                .HasAnnotation("ProductVersion", "3.1.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("dev.BazaarPull", b =>
@@ -146,134 +148,24 @@ namespace hypixel.Migrations
                     b.ToTable("SellOrder");
                 });
 
-            modelBuilder.Entity("hypixel.AlternativeName", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("DBItemId")
-                        .HasColumnType("MEDIUMINT(9)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("varchar(767)")
-                        .HasAnnotation("MySQL:Charset", "utf8");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DBItemId");
-
-                    b.HasIndex("Name");
-
-                    b.ToTable("AltItemNames");
-                });
-
-            modelBuilder.Entity("hypixel.AveragePrice", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<float>("Avg")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int");
-
-                    b.Property<float>("Max")
-                        .HasColumnType("float");
-
-                    b.Property<float>("Min")
-                        .HasColumnType("float");
-
-                    b.Property<int>("Volume")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ItemId", "Date")
-                        .IsUnique();
-
-                    b.ToTable("Prices");
-                });
-
-            modelBuilder.Entity("hypixel.DBItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("MEDIUMINT(9)");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasAnnotation("MySQL:Charset", "utf8");
-
-                    b.Property<string>("Extra")
-                        .HasColumnType("text")
-                        .HasAnnotation("MySQL:Charset", "utf8");
-
-                    b.Property<int>("HitCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IconUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MinecraftType")
-                        .HasColumnType("varchar(44)")
-                        .HasMaxLength(44)
-                        .HasAnnotation("MySQL:Charset", "utf8");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text")
-                        .HasAnnotation("MySQL:Charset", "utf8");
-
-                    b.Property<string>("Tag")
-                        .HasColumnType("varchar(44)")
-                        .HasMaxLength(44);
-
-                    b.Property<int>("Tier")
-                        .HasColumnType("int");
-
-                    b.Property<string>("color")
-                        .HasColumnType("varchar(12)")
-                        .HasMaxLength(12);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Tag")
-                        .IsUnique();
-
-                    b.ToTable("Items");
-                });
-
             modelBuilder.Entity("hypixel.Enchantment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("ItemType")
-                        .HasColumnType("MEDIUMINT(9)");
+                    b.Property<short>("Level")
+                        .HasColumnType("smallint");
 
-                    b.Property<byte>("Level")
-                        .HasColumnType("TINYINT(3)");
-
-                    b.Property<int>("SaveAuctionId")
+                    b.Property<int?>("SaveAuctionId")
                         .HasColumnType("int");
 
                     b.Property<byte>("Type")
-                        .HasColumnType("TINYINT(3)");
+                        .HasColumnType("TINYINT(2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SaveAuctionId");
-
-                    b.HasIndex("ItemType", "Type", "Level");
 
                     b.ToTable("Enchantment");
                 });
@@ -302,12 +194,6 @@ namespace hypixel.Migrations
                     b.Property<bool>("ChangedFlag")
                         .HasColumnType("bit");
 
-                    b.Property<int>("HitCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .HasColumnType("varchar(16)")
                         .HasMaxLength(16);
@@ -321,8 +207,6 @@ namespace hypixel.Migrations
                         .HasColumnType("char(32)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Id");
 
                     b.HasIndex("Name");
 
@@ -343,8 +227,8 @@ namespace hypixel.Migrations
                     b.Property<string>("AuctioneerId")
                         .HasColumnType("char(32)");
 
-                    b.Property<bool>("Bin")
-                        .HasColumnType("bit");
+                    b.Property<int>("AuctioneerIntId")
+                        .HasColumnType("int");
 
                     b.Property<byte>("Category")
                         .HasColumnType("TINYINT(2)");
@@ -364,9 +248,6 @@ namespace hypixel.Migrations
                     b.Property<DateTime>("ItemCreatedAt")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("ItemId")
-                        .HasColumnType("MEDIUMINT(9)");
-
                     b.Property<string>("ItemName")
                         .HasColumnType("varchar(45)")
                         .HasMaxLength(45)
@@ -380,9 +261,6 @@ namespace hypixel.Migrations
 
                     b.Property<byte>("Reforge")
                         .HasColumnType("TINYINT(2)");
-
-                    b.Property<int>("SellerId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("Start")
                         .HasColumnType("datetime");
@@ -402,16 +280,16 @@ namespace hypixel.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AuctioneerIntId");
+
                     b.HasIndex("End");
+
+                    b.HasIndex("ItemName");
 
                     b.HasIndex("NbtDataId");
 
-                    b.HasIndex("SellerId");
-
                     b.HasIndex("Uuid")
                         .IsUnique();
-
-                    b.HasIndex("ItemId", "End");
 
                     b.ToTable("Auctions");
                 });
@@ -442,7 +320,7 @@ namespace hypixel.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BidderId");
+                    b.HasIndex("Bidder");
 
                     b.HasIndex("BidderId");
 
@@ -539,26 +417,20 @@ namespace hypixel.Migrations
                         .HasForeignKey("ProductInfoId");
                 });
 
-            modelBuilder.Entity("hypixel.AlternativeName", b =>
-                {
-                    b.HasOne("hypixel.DBItem", null)
-                        .WithMany("Names")
-                        .HasForeignKey("DBItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("hypixel.Enchantment", b =>
                 {
                     b.HasOne("hypixel.SaveAuction", null)
                         .WithMany("Enchantments")
-                        .HasForeignKey("SaveAuctionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SaveAuctionId");
                 });
 
             modelBuilder.Entity("hypixel.SaveAuction", b =>
                 {
+                    b.HasOne("hypixel.Player", null)
+                        .WithMany("Auctions")
+                        .HasForeignKey("AuctioneerIntId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("hypixel.NbtData", "NbtData")
                         .WithMany()
@@ -567,6 +439,12 @@ namespace hypixel.Migrations
 
             modelBuilder.Entity("hypixel.SaveBids", b =>
                 {
+                    b.HasOne("hypixel.Player", null)
+                        .WithMany("Bids")
+                        .HasForeignKey("BidderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("hypixel.SaveAuction", "Auction")
                         .WithMany("Bids")
                         .HasForeignKey("Uuid");

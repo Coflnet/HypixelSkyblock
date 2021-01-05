@@ -37,6 +37,7 @@ namespace hypixel
         [JsonProperty("timestamp")]
         public DateTime Timestamp {get; set;}
         [Key(5)]
+
         [JsonIgnore]
         public int BidderId {get;set;}
 

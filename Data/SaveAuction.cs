@@ -142,6 +142,7 @@ namespace hypixel
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(2)")]
         [JsonProperty("tier")]
         public Tier Tier {get; set;}
+
         [Key (24)]
         [JsonProperty("bin")]
         public bool Bin {get; set;}
@@ -152,6 +153,7 @@ namespace hypixel
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
         public int ItemId {get; set;}
+
 
         public SaveAuction (Hypixel.NET.SkyblockApi.Auction auction) {
             ClaimedBids = auction.ClaimedBidders.Select(s=>new UuId((string)s)).ToList();
