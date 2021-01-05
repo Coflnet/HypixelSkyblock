@@ -150,7 +150,7 @@ namespace hypixel
             foreach (var item in tasks)
             {
                 //Console.Write($"\r {index++}/{updateEstimation} \t({index}) {timeEst:mm\\:ss}");
-                if(item != null)
+                if (item != null)
                     await item;
                 PrintUpdateEstimate(max, doneCont, sum, updateStartTime, max);
             }
@@ -244,6 +244,7 @@ namespace hypixel
                     if (item.BuyItNow)
                         currentUpdateBins.AddOrUpdate(item.Uuid, new BinInfo() { End = item.End, Auctioneer = item.Auctioneer }, (UuId, end) => end);
 
+
                     // nothing changed if the last bid is older than the last update
                     return !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
                         item.Bids.Count == 0 && item.Start < lastUpdate);
@@ -254,7 +255,16 @@ namespace hypixel
                     return new SaveAuction(a);
                 });
 
-            var bins = processed.Where(a => a.Bin);
+            var ended = res.Auctions.Where(a => a.End < DateTime.Now).Select(a => new SaveAuction(a));
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(20));
+                foreach (var item in ended)
+                {
+                    ItemPrices.Instance.AddNewAuction(item);
+                }
+            });
+
 
             if (Program.FullServerMode)
                 Indexer.AddToQueue(processed);

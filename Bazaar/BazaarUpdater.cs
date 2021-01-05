@@ -36,7 +36,7 @@ namespace dev
 
         public static Dictionary<string, QuickStatus> LastStats = new Dictionary<string, QuickStatus>();
 
-        public static void NewUpdate(string apiKey)
+        public static async Task NewUpdate(string apiKey)
         {
             Console.WriteLine($"Started at {DateTime.Now}");
 
@@ -45,8 +45,8 @@ namespace dev
             for (int i = 0; i < 1; i++)
             {
                 var start = DateTime.Now;
-                PullAndSave(api, i);
-                WaitForServerCacheRefresh(i, start);
+                await PullAndSave(api, i);
+                await WaitForServerCacheRefresh(i, start);
             }
 
             Console.WriteLine($"done {DateTime.Now}");
@@ -77,6 +77,8 @@ namespace dev
                 await context.SaveChangesAsync();
                 Console.Write("\r" + i);
             }
+            ItemPrices.Instance.AddBazaarData(pull);
+            SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
             LastUpdate = DateTime.Now;

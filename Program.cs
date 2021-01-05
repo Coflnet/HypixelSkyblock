@@ -229,7 +229,7 @@ namespace hypixel
 
         private static void OptionTwo()
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
 
                 var auctionI = context.Auctions.Include(ac => ac.Bids).Where(ac => ac.Id == 169333).First();
@@ -283,6 +283,18 @@ namespace hypixel
             GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
             FastIndexPrototype();
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await ItemPrices.Instance.FillHours();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
+                }
+            });
+
 
             Console.WriteLine("booting db dependend stuff");
             WaitForDatabaseCreation();
@@ -305,9 +317,11 @@ namespace hypixel
                 System.Threading.Thread.Sleep(500);
                 Console.WriteLine("done");
             };
-            try {
-            CleanDB();
-            } catch(Exception e)
+            try
+            {
+                CleanDB();
+            }
+            catch (Exception e)
             {
                 Console.WriteLine($"Cleaning failed {e.Message}");
             }
@@ -318,7 +332,9 @@ namespace hypixel
 
         private static void CleanDB()
         {
-            using(var context = new HypixelContext())
+            // try cleaning when the dust settled
+            System.Threading.Thread.Sleep(TimeSpan.FromHours(1));
+            using (var context = new HypixelContext())
             {
                 // remove dupplicate itemnames
                 context.Database.ExecuteSqlRaw(@"
@@ -337,6 +353,7 @@ namespace hypixel
         private static void FastIndexPrototype()
         {
             Console.WriteLine($"Start making index {DateTime.Now}");
+
             try
             {
                 Indexer.AvgPriceHistory();
@@ -350,7 +367,7 @@ namespace hypixel
 
         private static void GetDBToDesiredState()
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 try
                 {
@@ -429,13 +446,13 @@ namespace hypixel
             try
             {
 
-                using(var context = new HypixelContext())
+                using (var context = new HypixelContext())
                 {
                     try
                     {
-                    var testAuction = new SaveAuction()
-                    {
-                    Uuid = "00000000000000000000000000000000"
+                        var testAuction = new SaveAuction()
+                        {
+                            Uuid = "00000000000000000000000000000000"
                         };
                         context.Auctions.Add(testAuction);
                         context.SaveChanges();
@@ -461,7 +478,7 @@ namespace hypixel
 
         static void DBTest()
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 // Creates the database if not exists
                 context.Database.Migrate();
@@ -591,7 +608,7 @@ namespace hypixel
                 {
                     max = perPice;
                 }
-                Console.Write($"\rAvg: {sum/count} Sum: {sum} Min: {min} Max: {max} Count: {count} ");
+                Console.Write($"\rAvg: {sum / count} Sum: {sum} Min: {min} Max: {max} Count: {count} ");
             }
             Console.WriteLine();
         }
@@ -616,7 +633,7 @@ namespace hypixel
                     continue;
                 }
 
-                Console.WriteLine($"On {a.ItemName} {highestOwn.Amount} \tTop {highestOwn.Amount == a.HighestBidAmount} {highestOwn.Timestamp} ({item.auctionId.Substring(0,10)})");
+                Console.WriteLine($"On {a.ItemName} {highestOwn.Amount} \tTop {highestOwn.Amount == a.HighestBidAmount} {highestOwn.Timestamp} ({item.auctionId.Substring(0, 10)})");
             }
 
             Console.WriteLine("Auctions:");
@@ -626,7 +643,7 @@ namespace hypixel
                 if (a.Enchantments != null && a.Enchantments.Count > 0)
                 {
                     // enchanted is only one item
-                    Console.WriteLine($"{a.ItemName}  for {a.HighestBidAmount} End {a.End} ({item.Substring(0,10)})");
+                    Console.WriteLine($"{a.ItemName}  for {a.HighestBidAmount} End {a.End} ({item.Substring(0, 10)})");
                     foreach (var enachant in a.Enchantments)
                     {
                         Console.WriteLine($"-- {enachant.Type} {enachant.Level}");
@@ -634,7 +651,7 @@ namespace hypixel
                 }
                 else
                     // not enchanted may be multiple (Count)
-                    Console.WriteLine($"{a.ItemName} (x{a.Count}) for {a.HighestBidAmount} End {a.End} ({item.Substring(0,10)})");
+                    Console.WriteLine($"{a.ItemName} (x{a.Count}) for {a.HighestBidAmount} End {a.End} ({item.Substring(0, 10)})");
             }
         }
 

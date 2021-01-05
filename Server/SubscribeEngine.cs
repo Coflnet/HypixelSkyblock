@@ -91,6 +91,14 @@ namespace hypixel
             }
         }
 
+        internal void NewBazaar(BazaarPull pull)
+        {
+            foreach (var item in pull.Products)
+            {
+                NotifyChange(item.ProductId,item);
+            }
+        }
+
         public void NewAuction(SaveAuction auction)
         {
             if (this.PriceLower.TryGetValue(auction.Tag, out List<SubscribeItem> subscribers))
@@ -131,15 +139,25 @@ namespace hypixel
         private ConcurrentDictionary<string, List<SubLookup>> OnlineSubscriptions = new ConcurrentDictionary<string, List<SubLookup>>();
         private ConcurrentQueue<UnSub> ToUnsubscribe = new ConcurrentQueue<UnSub>();
 
-        public int SubCount => OnlineSubscriptions.Count; 
+        public int SubCount => OnlineSubscriptions.Count;
 
         public void NotifyChange(string topic, SaveAuction auction)
+        {
+            GenericNotifyAll(topic,"updateAuction",auction);
+        }
+
+        public void NotifyChange(string topic, ProductInfo bazzarUpdate)
+        {
+            GenericNotifyAll(topic,"bazzarUpdate",bazzarUpdate);
+        }
+
+        private void GenericNotifyAll<T>(string topic, string commandType, T data)
         {
             if (OnlineSubscriptions.TryGetValue(topic.Truncate(32), out List<SubLookup> value))
                 foreach (var sub in value)
                 {
-                    var resultJson = JsonConvert.SerializeObject(auction);
-                    if (!SkyblockBackEnd.SendTo(new MessageData("updateAuction", resultJson), sub.Id))
+                    var resultJson = JsonConvert.SerializeObject(data);
+                    if (!SkyblockBackEnd.SendTo(new MessageData(commandType, resultJson), sub.Id))
                         // could not be reached, unsubscribe
                         ToUnsubscribe.Enqueue(new UnSub(topic, sub.Id));
                 }
@@ -169,8 +187,8 @@ namespace hypixel
 
         public void Subscribe(string topic, SkyblockBackEnd connection)
         {
-            if(connection.Id == 0)
-                throw new CoflnetException("id_not_set","There is no `id` set on this connection. To Subscribe you need to pass a random generated id (32 char long) via get parameter (/skyblock?id=uuid) or cookie id");
+            if (connection.Id == 0)
+                throw new CoflnetException("id_not_set", "There is no `id` set on this connection. To Subscribe you need to pass a random generated id (32 char long) via get parameter (/skyblock?id=uuid) or cookie id");
             var lookup = new SubLookup(connection.Id);
             OnlineSubscriptions.AddOrUpdate(topic.Truncate(32),
             new List<SubLookup>() { lookup },
@@ -192,8 +210,8 @@ namespace hypixel
                 {
                     if (OnlineSubscriptions.TryGetValue(result.Topic.Truncate(32), out List<SubLookup> value))
                     {
-                        var item = value.Where(v=>v.Id == result.id).FirstOrDefault();
-                        if(item.Id != 0)
+                        var item = value.Where(v => v.Id == result.id).FirstOrDefault();
+                        if (item.Id != 0)
                             value.Remove(item);
                     }
                 }

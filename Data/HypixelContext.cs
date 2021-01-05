@@ -47,8 +47,8 @@ namespace hypixel
         public DbSet<Enchantment> Enchantment {get;set;}
 
         protected override void OnConfiguring (DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=120",
-            opts=>opts.CommandTimeout(120));
+            optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=3600",
+            opts=>opts.CommandTimeout(3600));
             
         }
 

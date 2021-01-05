@@ -36,7 +36,8 @@ namespace hypixel
                         b.Auction.HighestBidAmount,
                         b.Auction.End,
                         b.Amount,
-                        b.Auction.StartingBid
+                        b.Auction.StartingBid,
+                        b.Auction.Bin
                         
                     }).GroupBy(b=>b.Uuid)
                     .Select(bid=> new {
@@ -47,7 +48,8 @@ namespace hypixel
                         Tag = bid.Max(b=>b.Tag),
                         HighestOwnBid = bid.Max(b=>b.Amount),
                         End = bid.Max(b=>b.End),
-                        StartBid = bid.Max(b=>b.StartingBid)
+                        StartBid = bid.Max(b=>b.StartingBid),
+                        Bin = bid.Max(b=>b.Bin)
                     })
                     
                     //.ThenInclude (b => b.Auction)
@@ -61,7 +63,8 @@ namespace hypixel
                                     HighestOwnBid = b.HighestOwnBid,
                                     ItemName = b.ItemName,
                                     Tag = b.Tag,
-                                    StartingBid=b.StartBid
+                                    StartingBid=b.StartBid,
+                                    Bin = b.Bin
                                 })
                                 .OrderByDescending (b => b.End)
                                 .ToList();

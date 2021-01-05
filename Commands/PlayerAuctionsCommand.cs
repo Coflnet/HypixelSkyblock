@@ -55,6 +55,8 @@ namespace hypixel
             public DateTime End;
             [Key("startingBid")]
             public long StartingBid;
+            [Key("bin")]
+            public bool Bin;
 
             public AuctionResult(SaveAuction a)
             {
@@ -64,6 +66,7 @@ namespace hypixel
                 End = a.End;
                 Tag = a.Tag;
                 StartingBid = a.StartingBid;
+                Bin = a.Bin;
             }
 
             public AuctionResult()

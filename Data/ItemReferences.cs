@@ -135,6 +135,7 @@ namespace hypixel
             {
                 return fullItemName;
             }
+            fullItemName = fullItemName.Trim('✪').Replace("⚚","");
             var splitName = fullItemName.Split(' ');
             if(reforges.Contains(splitName[0].ToLower()) && (splitName.Count() == 1 || splitName[1] != "Dragon") || fullItemName.StartsWith('◆'))
             { 
@@ -142,7 +143,7 @@ namespace hypixel
                 fullItemName = fullItemName.Substring(i);
             }
             // remove pet level
-            return  Regex.Replace(fullItemName,@"\[Lvl \d{1,3}\] ","").Trim().Trim('✪');
+            return  Regex.Replace(fullItemName,@"\[Lvl \d{1,3}\] ","").Trim();
         }
 
         /// <summary>

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Coflnet;
 using dev;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
@@ -337,11 +338,12 @@ namespace hypixel
                 var itemId = 1;
 
                 context.Prices.AddRange(
-                    context.Auctions.Where(item => item.ItemId == itemId && item.HighestBidAmount > 0).GroupBy(item => new { item.End.Year, item.End.Month, item.End.Day })
+                    context.Auctions.Where(item => item.ItemId == itemId && item.HighestBidAmount > 0)
+                    .GroupBy(item => item.End.Date)
                     .Select(item =>
                         new
                         {
-                            End = new DateTime(item.Key.Year, item.Key.Month, item.Key.Day, 0, 0, 0),
+                            End = item.Key,
                             Avg = (int)item.Average(a => ((int)a.HighestBidAmount) / a.Count),
                             Max = (int)item.Max(a => ((int)a.HighestBidAmount) / a.Count),
                             Min = (int)item.Min(a => ((int)a.HighestBidAmount) / a.Count),
@@ -360,6 +362,8 @@ namespace hypixel
                 context.SaveChanges();
             }
         }
+
+       
 
         internal static void LoadFromDB()
         {

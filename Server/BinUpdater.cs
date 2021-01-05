@@ -31,12 +31,13 @@ namespace hypixel
         public static void GrabAuctions(HypixelApi hypixelApi)
         {
             var expired = hypixelApi.getAuctionsEnded();
-            var auctions = expired.Auctions.Select(item=>{
+            var auctions = expired.Auctions.Select(item =>
+            {
                 var a = new SaveAuction()
                 {
                     Uuid = item.Uuid,
-                        AuctioneerId = item.Seller,
-                        Bids = new List<SaveBids>()
+                    AuctioneerId = item.Seller,
+                    Bids = new List<SaveBids>()
                         {
                             new SaveBids()
                             {
@@ -46,20 +47,29 @@ namespace hypixel
                                     ProfileId = "unknown"
                             }
                         },
-                        HighestBidAmount = item.Price,
-                        Bin = item.BuyItemNow
+                    HighestBidAmount = item.Price,
+                    Bin = item.BuyItemNow
                 };
 
                 NBT.FillDetails(a, item.ItemBytes);
                 return a;
             });
             Indexer.AddToQueue(auctions);
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(10000);
+                foreach (var item in auctions)
+                {
+                    ItemPrices.Instance.AddNewAuction(item);
+                }
+            });
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
         }
 
         public void GrabAuctionsWithIds(IEnumerable<BinInfo> info)
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 /*var auctioneerIdsBasic = context.Auctions
                     .Where(a => uuids.Contains(a.Uuid))
@@ -131,7 +141,7 @@ namespace hypixel
                     Interlocked.Increment(ref updatedCount);
                     if (playerPage.Auctions.Count > 2)
                     {
-                        var amount = (short) playerPage.Auctions.Count;
+                        var amount = (short)playerPage.Auctions.Count;
                         //if(value == 0 && index %50 == 0)
                         //    Console.WriteLine($"Ignoring player {uuid} {PulledAlready.Count()}");
                         PulledAlready.AddOrUpdate(shortId, amount, (key, value) => amount);

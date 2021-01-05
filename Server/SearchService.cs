@@ -130,20 +130,20 @@ namespace hypixel
             });
         }
 
-        private void PopulateCache()
+        private async void PopulateCache()
         {
             var letters = "abcdefghijklmnopqrstuvwxyz1234567890_";
 
             foreach (var letter in letters)
             {
-                CreateAndCache(letter.ToString());
-                Thread.Sleep(100);
+                await CreateAndCache(letter.ToString());
+                await Task.Delay(100);
             }
-            CreateAndCache("");
+            await CreateAndCache("");
             Console.WriteLine("populated Cache");
         }
 
-        private static async  Task<List<SearchResultItem>> CreateResponse(string search)
+        private static async Task<List<SearchResultItem>> CreateResponse(string search)
         {
             var result = new List<SearchResultItem>();
 
@@ -155,8 +155,6 @@ namespace hypixel
 
             result.AddRange(items.Select(item => new SearchResultItem(item)));
             result.AddRange(players.Select(player => new SearchResultItem(player)));
-
-
 
             return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0))
                 .Take(targetAmount).ToList();

@@ -40,6 +40,7 @@ namespace hypixel
             Commands.Add("playerName",new PlayerNameCommand());
             Commands.Add("subscribe",new SubscribeCommand());
             Commands.Add("unsubscribe",new UnsubscribeCommand());
+            Commands.Add("pricerdicer",new NewItemPricesCommand());
 
             Subscribers[5] = null;
         }
@@ -123,8 +124,7 @@ namespace hypixel
 
         private void Close()
         {
-            if(Subscribers.TryRemove(Id,out SkyblockBackEnd value))
-                Console.WriteLine("removed closed conection");
+            Subscribers.TryRemove(Id,out SkyblockBackEnd value);
         }
 
         protected override void OnOpen()
@@ -154,7 +154,7 @@ namespace hypixel
             if (stringId != null && stringId.Length > 4)
                 id = ((long)stringId.Substring(0, stringId.Length / 2).GetHashCode()) << 32 + stringId.Substring(stringId.Length / 2, stringId.Length / 2).GetHashCode();
 
-            Console.WriteLine($"\n got connection, id: {stringId} {id} ");
+            Console.WriteLine($" got connection, id: {stringId} {id} ");
             return id;
         }
         public static bool SendTo(MessageData data, long connectionId)

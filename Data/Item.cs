@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using dev;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -86,7 +87,7 @@ namespace hypixel
                 {
                     Name = (item.Names
                             .Where(n => n != null && n.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()))
-                            .FirstOrDefault()?.Name) ?? item.Name,
+                            .FirstOrDefault()?.Name) ??( item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
                     Tag = item.Tag,
                     IconUrl = item.IconUrl,
                     HitCount = item.HitCount
@@ -148,6 +149,51 @@ namespace hypixel
             return new ItemSearchResult[0];
         }
 
+        internal int GetOrCreateItemByTag(string tag)
+        {
+            var id = GetItemIdForName(tag, false);
+            if (id != 0)
+                return id;
+
+            using (var context = new HypixelContext())
+            {
+                id = context.Items.Where(i => i.Tag == tag).Select(i => i.Id).FirstOrDefault();
+                if (id != 0)
+                {
+                    TagLookup[tag] = id;
+                    return id;
+                }
+            }
+            Console.WriteLine($"Adding Tag {tag}");
+            var name = TagToName(tag);
+            var newItem = new DBItem()
+            {
+                Tag = tag,
+                Name = name,
+                Names = new List<AlternativeName>()
+                        {new AlternativeName(){Name=name}}
+            };
+
+            return AddItemToDB(newItem);
+
+        }
+
+        private static string TagToName(string tag)
+        {
+            if(tag == null || tag.Length <= 2)
+                return tag;
+            var split = tag.ToLower().Split('_');
+            var result = "";
+            foreach (var item in split)
+            {
+                if(item == "of" || item == "the")
+                    result += " " + item;
+                else 
+                    result += " " + Char.ToUpper(item[0]) + item.Substring(1);
+            }
+            return result.Trim();
+        }
+
         private const int MAX_MEDIUM_INT = 8388607;
         private static ConcurrentDictionary<string, DBItem> ToFillDetails = new ConcurrentDictionary<string, DBItem>();
 
@@ -159,7 +205,7 @@ namespace hypixel
                 return value;
 
 
-            Console.WriteLine($"Creating item {clearedName} ({auction.ItemName}");
+            Console.WriteLine($"Creating item {clearedName} ({auction.ItemName})");
             // doesn't exist yet, create it
             var itemByTag = context.Items.Where(item => item.Tag == auction.Tag).FirstOrDefault();
             if (itemByTag != null)

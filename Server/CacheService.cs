@@ -43,7 +43,6 @@ namespace hypixel
 
             foreach (var item in responses.Responses)
             {
-                Console.WriteLine("cache hit");
                 // copy to prevent another thread from modifying te mId
                 var response = MessageData.Copy(item);
                 // adjust the cache time to when it expires on the server
