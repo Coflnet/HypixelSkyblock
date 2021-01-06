@@ -146,7 +146,7 @@ namespace hypixel
 
 
                 if (details.Enchantments != null && details.Enchantments.Any())
-                    select = AddEnchantmentWhere(details.Enchantments, select,context,itemId);
+                    select = AddEnchantmentWhere(details.Enchantments, select, context, itemId);
 
                 if (details.Reforge != ItemReferences.Reforge.None)
                     select = select.Where(auction => auction.Reforge == details.Reforge);
@@ -218,23 +218,24 @@ namespace hypixel
                     start = end;
                     var size = 1d;
                     // a lot of data in between these
-                    if(start >= new DateTime(2020,05,25) && start < new DateTime(2020,6,1))
+                    if (start >= new DateTime(2020, 05, 25) && start < new DateTime(2020, 6, 1))
                         size = 0.25;
                     end = start + TimeSpan.FromDays(size);
                     // only requery if lava has no price
-                    if (context.Prices.Where(p => p.Date >= start- TimeSpan.FromSeconds(1) && p.Date <= end && p.ItemId == idOfLava).Any())
+                    if (context.Prices.Where(p => p.Date >= start - TimeSpan.FromSeconds(1) && p.Date <= end && p.ItemId == idOfLava).Any())
                         continue;
 
                     try
                     {
                         var data = await AvgBazzarHistory(start, end);
-                        if(data.Count() == 0)
+                        if (data.Count() == 0)
                             continue;
                         await context.Prices.AddRangeAsync(data);
                         await context.SaveChangesAsync();
                         if (data.Count() != 0)
                             Console.WriteLine("Saved bazaar prices for day " + start);
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         Console.WriteLine($"Backfill failed :( for day {start} \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
                     }
@@ -301,7 +302,8 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                Console.WriteLine($"Queryig between {start} and {end}");
+                if (!Program.FullServerMode)
+                    Console.WriteLine($"Queryig between {start} and {end}");
                 var result =
                     (await context.BazaarPull.Where(item => item.Timestamp >= start && item.Timestamp <= end)
                     .SelectMany(pull => pull.Products)
@@ -362,29 +364,29 @@ namespace hypixel
                 });
         }
 
-        private static IQueryable<SaveAuction> AddEnchantmentWhere(List<Enchantment> enchantments, IQueryable<SaveAuction> moreThanOneBidQuery, HypixelContext context,int itemId)
+        private static IQueryable<SaveAuction> AddEnchantmentWhere(List<Enchantment> enchantments, IQueryable<SaveAuction> moreThanOneBidQuery, HypixelContext context, int itemId)
         {
             Console.WriteLine("adding enchantments filter");
 
-            var query = context.Enchantment.Where(e=>e.ItemType == itemId);
-            
-            var ids = query.Where(e=>e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
-                        .Select(e=>e.SaveAuctionId);
-            if(enchantments.Count() > 1)
+            var query = context.Enchantment.Where(e => e.ItemType == itemId);
+
+            var ids = query.Where(e => e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
+                        .Select(e => e.SaveAuctionId);
+            if (enchantments.Count() > 1)
             {
                 // first two
                 ids = query.Where(
-                    e=>(e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
+                    e => (e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
                         || e.ItemType == itemId && e.Type == enchantments[1].Type && e.Level == enchantments[1].Level)
-                        .GroupBy(e=>e.SaveAuctionId)
-                        .Where(e=>e.Count() > 1)
-                        .Select(e=>e.Key);
+                        .GroupBy(e => e.SaveAuctionId)
+                        .Where(e => e.Count() > 1)
+                        .Select(e => e.Key);
             }
 
             moreThanOneBidQuery = moreThanOneBidQuery
                     .Include(auction => auction.Enchantments)
                     .Where(auction => ids.Contains(auction.Id)
-                    
+
                     );
             return moreThanOneBidQuery;
         }

@@ -46,6 +46,8 @@ namespace hypixel
         public DbSet<AveragePrice> Prices {get;set;}
         public DbSet<Enchantment> Enchantment {get;set;}
 
+        public DbSet<GoogleUser> Users {get;set;}
+
         protected override void OnConfiguring (DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder.UseMySQL ("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=3600",
             opts=>opts.CommandTimeout(3600));
@@ -88,7 +90,7 @@ namespace hypixel
 
 
             modelBuilder.Entity<Player>(entity=> {
-                entity.HasIndex(e=>e.UuId);
+                entity.HasKey(e=>e.UuId);
                 entity.HasIndex(e=>e.Name);
                 entity.HasIndex(e=>e.Id);
                 //entity.Property(e=>e.Id).ValueGeneratedOnAdd();

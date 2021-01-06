@@ -8,6 +8,8 @@ using dev;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
+using Stripe;
+using Stripe.Checkout;
 
 namespace hypixel
 {
@@ -15,6 +17,9 @@ namespace hypixel
     class Program
     {
         static string apiKey = SimplerConfig.Config.Instance["apiKey"];
+        public static string StripeKey;
+        public static string StripeSigningSecret;
+
 
         public static bool displayMode = false;
 
@@ -34,6 +39,10 @@ namespace hypixel
 
         static void Main(string[] args)
         {
+            StripeKey = SimplerConfig.Config.Instance["stripeKey"];
+            StripeSigningSecret = SimplerConfig.Config.Instance["stripeSecret"];
+            StripeConfiguration.ApiKey = Program.StripeKey;
+
 
             Console.CancelKeyPress += delegate
             {
@@ -159,6 +168,7 @@ namespace hypixel
             Console.WriteLine("\n - Starting FullServer 0.2.4 - \n");
             Console.Write("Key: " + apiKey);
             FullServerMode = true;
+            Indexer.MiniumOutput();
 
             Updater updater = new Updater(apiKey);
             updater.UpdateForEver();
@@ -270,11 +280,13 @@ namespace hypixel
 
         private static void RunIndexer()
         {
-            RunIsolatedForever(Task.Run(async()=>{
-                 Indexer.ProcessQueue();
-                        await Indexer.LastHourIndex();
-            }),"An error occured while indexing");
-          
+            RunIsolatedForever(async () =>
+            {
+                Indexer.ProcessQueue();
+                await Indexer.LastHourIndex();
+
+            }, "An error occured while indexing");
+
             RunUserIndexer();
         }
 
@@ -283,27 +295,27 @@ namespace hypixel
         /// </summary>
         private static void RunUserIndexer()
         {
-            RunIsolatedForever(Numberer.NumberUsers(),"Error occured while userIndexing");
+            RunIsolatedForever(Numberer.NumberUsers, "Error occured while userIndexing");
         }
 
-        private static void RunIsolatedForever(Task todo, string message)
+        private static void RunIsolatedForever(Func<Task> todo, string message)
         {
             Task.Run(async () =>
-                        {
-                            while (true)
-                            {
-                                try
-                                {
-                                    await todo;
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine();
-                                    Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
-                                }
-                                await Task.Delay(2000);
-                            }
-                        });
+            {
+                while (true)
+                {
+                    try
+                    {
+                        await todo();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
+                    }
+                    await Task.Delay(2000);
+                }
+            });
         }
 
         private static void WaitForDatabaseCreation()
