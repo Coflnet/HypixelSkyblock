@@ -18,17 +18,20 @@ namespace hypixel
         public long mId;
 
         [Key("maxAge")]
-        public int MaxAxe;
+        public int MaxAge;
 
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
         public string CustomCacheKey;
+        [IgnoreMember]
+        [Newtonsoft.Json.JsonIgnore]
+        public GoogleUser User => UserService.Instance.GetUserById(Connection.UserId);
 
         public MessageData(string type, string data, int maxAge = 0)
         {
             Type = type;
             Data = data;
-            MaxAxe = maxAge;
+            MaxAge = maxAge;
         }
         public MessageData()
         {
@@ -57,7 +60,7 @@ namespace hypixel
 
         public static MessageData Copy(MessageData original)
         {
-            var d = new MessageData(original.Type, original.Data, original.MaxAxe);
+            var d = new MessageData(original.Type, original.Data, original.MaxAge);
             return d;
         }
     }

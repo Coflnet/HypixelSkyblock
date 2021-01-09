@@ -9,23 +9,19 @@ using Newtonsoft.Json;
 namespace hypixel
 {
 
+
     public class SubscribeEngine
     {
 
-        public static void AddNew(SubscribeItem subscription)
-        {
-            using (var context = new HypixelContext())
-            {
-                context.SubscribeItem.Add(subscription);
-                context.SaveChanges();
-            }
-        }
+       
 
-        private Dictionary<string, List<SubscribeItem>> outbid;
-        private Dictionary<string, List<SubscribeItem>> PriceHigher;
-        private Dictionary<string, List<SubscribeItem>> PriceLower;
+        private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> outbid = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
+        private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> Sold = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
+        private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> PriceUpdate = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
 
         public static SubscribeEngine Instance { get; }
+
+        private ConcurrentDictionary<int, UpdateSumary> NextNotifications = new ConcurrentDictionary<int, UpdateSumary>();
 
         static SubscribeEngine()
         {
@@ -38,102 +34,192 @@ namespace hypixel
         {
         }
 
-        private void LoadFromDb()
+        public void AddNew(SubscribeItem subscription)
         {
             using (var context = new HypixelContext())
             {
-                var all = context.SubscribeItem.Where(si => si.GeneratedAt > DateTime.Now.Subtract(new TimeSpan(7, 0, 0)));
-                LoadOutbid(all);
-
-                LoadPriceHigher(all);
-
-                LoadPriceLower(all);
+                context.SubscribeItem.Add(subscription);
+                context.SaveChanges();
+                AddSubscription(context,subscription);
             }
         }
 
-        private void LoadOutbid(IQueryable<SubscribeItem> all)
+        public void LoadFromDb()
         {
-            var outbid = all.Where(si => si.Type == SubscribeItem.SubType.OUTBID).GroupBy(si => si.PlayerUuid);
-            foreach (var item in outbid)
+            using (var context = new HypixelContext())
             {
-                this.outbid[item.Key] = item.ToList();
-            }
-        }
-
-        private void LoadPriceHigher(IQueryable<SubscribeItem> all)
-        {
-            var priceHigher = all.Where(si => si.Type == SubscribeItem.SubType.PRICE_HIGHER_THAN)
-                                                .GroupBy(si => si.ItemTag);
-            foreach (var item in priceHigher)
-            {
-                this.PriceHigher[item.Key] = item.ToList();
-            }
-        }
-
-        private void LoadPriceLower(IQueryable<SubscribeItem> all)
-        {
-            var priceLower = all.Where(si => si.Type == SubscribeItem.SubType.PRICE_HIGHER_THAN)
-                                                .GroupBy(si => si.ItemTag);
-            foreach (var item in priceLower)
-            {
-                this.PriceLower[item.Key] = item.ToList();
-            }
-        }
-
-        public void Outbid(SaveAuction auction, SaveBids oldBid, SaveBids newBid)
-        {
-            if (this.outbid.TryGetValue(oldBid.Bidder, out List<SubscribeItem> subscribers))
-            {
-                foreach (var item in subscribers)
+                var minTime = DateTime.Now.Subtract(new TimeSpan(7, 0, 0));
+                var all = context.SubscribeItem.Where(si => si.GeneratedAt > minTime);
+                foreach (var item in all)
                 {
-                    Notify(item, $"You got outbid by {newBid} on {auction.ItemName}");
+                    AddSubscription(context, item);
                 }
             }
         }
+
+        private void AddSubscription(HypixelContext context, SubscribeItem item)
+        {
+            if (item.Type.HasFlag(SubscribeItem.SubType.OUTBID))
+            {
+                string playerId = item.TopicId;
+                var outbidSub = outbid.GetOrAdd(playerId, playerId => new ConcurrentBag<SubscribeItem>());
+                outbidSub.Add(item);
+            }
+            else if (item.Type.HasFlag(SubscribeItem.SubType.SOLD))
+            {
+                string playerId = item.TopicId;
+                var soldSub = Sold.GetOrAdd(playerId, playerId => new ConcurrentBag<SubscribeItem>());
+                soldSub.Add(item);
+            }
+            else if (item.Type.HasFlag(SubscribeItem.SubType.PRICE_LOWER_THAN)  || item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
+            {
+                var itemId = item.TopicId;
+                var priceChange = PriceUpdate.GetOrAdd(itemId, itemId => new ConcurrentBag<SubscribeItem>());
+                priceChange.Add(item);
+                Console.WriteLine($"Adding price for {itemId}");
+            } else 
+                Console.WriteLine("ERROR: unkown subscibe type "+ item.Type);
+        }
+
 
         internal void NewBazaar(BazaarPull pull)
         {
             foreach (var item in pull.Products)
             {
-                NotifyChange(item.ProductId,item);
+                PriceState(item);
             }
         }
 
+        /// <summary>
+        /// Called from <see cref="Updater"/>
+        /// </summary>
+        /// <param name="auction"></param>
         public void NewAuction(SaveAuction auction)
         {
-            if (this.PriceLower.TryGetValue(auction.Tag, out List<SubscribeItem> subscribers))
+            if (this.PriceUpdate.TryGetValue(auction.Tag, out ConcurrentBag<SubscribeItem> subscribers))
             {
                 foreach (var item in subscribers)
                 {
-                    if (auction.StartingBid < item.Price)
-                        Notify(item, $"There is a new Auction for {auction.ItemName} with Starting bid {auction.StartingBid} ");
+                    if ((auction.StartingBid < item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_LOWER_THAN)
+                        || auction.StartingBid > item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
+                        && (item.Type.HasFlag(SubscribeItem.SubType.BIN) || !auction.Bin))
+                        AddNotifyItem(item, auction.ItemName, auction.StartingBid);
                 }
             }
         }
 
+        /// <summary>
+        /// Called from <see cref="BinUpdater"/>
+        /// </summary>
+        /// <param name="auction"></param>
+        public void BinSold(SaveAuction auction)
+        {
+            if (this.Sold.TryGetValue(auction.AuctioneerId, out ConcurrentBag<SubscribeItem> subscribers))
+            {
+                foreach (var item in subscribers)
+                {
+                    var sumary = GetSumary(item);
+                    sumary.Sold(auction.Tag, (int)auction.HighestBidAmount, auction.Bids.FirstOrDefault()?.Bidder);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Called from the <see cref="Indexer"/>
+        /// </summary>
+        /// <param name="auction"></param>
+        public void NewBids(SaveAuction auction)
+        {
+            foreach (var bid in auction.Bids.Skip(1))
+            {
+                if (this.outbid.TryGetValue(bid.Bidder, out ConcurrentBag<SubscribeItem> subscribers))
+                {
+                    foreach (var item in subscribers)
+                    {
+                        var summary = GetSumary(item);
+                        var amount = auction.HighestBidAmount - bid.Amount;
+                        summary.OutBid(auction.Tag, amount, auction.Bids.FirstOrDefault().Bidder);
+
+                    }
+                }
+            }
+
+        }
+
+
+        private void AddNotifyItem(SubscribeItem item, string itemTag, long price)
+        {
+            var sumary = GetSumary(item);
+            sumary.Items.Add(new UpdateSumary.HypixelEvent(itemTag, price));
+        }
+
+        private UpdateSumary GetSumary(SubscribeItem item)
+        {
+            return NextNotifications.GetOrAdd(item.UserId, userId => new UpdateSumary());
+        }
+
+        /// <summary>
+        /// Called from <see cref="BazaarUpdater"/>
+        /// </summary>
+        /// <param name="info"></param>
         public void PriceState(ProductInfo info)
         {
-            if (this.PriceLower.TryGetValue(info.ProductId, out List<SubscribeItem> subscribers))
+            if (this.PriceUpdate.TryGetValue(info.ProductId, out ConcurrentBag<SubscribeItem> subscribers))
             {
                 foreach (var item in subscribers)
                 {
-                    if (info.QuickStatus.BuyPrice < item.Price)
-                        Notify(item, $"{item.ItemTag} is at {info.QuickStatus.BuyPrice} at Bazaar ");
-                }
-            }
-            if (this.PriceHigher.TryGetValue(info.ProductId, out List<SubscribeItem> higherSubscribers))
-            {
-                foreach (var item in higherSubscribers)
-                {
-                    if (info.QuickStatus.SellPrice > item.Price)
-                        Notify(item, $"{item.ItemTag} is at {info.QuickStatus.SellPrice} at Bazaar ");
+                    if (item.NotTriggerAgainBefore > DateTime.Now)
+                        continue;
+                    var value = info.QuickStatus.BuyPrice;
+                    if (item.Type.HasFlag(SubscribeItem.SubType.USE_SELL_NOT_BUY))
+                        value = info.QuickStatus.SellPrice;
+                    if (value < item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_LOWER_THAN)
+                         || value > item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
+                    {
+                        var sumary = GetSumary(item);
+                        item.NotTriggerAgainBefore = DateTime.Now + BazzarNotificationBackoff;
+                        sumary.Items.Add(new UpdateSumary.HypixelEvent(info.ProductId, (long)value));
+                    }
                 }
             }
         }
 
-        private void Notify(SubscribeItem subscription, string message)
+        public async Task SendNotifications()
         {
-            Console.WriteLine("Notifications are not implemented yet");
+            while (NextNotifications.Count > 0)
+            {
+                var key = NextNotifications.First().Key;
+                if (NextNotifications.TryRemove(key, out UpdateSumary value))
+                {
+                    await ProccessNotification(key, value);
+                }
+
+            }
+        }
+
+        private async Task ProccessNotification(int userId, UpdateSumary value)
+        {
+            var text = "";
+            var prefix = "https://sky.coflnet.com";
+            string gotoUrl = null;
+            foreach (var item in value.Items)
+            {
+                text += $"Price alert: {ItemDetails.TagToName(item.ItemTag)} for {item.Amount}\n";
+                if(gotoUrl == null)
+                    gotoUrl = prefix + "/item/" + item.ItemTag + "?hourly=true";
+            }
+            foreach (var item in value.OutBids)
+            {
+                text += $"You were outbid on {ItemDetails.TagToName(item.ItemTag)} by {item.Amount} by {item.Player}\n";
+            }
+            foreach (var item in value.OutBids)
+            {
+                text += $"You sold {ItemDetails.TagToName(item.ItemTag)} for {item.Amount} to {item.Player}\n";
+            }
+            if(gotoUrl == null)
+                gotoUrl = prefix;
+
+            await NotificationService.Instance.Send(userId, text,gotoUrl);
         }
 
         private ConcurrentDictionary<string, List<SubLookup>> OnlineSubscriptions = new ConcurrentDictionary<string, List<SubLookup>>();
@@ -141,14 +227,16 @@ namespace hypixel
 
         public int SubCount => OnlineSubscriptions.Count;
 
+        public static TimeSpan BazzarNotificationBackoff = TimeSpan.FromHours(1);
+
         public void NotifyChange(string topic, SaveAuction auction)
         {
-            GenericNotifyAll(topic,"updateAuction",auction);
+            GenericNotifyAll(topic, "updateAuction", auction);
         }
 
         public void NotifyChange(string topic, ProductInfo bazzarUpdate)
         {
-            GenericNotifyAll(topic,"bazzarUpdate",bazzarUpdate);
+            GenericNotifyAll(topic, "bazzarUpdate", bazzarUpdate);
         }
 
         private void GenericNotifyAll<T>(string topic, string commandType, T data)
@@ -260,7 +348,4 @@ namespace hypixel
             return value.Length <= maxLength ? value : value.Substring(0, maxLength);
         }
     }
-
-
-
 }

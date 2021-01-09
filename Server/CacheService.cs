@@ -23,7 +23,7 @@ namespace hypixel
         {
             string key = GetCacheKey(request);
 
-            var newEntry = new CacheElement(DateTime.Now+TimeSpan.FromSeconds(response.MaxAxe), new List<MessageData>(){response});
+            var newEntry = new CacheElement(DateTime.Now+TimeSpan.FromSeconds(response.MaxAge), new List<MessageData>(){response});
             cache.AddOrUpdate(key,newEntry,(key,item)=>{
                 if(index == 0)
                     return newEntry;
@@ -46,7 +46,7 @@ namespace hypixel
                 // copy to prevent another thread from modifying te mId
                 var response = MessageData.Copy(item);
                 // adjust the cache time to when it expires on the server
-                response.MaxAxe = (int)(responses.Expires - DateTime.Now).TotalSeconds;
+                response.MaxAge = (int)(responses.Expires - DateTime.Now).TotalSeconds;
                 request.SendBack(response,false);
             }
             return true;

@@ -32,6 +32,8 @@ namespace hypixel
         /// </summary>
         /// <returns></returns>
         private static DateTime BlockedSince = new DateTime(0);
+        private static string version = "0.2.4";
+        public static string Version => version;
 
         public static int RequestsSinceStart { get; private set; }
 
@@ -111,7 +113,7 @@ namespace hypixel
             {
                 case 't':
                     // test
-
+                    NotificationService.Instance.NotifyAsync("dPRj0dnG2NcY_kMTdNbpjz:APA91bHJINgv1SjuUlv-sGM21wLlHX5ISC5nYgl8DKP2r0fm273Cs0ujcESW6NR1RyGvFDtTBdQLK0SSq5TY_guLgc57VylKk8AAnH_xKq3zDIrdA1F6UhJNTu-Q0wNDKKIIQkYoVcyj","test","click me","https://sky.coflnet.com").Wait();
                     break;
                 case 'b':
                     //var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
@@ -165,7 +167,7 @@ namespace hypixel
 
         private static void FullServer()
         {
-            Console.WriteLine("\n - Starting FullServer 0.2.4 - \n");
+            Console.WriteLine($"\n - Starting FullServer {version} - \n");
             Console.Write("Key: " + apiKey);
             FullServerMode = true;
             Indexer.MiniumOutput();
@@ -178,6 +180,9 @@ namespace hypixel
             // bring the db up to date
             GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
+            SubscribeEngine.Instance.LoadFromDb();
+
+
             Task.Run(async () =>
             {
                 try
@@ -201,6 +206,13 @@ namespace hypixel
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
             CacheService.Instance.RunForEver();
+
+            RunIsolatedForever(async () =>
+            {
+                await SubscribeEngine.Instance.SendNotifications();
+                await Task.Delay(5000);
+
+            }, "Error on pushnotifications ");
 
             onStop += () =>
             {
@@ -258,7 +270,7 @@ namespace hypixel
                 try
                 {
                     context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
-                    context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
+                    //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
                     context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
                 }
                 catch (Exception e)
@@ -313,7 +325,7 @@ namespace hypixel
                         Console.WriteLine();
                         Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
                     }
-                    await Task.Delay(2000);
+                    await Task.Delay(60000);
                 }
             });
         }

@@ -22,8 +22,6 @@ namespace hypixel
     public class Server
     {
 
-
-
         public Server()
         {
         }

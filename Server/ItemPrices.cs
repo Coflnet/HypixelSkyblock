@@ -20,11 +20,17 @@ namespace hypixel
 
         private ConcurrentHashSet<string> pathsToSave = new ConcurrentHashSet<string>();
 
-        private Dictionary<int, bool> IsNotFilterable = new Dictionary<int, bool>();
+        private Dictionary<int, bool> BazzarItem = new Dictionary<int, bool>();
 
         private bool IsFilterable(int itemId)
         {
-            return !IsNotFilterable.ContainsKey(itemId);
+            // TODO: find historic enchantments in the db to determine filterability by enchants and reforges
+            return !IsBazaar(itemId);
+        }
+
+        private bool IsBazaar(int itemId)
+        {
+            return BazzarItem.ContainsKey(itemId);
         }
 
         internal async Task<Resonse> GetPriceFor(ItemSearchQuery details)
@@ -65,6 +71,7 @@ namespace hypixel
             return new Resonse()
             {
                 Filterable = IsFilterable(itemId),
+                Bazaar = IsBazaar(itemId),
                 Prices = prices.ToList()
             };
         }
@@ -100,9 +107,9 @@ namespace hypixel
                 DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
             }
 
-            if (IsNotFilterable.Count() == 0)
+            if (BazzarItem.Count() == 0)
             {
-                IsNotFilterable = pull.Products.ToDictionary(p => ItemDetails.Instance.GetOrCreateItemByTag(p.ProductId), p => true);
+                BazzarItem = pull.Products.ToDictionary(p => ItemDetails.Instance.GetOrCreateItemByTag(p.ProductId), p => true);
             }
 
         }
@@ -217,9 +224,6 @@ namespace hypixel
                 {
                     start = end;
                     var size = 1d;
-                    // a lot of data in between these
-                    if (start >= new DateTime(2020, 05, 25) && start < new DateTime(2020, 6, 1))
-                        size = 0.25;
                     end = start + TimeSpan.FromDays(size);
                     // only requery if lava has no price
                     if (context.Prices.Where(p => p.Date >= start - TimeSpan.FromSeconds(1) && p.Date <= end && p.ItemId == idOfLava).Any())
@@ -242,10 +246,10 @@ namespace hypixel
                     await Task.Delay(1000);
                 }
 
-                var skyblockStart = new DateTime(2020, 5, 1);
+                var skyblockStart = new DateTime(2019, 5, 1);
                 foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
                 {
-                    if (context.Prices.Where(p => p.ItemId == itemId).Any())
+                    if (context.Prices.Where(p => p.ItemId == itemId && p.Date < new DateTime(2020,1,1)).Any())
                         continue;
                     var select = AuctionSelect(skyblockStart, DateTime.Now.Date - TimeSpan.FromMilliseconds(1), context, itemId);
                     var result = await AvgFromAuctions(itemId, select);
@@ -277,6 +281,8 @@ namespace hypixel
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
                             await context.Prices.AddRangeAsync(await AvgBazzarHistory(start, end));
 
+                        await context.SaveChangesAsync();
+
                         foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
                         {
                             if (context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == itemId).Any())
@@ -284,8 +290,8 @@ namespace hypixel
                             var select = AuctionSelect(start, end, context, itemId);
                             var result = await AvgFromAuctions(itemId, select);
                             await context.Prices.AddRangeAsync(result);
+                            await context.SaveChangesAsync();
                         }
-                        await context.SaveChangesAsync();
                     }
                     // wait for tomorrow (only when no exception)
                     await Task.Delay(DateTime.Now.Date + TimeSpan.FromDays(1.0001) - DateTime.Now);
@@ -300,6 +306,7 @@ namespace hypixel
 
         public static async Task<List<AveragePrice>> AvgBazzarHistory(DateTime start, DateTime end)
         {
+            var hours = (end -start).TotalHours;
             using (var context = new HypixelContext())
             {
                 if (!Program.FullServerMode)
@@ -309,6 +316,7 @@ namespace hypixel
                     .SelectMany(pull => pull.Products)
                     .Include(p => p.QuickStatus)
                     .ToListAsync())
+                    .AsParallel()
                     .GroupBy(item => item.ProductId)
                     .Select(item =>
                         new
@@ -316,7 +324,7 @@ namespace hypixel
                             Avg = item.Average(a => a.QuickStatus.BuyPrice + a.QuickStatus.SellPrice),
                             Max = item.Max(a => a.QuickStatus.BuyPrice),
                             Min = item.Min(a => a.QuickStatus.SellPrice),
-                            Volume = item.Average(a => a.QuickStatus.BuyMovingWeek / 7),
+                            Volume = item.Average(a => a.QuickStatus.BuyMovingWeek) / 7 / 24 * hours,
                             Product = item.Key
                         })//.ToList()
                     .Select(i =>
@@ -409,6 +417,8 @@ namespace hypixel
         {
             [Key("filterable")]
             public bool Filterable;
+            [Key("bazaar")]
+            public bool Bazaar;
             [Key("prices")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
         }

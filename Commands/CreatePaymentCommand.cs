@@ -41,21 +41,9 @@ namespace hypixel
             Session session = service.Create(options);
             using (var context = new HypixelContext())
             {
-                var user = context.Users.Where(u => u.GoogleId == googleId).FirstOrDefault();
-                if (user == null)
-                {
-                    user = new GoogleUser()
-                    {
-                        GoogleId = googleId
-                    };
-                    context.Users.Add(user);
-                }
-                else
-                {
-                    user.SessionId = session.Id;
-                    context.Update(user);
-                }
-
+                var user = UserService.Instance.GetUser(googleId);
+                user.SessionId = session.Id;
+                context.Update(user);
                 context.SaveChanges();
             }
 

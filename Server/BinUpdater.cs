@@ -58,6 +58,11 @@ namespace hypixel
 
             Task.Run(async () =>
             {
+                foreach (var item in auctions)
+                {
+                    // has to be faster
+                    SubscribeEngine.Instance.BinSold(item);
+                }
                 await Task.Delay(10000);
                 foreach (var item in auctions)
                 {

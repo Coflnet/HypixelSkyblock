@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace hypixel
 {
@@ -13,6 +15,10 @@ namespace hypixel
         public string Email {get;set;}
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string MinecraftUuid {get;set;}
+        public List<Device> Devices {get;set;}
+
+        [NotMapped]
+        public bool HasPremium => PremiumExpires > DateTime.Now; 
 
         public GoogleUser()
         {

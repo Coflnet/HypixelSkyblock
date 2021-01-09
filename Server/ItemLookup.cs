@@ -54,6 +54,8 @@ namespace hypixel
                     .OrderBy(p => p.Date);
                 if (matchingSelection.Count() == 0 || matchingSelection.First().Date.Ticks == 0)
                     return complete;
+
+                complete.Min = Int32.MaxValue;
                 foreach (var item in matchingSelection)
                 {
                     complete.Avg += item.Avg;
@@ -78,7 +80,7 @@ namespace hypixel
                     Min = (float)item.QuickStatus.SellPrice,
                     Avg = (float)(item.QuickStatus.BuyPrice + item.QuickStatus.SellPrice) / 2,
                     Date = time,
-                    Volume = (int)item.QuickStatus.SellMovingWeek
+                    Volume = (int)item.QuickStatus.SellMovingWeek / 7 / 24 / 60 / 6
                 });
             }
 

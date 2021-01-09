@@ -271,6 +271,12 @@ namespace hypixel
             else
                 FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
 
+            var started = processed.Where(a => a.Start > DateTime.Now - TimeSpan.FromMinutes(2));
+            foreach (var item in started)
+            {
+                SubscribeEngine.Instance.NewAuction(item);
+            }
+
             return count;
         }
 

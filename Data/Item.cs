@@ -178,7 +178,7 @@ namespace hypixel
 
         }
 
-        private static string TagToName(string tag)
+        public static string TagToName(string tag)
         {
             if(tag == null || tag.Length <= 2)
                 return tag;
@@ -200,7 +200,7 @@ namespace hypixel
         public int GetOrCreateItemIdForAuction(SaveAuction auction, HypixelContext context)
         {
             var clearedName = ItemReferences.RemoveReforgesAndLevel(auction.ItemName);
-            var tag = GetIdForName(clearedName ?? auction.Tag);
+            var tag = GetIdForName(auction.Tag ?? clearedName);
             if (tag != null && TagLookup.TryGetValue(tag, out int value))
                 return value;
 

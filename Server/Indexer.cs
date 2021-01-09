@@ -245,9 +245,9 @@ namespace hypixel
 
         private static void UpdateAuction(HypixelContext context, BidComparer comparer, SaveAuction auction, SaveAuction dbauction)
         {
+            SubscribeEngine.Instance.NewBids(auction);
             foreach (var bid in auction.Bids)
             {
-
                 bid.Auction = dbauction;
                 if (!dbauction.Bids.Contains(bid, comparer))
                 {
@@ -330,7 +330,7 @@ namespace hypixel
         {
             minimumOutput = true;
         }
-       
+
 
         internal static void LoadFromDB()
         {

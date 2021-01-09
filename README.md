@@ -13,3 +13,5 @@ If you want historic data you can purchase it from me (to cover my server bills)
 #### Uninstall
 * run `docker-compose down`
 * remove the folder 
+
+
