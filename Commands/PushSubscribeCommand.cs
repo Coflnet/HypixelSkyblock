@@ -43,6 +43,7 @@ namespace hypixel
                     UserId = user.Id
                 });
             }
+            data.Ok();
         }
 
         [MessagePackObject]

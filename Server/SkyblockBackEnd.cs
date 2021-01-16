@@ -118,8 +118,7 @@ namespace hypixel
                     }
                     catch (Exception ex)
                     {
-                        dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)}");
-                        throw ex;
+                        dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
                     }
                 });
 

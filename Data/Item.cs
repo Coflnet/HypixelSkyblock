@@ -205,7 +205,7 @@ namespace hypixel
                 return value;
 
 
-            Console.WriteLine($"Creating item {clearedName} ({auction.ItemName})");
+            Console.WriteLine($"Creating item {clearedName} ({auction.ItemName},{auction.Tag})");
             // doesn't exist yet, create it
             var itemByTag = context.Items.Where(item => item.Tag == auction.Tag).FirstOrDefault();
             if (itemByTag != null)

@@ -11,7 +11,7 @@ namespace hypixel
             Instance = new UserService();
         }
 
-        internal GoogleUser GetOrCreateUser(string googleId)
+        internal GoogleUser GetOrCreateUser(string googleId,string email = null)
         {
             using (var context = new HypixelContext())
             {
@@ -20,7 +20,9 @@ namespace hypixel
                 {
                     user = new GoogleUser()
                     {
-                        GoogleId = googleId
+                        GoogleId = googleId,
+                        Email = email,
+                        CreatedAt = DateTime.Now
                     };
                     context.Users.Add(user);
                     context.SaveChanges();

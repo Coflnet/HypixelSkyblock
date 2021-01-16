@@ -8,7 +8,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            var googleId = data.GetAs<string>();
+            var productId = data.GetAs<string>();
             var domain = "https://sky.coflnet.com";
             var options = new SessionCreateOptions
             {
@@ -20,28 +20,29 @@ namespace hypixel
                 {
                   new SessionLineItemOptions
                   {
+
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                      UnitAmount = 99,
-                      Currency = "eur",
-                      ProductData = new SessionLineItemPriceDataProductDataOptions
-                      {
-                        Name = "Premium Features",
-                      },
+                    //  UnitAmount = 149,
+
+                    //  Currency = "eur",
+                      Product=productId
                     },
+
+                    Description = "Unlocks premium features: Subscribe to 100 Thrings, Search with multiple filters and you support the project :)",
                     Quantity = 1,
                   },
                 },
                 Mode = "payment",
                 SuccessUrl = domain + "/success",
                 CancelUrl = domain + "/cancel",
-                ClientReferenceId = googleId
+                ClientReferenceId = data.Connection.UserId.ToString()
             };
             var service = new SessionService();
             Session session = service.Create(options);
             using (var context = new HypixelContext())
             {
-                var user = UserService.Instance.GetUser(googleId);
+                var user = data.User;
                 user.SessionId = session.Id;
                 context.Update(user);
                 context.SaveChanges();

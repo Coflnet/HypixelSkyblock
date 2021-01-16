@@ -191,7 +191,7 @@ namespace hypixel
             if (existingItem == null)
                 AddItemToDB(newItem);
             else
-                System.Threading.Tasks.Task.Run(()=> UpdateItem(existingItem, newItem));
+                System.Threading.Tasks.Task.Run(() => UpdateItem(existingItem, newItem));
         }
 
         private async Task UpdateItem(DBItem existingItem, DBItem newItem)
@@ -231,7 +231,9 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                context.Items.Add(item);
+                // make sure it doesn't exist
+                if (!context.Items.Where(i => i.Tag == item.Tag).Any())
+                    context.Items.Add(item);
                 try
                 {
                     context.SaveChanges();
@@ -287,7 +289,7 @@ namespace hypixel
                 if (id == 0)
                     id = context.AltItemNames.Where(name => name.Name == fullName || name.Name == cleanedName)
                        .Select(name => name.DBItemId).FirstOrDefault();
-                       
+
                 if (id > 1)
                 {
                     var item = context.Items.Where(i => i.Id == id).First();

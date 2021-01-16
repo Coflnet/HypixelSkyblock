@@ -16,6 +16,7 @@ using Stripe;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -30,7 +31,7 @@ namespace hypixel
         /// <summary>
         /// Starts the backend server
         /// </summary>
-        public void Start(short port = 8008, string urlPath = "/skyblock")
+        public async Task Start(short port = 8008, string urlPath = "/skyblock")
         {
             server = new HttpServer(port);
 
@@ -145,7 +146,7 @@ namespace hypixel
             server.Start();
             Console.WriteLine("started http");
             //Console.ReadKey (true);
-            Thread.Sleep(Timeout.Infinite);
+            await Task.Delay(Timeout.Infinite);
             server.Stop();
         }
 
@@ -172,7 +173,7 @@ namespace hypixel
                     var session = stripeEvent.Data.Object as Stripe.Checkout.Session;
 
                     // Fulfill the purchase...
-                    this.FulfillOrder(session);
+                    await this.FulfillOrder(session);
                 } else {
                     Console.WriteLine("sripe  is not comlete type of " + stripeEvent.Type);
                 }
@@ -191,22 +192,23 @@ namespace hypixel
             }
         }
 
-        private void FulfillOrder(Stripe.Checkout.Session session)
+        private async Task FulfillOrder(Stripe.Checkout.Session session)
         {
             var googleId = session.ClientReferenceId;
             var id = session.CustomerId;
             var email = session.CustomerEmail;
+            var days = Int32.Parse(session.Metadata["days"]);
             Console.WriteLine("STRIPE");
             using (var context = new HypixelContext())
             {
-                var user = context.Users.Where(u => u.GoogleId == googleId).First();
+                var user = await context.Users.Where(u => u.GoogleId == googleId).FirstAsync();
                 if (user.PremiumExpires > DateTime.Now)
-                    user.PremiumExpires += TimeSpan.FromDays(30);
+                    user.PremiumExpires += TimeSpan.FromDays(days);
                 else
-                    user.PremiumExpires = DateTime.Now + TimeSpan.FromDays(30);
+                    user.PremiumExpires = DateTime.Now + TimeSpan.FromDays(days);
                 user.Email = email + DateTime.Now;
                 context.Update(user);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 Console.WriteLine("order completed");
             }
         }

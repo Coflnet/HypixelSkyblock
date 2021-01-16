@@ -21,6 +21,9 @@ namespace hypixel
 
         public void Save(MessageData request, MessageData response, int index)
         {
+            if(response.MaxAge == 0)
+                return;
+
             string key = GetCacheKey(request);
 
             var newEntry = new CacheElement(DateTime.Now+TimeSpan.FromSeconds(response.MaxAge), new List<MessageData>(){response});

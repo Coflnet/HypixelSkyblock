@@ -133,14 +133,14 @@ namespace hypixel
                     }
                     catch (Exception e)
                     {
-                        Logger.Instance.Error($"Single page ({index}) could not be loaded because of {e.Message} {e.StackTrace}");
+                        Logger.Instance.Error($"Single page ({index}) could not be loaded because of {e.Message} {e.StackTrace} {e.InnerException?.Message}");
                     }
 
                 }));
                 PrintUpdateEstimate(i, doneCont, sum, updateStartTime, max);
 
-                // try to stay under 150MB
-                if (System.GC.GetTotalMemory(false) > 150000000)
+                // try to stay under 250MB
+                if (System.GC.GetTotalMemory(false) > 250000000)
                 {
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
@@ -207,7 +207,7 @@ namespace hypixel
                     catch (Exception e)
                     {
                         Logger.Instance.Error("Updater encountered an outside error " + e.Message);
-                        Thread.Sleep(10000);
+                        await Task.Delay(10000);
                     }
 
                 }

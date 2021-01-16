@@ -47,7 +47,7 @@ namespace hypixel
         public void SendBack(MessageData data, bool cache = true)
         {
             data.mId = mId;
-            if (cache)
+            if (cache )
                 CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);
         }
@@ -62,6 +62,14 @@ namespace hypixel
         {
             var d = new MessageData(original.Type, original.Data, original.MaxAge);
             return d;
+        }
+
+        /// <summary>
+        /// Sends back an empty ok message
+        /// </summary>
+        public void Ok()
+        {
+            SendBack(MessageData.Create("ok", ""));
         }
     }
 }

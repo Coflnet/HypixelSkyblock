@@ -130,7 +130,7 @@ namespace hypixel
                 // move the intrahour to hour
                 var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
                 var beginOfHour = RoundDown(DateTime.Now, oneHour);
-                var oneHourRecord = res.CombineIntoOne(res.Oldest.Date, beginOfHour);
+                var oneHourRecord = res.CombineIntoOne(lastHour, beginOfHour);
                 if (oneHourRecord.Date != default(DateTime))
                     hourly.AddNew(oneHourRecord);
                 res.Discard(beginOfHour);
@@ -224,6 +224,11 @@ namespace hypixel
                 {
                     start = end;
                     var size = 1d;
+
+                    // a lot of data in between these
+                    if (start >= new DateTime(2020, 05, 25) && start < new DateTime(2020, 6, 1))
+                        size = 0.25;
+
                     end = start + TimeSpan.FromDays(size);
                     // only requery if lava has no price
                     if (context.Prices.Where(p => p.Date >= start - TimeSpan.FromSeconds(1) && p.Date <= end && p.ItemId == idOfLava).Any())
@@ -249,21 +254,36 @@ namespace hypixel
                 var skyblockStart = new DateTime(2019, 5, 1);
                 foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
                 {
-                    if (context.Prices.Where(p => p.ItemId == itemId && p.Date < new DateTime(2020,1,1)).Any())
-                        continue;
-                    var select = AuctionSelect(skyblockStart, DateTime.Now.Date - TimeSpan.FromMilliseconds(1), context, itemId);
-                    var result = await AvgFromAuctions(itemId, select);
-
-                    await context.Prices.AddRangeAsync(result);
-                    await context.SaveChangesAsync();
-                    if (result.Count() != 0)
-                        Console.WriteLine($"Saved item prices {itemId}");
-
-                    await Task.Delay(1000);
+                    await BackfillAuctions(context, skyblockStart, itemId);
                 }
             }
             Console.WriteLine("## Backfill completed :)");
             await FillYesterDayForever();
+        }
+
+        private static async Task BackfillAuctions(HypixelContext context, DateTime skyblockStart, int itemId)
+        {
+            DateTime start = skyblockStart;
+            var updateDaySize = 7;
+            var end = skyblockStart;
+            while (
+                end < DateTime.Now - TimeSpan.FromDays(updateDaySize))
+            {
+
+                start = end;
+                end = start + TimeSpan.FromDays(updateDaySize);
+                if (context.Prices.Where(p => p.ItemId == itemId && p.Date < end + TimeSpan.FromMinutes(1) && p.Date > start - TimeSpan.FromMinutes(1)).Any())
+                    continue;
+                var select = AuctionSelect(start, end, context, itemId);
+                var result = await AvgFromAuctions(itemId, select);
+
+                await context.Prices.AddRangeAsync(result);
+                await context.SaveChangesAsync();
+                if (result.Count() != 0)
+                    Console.WriteLine($"Saved item prices {itemId}");
+
+                await Task.Delay(100);
+            }
         }
 
         private async Task FillYesterDayForever()
@@ -306,7 +326,7 @@ namespace hypixel
 
         public static async Task<List<AveragePrice>> AvgBazzarHistory(DateTime start, DateTime end)
         {
-            var hours = (end -start).TotalHours;
+            var hours = (end - start).TotalHours;
             using (var context = new HypixelContext())
             {
                 if (!Program.FullServerMode)

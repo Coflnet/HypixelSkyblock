@@ -114,6 +114,7 @@ namespace hypixel
                 case 't':
                     // test
                     NotificationService.Instance.NotifyAsync("dPRj0dnG2NcY_kMTdNbpjz:APA91bHJINgv1SjuUlv-sGM21wLlHX5ISC5nYgl8DKP2r0fm273Cs0ujcESW6NR1RyGvFDtTBdQLK0SSq5TY_guLgc57VylKk8AAnH_xKq3zDIrdA1F6UhJNTu-Q0wNDKKIIQkYoVcyj","test","click me","https://sky.coflnet.com").Wait();
+                    SetGoogleIdCommand.ValidateToken("eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1MmZjYjk3ZGY1YjZiNGY2ZDFhODg1ZjFlNjNkYzRhOWNkMjMwYzUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiNTcwMzAyODkwNzYwLW5sa2dkOTliNzFxNGQ2MWFtNGxwcWRoZW4xcGVuZGR0LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNTcwMzAyODkwNzYwLW5sa2dkOTliNzFxNGQ2MWFtNGxwcWRoZW4xcGVuZGR0LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTAxOTkzNTcwNzI0MDg4NDMyMjk4IiwiZW1haWwiOiJ0by5jb2ZsbmV0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYWdLN21RM2YySFZQclZNQ3l1UVVmdyIsIm5hbWUiOiJFa3dhdiBDb2ZsbmV0IiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9BT2gxNEdobEx6TjV5U1o3VDZWYnpYRnFhUlR4c3dNRXJLaW1VQk1uem41Nz1zOTYtYyIsImdpdmVuX25hbWUiOiJFa3dhdiIsImZhbWlseV9uYW1lIjoiQ29mbG5ldCIsImxvY2FsZSI6ImRlIiwiaWF0IjoxNjEwMjk4MTE5LCJleHAiOjE2MTAzMDE3MTksImp0aSI6ImIzMWYzODUwNDMwYjNhOWMxNTQ5YTRjMDFiNTFiNTBlZjBhZTkwYTAifQ.cvsqp0GaYca---qkBAm-nS3QI-x_ZTGkzZh7sk-SsYctubikHqJz9VpafY_ih88ouOFTg_CWHKPMvS9dTrR8T4W_iY65cYp2hxsc-iMignDBgxbP6KlUCm3MvpRTHTdLAtL3Eq4JeXAL6_BN21AetRMaOhsWMgvz6yprhTkirOgFSuDt386Q8NXr19csjDhAW6bb2bRwEYJp4ZlBXD77zfzP_kZaF2y671M_lZUXnrqKrDqF7sFL2Jx4r6htKV_e86IuKhx0N1ttNTuEOeqccIZHdRQasivVO9Nq0twjhFIWn-5-azkPyz0VstxzIuYc7mTi2LSVjF4QDl-aLiOlPQ");
                     break;
                 case 'b':
                     //var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
@@ -197,7 +198,6 @@ namespace hypixel
 
 
             Console.WriteLine("booting db dependend stuff");
-            WaitForDatabaseCreation();
 
             var bazzar = new BazaarUpdater();
             bazzar.UpdateForEver(apiKey);
@@ -325,7 +325,7 @@ namespace hypixel
                         Console.WriteLine();
                         Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
                     }
-                    await Task.Delay(60000);
+                    await Task.Delay(2000);
                 }
             });
         }

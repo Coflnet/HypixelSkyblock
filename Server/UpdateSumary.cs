@@ -18,6 +18,21 @@ namespace hypixel
                 ItemTag = itemTag;
                 Amount = amount;
             }
+
+            public override bool Equals(object obj)
+            {
+                return obj is HypixelEvent @event &&
+                       ItemTag == @event.ItemTag &&
+                       Amount == @event.Amount;
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = -355338609;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ItemTag);
+                hashCode = hashCode * -1521134295 + Amount.GetHashCode();
+                return hashCode;
+            }
         }
 
         public class AuctionEvent : HypixelEvent
