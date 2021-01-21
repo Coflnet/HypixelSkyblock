@@ -12,6 +12,8 @@ namespace hypixel
         public string Name { get; set; }
         [JsonIgnore]
         public int DBItemId { get; set; }
+        [JsonIgnore]
+        public int OccuredTimes { get; set; }
 
         public static implicit operator string(AlternativeName name) => name.Name;
 

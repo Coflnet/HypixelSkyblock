@@ -35,7 +35,8 @@ namespace hypixel
             OUTBID = 4,
             SOLD = 8,
             BIN = 16,
-            USE_SELL_NOT_BUY = 32
+            USE_SELL_NOT_BUY = 32,
+            AUCTION = 64
         }
 
         [Key("type")]

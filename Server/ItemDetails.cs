@@ -188,10 +188,14 @@ namespace hypixel
 
             Items[name] = i;
             var newItem = new DBItem(i);
-            if (existingItem == null)
-                AddItemToDB(newItem);
-            else
-                System.Threading.Tasks.Task.Run(() => UpdateItem(existingItem, newItem));
+
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                if (existingItem == null)
+                    AddItemToDB(newItem);
+                else
+                    await UpdateItem(existingItem, newItem);
+            });
         }
 
         private async Task UpdateItem(DBItem existingItem, DBItem newItem)
@@ -223,7 +227,7 @@ namespace hypixel
             else
             {
                 var t = MinecraftTypeParser.Instance.GetDetails(i.MinecraftType);
-                i.IconUrl = $"https://skyblock-backend.coflnet.com/static/{t?.type}-{t?.meta}.png";
+                i.IconUrl = $"https://sky.coflnet.com/static/{t?.type}-{t?.meta}.png";
             }
         }
 

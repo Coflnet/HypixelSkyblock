@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
 using Stripe;
-using Stripe.Checkout;
 
 namespace hypixel
 {
@@ -44,7 +42,6 @@ namespace hypixel
             StripeKey = SimplerConfig.Config.Instance["stripeKey"];
             StripeSigningSecret = SimplerConfig.Config.Instance["stripeSecret"];
             StripeConfiguration.ApiKey = Program.StripeKey;
-
 
             Console.CancelKeyPress += delegate
             {

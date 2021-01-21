@@ -1,3 +1,4 @@
+using System;
 using MessagePack;
 
 namespace hypixel
@@ -26,6 +27,9 @@ namespace hypixel
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
         public GoogleUser User => UserService.Instance.GetUserById(Connection.UserId);
+        [IgnoreMember]
+        [Newtonsoft.Json.JsonIgnore]
+        public DateTime Created = DateTime.Now;
 
         public MessageData(string type, string data, int maxAge = 0)
         {
@@ -50,6 +54,11 @@ namespace hypixel
             if (cache )
                 CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);
+            if(this.Created < DateTime.Now - TimeSpan.FromSeconds(1))
+            {
+                // wow this took waaay to long
+                Console.WriteLine($"slow response/long time ({DateTime.Now-data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
+            }
         }
 
         public static MessageData Create<T>(string type, T data, int maxAge = 0)

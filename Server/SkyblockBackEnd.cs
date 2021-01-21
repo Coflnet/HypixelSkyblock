@@ -57,6 +57,8 @@ namespace hypixel
             Commands.Add("allItemNames", new AllItemNamesCommand());
             Commands.Add("bazaarPrices", new BazaarPricesCommand());
             Commands.Add("getAllEnchantments", new GetAllEnchantmentsCommand());
+            Commands.Add("getEnchantments", new GetEnchantmentsCommand());
+            Commands.Add("getReforges", new GetReforgesCommand());
             Commands.Add("fullSearch", new FullSearchCommand());
             Commands.Add("trackSearch", new TrackSearchCommand());
             Commands.Add("playerName", new PlayerNameCommand());
@@ -76,7 +78,7 @@ namespace hypixel
 
         public SkyblockBackEnd()
         {
-            limiter = TimeLimiter.GetFromMaxCountByInterval(2, TimeSpan.FromSeconds(5));
+            limiter = TimeLimiter.GetFromMaxCountByInterval(5, TimeSpan.FromSeconds(5));
         }
 
         protected override void OnMessage(MessageEventArgs e)

@@ -106,8 +106,11 @@ namespace hypixel
             titan_killer,
             triple_strike,
             ultimate_soul_eater,
-            ultimate_one_for_all
+            ultimate_one_for_all,
+            None,
             
+            
+            Any = 126
         }
 
         [System.ComponentModel.DataAnnotations.Key]

@@ -6,7 +6,7 @@ using Newtonsoft.Json.Converters;
 
 namespace hypixel
 {
-    public class DBItem  : IItem,IHitCount
+    public class DBItem : IItem, IHitCount
     {
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
         [JsonIgnore]
@@ -26,10 +26,10 @@ namespace hypixel
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [JsonProperty("description")]
         public string Description { get; set; }
-        [JsonConverter (typeof (StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         [JsonProperty("category")]
         public Category Category { get; set; }
-        [JsonConverter (typeof (StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         [JsonProperty("tier")]
 
         public Tier Tier { get; set; }
@@ -51,7 +51,19 @@ namespace hypixel
         public string color { get; set; }
 
         [JsonIgnore]
-        public int HitCount {get;set;}
+        public int HitCount { get; set; }
+        /// <summary>
+        /// <see cref="true"/> if there has been at least one auction with a reforge for this item
+        /// </summary>
+        [JsonProperty("reforgeable")]
+        public bool Reforgeable { get; set; }
+        /// <summary>
+        /// <see cref="true"/> if there has been at least one auction with enchantments for this item
+        /// </summary>
+        [JsonProperty("enchantable")]
+        public bool Enchantable { get; set; }
+        [JsonProperty("bazaar")]
+        public bool IsBazaar { get; set; }
 
         public DBItem()
         {
@@ -78,7 +90,7 @@ namespace hypixel
 
     public interface IItem
     {
-        string MinecraftType {get;set;}
-        string IconUrl {get;set;}
+        string MinecraftType { get; set; }
+        string IconUrl { get; set; }
     }
 }

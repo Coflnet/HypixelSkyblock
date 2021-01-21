@@ -43,7 +43,6 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var user = data.User;
-                user.SessionId = session.Id;
                 context.Update(user);
                 context.SaveChanges();
             }

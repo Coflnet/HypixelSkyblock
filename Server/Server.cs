@@ -89,7 +89,6 @@ namespace hypixel
                         }
                         FileController.Move(relativePath + ".png", relativePath);
                     }
-
                 }
 
 

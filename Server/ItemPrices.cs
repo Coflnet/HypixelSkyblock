@@ -38,9 +38,8 @@ namespace hypixel
             var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
 
             Console.WriteLine("got request for " + details.name);
-            Console.WriteLine("cachesize " + Hours.Count);
 
-            if (details.Reforge != ItemReferences.Reforge.None || (details.Enchantments != null && details.Enchantments.Count != 0))
+            if (details.Reforge != ItemReferences.Reforge.Any || (details.Enchantments != null && details.Enchantments.Count != 0))
                 return await QueryDB(details);
 
 
@@ -155,7 +154,7 @@ namespace hypixel
                 if (details.Enchantments != null && details.Enchantments.Any())
                     select = AddEnchantmentWhere(details.Enchantments, select, context, itemId);
 
-                if (details.Reforge != ItemReferences.Reforge.None)
+                if (details.Reforge != ItemReferences.Reforge.Any)
                     select = select.Where(auction => auction.Reforge == details.Reforge);
                 IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select);
 
@@ -252,7 +251,7 @@ namespace hypixel
                 }
 
                 var skyblockStart = new DateTime(2019, 5, 1);
-                foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
+                foreach (var itemId in ItemDetails.Instance.TagLookup.Values.ToList())
                 {
                     await BackfillAuctions(context, skyblockStart, itemId);
                 }
@@ -280,7 +279,7 @@ namespace hypixel
                 await context.Prices.AddRangeAsync(result);
                 await context.SaveChangesAsync();
                 if (result.Count() != 0)
-                    Console.WriteLine($"Saved item prices {itemId}");
+                    Console.Write($"SIP {itemId} ");
 
                 await Task.Delay(100);
             }
@@ -339,24 +338,15 @@ namespace hypixel
                     .AsParallel()
                     .GroupBy(item => item.ProductId)
                     .Select(item =>
-                        new
-                        {
-                            Avg = item.Average(a => a.QuickStatus.BuyPrice + a.QuickStatus.SellPrice),
-                            Max = item.Max(a => a.QuickStatus.BuyPrice),
-                            Min = item.Min(a => a.QuickStatus.SellPrice),
-                            Volume = item.Average(a => a.QuickStatus.BuyMovingWeek) / 7 / 24 * hours,
-                            Product = item.Key
-                        })//.ToList()
-                    .Select(i =>
                     {
                         return new AveragePrice()
                         {
-                            Volume = (int)i.Volume,
-                            Avg = (float)i.Avg / 2,
-                            Max = (float)i.Max,
-                            Min = (float)i.Min,
+                            Volume = (int)(item.Average(a => a.QuickStatus.BuyMovingWeek) / 7 / 24 * hours),
+                            Avg = (float)item.Average(a => a.QuickStatus.BuyPrice + a.QuickStatus.SellPrice) / 2,
+                            Max = (float)item.Max(a => a.QuickStatus.BuyPrice),
+                            Min = (float)item.Min(a => a.QuickStatus.SellPrice),
                             Date = start,
-                            ItemId = ItemDetails.Instance.GetOrCreateItemByTag(i.Product)
+                            ItemId = ItemDetails.Instance.GetOrCreateItemByTag(item.Key)
                         };
                     }).ToList();
 
@@ -398,6 +388,12 @@ namespace hypixel
 
             var query = context.Enchantment.Where(e => e.ItemType == itemId);
 
+
+            if (enchantments.First().Type == Enchantment.EnchantmentType.None)
+            {
+                return SelectAuctionsWithoutEnchantments(ref moreThanOneBidQuery, query);
+            }
+            
             var ids = query.Where(e => e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
                         .Select(e => e.SaveAuctionId);
             if (enchantments.Count() > 1)
@@ -412,11 +408,22 @@ namespace hypixel
             }
 
             moreThanOneBidQuery = moreThanOneBidQuery
-                    .Include(auction => auction.Enchantments)
-                    .Where(auction => ids.Contains(auction.Id)
+            .Include(auction => auction.Enchantments)
+            .Where(auction => ids.Contains(auction.Id));
 
-                    );
+
+
             return moreThanOneBidQuery;
+        }
+
+        private static IQueryable<SaveAuction> SelectAuctionsWithoutEnchantments(ref IQueryable<SaveAuction> moreThanOneBidQuery, IQueryable<Enchantment> query)
+        {
+            IQueryable<int> ids = query.GroupBy(e => e.SaveAuctionId)
+                                    .Where(e => e.Count() > 1)
+                                    .Select(e => e.Key);
+            return moreThanOneBidQuery
+                .Include(auction => auction.Enchantments)
+                .Where(auction => !ids.Contains(auction.Id));
         }
 
         public IEnumerable<ItemIndexElement> ItemsForDay(string itemName, DateTime date)

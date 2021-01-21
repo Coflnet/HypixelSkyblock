@@ -107,10 +107,14 @@ namespace hypixel
             ancient,
             withered,
             sweet,
+            fleet,
+            stellar,
+            mithraic,
 
 
 
             Unknown = 125,
+            Any,
             Migration = 200
         }
 

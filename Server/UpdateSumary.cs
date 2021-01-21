@@ -7,16 +7,19 @@ namespace hypixel
         public HashSet<AuctionEvent> Solds = new HashSet<AuctionEvent>();
         public HashSet<HypixelEvent> Items = new HashSet<HypixelEvent>();
         public HashSet<AuctionEvent> OutBids = new HashSet<AuctionEvent>();
+        public HashSet<AuctionEvent> Events = new HashSet<AuctionEvent>();
 
         public class HypixelEvent
         {
             public string ItemTag;
             public long Amount;
+            public string LinkPath;
 
-            public HypixelEvent(string itemTag, long amount)
+            public HypixelEvent(string itemTag, long amount, string linkPath = "")
             {
                 ItemTag = itemTag;
                 Amount = amount;
+                LinkPath = linkPath;
             }
 
             public override bool Equals(object obj)
@@ -39,23 +42,35 @@ namespace hypixel
         {
             public string Player;
 
-            public AuctionEvent(string itemTag, long amount, string player)
-            : base(itemTag, amount)
+            public AuctionEvent(string itemTag, long amount, string player, string linkPath = "")
+            : base(itemTag, amount, linkPath)
             {
                 Player = player;
             }
         }
 
-        public void OutBid(string tag, long amount, string player)
+        public void OutBid(string tag, long amount, string player, string auctionId)
         {
             var name = PlayerSearch.Instance.GetName(player);
-            OutBids.Add(new AuctionEvent(tag, amount, name));
+            OutBids.Add(new AuctionEvent(tag, amount, name, "/auction/" + auctionId));
         }
 
-        public void Sold(string tag, int amount, string player)
+        public void Sold(string tag, int amount, string player, string auctionId)
         {
             var name = PlayerSearch.Instance.GetName(player);
-            Solds.Add(new AuctionEvent(tag, amount, name));
+            Solds.Add(new AuctionEvent(tag, amount, name, "/auction/" + auctionId));
+        }
+
+        public void NewBid(string tag, int amount, string player, string auctionId)
+        {
+            var name = PlayerSearch.Instance.GetName(player);
+            Events.Add(new AuctionEvent(tag, amount, name, "/auction/" + auctionId));
+        }
+
+        public void AuctionOver(string tag, string player, string auctionId)
+        {
+            var name = PlayerSearch.Instance.GetName(player);
+            Events.Add(new AuctionEvent(tag, -1, name, "/auction/" + auctionId));
         }
     }
 }

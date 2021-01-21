@@ -16,7 +16,7 @@ namespace hypixel
         [System.ComponentModel.DataAnnotations.Schema.ForeignKey("Uuid")]
         public SaveAuction Auction {get;set;}
         [Key (0)]
-        [JsonProperty("auctionId")]
+        [JsonIgnore]
         public string AuctionId;
         [Key (1)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]

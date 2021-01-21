@@ -61,8 +61,10 @@ namespace hypixel
                 foreach (var item in devices)
                 {
                     Console.WriteLine("sending " + item.UserId);
-                    await NotifyAsync(item.Token, "Skyblock Notification", text,url);
+                    var success = await NotifyAsync(item.Token, "Skyblock Notification", text,url);
+                    context.Remove(item);
                 }
+                await context.SaveChangesAsync();
             }
         }
 

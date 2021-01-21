@@ -213,6 +213,7 @@ namespace hypixel
                 // new alternative name
                 if (clearedName != null)
                     this.ReverseNames[clearedName] = auction.Tag;
+                TagLookup.Add(auction.Tag,itemByTag.Id);
                 var exists = context.AltItemNames
                     .Where(name => name.Name == clearedName && name.DBItemId == itemByTag.Id)
                     .Any();
