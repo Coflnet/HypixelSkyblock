@@ -8,17 +8,6 @@ using static hypixel.ItemReferences;
 namespace hypixel
 {
 
-    public class NewItemPricesCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            ItemSearchQuery details = ItemPricesCommand.GetQuery(data);
-            var res = ItemPrices.Instance.GetPriceFor(details);
-
-            data.SendBack(MessageData.Create("itemResponse", res, A_MINUTE));
-        }
-    }
-
     public class ItemPricesCommand : Command
     {
         public class DayCache

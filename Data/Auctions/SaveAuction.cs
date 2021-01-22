@@ -231,29 +231,4 @@ namespace hypixel
             return hash.ToHashCode ();
         }
     }
-
-    public enum Tier {
-        UNKNOWN,
-        COMMON,
-        UNCOMMON,
-        RARE,
-        EPIC,
-        LEGENDARY,
-        SPECIAL,
-        VERY_SPECIAL,
-        MYTHIC,
-        SUPREME
-
-    }
-
-    public enum Category {
-        UNKNOWN,
-        WEAPON,
-        ARMOR,
-        ACCESSORIES,
-        CONSUMABLES,
-        BLOCKS,
-        MISC
-
-    }
 }

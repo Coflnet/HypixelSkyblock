@@ -64,7 +64,7 @@ namespace hypixel
             Commands.Add("playerName", new PlayerNameCommand());
             //Commands.Add("subscribe", new SubscribeCommand());
             //Commands.Add("unsubscribe", new UnsubscribeCommand());
-            Commands.Add("pricerdicer", new NewItemPricesCommand());
+            Commands.Add("pricerdicer", new PricerDicerCommand());
             Commands.Add("paymentSession", new CreatePaymentCommand());
             Commands.Add("premiumExpiration", new PremiumExpirationCommand());
             Commands.Add("setConId", new SetConnectionIdCommand());

@@ -17,7 +17,7 @@ namespace hypixel
         public int Price;
 
         [Key("reforge")]
-        public ItemReferences.Reforge Reforge;
+        public ItemReferences.Reforge Reforge = ItemReferences.Reforge.Any;
 
         [Key("enchantments")]
         public List<Enchantment> Enchantments;

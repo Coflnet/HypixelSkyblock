@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace hypixel
 {
-    public class GetEnchantmentsCommand : FilterCommand
+    public class GetEnchantmentsCommand : FilterOptionsCommand
     {
         public override void Execute(MessageData data)
         {

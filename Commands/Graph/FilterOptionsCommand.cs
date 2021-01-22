@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace hypixel
 {
-    public abstract class FilterCommand : Command
+    public abstract class FilterOptionsCommand : Command
     {
         [MessagePackObject]
         public class Formatted
