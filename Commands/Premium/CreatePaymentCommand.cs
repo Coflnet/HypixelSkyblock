@@ -1,14 +1,28 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Stripe;
 using Stripe.Checkout;
 
 namespace hypixel
 {
     public class CreatePaymentCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override async void Execute(MessageData data)
         {
-            var productId = data.GetAs<string>();
+            string productId;
+            try
+            {
+                productId = data.GetAs<string>();
+            }
+            catch (Exception)
+            {
+                throw new CoflnetException("invaild_data", "Data should contain a product id as string");
+            }
+            var price = await GetPrice(productId);
+            Console.WriteLine(price);
+
             var domain = "https://sky.coflnet.com";
             var options = new SessionCreateOptions
             {
@@ -23,13 +37,13 @@ namespace hypixel
 
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                    //  UnitAmount = 149,
+                      UnitAmount = price,
 
-                    //  Currency = "eur",
+                      Currency = "eur",
                       Product=productId
                     },
 
-                    Description = "Unlocks premium features: Subscribe to 100 Thrings, Search with multiple filters and you support the project :)",
+                   // Description = "Unlocks premium features: Subscribe to 100 Thrings, Search with multiple filters and you support the project :)",
                     Quantity = 1,
                   },
                 },
@@ -39,7 +53,16 @@ namespace hypixel
                 ClientReferenceId = data.Connection.UserId.ToString()
             };
             var service = new SessionService();
-            Session session = service.Create(options);
+            Session session;
+            try
+            {
+                session = service.Create(options);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw new CoflnetException("internal_error", "service not working");
+            }
             using (var context = new HypixelContext())
             {
                 var user = data.User;
@@ -50,5 +73,19 @@ namespace hypixel
             data.SendBack(MessageData.Create("checkoutSession", session.Id), false);
             //return Json(new { id = session.Id });
         }
+
+        Dictionary<string,long?> priceCache = null;
+
+        public async Task<long?>  GetPrice(string productId)
+        {
+            var service = new PriceService();
+            if(priceCache == null)
+            {
+                priceCache = (await service.ListAsync()).ToDictionary(e=>e.ProductId,e=>e.UnitAmount);
+            }
+            return priceCache.GetValueOrDefault(productId,1000);
+        }
     }
+
+
 }

@@ -27,13 +27,13 @@ namespace hypixel
         /// <summary>
         /// if user logged in this is set to his id. throws an exception otherwise
         /// </summary>
-        public int UserId 
+        public int UserId
         {
             get
             {
-                if(_userId == 0)
-                    throw new CoflnetException("user_not_set","please login first before executing this");
-                return _userId;    
+                if (_userId == 0)
+                    throw new CoflnetException("user_not_set", "please login first before executing this");
+                return _userId;
             }
             set
             {
@@ -74,6 +74,12 @@ namespace hypixel
             Commands.Add("subscriptions", new GetSubscriptionsCommand());
             Commands.Add("token", new RegisterPushTokenCommand());
             Commands.Add("setGoogle", new SetGoogleIdCommand());
+            Commands.Add("getProducts", new GetProductsCommand());
+            Commands.Add("getPrices", new GetPricesCommand());
+            Commands.Add("gPurchase", new GooglePurchaseCommand());
+
+
+
         }
 
         public SkyblockBackEnd()
@@ -86,10 +92,17 @@ namespace hypixel
             long mId = 0;
             try
             {
-                var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                MessageData data;
+                if (e.IsText)
+                {
+                    data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                    data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
+                }
+                else
+                    data = MessagePackSerializer.Deserialize<MessageData>(e.RawData);
+
                 mId = data.mId;
                 data.Connection = this;
-                data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
                 // Console.WriteLine(data.Data);
 
                 if (!Commands.ContainsKey(data.Type))
@@ -102,25 +115,21 @@ namespace hypixel
                     return;
 
 
-
-                Action command = () => { Commands[data.Type].Execute(data); };
-
-
                 Task.Run(async () =>
                 {
                     await limiter;
                     try
                     {
-                        command();
+                        Commands[data.Type].Execute(data);
                     }
                     catch (CoflnetException ex)
                     {
-
                         SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = mId });
                     }
                     catch (Exception ex)
                     {
                         dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
+                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug="unknown", MessageData="An unexpected error occured, make sure the format of Data is correct" })) { mId = mId });
                     }
                 });
 

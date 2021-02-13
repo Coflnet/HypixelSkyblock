@@ -54,8 +54,14 @@ namespace hypixel
 
         public void Load()
         {
-            if (FileController.Exists("itemDetails"))
-                Items = FileController.LoadAs<Dictionary<string, Item>>("itemDetails");
+            try 
+            {
+                if (FileController.Exists("itemDetails"))
+                    Items = FileController.LoadAs<Dictionary<string, Item>>("itemDetails");
+            } catch(Exception)
+            {
+                FileController.Move("itemDetails","corruptedItemDetails"+DateTime.Now.Ticks);
+            }
 
             if (Items == null)
             {

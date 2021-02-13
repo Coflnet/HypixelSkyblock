@@ -29,7 +29,6 @@ namespace hypixel
         static SubscribeEngine()
         {
             Instance = new SubscribeEngine();
-
         }
 
 
@@ -249,6 +248,7 @@ namespace hypixel
         {
             while (NextNotifications.Count > 0)
             {
+                Console.WriteLine("sending notf");
                 var key = NextNotifications.First().Key;
                 if (NextNotifications.TryRemove(key, out UpdateSumary value))
                 {

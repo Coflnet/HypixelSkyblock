@@ -129,7 +129,7 @@ namespace hypixel
                 // move the intrahour to hour
                 var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
                 var beginOfHour = RoundDown(DateTime.Now, oneHour);
-                var oneHourRecord = res.CombineIntoOne(lastHour, beginOfHour);
+                var oneHourRecord = res.CombineIntoOne(default(DateTime), beginOfHour);
                 if (oneHourRecord.Date != default(DateTime))
                     hourly.AddNew(oneHourRecord);
                 res.Discard(beginOfHour);

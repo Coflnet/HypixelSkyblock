@@ -7,6 +7,7 @@ namespace hypixel
     public class MessageData
     {
         [IgnoreMember]
+        [Newtonsoft.Json.JsonIgnore]
         public SkyblockBackEnd Connection;
 
         [Key("type")]

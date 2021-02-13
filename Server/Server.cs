@@ -201,15 +201,20 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var user = await context.Users.Where(u => u.GoogleId == googleId).FirstAsync();
-                if (user.PremiumExpires > DateTime.Now)
-                    user.PremiumExpires += TimeSpan.FromDays(days);
-                else
-                    user.PremiumExpires = DateTime.Now + TimeSpan.FromDays(days);
+                AddPremiumTime(days, user);
                 user.Email = email + DateTime.Now;
                 context.Update(user);
                 await context.SaveChangesAsync();
                 Console.WriteLine("order completed");
             }
+        }
+
+        public static void AddPremiumTime(int days, GoogleUser user)
+        {
+            if (user.PremiumExpires > DateTime.Now)
+                user.PremiumExpires += TimeSpan.FromDays(days);
+            else
+                user.PremiumExpires = DateTime.Now + TimeSpan.FromDays(days);
         }
 
         private static void PrintStatus(HttpListenerResponse res)

@@ -50,7 +50,7 @@ namespace hypixel
             {
                 var complete = new AveragePrice();
                 var matchingSelection = Prices
-                    .Where(p => p.Date >= start && p.Date <= end)
+                    .Where(p => p.Date >= start && p.Date <= end && p.Avg > 0)
                     .OrderBy(p => p.Date);
                 if (matchingSelection.Count() == 0 || matchingSelection.First().Date.Ticks == 0)
                     return complete;

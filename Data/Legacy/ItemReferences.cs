@@ -110,6 +110,7 @@ namespace hypixel
             fleet,
             stellar,
             mithraic,
+            Auspicious,
 
 
 
