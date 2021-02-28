@@ -40,98 +40,7 @@ namespace hypixel
             server.KeepClean = false;
             server.OnGet += (sender, e) =>
             {
-                var req = e.Request;
-                var res = e.Response;
-
-                var path = req.RawUrl.Split('?')[0];
-
-                if (path == "/" || path.IsNullOrEmpty())
-                {
-                    path = "index.html";
-                }
-
-                if (path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
-                {
-                    PrintStatus(res);
-                    return;
-                }
-
-                byte[] contents;
-                var relativePath = $"files/{path}";
-
-                if (path.StartsWith("/static/skin"))
-                {
-                    if (!FileController.Exists(relativePath))
-                    {
-                        // try to get it from mojang
-                        var client = new RestClient("https://textures.minecraft.net/");
-                        var request = new RestRequest("/texture/{id}");
-                        request.AddUrlSegment("id", Path.GetFileName(relativePath));
-                        Console.WriteLine(Path.GetFileName(relativePath));
-                        var fullPath = FileController.GetAbsolutePath(relativePath);
-                        FileController.CreatePath(fullPath);
-                        var inStream = new MemoryStream(client.DownloadData(request));
-
-                        //client.DownloadData(request).SaveAs(fullPath+ "f.png" );
-
-                        // parse it to only show face
-                        // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
-                        using (var outputImage = new Image<Rgba32>(16, 16))
-                        {
-                            var baseImage = SixLabors.ImageSharp.Image.Load(inStream);
-
-                            var lowerImage = baseImage.Clone(
-                                            i => i.Resize(256, 256)
-                                                .Crop(new Rectangle(32, 32, 32, 32)));
-
-                            lowerImage.Save(fullPath + ".png");
-
-                        }
-                        FileController.Move(relativePath + ".png", relativePath);
-                    }
-                }
-
-
-                if (!FileController.Exists(relativePath))
-                {
-                    //res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                    //return;
-                    // vue.js will handle it internaly
-                    relativePath = $"files/index.html";
-                }
-
-                try
-                {
-                    contents = FileController.ReadAllBytes(relativePath);
-                }
-                catch (Exception)
-                {
-                    res.WriteContent(Encoding.UTF8.GetBytes("File not found, maybe you fogot to upload the fronted"));
-                    return;
-                }
-
-                if (path.EndsWith(".html"))
-                {
-                    res.ContentType = "text/html";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-                else if (path.EndsWith(".png") || path.StartsWith("/static/skin"))
-                {
-                    res.ContentType = "image/png";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-                else if (path.EndsWith(".css"))
-                {
-                    res.ContentType = "text/css";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-                else if (path.EndsWith(".js"))
-                {
-                    res.ContentType = "text/javascript";
-                    res.ContentEncoding = Encoding.UTF8;
-                }
-
-                res.WriteContent(contents);
+                AnswerGetRequest(e);
             };
 
             server.OnPost += async (sender, e) =>
@@ -147,6 +56,155 @@ namespace hypixel
             //Console.ReadKey (true);
             await Task.Delay(Timeout.Infinite);
             server.Stop();
+        }
+
+        private static void AnswerGetRequest(HttpRequestEventArgs e)
+        {
+            var req = e.Request;
+            var res = e.Response;
+
+            var path = req.RawUrl.Split('?')[0];
+
+            if (path == "/" || path.IsNullOrEmpty())
+            {
+                path = "index.html";
+            }
+
+            if (path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
+            {
+                PrintStatus(res);
+                return;
+            }
+
+            byte[] contents;
+            var relativePath = $"files/{path}";
+
+            if (path.StartsWith("/static/skin"))
+            {
+                GetSkin(relativePath);
+            }
+
+
+            if (!FileController.Exists(relativePath))
+            {
+                //res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                //return;
+                // vue.js will handle it internaly
+                relativePath = $"files/index.html";
+            }
+
+            try
+            {
+                contents = FileController.ReadAllBytes(relativePath);
+            }
+            catch (Exception)
+            {
+                res.WriteContent(Encoding.UTF8.GetBytes("File not found, maybe you fogot to upload the fronted"));
+                return;
+            }
+
+            if (relativePath == "files/index.html")
+            {
+                Console.WriteLine("is index");
+                string newHtml = FillDescription(path, contents);
+                contents = Encoding.UTF8.GetBytes(newHtml);
+            }
+
+
+            res.ContentType = "text/html";
+            res.ContentEncoding = Encoding.UTF8;
+
+            if (path.EndsWith(".png") || path.StartsWith("/static/skin"))
+            {
+                res.ContentType = "image/png";
+            }
+            else if (path.EndsWith(".css"))
+            {
+                res.ContentType = "text/css";
+            }
+            else if (path.EndsWith(".js"))
+            {
+                res.ContentType = "text/javascript";
+            }
+
+            res.WriteContent(contents);
+        }
+
+        private static string FillDescription(string path, byte[] contents)
+        {
+            var defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
+            string parameter = "";
+            if(path.Split('/', '?', '#').Length > 2)
+                parameter = path.Split('/', '?', '#')[2];
+            string title = defaultText;
+            string imageUrl = "https://sky.coflnet.com/logo192.png";
+            // try to fill in title
+            if (path.Contains("auction/"))
+            {
+                // is an auction
+                using (var context = new HypixelContext())
+                {
+                    var result = context.Auctions.Where(a => a.Uuid == parameter)
+                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName }).FirstOrDefault();
+                    if (result != null)
+                    {
+                        title = $"Auction for {result.ItemName} by {PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId)}";
+
+                        if (!string.IsNullOrEmpty(result.Tag))
+                            imageUrl = "https://sky.lea.moe/item/" + result.Tag;
+                        else
+                            imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
+
+                    }
+
+                }
+            }
+            if (path.Contains("player/"))
+            {
+                title = $"Auctions and bids for {PlayerSearch.Instance.GetNameWithCache(parameter)}";
+                imageUrl = "https://crafatar.com/avatars/" + parameter;
+            }
+            if (path.Contains("item/"))
+            {
+                title = $"Price for {ItemDetails.TagToName(parameter)}";
+                imageUrl = "https://sky.lea.moe/item/" + parameter;
+            }
+            var newHtml = Encoding.UTF8.GetString(contents)
+                        .Replace(defaultText, title)
+                        .Replace("</title>", $"</title><meta property=\"og:image\" content=\"{imageUrl}\" />");
+            return newHtml;
+        }
+
+        private static void GetSkin(string relativePath)
+        {
+            if (!FileController.Exists(relativePath))
+            {
+                // try to get it from mojang
+                var client = new RestClient("https://textures.minecraft.net/");
+                var request = new RestRequest("/texture/{id}");
+                request.AddUrlSegment("id", Path.GetFileName(relativePath));
+                Console.WriteLine(Path.GetFileName(relativePath));
+                var fullPath = FileController.GetAbsolutePath(relativePath);
+                FileController.CreatePath(fullPath);
+                var inStream = new MemoryStream(client.DownloadData(request));
+
+                //client.DownloadData(request).SaveAs(fullPath+ "f.png" );
+
+                // parse it to only show face
+                // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
+                using (var outputImage = new Image<Rgba32>(16, 16))
+                {
+                    var baseImage = SixLabors.ImageSharp.Image.Load(inStream);
+
+                    var lowerImage = baseImage.Clone(
+                                    i => i.Resize(256, 256)
+                                        .Crop(new Rectangle(32, 32, 32, 32)));
+
+                    lowerImage.Save(fullPath + ".png");
+
+                }
+                FileController.Move(relativePath + ".png", relativePath);
+            }
         }
 
         private async Task ProcessStripe(HttpRequestEventArgs e)
@@ -173,7 +231,9 @@ namespace hypixel
 
                     // Fulfill the purchase...
                     await this.FulfillOrder(session);
-                } else {
+                }
+                else
+                {
                     Console.WriteLine("sripe  is not comlete type of " + stripeEvent.Type);
                 }
 

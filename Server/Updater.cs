@@ -24,15 +24,23 @@ namespace hypixel
 
         private static ConcurrentDictionary<string, BinInfo> LastUpdateBins = new ConcurrentDictionary<string, BinInfo>();
 
+        /// <summary>
+        /// Limited task factory
+        /// </summary>
+        TaskFactory taskFactory;
+
         public Updater(string apiKey)
         {
             this.apiKey = apiKey;
+
+            var scheduler = new LimitedConcurrencyLevelTaskScheduler(4);
+            taskFactory = new TaskFactory(scheduler);
         }
 
         /// <summary>
         /// Downloads all auctions and save the ones that changed since the last update
         /// </summary>
-        public async Task Update()
+        public async Task<DateTime> Update()
         {
             if (!minimumOutput)
                 Console.WriteLine($"Usage bevore update {System.GC.GetTotalMemory(false)}");
@@ -54,7 +62,7 @@ namespace hypixel
             ItemDetails.Instance.Save();
 
             await StorageManager.Save();
-            Console.WriteLine($"Done in {DateTime.Now.ToLocalTime()}");
+            return lastUpdateDone;
         }
 
         DateTime lastUpdateDone = new DateTime(1970, 1, 1);
@@ -79,14 +87,12 @@ namespace hypixel
                 Console.WriteLine($"{lastUpdateStart > lastUpdate} {DateTime.Now - lastUpdateStart}");
             FileController.SaveAs("lastUpdateStart", DateTime.Now);
 
-            Console.WriteLine(updateStartTime);
-
             TimeSpan timeEst = new TimeSpan(0, 1, 1);
             Console.WriteLine($"Updating Data {DateTime.Now}");
 
             // add extra miniute to start to catch lost auctions
             lastUpdate = lastUpdate - new TimeSpan(0, 1, 0);
-            DateTime timestamp = lastUpdate;
+            DateTime lastHypixelCache = lastUpdate;
 
             var tasks = new List<Task>();
             int sum = 0;
@@ -94,35 +100,40 @@ namespace hypixel
             object sumloc = new object();
             var firstPage = await hypixel?.GetAuctionPageAsync(0);
             max = firstPage.TotalPages;
+            if(firstPage.LastUpdated == updateStartTime)
+            {
+                // wait for the server cache to refresh
+                await Task.Delay(5000);
+                return updateStartTime;
+            }
 
-            ConcurrentDictionary<string, BinInfo> currentUpdateBins = new ConcurrentDictionary<string, BinInfo>();
+            var cancelToken = new CancellationToken();
 
-            for (int i = 0; i < max; i++)
+
+            for (int i = 0; i <= max; i++)
             {
                 var index = i;
-                tasks.Add(Task.Run(async () =>
+                tasks.Add(taskFactory.StartNew(async () =>
                 {
 
+                    // spread out the saving load burst
+                    // await Task.Delay(index * 200);
                     try
                     {
                         var res = index != 0 ? await hypixel?.GetAuctionPageAsync(index) : firstPage;
                         if (res == null)
                             return;
 
-                        max = res.TotalPages;
+                        max = res.TotalPages ;
 
                         if (index == 0)
                         {
-                            timestamp = res.LastUpdated;
+                            lastHypixelCache = res.LastUpdated;
                             // correct update time
                             Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}\n");
                         }
 
-                        // spread out the saving load burst
-                        //Thread.Sleep(index * 300);
-
-
-                        var val = Save(res, lastUpdate, currentUpdateBins);
+                        var val = Save(res, lastUpdate);
                         lock (sumloc)
                         {
                             sum += val;
@@ -136,11 +147,11 @@ namespace hypixel
                         Logger.Instance.Error($"Single page ({index}) could not be loaded because of {e.Message} {e.StackTrace} {e.InnerException?.Message}");
                     }
 
-                }));
+                }, cancelToken).Unwrap());
                 PrintUpdateEstimate(i, doneCont, sum, updateStartTime, max);
 
-                // try to stay under 250MB
-                if (System.GC.GetTotalMemory(false) > 250000000)
+                // try to stay under 300MB
+                if (System.GC.GetTotalMemory(false) > 300000000)
                 {
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
@@ -163,27 +174,7 @@ namespace hypixel
             Console.WriteLine($"Updated {sum} auctions {doneCont} pages");
             UpdateSize = sum;
 
-            return timestamp;
-        }
-
-        private void BinUpdateSold(ConcurrentDictionary<string, BinInfo> currentUpdateBins)
-        {
-            foreach (var item in currentUpdateBins)
-            {
-                LastUpdateBins.TryRemove(item.Key, out BinInfo time);
-            }
-
-            var bought = LastUpdateBins.Where(item => item.Value.End > lastUpdateDone).ToList();
-
-            Console.WriteLine($"Bought {bought.Count()}, expired {LastUpdateBins.Count() - bought.Count()}, TotalBinCount {currentUpdateBins.Count()} - ");
-
-            var updater = new BinUpdater(SimplerConfig.Config.Instance["apiKeys"].Split(','));
-
-            Task.Run(()
-                 => updater.GrabAuctionsWithIds(bought.Select(a => a.Value))
-            );
-
-            LastUpdateBins = currentUpdateBins;
+            return lastHypixelCache;
         }
 
         internal void UpdateForEver()
@@ -196,13 +187,14 @@ namespace hypixel
                     try
                     {
                         var start = DateTime.Now;
-                        Task.Run(() => Update());
+                        var lastCache = await Update();
                         if (abort)
                         {
                             Console.WriteLine("Stopped updater");
                             break;
                         }
-                        await WaitForServerCacheRefresh(start);
+                        Console.WriteLine($"--> started updating {start} cache says {lastCache} now its {DateTime.Now}");
+                        await WaitForServerCacheRefresh(lastCache);
                     }
                     catch (Exception e)
                     {
@@ -214,9 +206,10 @@ namespace hypixel
             });
         }
 
-        private static async Task WaitForServerCacheRefresh(DateTime start)
+        private static async Task WaitForServerCacheRefresh(DateTime hypixelCacheTime)
         {
-            var timeToSleep = start.Add(TimeSpan.FromSeconds(59.5)) - DateTime.Now;
+            // cache refreshes every 60 seconds, 10 seconds extra to fix timing issues
+            var timeToSleep = hypixelCacheTime.Add(TimeSpan.FromSeconds(70)) - DateTime.Now;
             if (timeToSleep.Seconds > 0)
                 await Task.Delay(timeToSleep);
         }
@@ -234,16 +227,14 @@ namespace hypixel
 
         // builds the index for all auctions in the last hour
 
-        static int Save(GetAuctionPage res, DateTime lastUpdate, ConcurrentDictionary<string, BinInfo> currentUpdateBins)
+        int Save(GetAuctionPage res, DateTime lastUpdate)
         {
             int count = 0;
+
 
             var processed = res.Auctions.Where(item =>
                 {
                     ItemDetails.Instance.AddOrIgnoreDetails(item);
-                    if (item.BuyItNow)
-                        currentUpdateBins.AddOrUpdate(item.Uuid, new BinInfo() { End = item.End, Auctioneer = item.Auctioneer }, (UuId, end) => end);
-
 
                     // nothing changed if the last bid is older than the last update
                     return !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
@@ -253,10 +244,13 @@ namespace hypixel
                 {
                     count++;
                     return new SaveAuction(a);
-                });
+                }).ToList();
+
+
+
 
             var ended = res.Auctions.Where(a => a.End < DateTime.Now).Select(a => new SaveAuction(a));
-            Task.Run(async () =>
+            taskFactory.StartNew(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(20));
                 foreach (var item in ended)
@@ -271,11 +265,13 @@ namespace hypixel
             else
                 FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
 
-            var started = processed.Where(a => a.Start > DateTime.Now - TimeSpan.FromMinutes(2));
+            var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
+            var started = processed.Where(a => a.Start > twoMinAgo);
             foreach (var item in started)
             {
                 SubscribeEngine.Instance.NewAuction(item);
             }
+            
 
             return count;
         }

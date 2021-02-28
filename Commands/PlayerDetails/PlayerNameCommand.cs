@@ -4,9 +4,14 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            var name = PlayerSearch.Instance.GetName(data.GetAs<string>());
-            var respone = MessageData.Create("nameResponse",name,A_WEEK);
+            var respone = CreateResponse(data.GetAs<string>());
             data.SendBack(respone);
+        }
+
+        public static MessageData CreateResponse(string uuid)
+        {
+            var name = PlayerSearch.Instance.GetName(uuid);
+            return MessageData.Create("nameResponse",name,A_WEEK);
         }
     }
 }

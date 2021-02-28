@@ -47,9 +47,9 @@ namespace hypixel
 
         public static void Run()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                RunForever();
+                await RunForever();
             });
         }
 

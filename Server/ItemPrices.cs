@@ -86,11 +86,27 @@ namespace hypixel
             DateTime lastHour, startYesterday;
             ComputeTimes(out aDay, out oneHour, out lastHour, out startYesterday);
 
+            AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
+        }
+
+        public void AddNewAuctions(IEnumerable<SaveAuction> auctions)
+        {
+            TimeSpan aDay, oneHour;
+            DateTime lastHour, startYesterday;
+            ComputeTimes(out aDay, out oneHour, out lastHour, out startYesterday);
+
+            foreach (var auction in auctions)
+            {
+                AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
+            }
+        }
+
+        private void AddAuction(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, SaveAuction auction)
+        {
             var id = ItemDetails.Instance.GetItemIdForName(auction.Tag);
             var res = IntraHour.GetOrAdd(id, (id) => new ItemLookup());
             res.AddNew(auction);
             DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
-
         }
 
         public void AddBazaarData(BazaarPull pull)
@@ -393,7 +409,7 @@ namespace hypixel
             {
                 return SelectAuctionsWithoutEnchantments(ref moreThanOneBidQuery, query);
             }
-            
+
             var ids = query.Where(e => e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
                         .Select(e => e.SaveAuctionId);
             if (enchantments.Count() > 1)

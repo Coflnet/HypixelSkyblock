@@ -8,9 +8,9 @@ namespace hypixel
 {
     public class CacheService
     {
-        public static CacheService Instance {get;protected set;}
+        public static CacheService Instance { get; protected set; }
 
-        private ConcurrentDictionary<string,CacheElement> cache = new ConcurrentDictionary<string, CacheElement>();
+        private ConcurrentDictionary<string, CacheElement> cache = new ConcurrentDictionary<string, CacheElement>();
 
         public int CacheSize => cache.Count;
 
@@ -21,27 +21,38 @@ namespace hypixel
 
         public void Save(MessageData request, MessageData response, int index)
         {
-            if(response.MaxAge == 0)
+            if (response.MaxAge == 0)
                 return;
 
             string key = GetCacheKey(request);
+            AddOrUpdateCache(response, index, key);
+        }
 
-            var newEntry = new CacheElement(DateTime.Now+TimeSpan.FromSeconds(response.MaxAge), new List<MessageData>(){response});
-            cache.AddOrUpdate(key,newEntry,(key,item)=>{
-                if(index == 0)
+        private void AddOrUpdateCache(MessageData response, int index, string key)
+        {
+            var newEntry = new CacheElement(DateTime.Now + TimeSpan.FromSeconds(response.MaxAge), new List<MessageData>() { response });
+            cache.AddOrUpdate(key, newEntry, (key, item) =>
+            {
+                if (index == 0)
                     return newEntry;
                 item.Responses.Add(response);
                 return item;
             });
         }
 
+        public void Save(string type,string data, MessageData response)
+        {
+            string key = GetCacheKey(type,data);
+            AddOrUpdateCache(response,0,key);
+        }
+
         public bool TryFromCache(MessageData request)
         {
             var key = GetCacheKey(request);
-            if(!cache.TryGetValue(key,out CacheElement responses))
+            if (!cache.TryGetValue(key, out CacheElement responses))
                 return false;
-            
-            if(responses.Expires < DateTime.Now)
+
+            if (responses.Expires < DateTime.Now)
                 return false;
 
             foreach (var item in responses.Responses)
@@ -50,18 +61,30 @@ namespace hypixel
                 var response = MessageData.Copy(item);
                 // adjust the cache time to when it expires on the server
                 response.MaxAge = (int)(responses.Expires - DateTime.Now).TotalSeconds;
-                request.SendBack(response,false);
+                request.SendBack(response, false);
             }
+            return true;
+        }
+
+        public bool GetFromCache(string command, string data, out string value)
+        {
+            var key = GetCacheKey(command, data);
+            value = null;
+            if (!cache.TryGetValue(key, out CacheElement responses))
+                return false;
+            if (responses.Expires < DateTime.Now)
+                return false;
+            value = responses.Responses.First().Data;
             return true;
         }
 
         public void ClearStale()
         {
-            var toRemove = cache.Where(item=>item.Value.Expires < DateTime.Now)
-                            .Select(item=>item.Key).ToList();
+            var toRemove = cache.Where(item => item.Value.Expires < DateTime.Now)
+                            .Select(item => item.Key).ToList();
             foreach (var item in toRemove)
             {
-                cache.TryRemove(item,out CacheElement value);
+                cache.TryRemove(item, out CacheElement value);
             }
         }
 
@@ -69,8 +92,13 @@ namespace hypixel
         {
             var key = request.CustomCacheKey;
             if (key == null)
-                key = request.Type + request.Data;
+                key = GetCacheKey(request.Type, request.Data);
             return key;
+        }
+
+        private static string GetCacheKey(string type, string data)
+        {
+            return type + data;
         }
 
         public class CacheElement
@@ -88,8 +116,9 @@ namespace hypixel
         internal void RunForEver()
         {
             var tenMin = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
-            Task.Run(async ()=>{
-                while(true)
+            Task.Run(async () =>
+            {
+                while (true)
                 {
                     await Task.Delay(tenMin);
                     ClearStale();

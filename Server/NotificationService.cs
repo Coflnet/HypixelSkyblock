@@ -12,9 +12,12 @@ namespace hypixel
     /// <summary>
     /// Sends firebase push notifications
     /// </summary>
-    public class NotificationService
+    public partial class NotificationService
     {
         public static NotificationService Instance { get; set; }
+
+        public static string BaseUrl = "https://sky.coflnet.com";
+        public static string ItemIconsBase = "https://sky.lea.moe/item";
 
         static NotificationService()
         {
@@ -40,8 +43,10 @@ namespace hypixel
                 else
                 {
                     var hasPremium = user.PremiumExpires > DateTime.Now;
-                    if (!hasPremium && user.Devices.Count >= 1)
-                        throw new CoflnetException("no_premium", "You need premium to add multiple devices");
+                    if (!hasPremium && user.Devices.Count >= 3)
+                        throw new CoflnetException("no_premium", "You need premium to add more than 3 devices");
+                    if(user.Devices.Count > 10)
+                        throw new CoflnetException("limit_reached","You can't have more than 11 devices linked to your account");
                     var device = new Device() { UserId = user.Id, Name = deviceName, Token = token };
                     user.Devices.Add(device);
                     context.Update(user);
@@ -52,23 +57,33 @@ namespace hypixel
             }
         }
 
-        internal async Task Send(int userId, string text, string url)
+        DoubleNotificationPreventer doubleChecker = new DoubleNotificationPreventer();
+
+        internal async Task Send(int userId, string title, string text, string url, string icon, object data = null)
         {
-            Console.WriteLine("Sending: " + text);
+            var not = new Notification(title, text, url, icon, null, data);
+            if(!doubleChecker.HasNeverBeenSeen(userId,not))
+                return;
+
             using (var context = new HypixelContext())
             {
                 var devices = context.Users.Where(u => u.Id == userId).SelectMany(u => u.Devices);
                 foreach (var item in devices)
                 {
                     Console.WriteLine("sending " + item.UserId);
-                    var success = await NotifyAsync(item.Token, "Skyblock Notification", text,url);
-                    context.Remove(item);
+                    var success = await NotifyAsync(item.Token, not);
+                    if (!success)
+                    {
+                        Console.WriteLine("Sending pushnotification failed to");
+                        Console.WriteLine(JsonConvert.SerializeObject(item));
+                        context.Remove(item);
+                    }
                 }
                 await context.SaveChangesAsync();
             }
         }
 
-        public async Task<bool> NotifyAsync(string to, string title, string body,string click_action = null)
+        public async Task<bool> NotifyAsync(string to, Notification notification)
         {
             try
             {
@@ -77,28 +92,30 @@ namespace hypixel
 
                 // Get the sender id from FCM console
                 var senderId = string.Format("id={0}", SimplerConfig.Config.Instance["firebaseSenderId"]);
-                
-                var icon = "https://sky.coflnet.com/logo192.png";
 
-                var data = new
+                //var icon = "https://sky.coflnet.com/logo192.png";
+                var data = notification.data;
+                var payload = new
                 {
                     to, // Recipient device token
-                    notification = new { title, body,click_action,icon }
+                    notification,
+                    data
                 };
 
                 // Using Newtonsoft.Json
-                var jsonBody = JsonConvert.SerializeObject(data);
-                Console.WriteLine("created body");
+                var jsonBody = JsonConvert.SerializeObject(payload);
 
                 var client = new RestClient();
                 var request = new RestRequest("https://fcm.googleapis.com/fcm/send", Method.POST);
                 request.AddHeader("Authorization", serverKey);
                 request.AddHeader("Sender", senderId);
-                request.AddJsonBody(data);
+                request.AddJsonBody(payload);
 
                 var response = await client.ExecuteAsync(request);
-                Console.WriteLine("sent with response:");
-                Console.WriteLine(response.Content);
+                if(response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine(JsonConvert.SerializeObject(response));
+                }
 
                 return response.StatusCode == System.Net.HttpStatusCode.OK;
             }
@@ -110,5 +127,64 @@ namespace hypixel
 
             return false;
         }
+
+        internal void Sold(SubscribeItem sub, SaveAuction auction)
+        {
+            var text = $"{auction.ItemName} was sold to {PlayerSearch.Instance.GetNameWithCache(auction.Bids.FirstOrDefault().Bidder)} for {auction.HighestBidAmount}";
+            Task.Run(()=>Send(sub.UserId,"Item Sold",text,AuctionUrl(auction),ItemIconUrl(auction.Tag),FormatAuction(auction)));
+        }
+
+        public void Outbid(SubscribeItem sub, SaveAuction auction, SaveBids bid)
+        {
+            var outBidBy = auction.HighestBidAmount - bid.Amount;
+            var text = $"You were outbid on {auction.ItemName} by {PlayerSearch.Instance.GetNameWithCache(auction.Bids.FirstOrDefault().Bidder)} by {outBidBy}";
+            Task.Run(()=>Send(sub.UserId,"Outbid",text,AuctionUrl(auction),ItemIconUrl(auction.Tag),FormatAuction(auction)));
+        }
+
+        public void NewBid(SubscribeItem sub, SaveAuction auction, SaveBids bid)
+        {
+            var text = $"New bid on {auction.ItemName} by {PlayerSearch.Instance.GetNameWithCache(auction.Bids.FirstOrDefault().Bidder)} for {auction.HighestBidAmount}";
+            Task.Run(()=>Send(sub.UserId,"New bid",text,AuctionUrl(auction),ItemIconUrl(auction.Tag),auction));
+        }
+
+        internal void AuctionOver(SubscribeItem sub, SaveAuction auction)
+        {
+            var text = $"Highest bid is {auction.HighestBidAmount}";
+            Task.Run(()=>Send(sub.UserId,$"Auction for {auction.ItemName} ended",text,AuctionUrl(auction),ItemIconUrl(auction.Tag),FormatAuction(auction)));
+        }
+
+        internal void PriceAlert(SubscribeItem sub, string productId, double value)
+        {
+            var text = $"{ItemDetails.TagToName(productId)} reached {value.ToString("0.00")}";
+            Task.Run(()=>Send(sub.UserId,$"Price Alert",text,$"{BaseUrl}/item/{productId}",ItemIconUrl(productId)));
+        }
+
+        internal void AuctionPriceAlert(SubscribeItem sub, SaveAuction auction)
+        {
+            var text = $"New Auction for {auction.ItemName} for {auction.StartingBid}";
+            Task.Run(()=>Send(sub.UserId,$"Price Alert",text,AuctionUrl(auction),ItemIconUrl(auction.Tag),FormatAuction(auction)));
+        }
+
+        private object FormatAuction(SaveAuction auction)
+        {
+            return new {type="auction",auction=JsonConvert.SerializeObject(auction)};
+        }
+
+        string AuctionUrl(SaveAuction auction)
+        {
+            return BaseUrl+"/auction/"+auction.Uuid;
+        }
+
+        string ItemIconUrl(string tag)
+        {
+            return ItemIconsBase + $"/{tag}";
+        }
+
+        string PlayerIconUrl(string uuid)
+        {
+            return "https://crafatar.com/avatars/" + uuid;
+        }
+
+
     }
 }

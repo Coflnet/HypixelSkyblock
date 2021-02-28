@@ -96,7 +96,7 @@ namespace hypixel
 
         internal async Task<IEnumerable<ItemSearchResult>> FindClosest(string search, int count = 5)
         {
-            if (search.Length <= 3)
+            if (search.Length <= 3 || search.Length > 16)
                 return new ItemSearchResult[0];
 
             var possibleCorrect = new List<string>();

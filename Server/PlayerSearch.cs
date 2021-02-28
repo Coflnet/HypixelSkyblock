@@ -39,6 +39,21 @@ namespace hypixel
             }
         }
 
+        /// <summary>
+        /// Uses the <see cref="CacheService"/> to cache db queries
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        public string GetNameWithCache(string uuid)
+        {
+            if(CacheService.Instance.GetFromCache("playerName",uuid, out string name))
+                return name.Replace("\"","");
+            
+            var response = PlayerNameCommand.CreateResponse(uuid);
+            CacheService.Instance.Save("playerName",uuid,response);
+            return response.Data.Replace("\"","");
+        }
+
         public static void ClearCache()
         {
             players.Clear();

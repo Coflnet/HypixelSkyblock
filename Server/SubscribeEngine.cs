@@ -24,7 +24,8 @@ namespace hypixel
 
         public static SubscribeEngine Instance { get; }
 
-        private ConcurrentDictionary<int, UpdateSumary> NextNotifications = new ConcurrentDictionary<int, UpdateSumary>();
+
+        TaskFactory taskFactory;
 
         static SubscribeEngine()
         {
@@ -34,6 +35,9 @@ namespace hypixel
 
         public SubscribeEngine()
         {
+
+            var scheduler = new LimitedConcurrencyLevelTaskScheduler(2);
+            taskFactory = new TaskFactory(scheduler);
         }
 
         public void AddNew(SubscribeItem subscription)
@@ -89,12 +93,13 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                var minTime = DateTime.Now.Subtract(new TimeSpan(7, 0, 0));
+                var minTime = DateTime.Now.Subtract(TimeSpan.FromDays(200));
                 var all = context.SubscribeItem.Where(si => si.GeneratedAt > minTime);
                 foreach (var item in all)
                 {
                     AddSubscription(context, item);
                 }
+                Console.WriteLine($"Loaded {all.Count()} subscriptions");
             }
         }
 
@@ -147,8 +152,8 @@ namespace hypixel
                 {
                     if ((auction.StartingBid < item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_LOWER_THAN)
                         || auction.StartingBid > item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
-                        && (item.Type.HasFlag(SubscribeItem.SubType.BIN) || !auction.Bin))
-                        AddNotifyItem(item, auction);
+                        && (!item.Type.HasFlag(SubscribeItem.SubType.BIN) || auction.Bin))
+                        NotificationService.Instance.AuctionPriceAlert(item, auction);
                 }
             }
         }
@@ -160,26 +165,25 @@ namespace hypixel
         public void BinSold(SaveAuction auction)
         {
             var key = auction.AuctioneerId;
-            AddToSumary(this.Sold, key, sumary =>
-             {
-                 sumary.Sold(auction.Tag, (int)auction.HighestBidAmount, auction.Bids.FirstOrDefault()?.Bidder, auction.Uuid);
-             });
-            AddToSumary(this.AuctionSub, key, sumary =>
-             {
-                 sumary.AuctionOver(auction.Tag, auction.Bids.FirstOrDefault()?.Bidder, auction.Uuid);
-             });
+            NotifyIfExisting(this.Sold, key, sub =>
+            {
+                NotificationService.Instance.Sold(sub, auction);
+            });
+            NotifyIfExisting(this.AuctionSub, key, sub =>
+            {
+                NotificationService.Instance.AuctionOver(sub,auction);
+            });
 
 
         }
 
-        private void AddToSumary(ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> target, string key, Action<UpdateSumary> todo)
+        private void NotifyIfExisting(ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> target, string key, Action<SubscribeItem> todo)
         {
             if (target.TryGetValue(key, out ConcurrentBag<SubscribeItem> subscribers))
             {
                 foreach (var item in subscribers)
                 {
-                    var sumary = GetSumary(item);
-                    todo(sumary);
+                    todo(item);
                 }
             }
         }
@@ -192,31 +196,19 @@ namespace hypixel
         {
             foreach (var bid in auction.Bids.Skip(1))
             {
-                AddToSumary(this.outbid, bid.Bidder, sumary =>
+                NotifyIfExisting(this.outbid, bid.Bidder, sub =>
                 {
-                    var amount = auction.HighestBidAmount - bid.Amount;
-                    sumary.OutBid(auction.Tag, amount, auction.Bids.FirstOrDefault().Bidder, auction.Uuid);
+                    NotificationService.Instance.Outbid(sub, auction, bid);
                 });
 
-                AddToSumary(this.AuctionSub, bid.Bidder, sumary =>
+                NotifyIfExisting(this.AuctionSub, bid.Bidder, sub =>
                 {
-                    var amount = auction.HighestBidAmount - bid.Amount;
-                    sumary.NewBid(auction.Tag, (int)amount, auction.Bids.FirstOrDefault().Bidder, auction.Uuid);
+                    NotificationService.Instance.NewBid(sub, auction, bid);
                 });
             }
         }
 
 
-        private void AddNotifyItem(SubscribeItem item, SaveAuction auction)
-        {
-            var sumary = GetSumary(item);
-            sumary.Items.Add(new UpdateSumary.HypixelEvent(auction.Tag, auction.StartingBid, "/auction/" + auction.Uuid));
-        }
-
-        private UpdateSumary GetSumary(SubscribeItem item)
-        {
-            return NextNotifications.GetOrAdd(item.UserId, userId => new UpdateSumary());
-        }
 
         /// <summary>
         /// Called from <see cref="BazaarUpdater"/>
@@ -236,65 +228,15 @@ namespace hypixel
                     if (value < item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_LOWER_THAN)
                          || value > item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
                     {
-                        var sumary = GetSumary(item);
-                        item.NotTriggerAgainBefore = DateTime.Now + BazzarNotificationBackoff;
-                        sumary.Items.Add(new UpdateSumary.HypixelEvent(info.ProductId, (long)value));
+                        if(item.NotTriggerAgainBefore < DateTime.Now)
+                            return;
+                        item.NotTriggerAgainBefore = DateTime.Now + TimeSpan.FromHours(1);
+                        NotificationService.Instance.PriceAlert(item,info.ProductId,value);
                     }
                 }
             }
         }
 
-        public async Task SendNotifications()
-        {
-            while (NextNotifications.Count > 0)
-            {
-                Console.WriteLine("sending notf");
-                var key = NextNotifications.First().Key;
-                if (NextNotifications.TryRemove(key, out UpdateSumary value))
-                {
-                    await ProccessNotification(key, value);
-                }
-
-            }
-        }
-
-        private async Task ProccessNotification(int userId, UpdateSumary value)
-        {
-            var text = "";
-            var prefix = "https://sky.coflnet.com";
-            string gotoUrl = null;
-            foreach (var item in value.Events)
-            {
-                if (item.Amount == -1)
-                    text += $"Auction for {ItemDetails.TagToName(item.ItemTag)} by {item.Player} is over\n";
-                else
-                    text += $"New bid ({item.Amount} coins) on {ItemDetails.TagToName(item.ItemTag)} by {item.Player}\n";
-                gotoUrl = prefix + item.LinkPath;
-            }
-            foreach (var item in value.Items)
-            {
-                text += $"Price alert: {ItemDetails.TagToName(item.ItemTag)} for {item.Amount}\n";
-                if (gotoUrl == null)
-                    if (item.LinkPath == null)
-                        gotoUrl = prefix + "/item/" + item.ItemTag + "?hourly=true";
-                    else
-                        gotoUrl = prefix + item.LinkPath;
-            }
-            foreach (var item in value.OutBids)
-            {
-                text += $"You were outbid on {ItemDetails.TagToName(item.ItemTag)} by {item.Amount} by {item.Player}\n";
-                gotoUrl = prefix + item.LinkPath;
-            }
-            foreach (var item in value.Solds)
-            {
-                text += $"You sold {ItemDetails.TagToName(item.ItemTag)} for {item.Amount} to {item.Player}\n";
-                gotoUrl = prefix + item.LinkPath;
-            }
-            if (gotoUrl == null)
-                gotoUrl = prefix;
-
-            await NotificationService.Instance.Send(userId, text, gotoUrl);
-        }
 
         private ConcurrentDictionary<string, List<SubLookup>> OnlineSubscriptions = new ConcurrentDictionary<string, List<SubLookup>>();
         private ConcurrentQueue<UnSub> ToUnsubscribe = new ConcurrentQueue<UnSub>();
@@ -338,7 +280,7 @@ namespace hypixel
 
         public void PushOrIgnore(IEnumerable<SaveAuction> auctions)
         {
-            Task.Run(() =>
+            taskFactory.StartNew(() =>
             {
                 foreach (var auction in auctions)
                 {

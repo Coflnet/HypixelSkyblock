@@ -73,6 +73,12 @@ namespace hypixel
             Commands.Add("unsubscribe", new DeleteSubscriptionCommand());
             Commands.Add("subscriptions", new GetSubscriptionsCommand());
             Commands.Add("token", new RegisterPushTokenCommand());
+            Commands.Add("addDevice", new RegisterPushTokenCommand());
+            Commands.Add("getDevices", new GetDeviceListCommand());
+            Commands.Add("deleteDevice", new DeleteDeviceCommand());
+            Commands.Add("testNotification", new SendTestNotificationCommand());
+
+            
             Commands.Add("setGoogle", new SetGoogleIdCommand());
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());

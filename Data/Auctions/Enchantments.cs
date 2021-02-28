@@ -108,6 +108,7 @@ namespace hypixel
             ultimate_soul_eater,
             ultimate_one_for_all,
             None,
+            Cultivating,
             
             
             Any = 126

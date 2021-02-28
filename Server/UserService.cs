@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -36,7 +37,7 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                var user = context.Users.Find(userId);
+                var user = context.Users.Include(u=>u.Devices).Where(u=>u.Id == userId).FirstOrDefault();
                 if (user == null)
                     throw new UserNotFoundException(userId.ToString());
                 return user;

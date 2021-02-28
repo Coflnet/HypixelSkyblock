@@ -40,7 +40,7 @@ namespace hypixel
             {
                 AddToQueue(item);
             }
-            SubscribeEngine.Instance.PushOrIgnore(auctionsToAdd);
+            //SubscribeEngine.Instance.PushOrIgnore(auctionsToAdd);
         }
 
         private static void PersistQueueBatch()

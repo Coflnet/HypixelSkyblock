@@ -111,6 +111,7 @@ namespace hypixel
             stellar,
             mithraic,
             Auspicious,
+            headstrong,
 
 
 
