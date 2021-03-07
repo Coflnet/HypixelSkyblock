@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace hypixel
@@ -35,15 +38,15 @@ namespace hypixel
             {
                 if (index == 0)
                     return newEntry;
-                item.Responses.Add(response);
+                item.Add(response);
                 return item;
             });
         }
 
-        public void Save(string type,string data, MessageData response)
+        public void Save(string type, string data, MessageData response)
         {
-            string key = GetCacheKey(type,data);
-            AddOrUpdateCache(response,0,key);
+            string key = GetCacheKey(type, data);
+            AddOrUpdateCache(response, 0, key);
         }
 
         public bool TryFromCache(MessageData request)
@@ -55,10 +58,8 @@ namespace hypixel
             if (responses.Expires < DateTime.Now)
                 return false;
 
-            foreach (var item in responses.Responses)
+            foreach (var response in responses.Responses)
             {
-                // copy to prevent another thread from modifying te mId
-                var response = MessageData.Copy(item);
                 // adjust the cache time to when it expires on the server
                 response.MaxAge = (int)(responses.Expires - DateTime.Now).TotalSeconds;
                 request.SendBack(response, false);
@@ -104,12 +105,39 @@ namespace hypixel
         public class CacheElement
         {
             public DateTime Expires;
-            public List<MessageData> Responses;
+            public IEnumerable<MessageData> Responses => Reduced.Select(e=>new MessageData(e.type,Unzip(e.data)));
+
+            private List<ReducedCommandData> Reduced;
 
             public CacheElement(DateTime expires, List<MessageData> responses)
             {
                 Expires = expires;
-                Responses = responses;
+                Reduced = responses.Select(CreateItem)
+                            .ToList();
+            }
+
+            public void Add(MessageData data)
+            {
+                Reduced.Add(CreateItem(data));
+            }
+
+            private static ReducedCommandData CreateItem(MessageData m)
+            {
+                var compressed = Zip(m.Data);
+                Console.WriteLine($"Compressed {m.Data.Length} to {compressed.Length}");
+                return new ReducedCommandData(m.Type, compressed);
+            }
+        }
+
+        public class ReducedCommandData
+        {
+            public string type;
+            public byte[] data;
+
+            public ReducedCommandData(string type, byte[] data)
+            {
+                this.type = type;
+                this.data = data;
             }
         }
 
@@ -124,6 +152,60 @@ namespace hypixel
                     ClearStale();
                 }
             });
+        }
+
+        /// <summary>
+        /// Copies a stream
+        /// https://stackoverflow.com/a/7343623
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        public static void CopyTo(Stream src, Stream dest)
+        {
+            byte[] bytes = new byte[4096];
+
+            int cnt;
+
+            while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0)
+            {
+                dest.Write(bytes, 0, cnt);
+            }
+        }
+
+        public static byte[] Zip(string str)
+        {
+            var bytes = Encoding.UTF8.GetBytes(str);
+            if(bytes.Length < 100)
+                return bytes;
+
+            using (var msi = new MemoryStream(bytes))
+            using (var mso = new MemoryStream())
+            {
+                using (var gs = new GZipStream(mso, CompressionMode.Compress))
+                {
+                    //msi.CopyTo(gs);
+                    CopyTo(msi, gs);
+                }
+
+                return mso.ToArray();
+            }
+        }
+
+        public static string Unzip(byte[] bytes)
+        {
+            if(bytes.Length < 100)
+                return Encoding.UTF8.GetString(bytes);
+            using (var msi = new MemoryStream(bytes))
+            using (var mso = new MemoryStream())
+            {
+                using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+                {
+                    //gs.CopyTo(mso);
+                    CopyTo(gs, mso);
+                }
+
+                return Encoding.UTF8.GetString(mso.ToArray());
+            }
         }
     }
 }

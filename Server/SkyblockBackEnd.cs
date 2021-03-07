@@ -65,6 +65,7 @@ namespace hypixel
             //Commands.Add("subscribe", new SubscribeCommand());
             //Commands.Add("unsubscribe", new UnsubscribeCommand());
             Commands.Add("pricerdicer", new PricerDicerCommand());
+            Commands.Add("recentAuctions", new GetRecentAuctionsCommand());
             Commands.Add("paymentSession", new CreatePaymentCommand());
             Commands.Add("premiumExpiration", new PremiumExpirationCommand());
             Commands.Add("setConId", new SetConnectionIdCommand());
@@ -135,7 +136,7 @@ namespace hypixel
                     catch (Exception ex)
                     {
                         dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
-                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug="unknown", MessageData="An unexpected error occured, make sure the format of Data is correct" })) { mId = mId });
+                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug="unknown", Message="An unexpected error occured, make sure the format of Data is correct" })) { mId = mId });
                     }
                 });
 

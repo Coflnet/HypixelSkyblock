@@ -39,8 +39,6 @@ namespace hypixel
                 int hashCode = 246475487;
                 hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(title);
                 hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(click_action);
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(icon);
-                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(image);
                 hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(body);
                 return hashCode;
             }

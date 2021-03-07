@@ -74,7 +74,9 @@ namespace hypixel
             playerHits = new ConcurrentDictionary<string, int>();
             foreach (var hit in hits)
             {
-                var player = context.Players.Where(player => player.UuId == hit.Key).First();
+                var player = context.Players.Where(player => player.UuId == hit.Key).FirstOrDefault();
+                if(player == null)
+                    continue;
                 player.HitCount += hit.Value;
                 context.Update(player);
             }

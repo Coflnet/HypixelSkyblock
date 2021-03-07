@@ -18,8 +18,8 @@ namespace hypixel
             task.Wait();
             var result = task.Result;
 
-            var maxAge = A_HOUR;
-            if(result.Count <= 2)
+            var maxAge = A_HOUR * 4;
+            if(result.Count <= 3)
             {
                 // looks like a specific search, very unlikely to change 
                 maxAge = A_WEEK;

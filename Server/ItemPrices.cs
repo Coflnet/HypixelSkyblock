@@ -35,7 +35,7 @@ namespace hypixel
 
         internal async Task<Resonse> GetPriceFor(ItemSearchQuery details)
         {
-            var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
+            var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
 
             Console.WriteLine("got request for " + details.name);
 
@@ -160,25 +160,27 @@ namespace hypixel
 
         private async Task<Resonse> QueryDB(ItemSearchQuery details)
         {
-            Console.WriteLine("from db");
             using (var context = new HypixelContext())
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
-                var select = AuctionSelect(details.Start, details.End, context, itemId);
-
-
-                if (details.Enchantments != null && details.Enchantments.Any())
-                    select = AddEnchantmentWhere(details.Enchantments, select, context, itemId);
-
-                if (details.Reforge != ItemReferences.Reforge.Any)
-                    select = select.Where(auction => auction.Reforge == details.Reforge);
+                IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
                 IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select);
 
                 return FromList(response.ToList(), itemId);
-
-                // cache result
-
             }
+        }
+
+        private static IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
+        {
+            var select = AuctionSelect(details.Start, details.End, context, itemId);
+
+
+            if (details.Enchantments != null && details.Enchantments.Any())
+                select = AddEnchantmentWhere(details.Enchantments, select, context, itemId, limit);
+
+            if (details.Reforge != ItemReferences.Reforge.Any)
+                select = select.Where(auction => auction.Reforge == details.Reforge);
+            return select;
         }
 
         private static IQueryable<SaveAuction> AuctionSelect(DateTime start, DateTime end, HypixelContext context, int itemId)
@@ -398,7 +400,7 @@ namespace hypixel
                 });
         }
 
-        private static IQueryable<SaveAuction> AddEnchantmentWhere(List<Enchantment> enchantments, IQueryable<SaveAuction> moreThanOneBidQuery, HypixelContext context, int itemId)
+        private static IQueryable<SaveAuction> AddEnchantmentWhere(List<Enchantment> enchantments, IQueryable<SaveAuction> moreThanOneBidQuery, HypixelContext context, int itemId, int limit = 0)
         {
             Console.WriteLine("adding enchantments filter");
 
@@ -410,8 +412,10 @@ namespace hypixel
                 return SelectAuctionsWithoutEnchantments(ref moreThanOneBidQuery, query);
             }
 
-            var ids = query.Where(e => e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
+            IEnumerable<int> ids = query.Where(e => e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
+                        .OrderByDescending(e=>e.Id)
                         .Select(e => e.SaveAuctionId);
+
             if (enchantments.Count() > 1)
             {
                 // first two
@@ -422,6 +426,9 @@ namespace hypixel
                         .Where(e => e.Count() > 1)
                         .Select(e => e.Key);
             }
+
+            if(limit > 0)
+                ids = ids.Take(limit).ToList();
 
             moreThanOneBidQuery = moreThanOneBidQuery
             .Include(auction => auction.Enchantments)
@@ -448,6 +455,23 @@ namespace hypixel
         }
 
 
+        public IEnumerable<AuctionPreview> GetRecentAuctions(ItemSearchQuery query, int amount = 5)
+        {
+            using (var context = new HypixelContext())
+            {
+                var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
+                IQueryable<SaveAuction> select = CreateSelect(query, context, itemId,amount*2);
+                return select.OrderByDescending(a=>a.End).Take(amount).Select(a=>new AuctionPreview()
+                {
+                    End = a.End,
+                    Price = a.HighestBidAmount,
+                    Seller = a.AuctioneerId,
+                    Uuid = a.Uuid
+                }).ToList();
+            }
+        }
+
+
 
 
         public static DateTime RoundDown(DateTime date, TimeSpan span)
@@ -464,6 +488,19 @@ namespace hypixel
             public bool Bazaar;
             [Key("prices")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
+        }
+
+        [MessagePackObject]
+        public class AuctionPreview
+        {
+            [Key("seller")]
+            public string Seller;
+            [Key("price")]
+            public long Price;
+            [Key("end")]
+            public DateTime End;
+            [Key("uuid")]
+            public string Uuid;
         }
     }
 }

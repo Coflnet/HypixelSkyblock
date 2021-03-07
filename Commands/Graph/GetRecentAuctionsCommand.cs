@@ -2,7 +2,7 @@ using static hypixel.ItemReferences;
 
 namespace hypixel
 {
-    public class PricerDicerCommand : Command
+    public class GetRecentAuctionsCommand : Command
     {
         public override void Execute(MessageData data)
         {
@@ -11,9 +11,9 @@ namespace hypixel
             if (details.Reforge == Reforge.None)
                 details.Reforge = Reforge.Any;
 
-            var res = ItemPrices.Instance.GetPriceFor(details);
+            var res = ItemPrices.Instance.GetRecentAuctions(details);
 
-            data.SendBack(MessageData.Create("itemResponse", res, A_MINUTE));
+            data.SendBack(MessageData.Create("auctionResponse", res, A_MINUTE));
         }
     }
 }
