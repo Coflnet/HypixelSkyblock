@@ -52,7 +52,7 @@ namespace hypixel
                 // somethimes the "==" is missing idk why
                 try
                 {
-                    json = Encoding.UTF8.GetString(Convert.FromBase64String(base64.Trim()+ "="));
+                    json = Encoding.UTF8.GetString(Convert.FromBase64String(base64.Trim() + "="));
                 }
                 catch (Exception)
                 {
@@ -123,7 +123,7 @@ namespace hypixel
                 return 0;
             }
 
-            return (short) anvilUses.IntValue;
+            return (short)anvilUses.IntValue;
         }
 
         public static short HotPotatoCount(NbtFile data)
@@ -169,7 +169,7 @@ namespace hypixel
                     Logger.Instance.Error("Did not find Enchantment " + item);
                 }
                 var level = elements.Get<NbtInt>(item).IntValue;
-                result.Add(new Enchantment(type, (byte) level));
+                result.Add(new Enchantment(type, (byte)level));
             }
 
             return result;
@@ -185,14 +185,12 @@ namespace hypixel
         private static string ItemID(NbtFile file)
         {
             var nbt = GetExtraTag(file);
+
             var id = nbt?.Get<NbtString>("id")?.StringValue;
 
             if (id == "PET")
             {
-                var tag = nbt.Get<NbtString>("petInfo");
-                PetInfo info = JsonConvert.DeserializeObject<PetInfo>(tag.StringValue);
-                var petType = info.Type;
-                id += $"_{petType}";
+                id = GetPetId(nbt, id);
             }
             else if (id == "POTION")
             {
@@ -208,6 +206,24 @@ namespace hypixel
             }
 
             return id;
+
+        }
+
+        private static string GetPetId(NbtCompound nbt, string id)
+        {
+            try
+            {
+                var tag = nbt.Get<NbtString>("petInfo");
+                PetInfo info = JsonConvert.DeserializeObject<PetInfo>(tag.StringValue);
+                var petType = info.Type;
+                id += $"_{petType}";
+                return id;
+            }
+            catch (Exception)
+            {
+                Logger.Instance.Error($"Could not get itemId from nbt {nbt?.ToString()}");
+                return "PET_unkown";
+            }
         }
 
         public static byte[] Extra(string input)
@@ -221,7 +237,7 @@ namespace hypixel
         public static byte[] Extra(NbtFile file)
         {
             var tag = GetExtraTag(file);
-            if(tag == null)
+            if (tag == null)
                 return null;
 
             tag.Remove("enchantments");

@@ -265,7 +265,6 @@ namespace hypixel
                 dbauction.ProfileId = auction.ProfileId;
             if (dbauction.Start == default(DateTime))
                 dbauction.Start = auction.Start;
-            if (dbauction.End == default(DateTime))
                 dbauction.End = auction.End;
             if (dbauction.Category == Category.UNKNOWN)
                 dbauction.Category = auction.Category;

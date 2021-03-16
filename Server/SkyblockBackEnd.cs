@@ -19,8 +19,6 @@ namespace hypixel
         private static ConcurrentDictionary<long, SkyblockBackEnd> Subscribers = new ConcurrentDictionary<long, SkyblockBackEnd>();
         public static int ConnectionCount => Subscribers.Count;
 
-
-
         public long Id;
 
         private int _userId;
@@ -91,8 +89,10 @@ namespace hypixel
 
         public SkyblockBackEnd()
         {
-            limiter = TimeLimiter.GetFromMaxCountByInterval(5, TimeSpan.FromSeconds(5));
+            limiter = TimeLimiter.GetFromMaxCountByInterval(4, TimeSpan.FromSeconds(2));
         }
+
+        int waiting = 0;
 
         protected override void OnMessage(MessageEventArgs e)
         {
@@ -121,10 +121,17 @@ namespace hypixel
                 if (CacheService.Instance.TryFromCache(data))
                     return;
 
+                if(waiting > 30)
+                {
+                    throw new CoflnetException("stop_it","You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 20$ per month of data");
+                }
 
                 Task.Run(async () =>
                 {
+                    System.Threading.Interlocked.Increment(ref waiting);
                     await limiter;
+                    System.Threading.Interlocked.Decrement(ref waiting);
+                    Console.WriteLine($"waiting in line {waiting}");
                     try
                     {
                         Commands[data.Type].Execute(data);
@@ -208,12 +215,11 @@ namespace hypixel
             {
                 await IpRateLimiter.Instance.WaitUntilAllowed(this.Context.Headers["X-Real-Ip"]);
 
-                var constraint = new CountByIntervalAwaitableConstraint(1, TimeSpan.FromMilliseconds(100));
                 var constraint2 = new CountByIntervalAwaitableConstraint(10, TimeSpan.FromSeconds(2));
-                var heavyUsage = new CountByIntervalAwaitableConstraint(100, TimeSpan.FromMinutes(1));
-                var abuse = new CountByIntervalAwaitableConstraint(500, TimeSpan.FromMinutes(20));
+                var heavyUsage = new CountByIntervalAwaitableConstraint(40, TimeSpan.FromSeconds(20));
+                var abuse = new CountByIntervalAwaitableConstraint(500, TimeSpan.FromMinutes(10));
 
-                limiter = TimeLimiter.Compose(constraint, constraint2, heavyUsage, abuse);
+                limiter = TimeLimiter.Compose(constraint2, heavyUsage, abuse);
             });
         }
 

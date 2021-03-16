@@ -48,7 +48,8 @@ namespace hypixel
                             }
                         },
                     HighestBidAmount = item.Price,
-                    Bin = item.BuyItemNow
+                    Bin = item.BuyItemNow,
+                    End = DateTime.Now
                 };
 
                 NBT.FillDetails(a, item.ItemBytes);
@@ -64,10 +65,7 @@ namespace hypixel
                     SubscribeEngine.Instance.BinSold(item);
                 }
                 await Task.Delay(10000);
-                foreach (var item in auctions)
-                {
-                    ItemPrices.Instance.AddNewAuction(item);
-                }
+                ItemPrices.Instance.AddNewAuctions(auctions);
             });
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
         }

@@ -80,7 +80,7 @@ namespace hypixel
             Instance = new ItemPrices();
         }
 
-        public void AddNewAuction(SaveAuction auction)
+        private void AddNewAuction(SaveAuction auction)
         {
             TimeSpan aDay, oneHour;
             DateTime lastHour, startYesterday;

@@ -91,7 +91,7 @@ namespace hypixel
             Console.WriteLine($"Updating Data {DateTime.Now}");
 
             // add extra miniute to start to catch lost auctions
-            lastUpdate = lastUpdate - new TimeSpan(0, 1, 0);
+            lastUpdate = updateStartTime - new TimeSpan(0, 1, 0);
             DateTime lastHypixelCache = lastUpdate;
 
             var tasks = new List<Task>();
@@ -144,7 +144,15 @@ namespace hypixel
                     }
                     catch (Exception e)
                     {
-                        Logger.Instance.Error($"Single page ({index}) could not be loaded because of {e.Message} {e.StackTrace} {e.InnerException?.Message}");
+                        try // again
+                        {
+                            var res = await hypixel?.GetAuctionPageAsync(index);
+                            var val = Save(res, lastUpdate);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Logger.Instance.Error($"Single page ({index}) could not be loaded twice because of {e.Message} {e.StackTrace} {e.InnerException?.Message}");
+                        }
                     }
 
                 }, cancelToken).Unwrap());
@@ -253,10 +261,7 @@ namespace hypixel
             taskFactory.StartNew(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(20));
-                foreach (var item in ended)
-                {
-                    ItemPrices.Instance.AddNewAuction(item);
-                }
+                ItemPrices.Instance.AddNewAuctions(ended);
             });
 
 

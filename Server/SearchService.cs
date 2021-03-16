@@ -139,7 +139,7 @@ namespace hypixel
                 await CreateAndCache(letter.ToString());
                 await Task.Delay(100);
             }
-            await CreateAndCache("");
+            //await CreateAndCache("");
             Console.WriteLine("populated Cache");
         }
 

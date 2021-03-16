@@ -1,3 +1,4 @@
+using System;
 using static hypixel.ItemReferences;
 
 namespace hypixel
@@ -13,7 +14,18 @@ namespace hypixel
 
             var res = ItemPrices.Instance.GetPriceFor(details);
 
-            data.SendBack(MessageData.Create("itemResponse", res, A_MINUTE));
+            var maxAge = A_MINUTE;
+            if (IsDayRange(details))
+            {
+                maxAge = A_DAY;
+            }
+
+            data.SendBack(MessageData.Create("itemResponse", res, maxAge));
+        }
+
+        private static bool IsDayRange(ItemSearchQuery details)
+        {
+            return details.Start < DateTime.Now - TimeSpan.FromDays(2);
         }
     }
 }

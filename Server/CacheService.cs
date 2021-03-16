@@ -124,7 +124,6 @@ namespace hypixel
             private static ReducedCommandData CreateItem(MessageData m)
             {
                 var compressed = Zip(m.Data);
-                Console.WriteLine($"Compressed {m.Data.Length} to {compressed.Length}");
                 return new ReducedCommandData(m.Type, compressed);
             }
         }
