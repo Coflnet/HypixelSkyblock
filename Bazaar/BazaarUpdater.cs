@@ -68,6 +68,10 @@ namespace dev
                             .ThenInclude(p => p.QuickStatus)
                             .Take(8).ToListAsync();
 
+                if (i == 2)
+                {
+                    UpdateItemBazaarState(pull, context);
+                }
                 if (lastMinPulls.Any())
                 {
                     RemoveRedundandInformation(i, pull, context, lastMinPulls);
@@ -76,12 +80,26 @@ namespace dev
                 context.BazaarPull.Add(pull);
                 await context.SaveChangesAsync();
                 Console.Write("\r" + i);
+
             }
             ItemPrices.Instance.AddBazaarData(pull);
             SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
             LastUpdate = DateTime.Now;
+        }
+
+        private static void UpdateItemBazaarState(BazaarPull pull, HypixelContext context)
+        {
+            var names = pull.Products.Select(p => p.ProductId).ToList();
+            var bazaarItems = context.Items.Where(i => names.Contains(i.Tag));
+            foreach (var item in bazaarItems)
+            {
+                if (item.IsBazaar)
+                    continue;
+                item.IsBazaar = true;
+                context.Update(item);
+            }
         }
 
         private static void RemoveRedundandInformation(int i, BazaarPull pull, HypixelContext context, List<BazaarPull> lastMinPulls)
@@ -160,6 +178,7 @@ namespace dev
 
         public void UpdateForEver(string apiKey)
         {
+            HypixelApi api = null;
             Task.Run(async () =>
             {
                 int i = 0;
@@ -167,7 +186,8 @@ namespace dev
                 {
                     try
                     {
-                        var api = new HypixelApi(apiKey, 9);
+                        if(api == null)
+                            api  = new HypixelApi(apiKey, 9);
                         var start = DateTime.Now;
                         await PullAndSave(api, i);
                         await WaitForServerCacheRefresh(i, start);

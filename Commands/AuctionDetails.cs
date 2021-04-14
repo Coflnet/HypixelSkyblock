@@ -18,7 +18,7 @@ namespace hypixel {
                 if (result == null) {
                     throw new CoflnetException ("error", $"The Auction `{search}` wasn't found");
                 }
-                var resultJson = JsonConvert.SerializeObject (result);
+                var resultJson = JSON.Stringify (result);
                 var maxAge = A_MINUTE;
                 if(result.End > DateTime.Now)
                     // won't change anymore

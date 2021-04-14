@@ -76,6 +76,17 @@ namespace hypixel
                 return;
             }
 
+            if (path == "/api/items/bazaar")
+            {
+                PrintBazaarItems(req,res);
+                return;
+            }
+            if (path == "/api/items/search")
+            {
+                SearchItems(req,res);
+                return;
+            }
+
             byte[] contents;
             var relativePath = $"files/{path}";
 
@@ -134,10 +145,11 @@ namespace hypixel
         {
             var defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
             string parameter = "";
-            if(path.Split('/', '?', '#').Length > 2)
+            if (path.Split('/', '?', '#').Length > 2)
                 parameter = path.Split('/', '?', '#')[2];
             string title = defaultText;
             string imageUrl = "https://sky.coflnet.com/logo192.png";
+            string keyword = "";
             // try to fill in title
             if (path.Contains("auction/"))
             {
@@ -145,10 +157,10 @@ namespace hypixel
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName }).FirstOrDefault();
+                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName,a.End }).FirstOrDefault();
                     if (result != null)
                     {
-                        title = $"Auction for {result.ItemName} by {PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId)}";
+                        title = $"Auction for {result.ItemName} by {PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId)} ended on {result.End}";
 
                         if (!string.IsNullOrEmpty(result.Tag))
                             imageUrl = "https://sky.lea.moe/item/" + result.Tag;
@@ -161,18 +173,32 @@ namespace hypixel
             }
             if (path.Contains("player/"))
             {
-                title = $"Auctions and bids for {PlayerSearch.Instance.GetNameWithCache(parameter)}";
+                keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
+                title = $"Auctions and bids for {keyword}. See Recent Auctions, bids, hypixel SkyBlock auctionhouse and bazaar history with various filters.";
                 imageUrl = "https://crafatar.com/avatars/" + parameter;
             }
             if (path.Contains("item/"))
             {
-                title = $"Price for {ItemDetails.TagToName(parameter)}";
+                keyword = ItemDetails.TagToName(parameter);
+                title = $"Price for item {keyword} in hypixel SkyBlock. Filter current and historic prices for auction house and bazaar.";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
+                
             }
             var newHtml = Encoding.UTF8.GetString(contents)
                         .Replace(defaultText, title)
-                        .Replace("</title>", $"</title><meta property=\"og:image\" content=\"{imageUrl}\" />");
+                        .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar\" /><meta property=\"og:image\" content=\"{imageUrl}\" />")
+                        .Replace("</body>",PopularPages()+"</body>");
             return newHtml;
+        }
+
+        private static string PopularPages()
+        {
+            var recentSearches = SearchService.Instance.GetPopularSites();
+            if(!recentSearches.Any())
+                return "";
+            return "<div style=\"visibility: hidden;\"><h3>popular pages:</h3>" + recentSearches
+                .Select(p=>$"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title}</a>")
+                .Aggregate((a,b)=>a+b)+"</div>";
         }
 
         private static void GetSkin(string relativePath)
@@ -304,6 +330,27 @@ namespace hypixel
             {
                 res.StatusCode = 500;
             }
+
+
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+            res.WriteContent(Encoding.UTF8.GetBytes(json));
+        }
+
+        private static async void PrintBazaarItems(HttpListenerRequest req,HttpListenerResponse res)
+        {
+            var data = await ItemDetails.Instance.GetBazaarItems();
+
+
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i=> new {i.Name,i.Tag,i.MinecraftType,i.IconUrl}));
+            res.WriteContent(Encoding.UTF8.GetBytes(json));
+        }
+
+        private static async void SearchItems(HttpListenerRequest req,HttpListenerResponse res)
+        {
+            var term = req.QueryString["term"];
+            Console.WriteLine("searchig for:");
+            Console.WriteLine(term);
+            var data = await ItemDetails.Instance.Search(term);
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);

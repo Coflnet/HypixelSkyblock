@@ -25,14 +25,22 @@ namespace hypixel
         [Key("normalized")]
         public bool Normalized;
 
+        [Key("rarity")]
+        public Tier Tier;
+
+        [Key("data")]
+        public Dictionary<string,string> Data;
+
 
         [Key("start")]
         public long StartTimeStamp
         {
-            set{
+            set
+            {
                 Start = value.ThisIsNowATimeStamp();
             }
-            get {
+            get
+            {
                 return Start.ToUnix();
             }
         }
@@ -43,14 +51,16 @@ namespace hypixel
         [Key("end")]
         public long EndTimeStamp
         {
-            set{
-                if(value == 0)
+            set
+            {
+                if (value == 0)
                 {
                     End = DateTime.Now;
-                } else
+                }
+                else
                     End = value.ThisIsNowATimeStamp();
             }
-            get 
+            get
             {
                 return End.ToUnix();
             }

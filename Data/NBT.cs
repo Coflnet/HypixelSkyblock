@@ -71,7 +71,7 @@ namespace hypixel
         {
             var f = File(Convert.FromBase64String(itemBytes));
             var a = f.RootTag.ToString();
-            auction.Tag = ItemID(f);
+            auction.Tag = ItemID(f).Truncate(40);
             auction.Enchantments = Enchantments(f);
             auction.AnvilUses = AnvilUses(f);
             auction.Count = Count(f);

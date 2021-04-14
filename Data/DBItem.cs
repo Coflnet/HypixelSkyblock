@@ -12,9 +12,21 @@ namespace hypixel
         [JsonIgnore]
         public int Id { get; set; }
 
+        private string _tag;
+
         [System.ComponentModel.DataAnnotations.MaxLength(44)]
         [JsonProperty("tag")]
-        public string Tag { get; set; }
+        public string Tag
+        {
+            get
+            {
+                return _tag;
+            }
+            set
+            {
+                _tag = value.Truncate(44);
+            }
+        }
 
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [JsonProperty("name")]

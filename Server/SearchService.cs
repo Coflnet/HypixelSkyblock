@@ -18,11 +18,31 @@ namespace hypixel
     {
         const int targetAmount = 5;
 
+        
+
         ConcurrentDictionary<string, CacheItem> cache = new ConcurrentDictionary<string, CacheItem>();
         ConcurrentQueue<string> cacheKeyUpdate = new ConcurrentQueue<string>();
+        ConcurrentQueue<PopularSite> popularSite = new ConcurrentQueue<PopularSite>();
 
         private int updateCount = 0;
         public static SearchService Instance { get; private set; }
+
+        internal void AddPopularSite(string type, string id)
+        {
+            string title = "";
+            if(type == "player")
+                title = PlayerSearch.Instance.GetNameWithCache(id) + " auctions";
+            else if(type == "item")
+                title = ItemDetails.TagToName(id) + " price";
+            popularSite.Enqueue(new PopularSite(title,$"{type}/{id}"));
+            if(popularSite.Count > 8)
+                popularSite.TryDequeue(out PopularSite result);
+        }
+
+        public IEnumerable<PopularSite> GetPopularSites()
+        {
+            return popularSite;
+        }
 
         internal async Task<List<SearchResultItem>> Search(string search)
         {

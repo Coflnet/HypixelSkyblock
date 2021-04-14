@@ -28,6 +28,7 @@ namespace hypixel
         /// Limited task factory
         /// </summary>
         TaskFactory taskFactory;
+        private HypixelApi hypixel;
 
         public Updater(string apiKey)
         {
@@ -48,6 +49,8 @@ namespace hypixel
 
             try
             {
+                if(hypixel == null)
+                    hypixel = new HypixelApi(apiKey, 50);
                 lastUpdateDone = await RunUpdate(lastUpdateDone);
                 FileController.SaveAs("lastUpdate", lastUpdateDone);
                 FileController.Delete("lastUpdateStart");
@@ -69,7 +72,6 @@ namespace hypixel
 
         async Task<DateTime> RunUpdate(DateTime updateStartTime)
         {
-            var hypixel = new HypixelApi(apiKey, 50);
             /* Task.Run(()
                   => BinUpdater.GrabAuctions(hypixel)
              );*/
@@ -113,11 +115,12 @@ namespace hypixel
             for (int i = 0; i <= max; i++)
             {
                 var index = i;
+                await Task.Delay(100);
                 tasks.Add(taskFactory.StartNew(async () =>
                 {
 
                     // spread out the saving load burst
-                    // await Task.Delay(index * 200);
+                    await Task.Delay(index * 100);
                     try
                     {
                         var res = index != 0 ? await hypixel?.GetAuctionPageAsync(index) : firstPage;
@@ -206,8 +209,8 @@ namespace hypixel
                     }
                     catch (Exception e)
                     {
-                        Logger.Instance.Error("Updater encountered an outside error " + e.Message);
-                        await Task.Delay(10000);
+                        Logger.Instance.Error("Updater encountered an outside error: " + e.Message);
+                        await Task.Delay(15000);
                     }
 
                 }

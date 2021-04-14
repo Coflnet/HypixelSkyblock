@@ -3,8 +3,8 @@
     var last = {};
 
     function connect() {
-        ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock?id=testVerbindung");
-        // ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
+        //ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock?id=testVerbindung");
+        ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
 
 
         ws.onmessage = function(evt) {

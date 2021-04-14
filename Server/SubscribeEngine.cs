@@ -12,12 +12,21 @@ namespace hypixel
 
     public class SubscribeEngine
     {
-
-
-
+        /// <summary>
+        /// Subscriptions for being outbid
+        /// </summary>
         private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> outbid = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
+        /// <summary>
+        /// Subscriptions for ended auctions
+        /// </summary>
         private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> Sold = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
+        /// <summary>
+        /// Subscriptions for new auction/bazaar prices
+        /// </summary>
         private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> PriceUpdate = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
+        /// <summary>
+        /// All subscrptions to a specific auction
+        /// </summary>
         private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> AuctionSub = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
 
 
@@ -169,9 +178,9 @@ namespace hypixel
             {
                 NotificationService.Instance.Sold(sub, auction);
             });
-            NotifyIfExisting(this.AuctionSub, key, sub =>
+            NotifyIfExisting(this.AuctionSub, auction.Uuid, sub =>
             {
-                NotificationService.Instance.AuctionOver(sub,auction);
+                NotificationService.Instance.AuctionOver(sub, auction);
             });
 
 
@@ -194,18 +203,18 @@ namespace hypixel
         /// <param name="auction"></param>
         public void NewBids(SaveAuction auction)
         {
-            foreach (var bid in auction.Bids.Skip(1))
+            foreach (var bid in auction.Bids.OrderBy(b => b.Amount).Skip(1))
             {
                 NotifyIfExisting(this.outbid, bid.Bidder, sub =>
                 {
                     NotificationService.Instance.Outbid(sub, auction, bid);
                 });
 
-                NotifyIfExisting(this.AuctionSub, bid.Bidder, sub =>
-                {
-                    NotificationService.Instance.NewBid(sub, auction, bid);
-                });
             }
+            NotifyIfExisting(this.AuctionSub, auction.Uuid, sub =>
+            {
+                NotificationService.Instance.NewBid(sub, auction, auction.Bids.OrderBy(b => b.Amount).Last());
+            });
         }
 
 
@@ -228,10 +237,10 @@ namespace hypixel
                     if (value < item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_LOWER_THAN)
                          || value > item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
                     {
-                        if(item.NotTriggerAgainBefore < DateTime.Now)
+                        if (item.NotTriggerAgainBefore < DateTime.Now)
                             return;
                         item.NotTriggerAgainBefore = DateTime.Now + TimeSpan.FromHours(1);
-                        NotificationService.Instance.PriceAlert(item,info.ProductId,value);
+                        NotificationService.Instance.PriceAlert(item, info.ProductId, value);
                     }
                 }
             }
@@ -241,7 +250,7 @@ namespace hypixel
         private ConcurrentDictionary<string, List<SubLookup>> OnlineSubscriptions = new ConcurrentDictionary<string, List<SubLookup>>();
         private ConcurrentQueue<UnSub> ToUnsubscribe = new ConcurrentQueue<UnSub>();
 
-        public int SubCount => OnlineSubscriptions.Count;
+        public int SubCount => outbid.Count + Sold.Count + PriceUpdate.Count;
 
         public static TimeSpan BazzarNotificationBackoff = TimeSpan.FromHours(1);
 

@@ -39,7 +39,10 @@ namespace hypixel
 
             Console.WriteLine("got request for " + details.name);
 
-            if (details.Reforge != ItemReferences.Reforge.Any || (details.Enchantments != null && details.Enchantments.Count != 0))
+            if (details.Reforge != ItemReferences.Reforge.Any 
+                    || (details.Enchantments != null && details.Enchantments.Count != 0) 
+                    //|| details.Rarity != Tier.UNKNOWN 
+                    || details.Data != null)
                 return await QueryDB(details);
 
 
@@ -180,6 +183,16 @@ namespace hypixel
 
             if (details.Reforge != ItemReferences.Reforge.Any)
                 select = select.Where(auction => auction.Reforge == details.Reforge);
+
+         /*   if(details.Tier != Tier.UNKNOWN)
+                select = select.Where(a=>a.Tier == details.Tier);
+            
+            if(details.Data != null && details.Data.Count > 0)
+            {
+                var kv = details.Data.First();
+                select = select.Where(a=>(a.NbtData.Data as Dictionary<string,object>)[kv.Key].ToString() == kv.Value);
+            }*/
+
             return select;
         }
 

@@ -78,6 +78,17 @@ namespace hypixel
             }
         }
 
+        public async Task<IEnumerable<DBItem>> GetBazaarItems()
+        {
+            using (var context = new HypixelContext())
+            {
+                return await context.Items
+                    .Where(i=>i.IsBazaar)
+                    .ToListAsync();
+
+            }
+        }
+
         private static IEnumerable<ItemSearchResult> ToSearchResult(List<DBItem> items, string search)
         {
 

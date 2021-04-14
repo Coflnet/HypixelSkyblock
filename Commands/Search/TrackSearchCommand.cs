@@ -11,6 +11,8 @@ namespace hypixel
                 PlayerSearch.Instance.AddHitFor(hit.Id);
             else 
                 ItemDetails.Instance.AddHitFor(hit.Id);
+
+            SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
         }
         [MessagePackObject]
         public class Request
