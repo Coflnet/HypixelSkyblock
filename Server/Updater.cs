@@ -112,7 +112,7 @@ namespace hypixel
             var cancelToken = new CancellationToken();
 
 
-            for (int i = 0; i <= max; i++)
+            for (int i = 0; i < max; i++)
             {
                 var index = i;
                 await Task.Delay(100);

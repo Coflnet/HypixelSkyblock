@@ -109,6 +109,7 @@ namespace hypixel
             ultimate_one_for_all,
             None,
             cultivating,
+            delicate,
             
             
             Any = 126

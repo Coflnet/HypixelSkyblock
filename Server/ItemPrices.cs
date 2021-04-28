@@ -42,7 +42,8 @@ namespace hypixel
             if (details.Reforge != ItemReferences.Reforge.Any 
                     || (details.Enchantments != null && details.Enchantments.Count != 0) 
                     //|| details.Rarity != Tier.UNKNOWN 
-                    || details.Data != null)
+                    || details.Data != null
+                    || details.Tier != Tier.UNKNOWN)
                 return await QueryDB(details);
 
 
@@ -184,9 +185,10 @@ namespace hypixel
             if (details.Reforge != ItemReferences.Reforge.Any)
                 select = select.Where(auction => auction.Reforge == details.Reforge);
 
-         /*   if(details.Tier != Tier.UNKNOWN)
+
+            if(details.Tier != Tier.UNKNOWN)
                 select = select.Where(a=>a.Tier == details.Tier);
-            
+            /*
             if(details.Data != null && details.Data.Count > 0)
             {
                 var kv = details.Data.First();
@@ -302,7 +304,7 @@ namespace hypixel
 
                 start = end;
                 end = start + TimeSpan.FromDays(updateDaySize);
-                if (context.Prices.Where(p => p.ItemId == itemId && p.Date < end + TimeSpan.FromMinutes(1) && p.Date > start - TimeSpan.FromMinutes(1)).Any())
+                if (context.Prices.Where(p => p.ItemId == itemId && p.Date < end.AddMinutes(1) && p.Date > start.AddMinutes(-1)).Any())
                     continue;
                 var select = AuctionSelect(start, end, context, itemId);
                 var result = await AvgFromAuctions(itemId, select);

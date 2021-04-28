@@ -144,10 +144,12 @@ namespace hypixel
         private static string FillDescription(string path, byte[] contents)
         {
             var defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
+            var defaultTitle = "Skyblock Auction House History";
             string parameter = "";
             if (path.Split('/', '?', '#').Length > 2)
                 parameter = path.Split('/', '?', '#')[2];
-            string title = defaultText;
+            string description = defaultText;
+            string title = defaultTitle;
             string imageUrl = "https://sky.coflnet.com/logo192.png";
             string keyword = "";
             // try to fill in title
@@ -157,10 +159,13 @@ namespace hypixel
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName,a.End }).FirstOrDefault();
+                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName,a.End,bidCount = a.Bids.Count,a.Tier,a.Category }).FirstOrDefault();
                     if (result != null)
                     {
-                        title = $"Auction for {result.ItemName} by {PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId)} ended on {result.End}";
+                        var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
+                        title = $"Auction for {result.ItemName} by {playerName}";
+                        description = $"{title} ended on {result.End} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}";
+                        keyword = $"{result.ItemName},{playerName}";
 
                         if (!string.IsNullOrEmpty(result.Tag))
                             imageUrl = "https://sky.lea.moe/item/" + result.Tag;
@@ -168,35 +173,38 @@ namespace hypixel
                             imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
 
                     }
-
                 }
             }
             if (path.Contains("player/"))
             {
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
-                title = $"Auctions and bids for {keyword}. See Recent Auctions, bids, hypixel SkyBlock auctionhouse and bazaar history with various filters.";
+                title = $"{keyword} Auctions and bids";
+                description = $"Auctions and bids for {keyword}. See Recent Auctions, bids, and prices for hypixel SkyBlock auctionhouse and bazaar history with various filters.";
                 imageUrl = "https://crafatar.com/avatars/" + parameter;
             }
             if (path.Contains("item/"))
             {
                 keyword = ItemDetails.TagToName(parameter);
-                title = $"Price for item {keyword} in hypixel SkyBlock. Filter current and historic prices for auction house and bazaar.";
+                title = $"{keyword} price ";
+                description = $"Price for item {keyword} in hypixel SkyBlock. Filter, search and browss current and historic prices for auction house and bazaar.";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
-                
             }
             var newHtml = Encoding.UTF8.GetString(contents)
-                        .Replace(defaultText, title)
+                        .Replace(defaultText, description)
+                        .Replace(defaultTitle, title + "| Hypixel SkyBlock Auction house history")
                         .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar\" /><meta property=\"og:image\" content=\"{imageUrl}\" />")
-                        .Replace("</body>",PopularPages()+"</body>");
+                        .Replace("</body>",PopularPages(description)+"</body>");
             return newHtml;
         }
 
-        private static string PopularPages()
+        private static string PopularPages(string description)
         {
             var recentSearches = SearchService.Instance.GetPopularSites();
             if(!recentSearches.Any())
                 return "";
-            return "<div style=\"visibility: hidden;\"><h3>popular pages:</h3>" + recentSearches
+            return $@"<div style=""visibility: hidden;"">
+                    <p>{description}</p><h3>popular pages:</h3>" 
+                    + recentSearches
                 .Select(p=>$"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title}</a>")
                 .Aggregate((a,b)=>a+b)+"</div>";
         }

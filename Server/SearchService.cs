@@ -31,10 +31,12 @@ namespace hypixel
         {
             string title = "";
             if(type == "player")
-                title = PlayerSearch.Instance.GetNameWithCache(id) + " auctions";
+                title = PlayerSearch.Instance.GetNameWithCache(id) + " auctions hypixel skyblock";
             else if(type == "item")
-                title = ItemDetails.TagToName(id) + " price";
-            popularSite.Enqueue(new PopularSite(title,$"{type}/{id}"));
+                title = ItemDetails.TagToName(id) + " price hypixel skyblock";
+            var entry = new PopularSite(title, $"{type}/{id}");
+            if(!popularSite.Contains(entry))
+                popularSite.Enqueue(entry);
             if(popularSite.Count > 8)
                 popularSite.TryDequeue(out PopularSite result);
         }
@@ -121,11 +123,12 @@ namespace hypixel
 
         private static void ShrinkHitsType(HypixelContext context, IEnumerable<IHitCount> source)
         {
-            var res = source.Where(p => p.HitCount > 0);
-            foreach (var player in res)
+            // heavy searched results are reduced in order to allow other results to overtake them
+            var res = source.Where(p => p.HitCount > 4);
+            foreach (var item in res)
             {
-                player.HitCount = player.HitCount * 9 / 10; // - 1; players that were searched once will be prefered forever
-                context.Update(player);
+                item.HitCount = item.HitCount * 9 / 10; // - 1; players that were searched once will be prefered forever
+                context.Update(item);
             }
         }
 
@@ -197,7 +200,8 @@ namespace hypixel
         [MessagePackObject]
         public class SearchResultItem
         {
-            private const int ITEM_EXTRA_IMPORTANCE = 5;
+            private const int ITEM_EXTRA_IMPORTANCE = 10;
+            private const int NOT_NORMALIZED_PENILTY = ITEM_EXTRA_IMPORTANCE * 3 / 2;
             [Key("name")]
             public string Name;
             [Key("id")]
@@ -217,11 +221,18 @@ namespace hypixel
                 this.Name = item.Name;
                 this.Id = item.Tag;
                 this.Type = "item";
-                if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
+                if (!item.Tag.StartsWith("POTION") && IsPet(item) && !item.Tag.StartsWith("RUNE"))
                     IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                 else
                     this.IconUrl = item.IconUrl;
                 this.HitCount = item.HitCount + ITEM_EXTRA_IMPORTANCE;
+                if(ItemReferences.RemoveReforgesAndLevel(Name) != Name)
+                    this.HitCount -= NOT_NORMALIZED_PENILTY;
+            }
+
+            private static bool IsPet(ItemDetails.ItemSearchResult item)
+            {
+                return (!item.Tag.StartsWith("PET") || item.Tag.StartsWith("PET_SKIN"));
             }
 
             public SearchResultItem(PlayerResult player)

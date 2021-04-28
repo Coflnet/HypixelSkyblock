@@ -60,17 +60,16 @@ namespace hypixel
 
         internal async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
         {
-            //return this.ReverseNames.Keys
-            //    .Where(key => key.StartsWith(search))
-            //    .Select(key => new ItemSearchResult() { Name = key, Tag = ReverseNames[key] });
+            search = search.TrimStart();
             using (var context = new HypixelContext())
             {
                 var items = await context.Items
                     .Include(item => item.Names)
                     .Where(item =>
                         item.Names
-                        .Where(name => EF.Functions.Like(name.Name, search + '%')).Any()
-                    ).OrderBy(item => item.Name.Length - item.HitCount)
+                        .Where(name => EF.Functions.Like(name.Name, search + '%') 
+                        || EF.Functions.Like(name.Name, "Enchanted " + search + '%')).Any()
+                    ).OrderBy(item => item.Name.Length - item.HitCount - (item.Name == search ? 10000000 : 0))
                     .Take(count)
                     .ToListAsync();
 

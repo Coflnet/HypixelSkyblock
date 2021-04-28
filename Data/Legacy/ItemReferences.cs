@@ -112,6 +112,9 @@ namespace hypixel
             mithraic,
             Auspicious,
             headstrong,
+            stiff,
+            bulky,
+            lucky,
 
 
 
