@@ -110,7 +110,7 @@ namespace hypixel
 
                 mId = data.mId;
                 data.Connection = this;
-                // Console.WriteLine(data.Data);
+                Console.WriteLine($"r {data.Type} {data.Data.Truncate(20)}");
 
                 if (!Commands.ContainsKey(data.Type))
                 {
@@ -123,6 +123,7 @@ namespace hypixel
 
                 if(waiting > 30)
                 {
+                    dev.Logger.Instance.Error("triggered rate limit");
                     throw new CoflnetException("stop_it","You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 20$ per month of data");
                 }
 
@@ -131,7 +132,6 @@ namespace hypixel
                     System.Threading.Interlocked.Increment(ref waiting);
                     await limiter;
                     System.Threading.Interlocked.Decrement(ref waiting);
-                    Console.WriteLine($"waiting in line {waiting}");
                     try
                     {
                         Commands[data.Type].Execute(data);

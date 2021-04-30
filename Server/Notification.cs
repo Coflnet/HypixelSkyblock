@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
@@ -7,6 +8,7 @@ namespace hypixel
         public class Notification
         {
             public string title;
+            [JsonIgnore]
             public object data;
             public string click_action;
             public string icon;

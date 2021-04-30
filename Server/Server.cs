@@ -152,8 +152,11 @@ namespace hypixel
             string title = defaultTitle;
             string imageUrl = "https://sky.coflnet.com/logo192.png";
             string keyword = "";
+
+            string html = Encoding.UTF8.GetString(contents);
+
             // try to fill in title
-            if (path.Contains("auction/"))
+            if (path.Contains("auction/")  || path.Contains("a/"))
             {
                 // is an auction
                 using (var context = new HypixelContext())
@@ -175,36 +178,42 @@ namespace hypixel
                     }
                 }
             }
-            if (path.Contains("player/"))
+            if (path.Contains("player/") || path.Contains("p/"))
             {
+                if(parameter.Length < 30){
+                    parameter = PlayerSearch.Instance.GetIdForName(parameter);
+                    html = html.Replace("</head>",$"<meta http-equiv=\"Refresh\" content=\"0; url='https://sky.coflnet.com/player/{parameter}'\" /></head>");
+                }
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
                 title = $"{keyword} Auctions and bids";
                 description = $"Auctions and bids for {keyword}. See Recent Auctions, bids, and prices for hypixel SkyBlock auctionhouse and bazaar history with various filters.";
                 imageUrl = "https://crafatar.com/avatars/" + parameter;
             }
-            if (path.Contains("item/"))
+            if (path.Contains("item/") || path.Contains("i/"))
             {
                 keyword = ItemDetails.TagToName(parameter);
                 title = $"{keyword} price ";
-                description = $"Price for item {keyword} in hypixel SkyBlock. Filter, search and browss current and historic prices for auction house and bazaar.";
+                description = $"Price for item {keyword} in hypixel SkyBlock. Search, browse, and filter by reforge or enchantment, all current and historic prices for auction house and bazaar on this web tracker.";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
             }
-            var newHtml = Encoding.UTF8.GetString(contents)
+            var newHtml = html
                         .Replace(defaultText, description)
-                        .Replace(defaultTitle, title + "| Hypixel SkyBlock Auction house history")
-                        .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar\" /><meta property=\"og:image\" content=\"{imageUrl}\" />")
+                        .Replace(defaultTitle, title + "| Hypixel SkyBlock Auction house history tracker")
+                        .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" /><meta property=\"og:image\" content=\"{imageUrl}\" />")
                         .Replace("</body>",PopularPages(description)+"</body>");
             return newHtml;
         }
 
         private static string PopularPages(string description)
         {
-            var recentSearches = SearchService.Instance.GetPopularSites();
+            var r = new Random();
+            var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x=>r.Next());
             if(!recentSearches.Any())
                 return "";
             return $@"<div style=""visibility: hidden;"">
                     <p>{description}</p><h3>popular pages:</h3>" 
                     + recentSearches
+                    .Take(6)
                 .Select(p=>$"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title}</a>")
                 .Aggregate((a,b)=>a+b)+"</div>";
         }

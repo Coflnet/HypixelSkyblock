@@ -37,8 +37,6 @@ namespace hypixel
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
 
-            Console.WriteLine("got request for " + details.name);
-
             if (details.Reforge != ItemReferences.Reforge.Any 
                     || (details.Enchantments != null && details.Enchantments.Count != 0) 
                     //|| details.Rarity != Tier.UNKNOWN 

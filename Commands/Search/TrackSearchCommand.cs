@@ -13,6 +13,7 @@ namespace hypixel
                 ItemDetails.Instance.AddHitFor(hit.Id);
 
             SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
+            data.Ok();
         }
         [MessagePackObject]
         public class Request

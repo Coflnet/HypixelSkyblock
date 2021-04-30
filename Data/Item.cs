@@ -69,7 +69,7 @@ namespace hypixel
                         item.Names
                         .Where(name => EF.Functions.Like(name.Name, search + '%') 
                         || EF.Functions.Like(name.Name, "Enchanted " + search + '%')).Any()
-                    ).OrderBy(item => item.Name.Length - item.HitCount - (item.Name == search ? 10000000 : 0))
+                    ).OrderBy(item => item.Name.Length/2 - item.HitCount - (item.Name == search ? 10000000 : 0))
                     .Take(count)
                     .ToListAsync();
 
@@ -96,7 +96,7 @@ namespace hypixel
                 .Select(item => new ItemSearchResult()
                 {
                     Name = (item.Names
-                            .Where(n => n != null && n.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()))
+                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()))
                             .FirstOrDefault()?.Name) ??( item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
                     Tag = item.Tag,
                     IconUrl = item.IconUrl,

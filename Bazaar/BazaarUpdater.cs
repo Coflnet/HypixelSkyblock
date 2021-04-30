@@ -164,7 +164,7 @@ namespace dev
                 pull.Products.Remove(item);
             }
 
-            Console.WriteLine($"BuyChange: {productCount - buyChange}  SellChange: {productCount - sellChange}");
+            Console.Write($"  BuyChange: {productCount - buyChange}  SellChange: {productCount - sellChange}");
             context.Update(lastPull);
         }
 

@@ -38,6 +38,16 @@ namespace hypixel
                     .FirstOrDefault();
             }
         }
+        internal string GetIdForName(string name)
+        {
+            using(var context = new HypixelContext())
+            {
+                return context.Players
+                    .Where(player => player.Name == name)
+                    .Select(player => player.UuId)
+                    .FirstOrDefault();
+            }
+        }
 
         /// <summary>
         /// Uses the <see cref="CacheService"/> to cache db queries
@@ -170,5 +180,6 @@ namespace hypixel
             }
             return result;
         }
+
     }
 }

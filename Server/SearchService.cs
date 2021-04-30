@@ -37,7 +37,7 @@ namespace hypixel
             var entry = new PopularSite(title, $"{type}/{id}");
             if(!popularSite.Contains(entry))
                 popularSite.Enqueue(entry);
-            if(popularSite.Count > 8)
+            if(popularSite.Count > 80)
                 popularSite.TryDequeue(out PopularSite result);
         }
 

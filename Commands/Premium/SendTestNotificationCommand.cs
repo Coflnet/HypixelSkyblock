@@ -13,7 +13,7 @@ namespace hypixel
                 var device = data.User.Devices.Where(d => d.Name == name).FirstOrDefault();
 
                 var notification = new NotificationService.Notification("Test notification",$"This is your device named '{device.Name}'","https://sky.coflnet.com/devices",null,null,null);
-                await NotificationService.Instance.NotifyAsync(device.Token,notification);
+                await NotificationService.Instance.TryNotifyAsync(device.Token,notification);
             }
         }
     }

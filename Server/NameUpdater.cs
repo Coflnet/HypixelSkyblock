@@ -36,7 +36,6 @@ namespace hypixel
                     player.UpdatedAt = DateTime.Now;
                     context.Players.Update(player);
                 }
-                Console.WriteLine("Updated player: " + players.LastOrDefault()?.UuId);
 
                 updated = await context.SaveChangesAsync();
             }
