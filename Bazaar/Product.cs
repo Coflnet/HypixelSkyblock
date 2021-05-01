@@ -20,6 +20,9 @@ namespace dev
             this.BuySummery = value.BuySummary.Select(s=>new BuyOrder(s)).ToList();
             this.SellSummary = value.SellSummary.Select(s=>new SellOrder(s)).ToList();
             this.QuickStatus = new QuickStatus( value.QuickStatus);
+            // overwrite price with real orders
+            this.QuickStatus.SellPrice = SellSummary.Select(o=>o.PricePerUnit).FirstOrDefault();
+            this.QuickStatus.BuyPrice = BuySummery.Select(o=>o.PricePerUnit).FirstOrDefault();
             this.PullInstance = pull;
         }
 

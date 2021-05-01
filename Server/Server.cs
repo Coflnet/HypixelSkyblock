@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
+using System.Web;
 
 namespace hypixel
 {
@@ -78,12 +79,12 @@ namespace hypixel
 
             if (path == "/api/items/bazaar")
             {
-                PrintBazaarItems(req,res);
+                PrintBazaarItems(req, res);
                 return;
             }
             if (path == "/api/items/search")
             {
-                SearchItems(req,res);
+                SearchItems(req, res);
                 return;
             }
 
@@ -156,13 +157,13 @@ namespace hypixel
             string html = Encoding.UTF8.GetString(contents);
 
             // try to fill in title
-            if (path.Contains("auction/")  || path.Contains("a/"))
+            if (path.Contains("auction/") || path.Contains("a/"))
             {
                 // is an auction
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName,a.End,bidCount = a.Bids.Count,a.Tier,a.Category }).FirstOrDefault();
+                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category }).FirstOrDefault();
                     if (result != null)
                     {
                         var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
@@ -180,9 +181,11 @@ namespace hypixel
             }
             if (path.Contains("player/") || path.Contains("p/"))
             {
-                if(parameter.Length < 30){
+                if (parameter.Length < 30)
+                {
                     parameter = PlayerSearch.Instance.GetIdForName(parameter);
-                    html = html.Replace("</head>",$"<meta http-equiv=\"Refresh\" content=\"0; url='https://sky.coflnet.com/player/{parameter}'\" /></head>");
+                    if (parameter != null)
+                        html = Redirect(parameter, html, "player");
                 }
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
                 title = $"{keyword} Auctions and bids";
@@ -191,31 +194,72 @@ namespace hypixel
             }
             if (path.Contains("item/") || path.Contains("i/"))
             {
-                keyword = ItemDetails.TagToName(parameter);
+                bool redirect = false;
+                if (parameter.ToUpper() != parameter)
+                {
+                    // likely not a tag
+                    parameter = HttpUtility.UrlDecode(parameter);
+                    var thread = ItemDetails.Instance.Search(parameter, 1);
+                    thread.Wait();
+                    var item = thread.Result.FirstOrDefault();
+                    keyword = item?.Name;
+                    parameter = item?.Tag;
+                    redirect = true;
+                }
+                else
+                {
+                    keyword = ItemDetails.TagToName(parameter);
+                }
+                if (redirect || path.Contains("i/"))
+                    html = AddItemRedirect(parameter, html);
+
+                var i = ItemDetails.Instance.GetDetailsWithCache(parameter);
                 title = $"{keyword} price ";
-                description = $"Price for item {keyword} in hypixel SkyBlock. Search, browse, and filter by reforge or enchantment, all current and historic prices for auction house and bazaar on this web tracker.";
+                description = $"Price for item {keyword} in hypixel SkyBlock"
+                + AddAlternativeNames(i)
+                + ". Search, browse, and filter by reforge or enchantment, all current and historic prices for auction house and bazaar on this web tracker.";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
             }
             var newHtml = html
                         .Replace(defaultText, description)
                         .Replace(defaultTitle, title + "| Hypixel SkyBlock Auction house history tracker")
                         .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" /><meta property=\"og:image\" content=\"{imageUrl}\" />")
-                        .Replace("</body>",PopularPages(description)+"</body>");
+                        .Replace("</body>", PopularPages(description) + "</body>");
             return newHtml;
+        }
+
+        private static string AddAlternativeNames(DBItem i)
+        {
+            return ". Found names: " + i.Names.Select(n => n.Name).Aggregate((a, b) => $"{a}, {b}").TrimEnd(' ', ',');
+        }
+
+        private static string AddItemRedirect(string parameter, string html)
+        {
+            var type = "item";
+            html = Redirect(parameter, html, type);
+            return html;
+        }
+
+        private static string Redirect(string parameter, string html, string type)
+        {
+            html = html.Replace("</head>", $"<meta http-equiv=\"Refresh\" content=\"0; url='https://sky.coflnet.com/{type}/{parameter}'\" /></head>");
+            // don't load react
+            html = System.Text.RegularExpressions.Regex.Replace(html, @"<script src=""\/static\/js.*<\/script>", "");
+            return html;
         }
 
         private static string PopularPages(string description)
         {
             var r = new Random();
-            var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x=>r.Next());
-            if(!recentSearches.Any())
+            var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x => r.Next());
+            if (!recentSearches.Any())
                 return "";
             return $@"<div style=""visibility: hidden;"">
-                    <p>{description}</p><h3>popular pages:</h3>" 
+                    <p>{description}</p><h3>popular pages:</h3>"
                     + recentSearches
                     .Take(6)
-                .Select(p=>$"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title}</a>")
-                .Aggregate((a,b)=>a+b)+"</div>";
+                .Select(p => $"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title}</a>")
+                .Aggregate((a, b) => a + b) + "</div>";
         }
 
         private static void GetSkin(string relativePath)
@@ -353,16 +397,16 @@ namespace hypixel
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
 
-        private static async void PrintBazaarItems(HttpListenerRequest req,HttpListenerResponse res)
+        private static async void PrintBazaarItems(HttpListenerRequest req, HttpListenerResponse res)
         {
             var data = await ItemDetails.Instance.GetBazaarItems();
 
 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i=> new {i.Name,i.Tag,i.MinecraftType,i.IconUrl}));
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i => new { i.Name, i.Tag, i.MinecraftType, i.IconUrl }));
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
 
-        private static async void SearchItems(HttpListenerRequest req,HttpListenerResponse res)
+        private static async void SearchItems(HttpListenerRequest req, HttpListenerResponse res)
         {
             var term = req.QueryString["term"];
             Console.WriteLine("searchig for:");

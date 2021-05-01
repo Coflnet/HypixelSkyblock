@@ -9,6 +9,7 @@ using Hypixel.NET.SkyblockApi;
 using Newtonsoft.Json;
 using dev;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -302,7 +303,7 @@ namespace hypixel
 
                 if (id > 1)
                 {
-                    var item = context.Items.Where(i => i.Id == id).First();
+                    var item = context.Items.Include(i=>i.Names).Where(i => i.Id == id).First();
                     item.Name = fullName;
                     // cooler icons 
                     //if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
@@ -312,6 +313,16 @@ namespace hypixel
             }
 
             return new DBItem() { Tag = "Unknown", Name = fullName };
+        }
+
+        public DBItem GetDetailsWithCache(string uuid)
+        {
+            if(CacheService.Instance.GetFromCache("itemDetails",uuid, out string json))
+                return JsonConvert.DeserializeObject<DBItem>(json);
+            
+            var response = ItemDetailsCommand.CreateResponse(uuid);
+            CacheService.Instance.Save("itemDetails",uuid,response);
+            return JsonConvert.DeserializeObject<DBItem>(response.Data);
         }
 
         public void Save()

@@ -7,9 +7,20 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            Regex rgx = new Regex("[^a-zA-Z -]");
-            var search = data.Data.Replace("\"",""); // rgx.Replace(data.Data, "");
-            data.SendBack(new MessageData("itemDetailsResponse",JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search)),A_WEEK));
+            string search = ReplaceInvalidCharacters(data.Data); // rgx.Replace(data.Data, "");
+            data.SendBack(CreateResponse(search));
+        }
+
+        public static MessageData CreateResponse(string search)
+        {
+            return new MessageData("itemDetailsResponse", JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search)), A_WEEK);
+        }
+
+        public static string ReplaceInvalidCharacters(string data)
+        {
+            Regex rgx = new Regex("[^a-zA-Z -\\[\\]]");
+            var search = data.Replace("\"", "");
+            return search;
         }
     }
 }

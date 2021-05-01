@@ -109,36 +109,6 @@ namespace hypixel
             }
         }
 
-        public async void LoadName(User user)
-        {
-            if (!user.Name.IsNullOrEmpty() && user.Name.Length > 2)
-            {
-
-                // already loaded
-                return;
-            }
-
-            lock(nameRequests)
-            {
-                if (nameRequests.ContainsKey(user.uuid))
-                {
-                    // already on its way
-                    return;
-                }
-                nameRequests[user.uuid] = 1;
-            }
-
-            var name = await Program.GetPlayerNameFromUuid(user.uuid);
-
-            if (name.IsNullOrEmpty())
-            {
-                //Console.WriteLine($"\rCould not get name for: {user.uuid} {user.Name}");
-                return;
-            }
-
-            user.Name = name;
-            SaveNameForPlayer(name, user.uuid);
-        }
 
         public async Task<IEnumerable<PlayerResult>> Search(string search, int count, bool forceResolution = true)
         {

@@ -69,11 +69,13 @@ namespace hypixel
 
         private Resonse FromList(IEnumerable<AveragePrice> prices, int itemId)
         {
+            var isBazaar = IsBazaar(itemId);
             return new Resonse()
             {
                 Filterable = IsFilterable(itemId),
-                Bazaar = IsBazaar(itemId),
-                Prices = prices.ToList()
+                Bazaar = isBazaar,
+                // exclude high moving 
+                Prices = isBazaar ? prices.Where(p=>p.Max < prices.Average(pi=>pi.Min) * 1000).ToList() : prices.ToList()
             };
         }
 
