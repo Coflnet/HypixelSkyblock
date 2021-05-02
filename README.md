@@ -1,5 +1,5 @@
 # HypixelSkyblock
-This is the back-end for https://skyblock.coflnet.com 
+This is the back-end for https://sky.coflnet.com 
 You can get the same data and play around with it by following using this project.
 If you want historic data you can purchase it from me (to cover my server bills).
 
