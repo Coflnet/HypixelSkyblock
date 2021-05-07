@@ -4,7 +4,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            SubscribeEngine.Instance.Subscribe(data.GetAs<string>(),data.Connection);
+            SubscribeEngine.Instance.Subscribe(data.GetAs<string>(),data.UserId);
             data.SendBack(MessageData.Create("subscribeResponse","success"));
         }
     }
@@ -12,7 +12,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            SubscribeEngine.Instance.Unsubscribe(data.GetAs<string>(),data.Connection);
+            SubscribeEngine.Instance.Unsubscribe(data.GetAs<string>(),data.UserId);
             data.SendBack(MessageData.Create("unsubscribeResponse","unsubscribed"));
         }
     }

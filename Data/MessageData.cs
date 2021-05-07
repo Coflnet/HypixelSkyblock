@@ -1,5 +1,9 @@
 using System;
+using System.IO;
+using System.Text;
 using MessagePack;
+using WebSocketSharp;
+using WebSocketSharp.Net;
 
 namespace hypixel
 {
@@ -8,7 +12,8 @@ namespace hypixel
     {
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
-        public SkyblockBackEnd Connection;
+        public virtual int UserId {get;set;}
+
 
         [Key("type")]
         public string Type;
@@ -27,7 +32,7 @@ namespace hypixel
         public string CustomCacheKey;
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
-        public GoogleUser User => UserService.Instance.GetUserById(Connection.UserId);
+        public GoogleUser User => UserService.Instance.GetUserById(UserId);
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
         public DateTime Created = DateTime.Now;
@@ -47,19 +52,11 @@ namespace hypixel
             return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
         }
 
-        private int responseCounter = 0;
 
-        public void SendBack(MessageData data, bool cache = true)
+        public virtual void SendBack(MessageData data, bool cache = true)
         {
-            data.mId = mId;
-            if (cache )
-                CacheService.Instance.Save(this, data, responseCounter++);
-            Connection.SendBack(data);
-            if(this.Created < DateTime.Now - TimeSpan.FromSeconds(1))
-            {
-                // wow this took waaay to long
-                Console.WriteLine($"slow response/long time ({DateTime.Now-data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
-            }
+            throw new Exception("Can't send back with default connection");
+            
         }
 
         public static MessageData Create<T>(string type, T data, int maxAge = 0)
@@ -80,6 +77,62 @@ namespace hypixel
         public void Ok()
         {
             SendBack(MessageData.Create("ok", ""));
+        }
+    }
+
+    public class SocketMessageData : MessageData
+    {
+        
+        [IgnoreMember]
+        [Newtonsoft.Json.JsonIgnore]
+        public SkyblockBackEnd Connection;
+        private int responseCounter = 0;
+
+        public SocketMessageData()
+        {
+        }
+
+        public override void SendBack(MessageData data, bool cache = true)
+        {
+            data.mId = mId;
+            if (cache )
+                CacheService.Instance.Save(this, data, responseCounter++);
+            Connection.SendBack(data);
+            if(this.Created < DateTime.Now - TimeSpan.FromSeconds(1))
+            {
+                // wow this took waaay to long
+                Console.WriteLine($"slow response/long time ({DateTime.Now-data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
+            }
+        }
+    }
+
+    public class HttpMessageData : MessageData
+    {
+        private HttpListenerResponse res;
+
+        public override int UserId { 
+            get => base.UserId; 
+            set  {
+                SetUserId(value);
+                base.UserId = value; 
+            }
+        }
+        public Action<int> SetUserId { get; set; }
+
+        public HttpMessageData(HttpListenerRequest req, HttpListenerResponse res)
+        {
+            Type = req.RawUrl.Split('/')[2];
+            Data = new StreamReader(req.InputStream).ReadToEnd();
+            this.res = res;
+        }
+
+        public override void SendBack(MessageData data, bool cache = true)
+        {
+            if (cache )
+                CacheService.Instance.Save(this, data, 0);
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Data);
+            res.StatusCode = 200;
+            res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
     }
 }

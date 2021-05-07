@@ -10,7 +10,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var args = data.GetAs<Arguments>();
-                var userId = data.Connection.UserId;
+                var userId = data.UserId;
                 
                 var affected = await SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type);
 

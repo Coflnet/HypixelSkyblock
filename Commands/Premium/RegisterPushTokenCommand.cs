@@ -7,7 +7,7 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             var args = data.GetAs<Arguments>();
-            NotificationService.Instance.AddToken(data.Connection.UserId, args.deviceName, args.token);
+            NotificationService.Instance.AddToken(data.UserId, args.deviceName, args.token);
         }
 
         [MessagePackObject]

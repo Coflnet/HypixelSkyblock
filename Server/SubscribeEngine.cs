@@ -298,11 +298,11 @@ namespace hypixel
             });
         }
 
-        public void Subscribe(string topic, SkyblockBackEnd connection)
+        public void Subscribe(string topic, int userId)
         {
-            if (connection.Id == 0)
+            if (userId == 0)
                 throw new CoflnetException("id_not_set", "There is no `id` set on this connection. To Subscribe you need to pass a random generated id (32 char long) via get parameter (/skyblock?id=uuid) or cookie id");
-            var lookup = new SubLookup(connection.Id);
+            var lookup = new SubLookup(userId);
             OnlineSubscriptions.AddOrUpdate(topic.Truncate(32),
             new List<SubLookup>() { lookup },
             (key, list) =>
@@ -313,9 +313,9 @@ namespace hypixel
             });
         }
 
-        public void Unsubscribe(string topic, SkyblockBackEnd connection)
+        public void Unsubscribe(string topic, int  userId)
         {
-            ToUnsubscribe.Enqueue(new UnSub(topic, connection.Id));
+            ToUnsubscribe.Enqueue(new UnSub(topic, userId));
             // unsubscribe stale elements
             while (ToUnsubscribe.TryDequeue(out UnSub result))
             {

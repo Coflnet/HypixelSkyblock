@@ -56,7 +56,7 @@ namespace hypixel
                 var days = int.Parse(args.ProductId.Split('_')[1]);
                 using (var context = new HypixelContext())
                 {
-                    var user = context.Users.Where(u => u.Id == data.Connection.UserId).First();
+                    var user = context.Users.Where(u => u.Id == data.UserId).First();
                     Server.AddPremiumTime(days, user);
                     context.Update(user);
                     await context.SaveChangesAsync();

@@ -50,7 +50,7 @@ namespace hypixel
                 Mode = "payment",
                 SuccessUrl = domain + "/success",
                 CancelUrl = domain + "/cancel",
-                ClientReferenceId = data.Connection.UserId.ToString()
+                ClientReferenceId = data.UserId.ToString()
             };
             var service = new SessionService();
             Session session;

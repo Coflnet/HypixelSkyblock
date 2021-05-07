@@ -77,7 +77,7 @@ namespace hypixel
             Commands.Add("deleteDevice", new DeleteDeviceCommand());
             Commands.Add("testNotification", new SendTestNotificationCommand());
 
-            
+
             Commands.Add("setGoogle", new SetGoogleIdCommand());
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
@@ -99,14 +99,15 @@ namespace hypixel
             long mId = 0;
             try
             {
-                MessageData data;
+                SocketMessageData data;
+
                 if (e.IsText)
                 {
-                    data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
-                    data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
+                    string body = e.Data;
+                    data = ParseData(body);
                 }
                 else
-                    data = MessagePackSerializer.Deserialize<MessageData>(e.RawData);
+                    data = MessagePackSerializer.Deserialize<SocketMessageData>(e.RawData);
 
                 mId = data.mId;
                 data.Connection = this;
@@ -121,10 +122,10 @@ namespace hypixel
                 if (CacheService.Instance.TryFromCache(data))
                     return;
 
-                if(waiting > 30)
+                if (waiting > 30)
                 {
                     dev.Logger.Instance.Error("triggered rate limit");
-                    throw new CoflnetException("stop_it","You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 20$ per month of data");
+                    throw new CoflnetException("stop_it", "You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 20$ per month of data");
                 }
 
                 Task.Run(async () =>
@@ -143,10 +144,9 @@ namespace hypixel
                     catch (Exception ex)
                     {
                         dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
-                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug="unknown", Message="An unexpected error occured, make sure the format of Data is correct" })) { mId = mId });
+                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = mId });
                     }
                 });
-
             }
             catch (CoflnetException ex)
             {
@@ -161,6 +161,15 @@ namespace hypixel
                 throw ex;
             }
         }
+
+        private static SocketMessageData ParseData(string body)
+        {
+            var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.FromJson(body));
+            data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
+            return data;
+        }
+
+
 
 
         protected override void OnError(ErrorEventArgs e)

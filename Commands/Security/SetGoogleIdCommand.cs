@@ -12,7 +12,7 @@ namespace hypixel
             var token = ValidateToken(data.GetAs<string>());
 
             var id = UserService.Instance.GetOrCreateUser(token.Subject,token.Email);
-            data.Connection.UserId = id.Id;
+            data.UserId = id.Id;
             data.Ok();
         }
 

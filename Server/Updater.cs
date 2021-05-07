@@ -161,8 +161,8 @@ namespace hypixel
                 }, cancelToken).Unwrap());
                 PrintUpdateEstimate(i, doneCont, sum, updateStartTime, max);
 
-                // try to stay under 300MB
-                if (System.GC.GetTotalMemory(false) > 300000000)
+                // try to stay under 400MB
+                if (System.GC.GetTotalMemory(false) > 400000000)
                 {
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();

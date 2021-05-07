@@ -4,7 +4,10 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            data.Connection.SetConnectionId(data.GetAs<string>());
+            var socketData = data as SocketMessageData;
+            if(socketData == null)
+                throw new CoflnetException("invalid_command","this command can only be called by a socket connection");
+            socketData.Connection.SetConnectionId(data.GetAs<string>());
         }
     }
 }

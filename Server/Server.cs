@@ -12,12 +12,11 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.Primitives;
 using WebSocketSharp.Net;
-using Stripe;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Microsoft.EntityFrameworkCore;
-using System.Web;
+using System.Collections.Concurrent;
+using RateLimiter;
 
 namespace hypixel
 {
@@ -26,8 +25,20 @@ namespace hypixel
 
         public Server()
         {
+            Limiter = new IpRateLimiter(ip =>
+            {
+                var constraint = new CountByIntervalAwaitableConstraint(10, TimeSpan.FromSeconds(1));
+                var constraint2 = new CountByIntervalAwaitableConstraint(30, TimeSpan.FromSeconds(10));
+                var heavyUsage = new CountByIntervalAwaitableConstraint(100, TimeSpan.FromMinutes(1));
+
+                // Compose the two constraints
+                return TimeLimiter.Compose(constraint, constraint2, heavyUsage);
+            });
         }
         HttpServer server;
+
+        ConcurrentDictionary<string, int> ConnectionToGoogleId = new ConcurrentDictionary<string, int>();
+        private IpRateLimiter Limiter;
 
         /// <summary>
         /// Starts the backend server
@@ -47,10 +58,10 @@ namespace hypixel
             server.OnPost += async (sender, e) =>
             {
                 if (e.Request.RawUrl == "/stripe")
-                    await ProcessStripe(e);
+                    await new StripeRequests().ProcessStripe(e);
+                if (e.Request.RawUrl.StartsWith("/command/"))
+                    await HandleCommand(e.Request, e.Response);
             };
-
-
 
             server.Start();
             Console.WriteLine("started http");
@@ -59,7 +70,7 @@ namespace hypixel
             server.Stop();
         }
 
-        private static void AnswerGetRequest(HttpRequestEventArgs e)
+        private void AnswerGetRequest(HttpRequestEventArgs e)
         {
             var req = e.Request;
             var res = e.Response;
@@ -77,6 +88,17 @@ namespace hypixel
                 return;
             }
 
+            if (path == "/players")
+            {
+                PrintPlayers(req, res);
+                return;
+            }
+            if (path == "/items")
+            {
+                PrintItems(req, res);
+                return;
+            }
+
             if (path == "/api/items/bazaar")
             {
                 PrintBazaarItems(req, res);
@@ -85,6 +107,12 @@ namespace hypixel
             if (path == "/api/items/search")
             {
                 SearchItems(req, res);
+                return;
+            }
+
+            if (path.StartsWith("/command/"))
+            {
+                HandleCommand(req, res);
                 return;
             }
 
@@ -105,6 +133,7 @@ namespace hypixel
                 relativePath = $"files/index.html";
             }
 
+
             try
             {
                 contents = FileController.ReadAllBytes(relativePath);
@@ -118,8 +147,12 @@ namespace hypixel
             if (relativePath == "files/index.html")
             {
                 Console.WriteLine("is index");
-                string newHtml = FillDescription(path, contents);
-                contents = Encoding.UTF8.GetBytes(newHtml);
+                string response = HtmlModifier.ModifyContent(path, contents);
+                if (!response.StartsWith('<'))
+                {
+                    res.Redirect(response);
+                }
+                contents = Encoding.UTF8.GetBytes(response);
             }
 
 
@@ -142,125 +175,60 @@ namespace hypixel
             res.WriteContent(contents);
         }
 
-        private static string FillDescription(string path, byte[] contents)
+
+
+
+        private async Task HandleCommand(HttpListenerRequest req, HttpListenerResponse res)
         {
-            var defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
-            var defaultTitle = "Skyblock Auction House History";
-            string parameter = "";
-            if (path.Split('/', '?', '#').Length > 2)
-                parameter = path.Split('/', '?', '#')[2];
-            string description = defaultText;
-            string title = defaultTitle;
-            string imageUrl = "https://sky.coflnet.com/logo192.png";
-            string keyword = "";
-
-            string html = Encoding.UTF8.GetString(contents);
-
-            // try to fill in title
-            if (path.Contains("auction/") || path.Contains("a/"))
+            HttpMessageData data = new HttpMessageData(req, res);
+            try
             {
-                // is an auction
-                using (var context = new HypixelContext())
+                var conId = req.Headers["ConId"].Truncate(32);
+                if (conId == null | conId.Length < 32)
+                    throw new CoflnetException("invalid_conid", "The 'ConId' Header has to be at least 32 characters long and generated randomly");
+
+                data.SetUserId = id =>
                 {
-                    var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category }).FirstOrDefault();
-                    if (result != null)
+                    this.ConnectionToGoogleId.TryAdd(conId, id);
+                };
+
+                if (ConnectionToGoogleId.TryGetValue(conId, out int userId))
+                    data.UserId = userId;
+
+                if(data.Type == "test")
+                {
+                    Console.WriteLine(req.RemoteEndPoint.Address.ToString());
+                    foreach (var item in req.Headers.AllKeys)
                     {
-                        var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
-                        title = $"Auction for {result.ItemName} by {playerName}";
-                        description = $"{title} ended on {result.End} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}";
-                        keyword = $"{result.ItemName},{playerName}";
-
-                        if (!string.IsNullOrEmpty(result.Tag))
-                            imageUrl = "https://sky.lea.moe/item/" + result.Tag;
-                        else
-                            imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
-
+                        Console.WriteLine($"{item.ToString()}: {req.Headers[item]}");
                     }
+                    return;
                 }
-            }
-            if (path.Contains("player/") || path.Contains("p/"))
-            {
-                if (parameter.Length < 30)
-                {
-                    parameter = PlayerSearch.Instance.GetIdForName(parameter);
-                    if (parameter != null)
-                        html = Redirect(parameter, html, "player");
-                }
-                keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
-                title = $"{keyword} Auctions and bids";
-                description = $"Auctions and bids for {keyword}. See Recent Auctions, bids, and prices for hypixel SkyBlock auctionhouse and bazaar history with various filters.";
-                imageUrl = "https://crafatar.com/avatars/" + parameter;
-            }
-            if (path.Contains("item/") || path.Contains("i/"))
-            {
-                bool redirect = false;
-                if (parameter.ToUpper() != parameter)
-                {
-                    // likely not a tag
-                    parameter = HttpUtility.UrlDecode(parameter);
-                    var thread = ItemDetails.Instance.Search(parameter, 1);
-                    thread.Wait();
-                    var item = thread.Result.FirstOrDefault();
-                    keyword = item?.Name;
-                    parameter = item?.Tag;
-                    redirect = true;
-                }
+
+                if (CacheService.Instance.TryFromCache(data))
+                    return;
+
+                await Limiter.WaitUntilAllowed(req.RemoteEndPoint.Address.ToString());
+
+                if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
+                    command.Execute(data);
                 else
-                {
-                    keyword = ItemDetails.TagToName(parameter);
-                }
-                if (redirect || path.Contains("i/"))
-                    html = AddItemRedirect(parameter, html);
-
-                var i = ItemDetails.Instance.GetDetailsWithCache(parameter);
-                title = $"{keyword} price ";
-                description = $"Price for item {keyword} in hypixel SkyBlock"
-                + AddAlternativeNames(i)
-                + ". Search, browse, and filter by reforge or enchantment, all current and historic prices for auction house and bazaar on this web tracker.";
-                imageUrl = "https://sky.lea.moe/item/" + parameter;
+                    throw new CoflnetException("unkown_command", "Command not known, check the docs");
             }
-            var newHtml = html
-                        .Replace(defaultText, description)
-                        .Replace(defaultTitle, title + "| Hypixel SkyBlock Auction house history tracker")
-                        .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" /><meta property=\"og:image\" content=\"{imageUrl}\" />")
-                        .Replace("</body>", PopularPages(description) + "</body>");
-            return newHtml;
+            catch (CoflnetException ex)
+            {
+                res.StatusCode = 400;
+                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })));
+            }
+            catch (Exception ex)
+            {
+                res.StatusCode = 500;
+                dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}");
+                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })));
+            }
         }
 
-        private static string AddAlternativeNames(DBItem i)
-        {
-            return ". Found names: " + i.Names.Select(n => n.Name).Aggregate((a, b) => $"{a}, {b}").TrimEnd(' ', ',');
-        }
 
-        private static string AddItemRedirect(string parameter, string html)
-        {
-            var type = "item";
-            html = Redirect(parameter, html, type);
-            return html;
-        }
-
-        private static string Redirect(string parameter, string html, string type)
-        {
-            html = html.Replace("</head>", $"<meta http-equiv=\"Refresh\" content=\"0; url='https://sky.coflnet.com/{type}/{parameter}'\" /></head>");
-            // don't load react
-            html = System.Text.RegularExpressions.Regex.Replace(html, @"<script src=""\/static\/js.*<\/script>", "");
-            return html;
-        }
-
-        private static string PopularPages(string description)
-        {
-            var r = new Random();
-            var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x => r.Next());
-            if (!recentSearches.Any())
-                return "";
-            return $@"<div style=""visibility: hidden;"">
-                    <p>{description}</p><h3>popular pages:</h3>"
-                    + recentSearches
-                    .Take(6)
-                .Select(p => $"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title}</a>")
-                .Aggregate((a, b) => a + b) + "</div>";
-        }
 
         private static void GetSkin(string relativePath)
         {
@@ -294,67 +262,7 @@ namespace hypixel
             }
         }
 
-        private async Task ProcessStripe(HttpRequestEventArgs e)
-        {
-            Console.WriteLine("received callback from stripe --");
 
-            try
-            {
-                Console.WriteLine("reading json");
-                var json = new StreamReader(e.Request.InputStream).ReadToEnd();
-                //Console.WriteLine(e.)
-
-                var stripeEvent = EventUtility.ConstructEvent(
-                  json,
-                  e.Request.Headers["Stripe-Signature"],
-                  Program.StripeSigningSecret
-                );
-                Console.WriteLine("stripe valiadted");
-
-                if (stripeEvent.Type == Events.CheckoutSessionCompleted)
-                {
-                    Console.WriteLine("stripe checkout completed");
-                    var session = stripeEvent.Data.Object as Stripe.Checkout.Session;
-
-                    // Fulfill the purchase...
-                    await this.FulfillOrder(session);
-                }
-                else
-                {
-                    Console.WriteLine("sripe  is not comlete type of " + stripeEvent.Type);
-                }
-
-
-                e.Response.StatusCode = 200;
-            }
-            catch (StripeException ex)
-            {
-                Console.WriteLine($"Ran into exception for stripe callback {ex.Message}");
-                e.Response.StatusCode = 400;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ran into an unknown error :/ {ex.Message} {ex.StackTrace}");
-            }
-        }
-
-        private async Task FulfillOrder(Stripe.Checkout.Session session)
-        {
-            var googleId = session.ClientReferenceId;
-            var id = session.CustomerId;
-            var email = session.CustomerEmail;
-            var days = Int32.Parse(session.Metadata["days"]);
-            Console.WriteLine("STRIPE");
-            using (var context = new HypixelContext())
-            {
-                var user = await context.Users.Where(u => u.GoogleId == googleId).FirstAsync();
-                AddPremiumTime(days, user);
-                user.Email = email + DateTime.Now;
-                context.Update(user);
-                await context.SaveChangesAsync();
-                Console.WriteLine("order completed");
-            }
-        }
 
         public static void AddPremiumTime(int days, GoogleUser user)
         {
@@ -404,6 +312,46 @@ namespace hypixel
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i => new { i.Name, i.Tag, i.MinecraftType, i.IconUrl }));
             res.WriteContent(Encoding.UTF8.GetBytes(json));
+        }
+
+        private static async void PrintPlayers(HttpListenerRequest req, HttpListenerResponse res)
+        {
+            using (var context = new HypixelContext())
+            {
+                var data = context.Players.OrderByDescending(p => p.UpdatedAt).Select(p => new { p.Name, p.UuId }).Take(10000);
+                StringBuilder builder = GetSiteBuilder("Player");
+                foreach (var item in data)
+                {
+                    if (item.Name == null)
+                        continue;
+                    builder.AppendFormat("<li><a href=\"{0}\">{1}</a></li>", $"/player/{item.UuId}/{item.Name}", $"{item.Name} auctions");
+                }
+                res.WriteContent(Encoding.UTF8.GetBytes(builder.ToString()));
+            }
+        }
+
+        private static async void PrintItems(HttpListenerRequest req, HttpListenerResponse res)
+        {
+            using (var context = new HypixelContext())
+            {
+                var data = context.Items.Select(p => new { p.Tag }).Take(10000);
+                StringBuilder builder = GetSiteBuilder("Item");
+                foreach (var item in data)
+                {
+                    var name = ItemDetails.TagToName(item.Tag);
+                    builder.AppendFormat("<li><a href=\"{0}\">{1}</a></li>", $"/item/{item.Tag}/{name}", $"{name} auctions");
+                }
+                res.WriteContent(Encoding.UTF8.GetBytes(builder.ToString()));
+            }
+        }
+
+        private static StringBuilder GetSiteBuilder(string topic)
+        {
+            var builder = new StringBuilder(20000);
+            builder.Append("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/>");
+            builder.Append($"<link rel=\"icon\" href=\"/favicon.ico\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>{topic} List</title><body>");
+            builder.Append($"<h1>List of the most recently updated {topic}s</h1><a href=\"https://sky.coflnet.com\">back to the start page</a><ul>");
+            return builder;
         }
 
         private static async void SearchItems(HttpListenerRequest req, HttpListenerResponse res)
