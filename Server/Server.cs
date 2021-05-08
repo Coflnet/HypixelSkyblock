@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using RateLimiter;
 using Microsoft.EntityFrameworkCore;
+using MessagePack;
 
 namespace hypixel
 {
@@ -53,8 +54,13 @@ namespace hypixel
             server.KeepClean = false;
             server.OnGet += async (sender, e) =>
             {
-
-                await AnswerGetRequest(e);
+                try {
+                    await AnswerGetRequest(e);
+                } catch(Exception ex)
+                {
+                    dev.Logger.Instance.Error($"Ran into an error on get {ex.Message} {ex.StackTrace}");
+                    return;
+                }
 
             };
 
@@ -155,6 +161,7 @@ namespace hypixel
                 string response = await HtmlModifier.ModifyContent(path, contents);
                 if (!response.StartsWith('<'))
                 {
+                    Console.WriteLine(response);
                     res.Redirect(response);
                 }
                 contents = Encoding.UTF8.GetBytes(response);
@@ -253,6 +260,7 @@ namespace hypixel
                 this.request = request;
                 this.Type = type;
                 this.source = source;
+                this.Data = MessagePack.MessagePackSerializer.ToJson<Treq>(request);
             }
 
             public override T GetAs<T>()
@@ -262,15 +270,26 @@ namespace hypixel
 
             public override MessageData Create<T>(string type, T a,int maxAge = 0){
                 source.SetResult((TRes)(object)a);
-                return base.Create<T>(type, a,maxAge);
+                var d = base.Create<T>(type, a,maxAge);
+                d.Data = MessagePackSerializer.ToJson(a);
+                return d;
             }
 
 
             public override void SendBack(MessageData data, bool cache = true)
             {
-                if(source.TrySetResult(JsonConvert.DeserializeObject<TRes>(data.Data)))
-                { /* nothing to do, already set */ }
-                CacheService.Instance.Save(this, data, 0);
+                try {
+                    if(source.TrySetResult(MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(data.Data))))
+                    { /* nothing to do, already set */ }
+                } catch(Exception)
+                {
+                    // thrown excpetion, looks like it isn't messagepack
+                    if(source.TrySetResult(JsonConvert.DeserializeObject<TRes>(data.Data)))
+                    { /* nothing to do, already set */ }
+                }
+                
+                if(cache)
+                    CacheService.Instance.Save(this, data, 0);
             }
         }
 

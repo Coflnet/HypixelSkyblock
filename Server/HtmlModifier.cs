@@ -142,7 +142,7 @@ namespace hypixel
 
             var auctions = await Server.ExecuteCommandWithCache<
             PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request,
-            List<PlayerAuctionsCommand.AuctionResult>>("playerBids", new PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>
+            List<PlayerAuctionsCommand.AuctionResult>>("playerAuctions", new PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>
             .Request()
             { Amount = 20, Offset = 0, Uuid = parameter });
 
@@ -150,7 +150,7 @@ namespace hypixel
 
             sb.Append("Auctions: <ul>");
             var bids = await bidsTask; 
-            foreach (var item in bids)
+            foreach (var item in auctions)
             {
                 sb.Append($"<li><a href=\"/auction/{item.AuctionId}\">{item.ItemName}</a></li>");
             }
@@ -171,10 +171,10 @@ namespace hypixel
         {
             var result = await Server.ExecuteCommandWithCache<ItemSearchQuery,IEnumerable<AuctionPreview>>("recentAuctions",new ItemSearchQuery(){
                 name = tag,
-                Start = DateTime.Now - TimeSpan.FromHours(1)
+                Start = DateTime.Now.Subtract(TimeSpan.FromHours(3)).RoundDown(TimeSpan.FromMinutes(30))
             });
             var sb = new StringBuilder(200);
-            sb.Append("Newest auctions: <ul>");
+            sb.Append("<br>Recent auctions: <ul>");
             foreach (var item in result)
             {
                 sb.Append($"<li><a href=\"/auction/{item.Uuid}\">auction by {PlayerSearch.Instance.GetNameWithCache(item.Seller)}</a></li>");
@@ -198,14 +198,14 @@ namespace hypixel
 
         private static string Redirect(string parameter, string type, string seoTerm = null)
         {
-            return $"https://sky.coflnet.com/{type}/{parameter}" + seoTerm == null ? "" : $"/{seoTerm}";
+            return $"https://sky.coflnet.com/{type}/{parameter}" + (seoTerm == null ? "" : $"/{seoTerm}");
         }
 
         private static string PopularPages(string title, string description)
         {
             var r = new Random();
             var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x => r.Next());
-            var body = $@"<details style=""padding:10%;""><sumary>Description without javascript.</sumary>
+            var body = $@"<details style=""padding:10%; margin-top:80%""><sumary>Description without javascript.</sumary>
                     This only updates when you reload the page so don't get confused :).
                     <h1>{title}</h1><p>{description}</p><p>View, search, browse, and filter by reforge or enchantment. "
                     + "You can find all current and historic prices for the auction house and bazaar on this web tracker. "

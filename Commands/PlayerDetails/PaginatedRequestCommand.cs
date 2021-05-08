@@ -10,6 +10,7 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             var request = data.GetAs<Request>();
+            Console.WriteLine(MessagePackSerializer.ToJson(request));
             
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
 

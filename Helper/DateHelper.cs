@@ -18,5 +18,12 @@ namespace hypixel
         {
             return (new DateTime(1970, 1, 1)).AddSeconds(time);
         }
+
+
+
+        public static DateTime RoundDown(this DateTime date, TimeSpan span)
+        {
+            return new DateTime(date.Ticks / span.Ticks * span.Ticks);
+        }
     }
 }

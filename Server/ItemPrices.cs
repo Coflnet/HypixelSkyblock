@@ -137,8 +137,8 @@ namespace hypixel
         {
             aDay = TimeSpan.FromDays(1);
             oneHour = TimeSpan.FromHours(1);
-            lastHour = RoundDown(DateTime.Now - oneHour, oneHour);
-            startYesterday = RoundDown(DateTime.Now - aDay, aDay);
+            lastHour = (DateTime.Now - oneHour).RoundDown( oneHour);
+            startYesterday = (DateTime.Now - aDay).RoundDown(aDay);
         }
 
         private void DropYesterDay(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, int id, ItemLookup res)
@@ -148,7 +148,7 @@ namespace hypixel
                 Console.WriteLine("combining " + id);
                 // move the intrahour to hour
                 var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
-                var beginOfHour = RoundDown(DateTime.Now, oneHour);
+                var beginOfHour = DateTime.Now.RoundDown(oneHour);
                 var oneHourRecord = res.CombineIntoOne(default(DateTime), beginOfHour);
                 if (oneHourRecord.Date != default(DateTime))
                     hourly.AddNew(oneHourRecord);
@@ -470,7 +470,7 @@ namespace hypixel
         }
 
 
-        public IEnumerable<AuctionPreview> GetRecentAuctions(ItemSearchQuery query, int amount = 5)
+        public IEnumerable<AuctionPreview> GetRecentAuctions(ItemSearchQuery query, int amount = 12)
         {
             using (var context = new HypixelContext())
             {
@@ -488,11 +488,6 @@ namespace hypixel
 
 
 
-
-        public static DateTime RoundDown(DateTime date, TimeSpan span)
-        {
-            return new DateTime(date.Ticks / span.Ticks * span.Ticks);
-        }
 
         [MessagePackObject]
         public class Resonse

@@ -123,7 +123,7 @@ namespace hypixel
 
                 case 's':
                     var server = new Server();
-                    server.Start();
+                    server.Start().Wait();
                     break;
                 case 'u':
                     var updater = new Updater(apiKey);

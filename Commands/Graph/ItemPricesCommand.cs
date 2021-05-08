@@ -81,7 +81,8 @@ namespace hypixel
 
         private static List<Result> GroupResponseByHour(List<Result> result, int hourAmount)
         {
-            return result.GroupBy(item => ItemPrices.RoundDown(item.End, TimeSpan.FromHours(hourAmount)))
+            var hourAmountTimeSpan = TimeSpan.FromHours(hourAmount);
+            return result.GroupBy(item => item.End.RoundDown(hourAmountTimeSpan))
                 .Select(item =>
                    new Result()
                    {
