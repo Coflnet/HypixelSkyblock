@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using RateLimiter;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -37,7 +38,7 @@ namespace hypixel
         }
         HttpServer server;
 
-        ConcurrentDictionary<string, int> ConnectionToGoogleId = new ConcurrentDictionary<string, int>();
+        ConcurrentDictionary<string, int> ConnectionToUserId = new ConcurrentDictionary<string, int>();
         private IpRateLimiter Limiter;
 
         /// <summary>
@@ -50,17 +51,21 @@ namespace hypixel
             server.AddWebSocketService<SkyblockBackEnd>(urlPath);
             // do NOT timeout after 60 sec
             server.KeepClean = false;
-            server.OnGet += (sender, e) =>
+            server.OnGet += async (sender, e) =>
             {
-                AnswerGetRequest(e);
+
+                await AnswerGetRequest(e);
+
             };
 
             server.OnPost += async (sender, e) =>
             {
+
                 if (e.Request.RawUrl == "/stripe")
                     await new StripeRequests().ProcessStripe(e);
                 if (e.Request.RawUrl.StartsWith("/command/"))
                     await HandleCommand(e.Request, e.Response);
+
             };
 
             server.Start();
@@ -70,7 +75,7 @@ namespace hypixel
             server.Stop();
         }
 
-        private void AnswerGetRequest(HttpRequestEventArgs e)
+        private async Task AnswerGetRequest(HttpRequestEventArgs e)
         {
             var req = e.Request;
             var res = e.Response;
@@ -90,29 +95,29 @@ namespace hypixel
 
             if (path == "/players")
             {
-                PrintPlayers(req, res);
+                await PrintPlayers(req, res);
                 return;
             }
             if (path == "/items")
             {
-                PrintItems(req, res);
+                await PrintItems(req, res);
                 return;
             }
 
             if (path == "/api/items/bazaar")
             {
-                PrintBazaarItems(req, res);
+                await PrintBazaarItems(req, res);
                 return;
             }
             if (path == "/api/items/search")
             {
-                SearchItems(req, res);
+                await SearchItems(req, res);
                 return;
             }
 
             if (path.StartsWith("/command/"))
             {
-                HandleCommand(req, res);
+                await HandleCommand(req, res);
                 return;
             }
 
@@ -147,7 +152,7 @@ namespace hypixel
             if (relativePath == "files/index.html")
             {
                 Console.WriteLine("is index");
-                string response = HtmlModifier.ModifyContent(path, contents);
+                string response = await HtmlModifier.ModifyContent(path, contents);
                 if (!response.StartsWith('<'))
                 {
                     res.Redirect(response);
@@ -171,6 +176,7 @@ namespace hypixel
             {
                 res.ContentType = "text/javascript";
             }
+            res.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 7));
 
             res.WriteContent(contents);
         }
@@ -189,13 +195,13 @@ namespace hypixel
 
                 data.SetUserId = id =>
                 {
-                    this.ConnectionToGoogleId.TryAdd(conId, id);
+                    this.ConnectionToUserId.TryAdd(conId, id);
                 };
 
-                if (ConnectionToGoogleId.TryGetValue(conId, out int userId))
+                if (ConnectionToUserId.TryGetValue(conId, out int userId))
                     data.UserId = userId;
 
-                if(data.Type == "test")
+                if (data.Type == "test")
                 {
                     Console.WriteLine(req.RemoteEndPoint.Address.ToString());
                     foreach (var item in req.Headers.AllKeys)
@@ -225,6 +231,46 @@ namespace hypixel
                 res.StatusCode = 500;
                 dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}");
                 data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })));
+            }
+        }
+
+        public static Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
+        {
+            var source = new TaskCompletionSource<TRes>();
+            var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
+            if (!CacheService.Instance.TryFromCache(data))
+                SkyblockBackEnd.Commands[command].Execute(data);
+            return source.Task;
+        }
+
+        public class ProxyMessageData<Treq, TRes> : MessageData
+        {
+            private readonly Treq request;
+            TaskCompletionSource<TRes> source;
+
+            public ProxyMessageData(string type, Treq request, TaskCompletionSource<TRes> source) : base(type, "", 0)
+            {
+                this.request = request;
+                this.Type = type;
+                this.source = source;
+            }
+
+            public override T GetAs<T>()
+            {
+                return (T)(object)request;
+            }
+
+            public override MessageData Create<T>(string type, T a,int maxAge = 0){
+                source.SetResult((TRes)(object)a);
+                return base.Create<T>(type, a,maxAge);
+            }
+
+
+            public override void SendBack(MessageData data, bool cache = true)
+            {
+                if(source.TrySetResult(JsonConvert.DeserializeObject<TRes>(data.Data)))
+                { /* nothing to do, already set */ }
+                CacheService.Instance.Save(this, data, 0);
             }
         }
 
@@ -305,7 +351,7 @@ namespace hypixel
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
 
-        private static async void PrintBazaarItems(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task PrintBazaarItems(HttpListenerRequest req, HttpListenerResponse res)
         {
             var data = await ItemDetails.Instance.GetBazaarItems();
 
@@ -314,11 +360,11 @@ namespace hypixel
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
 
-        private static async void PrintPlayers(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task PrintPlayers(HttpListenerRequest req, HttpListenerResponse res)
         {
             using (var context = new HypixelContext())
             {
-                var data = context.Players.OrderByDescending(p => p.UpdatedAt).Select(p => new { p.Name, p.UuId }).Take(10000);
+                var data = context.Players.OrderByDescending(p => p.UpdatedAt).Select(p => new { p.Name, p.UuId }).Take(10000).AsParallel();
                 StringBuilder builder = GetSiteBuilder("Player");
                 foreach (var item in data)
                 {
@@ -330,11 +376,11 @@ namespace hypixel
             }
         }
 
-        private static async void PrintItems(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task PrintItems(HttpListenerRequest req, HttpListenerResponse res)
         {
             using (var context = new HypixelContext())
             {
-                var data = context.Items.Select(p => new { p.Tag }).Take(10000);
+                var data = await context.Items.Select(p => new { p.Tag }).Take(10000).ToListAsync();
                 StringBuilder builder = GetSiteBuilder("Item");
                 foreach (var item in data)
                 {
@@ -354,7 +400,7 @@ namespace hypixel
             return builder;
         }
 
-        private static async void SearchItems(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task SearchItems(HttpListenerRequest req, HttpListenerResponse res)
         {
             var term = req.QueryString["term"];
             Console.WriteLine("searchig for:");

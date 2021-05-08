@@ -25,7 +25,7 @@ namespace hypixel
                 maxAge = A_WEEK;
             }
 
-            data.SendBack(MessageData.Create("searchResponse", result,maxAge));
+            data.SendBack(data.Create("searchResponse", result,maxAge));
 
         }
 

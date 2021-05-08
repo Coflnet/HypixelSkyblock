@@ -20,7 +20,7 @@ namespace hypixel
                 maxAge = A_DAY;
             }
 
-            data.SendBack(MessageData.Create("itemResponse", res, maxAge));
+            data.SendBack(data.Create("itemResponse", res, maxAge));
         }
 
         private static bool IsDayRange(ItemSearchQuery details)

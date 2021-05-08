@@ -14,7 +14,7 @@ namespace hypixel
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
 
             var result = GetResult(request.Uuid,request.Amount,request.Offset);
-            data.SendBack(MessageData.Create(ResponseCommandName,result,A_MINUTE*2));
+            data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE*2));
         }
 
         private List<T> GetResult(string uuid, int amount, int offset)

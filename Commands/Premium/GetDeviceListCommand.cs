@@ -6,7 +6,7 @@ namespace hypixel
         {
 
             var devices = data.User.Devices;
-            data.SendBack(MessageData.Create("devices", devices));
+            data.SendBack(data.Create("devices", devices));
 
         }
     }

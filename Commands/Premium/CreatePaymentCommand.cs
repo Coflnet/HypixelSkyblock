@@ -70,7 +70,7 @@ namespace hypixel
                 context.SaveChanges();
             }
 
-            data.SendBack(MessageData.Create("checkoutSession", session.Id), false);
+            data.SendBack(data.Create("checkoutSession", session.Id), false);
             //return Json(new { id = session.Id });
         }
 

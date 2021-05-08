@@ -4,7 +4,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            data.SendBack(MessageData.Create("version",Program.Version,A_DAY));
+            data.SendBack(data.Create("version",Program.Version,A_DAY));
         }
     }
 }

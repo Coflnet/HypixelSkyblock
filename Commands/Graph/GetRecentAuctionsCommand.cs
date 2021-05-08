@@ -13,7 +13,7 @@ namespace hypixel
 
             var res = ItemPrices.Instance.GetRecentAuctions(details);
 
-            data.SendBack(MessageData.Create("auctionResponse", res, A_MINUTE));
+            data.SendBack(data.Create("auctionResponse", res, A_MINUTE));
         }
     }
 }

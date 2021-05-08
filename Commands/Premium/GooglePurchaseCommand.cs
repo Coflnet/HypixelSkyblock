@@ -72,7 +72,7 @@ namespace hypixel
 
 
 
-            data.SendBack(MessageData.Create("accepted", "payment was accepted enjoy your premium", A_WEEK));
+            data.SendBack(data.Create("accepted", "payment was accepted enjoy your premium", A_WEEK));
         }
 
         [MessagePackObject]

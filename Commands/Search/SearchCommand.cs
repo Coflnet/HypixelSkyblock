@@ -13,7 +13,7 @@ namespace hypixel
             var search = rgx.Replace(data.Data, "").ToLower();
 
             var players = PlayerSearch.Instance.Search(search,5);
-            data.SendBack(MessageData.Create("searchResponse", players,A_WEEK));
+            data.SendBack(data.Create("searchResponse", players,A_WEEK));
 
         }
 

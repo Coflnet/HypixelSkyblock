@@ -41,6 +41,11 @@ namespace hypixel
                 item.Add(response);
                 return item;
             });
+            // keep the cache size in check
+            while(CacheSize > 20000)
+            {
+                cache.TryRemove(cache.Keys.First(), out CacheElement elem);
+            }
         }
 
         public void Save(string type, string data, MessageData response)

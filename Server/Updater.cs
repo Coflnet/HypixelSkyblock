@@ -161,8 +161,8 @@ namespace hypixel
                 }, cancelToken).Unwrap());
                 PrintUpdateEstimate(i, doneCont, sum, updateStartTime, max);
 
-                // try to stay under 400MB
-                if (System.GC.GetTotalMemory(false) > 400000000)
+                // try to stay under 500MB
+                if (System.GC.GetTotalMemory(false) > 500000000)
                 {
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
@@ -190,6 +190,26 @@ namespace hypixel
 
         internal void UpdateForEver()
         {
+            CancellationTokenSource source = new CancellationTokenSource();
+            // Fail save
+            Task.Run(async () =>
+            {
+                while(true)
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(5));
+                    if (lastUpdateDone > DateTime.Now.Subtract(TimeSpan.FromMinutes(6)))
+                        continue;
+                    dev.Logger.Instance.Error("Restarting updater");
+                    source.Cancel();
+                    source = new CancellationTokenSource();
+                    StartNewUpdater(source.Token);
+                }
+            });
+            StartNewUpdater(source.Token);
+        }
+
+        private void StartNewUpdater(CancellationToken token)
+        {
             Task.Run(async () =>
             {
                 minimumOutput = true;
@@ -199,7 +219,7 @@ namespace hypixel
                     {
                         var start = DateTime.Now;
                         var lastCache = await Update();
-                        if (abort)
+                        if (abort || token.IsCancellationRequested)
                         {
                             Console.WriteLine("Stopped updater");
                             break;
@@ -214,7 +234,7 @@ namespace hypixel
                     }
 
                 }
-            });
+            }, token);
         }
 
         private static async Task WaitForServerCacheRefresh(DateTime hypixelCacheTime)

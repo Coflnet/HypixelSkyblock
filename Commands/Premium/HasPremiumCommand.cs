@@ -11,7 +11,7 @@ namespace hypixel
             using(var context = new HypixelContext())
             {
                 var user = context.Users.Where(u=>u.GoogleId == googleId).FirstOrDefault();
-                data.SendBack(MessageData.Create("premiumExpiration",user?.PremiumExpires));
+                data.SendBack(data.Create("premiumExpiration",user?.PremiumExpires));
             }
         }
     }

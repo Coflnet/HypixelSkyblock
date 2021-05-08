@@ -10,7 +10,7 @@ namespace hypixel
             {
                 var userId = data.UserId;
                 var subs = context.SubscribeItem.Where(s=>s.UserId == userId).ToList();
-                data.SendBack(MessageData.Create("subscriptions",subs));
+                data.SendBack(data.Create("subscriptions",subs));
             }
         }
     }

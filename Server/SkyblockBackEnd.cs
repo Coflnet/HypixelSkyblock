@@ -128,25 +128,7 @@ namespace hypixel
                     throw new CoflnetException("stop_it", "You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 20$ per month of data");
                 }
 
-                Task.Run(async () =>
-                {
-                    System.Threading.Interlocked.Increment(ref waiting);
-                    await limiter;
-                    System.Threading.Interlocked.Decrement(ref waiting);
-                    try
-                    {
-                        Commands[data.Type].Execute(data);
-                    }
-                    catch (CoflnetException ex)
-                    {
-                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = mId });
-                    }
-                    catch (Exception ex)
-                    {
-                        dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
-                        SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = mId });
-                    }
-                });
+                ExecuteCommand(data);
             }
             catch (CoflnetException ex)
             {
@@ -160,6 +142,29 @@ namespace hypixel
 
                 throw ex;
             }
+        }
+
+        private void ExecuteCommand(SocketMessageData data)
+        {
+            Task.Run(async () =>
+            {
+                System.Threading.Interlocked.Increment(ref waiting);
+                await limiter;
+                System.Threading.Interlocked.Decrement(ref waiting);
+                try
+                {
+                    Commands[data.Type].Execute(data);
+                }
+                catch (CoflnetException ex)
+                {
+                    data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = data.mId });
+                }
+                catch (Exception ex)
+                {
+                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
+                    data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
+                }
+            });
         }
 
         private static SocketMessageData ParseData(string body)

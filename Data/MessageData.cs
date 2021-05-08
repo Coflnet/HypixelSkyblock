@@ -12,7 +12,7 @@ namespace hypixel
     {
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
-        public virtual int UserId {get;set;}
+        public virtual int UserId { get; set; }
 
 
         [Key("type")]
@@ -47,7 +47,7 @@ namespace hypixel
         {
         }
 
-        public T GetAs<T>()
+        public virtual T GetAs<T>()
         {
             return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
         }
@@ -56,10 +56,10 @@ namespace hypixel
         public virtual void SendBack(MessageData data, bool cache = true)
         {
             throw new Exception("Can't send back with default connection");
-            
+
         }
 
-        public static MessageData Create<T>(string type, T data, int maxAge = 0)
+        public virtual MessageData Create<T>(string type, T data, int maxAge = 0)
         {
             var d = new MessageData(type, MessagePackSerializer.ToJson(data), maxAge);
             return d;
@@ -76,13 +76,13 @@ namespace hypixel
         /// </summary>
         public void Ok()
         {
-            SendBack(MessageData.Create("ok", ""));
+            SendBack(Create("ok", ""));
         }
     }
 
     public class SocketMessageData : MessageData
     {
-        
+
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
         public SkyblockBackEnd Connection;
@@ -95,13 +95,13 @@ namespace hypixel
         public override void SendBack(MessageData data, bool cache = true)
         {
             data.mId = mId;
-            if (cache )
+            if (cache)
                 CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);
-            if(this.Created < DateTime.Now - TimeSpan.FromSeconds(1))
+            if (this.Created < DateTime.Now - TimeSpan.FromSeconds(1))
             {
                 // wow this took waaay to long
-                Console.WriteLine($"slow response/long time ({DateTime.Now-data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
+                Console.WriteLine($"slow response/long time ({DateTime.Now - data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
             }
         }
     }
@@ -110,11 +110,13 @@ namespace hypixel
     {
         private HttpListenerResponse res;
 
-        public override int UserId { 
-            get => base.UserId; 
-            set  {
+        public override int UserId
+        {
+            get => base.UserId;
+            set
+            {
                 SetUserId(value);
-                base.UserId = value; 
+                base.UserId = value;
             }
         }
         public Action<int> SetUserId { get; set; }
@@ -122,16 +124,31 @@ namespace hypixel
         public HttpMessageData(HttpListenerRequest req, HttpListenerResponse res)
         {
             Type = req.RawUrl.Split('/')[2];
-            Data = new StreamReader(req.InputStream).ReadToEnd();
             this.res = res;
+            if (req.HttpMethod == "POST")
+            {
+                Data = new StreamReader(req.InputStream).ReadToEnd();
+                return;
+            }
+            try
+            {
+                Data = Encoding.UTF8.GetString(Convert.FromBase64String(req.RawUrl.Split('/')[3]));
+            }
+            catch (System.Exception e)
+            {
+                dev.Logger.Instance.Error($"received invalid command {req.RawUrl} {e.Message} {e.StackTrace}");
+                this.SendBack(new MessageData("error","commanddata was invalid"));
+            }
+
         }
 
         public override void SendBack(MessageData data, bool cache = true)
         {
-            if (cache )
+            if (cache)
                 CacheService.Instance.Save(this, data, 0);
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Data);
+            var json = data.Data;
             res.StatusCode = 200;
+            res.AddHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
     }

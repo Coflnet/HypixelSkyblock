@@ -14,7 +14,7 @@ namespace hypixel
                 
                 var affected = await SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type);
 
-                data.SendBack(MessageData.Create("unsubscribed", affected));
+                data.SendBack(data.Create("unsubscribed", affected));
             }
         }
 

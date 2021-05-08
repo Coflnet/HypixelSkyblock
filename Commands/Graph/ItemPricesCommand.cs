@@ -45,7 +45,7 @@ namespace hypixel
                 maxAge = A_DAY;
             }
 
-            data.SendBack(MessageData.Create("itemResponse", response, maxAge));
+            data.SendBack(data.Create("itemResponse", response, maxAge));
         }
 
         public static ItemSearchQuery GetQuery(MessageData data)

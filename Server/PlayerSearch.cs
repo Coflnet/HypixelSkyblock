@@ -56,12 +56,9 @@ namespace hypixel
         /// <returns></returns>
         public string GetNameWithCache(string uuid)
         {
-            if(CacheService.Instance.GetFromCache("playerName",uuid, out string name))
-                return name.Replace("\"","");
-            
-            var response = PlayerNameCommand.CreateResponse(uuid);
-            CacheService.Instance.Save("playerName",uuid,response);
-            return response.Data.Replace("\"","");
+            var task = Server.ExecuteCommandWithCache<string,string>("playerName",uuid);
+            task.Wait();
+            return task.Result;
         }
 
         public static void ClearCache()
