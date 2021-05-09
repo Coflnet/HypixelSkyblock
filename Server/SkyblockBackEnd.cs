@@ -89,7 +89,7 @@ namespace hypixel
 
         public SkyblockBackEnd()
         {
-            limiter = TimeLimiter.GetFromMaxCountByInterval(4, TimeSpan.FromSeconds(2));
+            limiter = TimeLimiter.GetFromMaxCountByInterval(5, TimeSpan.FromSeconds(2));
         }
 
         int waiting = 0;
@@ -231,9 +231,8 @@ namespace hypixel
 
                 var constraint2 = new CountByIntervalAwaitableConstraint(10, TimeSpan.FromSeconds(2));
                 var heavyUsage = new CountByIntervalAwaitableConstraint(40, TimeSpan.FromSeconds(20));
-                var abuse = new CountByIntervalAwaitableConstraint(500, TimeSpan.FromMinutes(10));
 
-                limiter = TimeLimiter.Compose(constraint2, heavyUsage, abuse);
+                limiter = TimeLimiter.Compose(constraint2, heavyUsage);
             });
         }
 

@@ -13,7 +13,7 @@ namespace hypixel
 {
     public class HtmlModifier
     {
-        public static async Task<string> ModifyContent(string path, byte[] contents)
+        public static async Task<string> ModifyContent(string path, byte[] contents, WebSocketSharp.Net.HttpListenerResponse res)
         {
             var defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
             var defaultTitle = "Skyblock Auction House History";
@@ -28,6 +28,7 @@ namespace hypixel
             string keyword = "";
 
             string html = Encoding.UTF8.GetString(contents);
+            
 
             // try to fill in title
             if (path.Contains("auction/") || path.Contains("a/"))
@@ -60,7 +61,7 @@ namespace hypixel
                 if (parameter.Length < 30)
                 {
                     var uuid = PlayerSearch.Instance.GetIdForName(parameter);
-                    return Redirect(uuid, "player", parameter);
+                    return res.RedirectSkyblock(uuid, "player", parameter);
                 }
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
                 if (urlParts.Length <= 3)
@@ -77,7 +78,7 @@ namespace hypixel
             if (path.Contains("item/") || path.Contains("i/"))
             {
                 if (path.Contains("i/"))
-                    return AddItemRedirect(parameter, keyword);
+                    return res.RedirectSkyblock(parameter, "item", keyword);
                 if (parameter.ToUpper() != parameter && !parameter.StartsWith("POTION"))
                 {
                     // likely not a tag
@@ -87,7 +88,7 @@ namespace hypixel
                     var item = thread.Result.FirstOrDefault();
                     keyword = item?.Name;
                     parameter = item?.Tag;
-                    return AddItemRedirect(parameter, keyword);
+                    return res.RedirectSkyblock(parameter, "item", keyword);
                 }
                 else
                 {
@@ -120,7 +121,7 @@ namespace hypixel
 
             var newHtml = html
                         .Replace(defaultText, description)
-                        .Replace(defaultTitle, title)
+                        .Replace, title)
                         .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" /><meta property=\"og:image\" content=\"{imageUrl}\" />"
                             + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com/{path}\" />")
                         .Replace("</body>", PopularPages(title, longDescription) + "</body>");
@@ -191,15 +192,6 @@ namespace hypixel
             + ". This are all names under wich we found auctins for this item in the ah. It may be historical names or names in a different language.";
         }
 
-        private static string AddItemRedirect(string parameter, string name)
-        {
-            return Redirect(parameter, "item", name);
-        }
-
-        private static string Redirect(string parameter, string type, string seoTerm = null)
-        {
-            return $"https://sky.coflnet.com/{type}/{parameter}" + (seoTerm == null ? "" : $"/{seoTerm}");
-        }
 
         private static string PopularPages(string title, string description)
         {

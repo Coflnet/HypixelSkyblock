@@ -22,17 +22,53 @@ namespace hypixel
                         player.Id = System.Threading.Interlocked.Increment(ref Indexer.highestPlayerId);
                         context.Players.Update(player);
                     }
+                    // save all the ids
+                    await context.SaveChangesAsync();
                 }
-                else
-                {
+                
                     // all players in the db have an id now
                     bidNumberTask = Task.Run(NumberBids);
                     await NumberAuctions(context);
+                
+                await context.SaveChangesAsync();
+
+                for (int i = 0; i < 2; i++)
+                {
+                    var doublePlayersId = await context.Players.GroupBy(p => p.Id).Where(p => p.Key > 1).Select(p => p.Key).FirstOrDefaultAsync();
+                    if (doublePlayersId == 0)
+                        break;
+
+                    await ResetDoublePlayers(context, doublePlayersId);
+                    // give the db a moment to store everything
+                    await Task.Delay(5000);
                 }
+
                 await context.SaveChangesAsync();
             }
             if (bidNumberTask != null)
                 await bidNumberTask;
+        }
+
+        private static async Task ResetDoublePlayers(HypixelContext context, int doublePlayersId)
+        {
+            Console.WriteLine($"Found id with multiple players: {doublePlayersId}, renumbering them, highestId: {Indexer.highestPlayerId}");
+
+            foreach (var item in context.Players.Where(p => p.Id == doublePlayersId))
+            {
+                item.Id = 0;
+                context.Update(item);
+            }
+            foreach (var item in context.Auctions.Where(p => p.SellerId == doublePlayersId))
+            {
+                item.SellerId = 0;
+                context.Update(item);
+            }
+            foreach (var item in context.Bids.Where(p => p.BidderId == doublePlayersId))
+            {
+                item.BidderId = 0;
+                context.Update(item);
+            }
+            await context.SaveChangesAsync();
         }
 
         private static async Task NumberAuctions(HypixelContext context)
@@ -63,14 +99,23 @@ namespace hypixel
         private static void NumberAuction(HypixelContext context, SaveAuction auction)
         {
             auction.SellerId = GetOrCreatePlayerId(context, auction.AuctioneerId);
-            var id = ItemDetails.Instance.GetOrCreateItemIdForAuction(auction, context);
-            auction.ItemId = id;
 
+            if(auction.SellerId == 0)
+                // his player has not yet received his number
+                return;
 
-            foreach (var enchant in auction.Enchantments)
+            if (auction.ItemId == 0)
             {
-                enchant.ItemType = auction.ItemId;
+                var id = ItemDetails.Instance.GetOrCreateItemIdForAuction(auction, context);
+                auction.ItemId = id;
+
+
+                foreach (var enchant in auction.Enchantments)
+                {
+                    enchant.ItemType = auction.ItemId;
+                }
             }
+
             context.Auctions.Update(auction);
         }
 
@@ -85,6 +130,10 @@ namespace hypixel
                 {
 
                     bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
+                    if(bid.BidderId == 0)
+                        // his player has not yet received his number
+                        continue;
+                    
                     context.Bids.Update(bid);
                 }
 
@@ -98,7 +147,8 @@ namespace hypixel
             if (id == 0)
             {
                 id = Program.AddPlayer(context, uuid, ref Indexer.highestPlayerId);
-                Console.WriteLine($"Adding player {id} ");
+                if(id != 0)
+                    Console.WriteLine($"Adding player {id} {uuid} {Indexer.highestPlayerId}");
             }
             return id;
         }

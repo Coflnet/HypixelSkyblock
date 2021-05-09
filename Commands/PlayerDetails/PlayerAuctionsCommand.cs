@@ -11,9 +11,6 @@ namespace hypixel
 
         public override IEnumerable<AuctionResult> GetAllElements(string selector,int amount,int offset)
         {
-            Console.WriteLine(selector);
-            Console.WriteLine(offset);
-            Console.WriteLine(amount);
             using(var context = new HypixelContext())
             {
                 var auctions = context.Auctions

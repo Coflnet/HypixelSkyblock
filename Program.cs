@@ -283,6 +283,7 @@ namespace hypixel
 
         private static void RunIndexer()
         {
+            Indexer.LoadFromDB();
             RunIsolatedForever(async () =>
             {
                 Indexer.ProcessQueue();
@@ -359,16 +360,18 @@ namespace hypixel
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {
-            var p = new Player() { UuId = uuid, Id = highestId, ChangedFlag = true };
-            var existingPlayer = context.Players.Find(p.UuId);
+           
+            var existingPlayer = context.Players.Find(uuid);
             if (existingPlayer != null)
                 return existingPlayer.Id;
 
-            if (p.UuId != null)
-            {
+            if (uuid != null)
+            { 
+                var p = new Player() { UuId = uuid, ChangedFlag = true };
                 p.Name = name;
                 p.Id = System.Threading.Interlocked.Increment(ref highestId);
                 context.Players.Add(p);
+                context.SaveChanges();
                 return p.Id;
             }
             return highestId;

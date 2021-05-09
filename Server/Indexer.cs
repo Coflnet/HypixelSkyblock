@@ -182,6 +182,11 @@ namespace hypixel
         {
 
             auctions = auctions.Distinct(new AuctionComparer()).ToList();
+            lock(nameof(highestPlayerId))
+            {
+                if(highestPlayerId == 1)
+                    LoadFromDB();
+            }
 
             using (var context = new HypixelContext())
             {

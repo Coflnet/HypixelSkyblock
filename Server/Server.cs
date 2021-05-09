@@ -54,11 +54,13 @@ namespace hypixel
             server.KeepClean = false;
             server.OnGet += async (sender, e) =>
             {
-                try {
-                    await AnswerGetRequest(e);
-                } catch(Exception ex)
+                try
                 {
-                    dev.Logger.Instance.Error($"Ran into an error on get {ex.Message} {ex.StackTrace}");
+                    await AnswerGetRequest(e);
+                }
+                catch (Exception ex)
+                {
+                    dev.Logger.Instance.Error($"Ran into an error on get `{e.Request.RawUrl}` {ex.Message} {ex.StackTrace}");
                     return;
                 }
 
@@ -158,12 +160,12 @@ namespace hypixel
             if (relativePath == "files/index.html")
             {
                 Console.WriteLine("is index");
-                string response = await HtmlModifier.ModifyContent(path, contents);
-                if (!response.StartsWith('<'))
-                {
-                    Console.WriteLine(response);
-                    res.Redirect(response);
-                }
+                string response = await HtmlModifier.ModifyContent(path, contents, res);
+                /*          if (!response.StartsWith('<'))
+                          {
+                              Console.WriteLine($"{path} lead to {response}");
+                              res.Redirect(response);
+                          }*/
                 contents = Encoding.UTF8.GetBytes(response);
             }
 
@@ -268,9 +270,10 @@ namespace hypixel
                 return (T)(object)request;
             }
 
-            public override MessageData Create<T>(string type, T a,int maxAge = 0){
+            public override MessageData Create<T>(string type, T a, int maxAge = 0)
+            {
                 source.SetResult((TRes)(object)a);
-                var d = base.Create<T>(type, a,maxAge);
+                var d = base.Create<T>(type, a, maxAge);
                 d.Data = MessagePackSerializer.ToJson(a);
                 return d;
             }
@@ -278,17 +281,19 @@ namespace hypixel
 
             public override void SendBack(MessageData data, bool cache = true)
             {
-                try {
-                    if(source.TrySetResult(MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(data.Data))))
-                    { /* nothing to do, already set */ }
-                } catch(Exception)
+                try
                 {
-                    // thrown excpetion, looks like it isn't messagepack
-                    if(source.TrySetResult(JsonConvert.DeserializeObject<TRes>(data.Data)))
+                    if (source.TrySetResult(MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(data.Data))))
                     { /* nothing to do, already set */ }
                 }
-                
-                if(cache)
+                catch (Exception)
+                {
+                    // thrown excpetion, looks like it isn't messagepack
+                    if (source.TrySetResult(JsonConvert.DeserializeObject<TRes>(data.Data)))
+                    { /* nothing to do, already set */ }
+                }
+
+                if (cache)
                     CacheService.Instance.Save(this, data, 0);
             }
         }
@@ -415,7 +420,7 @@ namespace hypixel
             var builder = new StringBuilder(20000);
             builder.Append("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/>");
             builder.Append($"<link rel=\"icon\" href=\"/favicon.ico\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>{topic} List</title><body>");
-            builder.Append($"<h1>List of the most recently updated {topic}s</h1><a href=\"https://sky.coflnet.com\">back to the start page</a><ul>");
+            builder.Append($"<h2>List of the most recently updated {topic}s</h2><a href=\"https://sky.coflnet.com\">back to the start page</a><ul>");
             return builder;
         }
 
@@ -434,6 +439,51 @@ namespace hypixel
         public void Stop()
         {
             server.Stop();
+        }
+    }
+
+    public static class ResponseExtentions
+    {
+        public static void WritePartial(
+            this HttpListenerResponse response, byte[] content
+        )
+        {
+            if (response == null)
+                throw new ArgumentNullException("response");
+
+            if (content == null)
+                throw new ArgumentNullException("content");
+
+            var len = content.LongLength;
+            if (len == 0)
+            {
+                return;
+            }
+
+            response.ContentLength64 = len;
+
+            var output = response.OutputStream;
+
+            if (len <= Int32.MaxValue)
+                output.Write(content, 0, (int)len);
+            else
+                output.WriteBytes(content, 1024);
+        }
+
+        internal static void WriteBytes(
+            this Stream stream, byte[] bytes, int bufferLength
+            )
+        {
+            using (var src = new MemoryStream(bytes))
+                src.CopyTo(stream, bufferLength);
+        }
+
+
+        public static string RedirectSkyblock(this WebSocketSharp.Net.HttpListenerResponse res, string parameter, string type, string seoTerm = null)
+        {
+            var url = $"https://sky.coflnet.com/{type}/{parameter}" + (seoTerm == null ? "" : $"/{seoTerm}");
+            res.Redirect(url);
+            return url;
         }
     }
 }
