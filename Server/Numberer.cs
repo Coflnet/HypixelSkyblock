@@ -13,6 +13,16 @@ namespace hypixel
             Task bidNumberTask = null;
             using (var context = new HypixelContext())
             {
+                for (int i = 0; i < 2; i++)
+                {
+                    var doublePlayersId = await context.Players.GroupBy(p => p.Id).Where(p => p.Key > 1).Select(p => p.Key).FirstOrDefaultAsync();
+                    if (doublePlayersId == 0)
+                        break;
+
+                    await ResetDoublePlayers(context, doublePlayersId);
+                }
+
+                await context.SaveChangesAsync();
                 var unindexedPlayers = await context.Players.Where(p => p.Id == 0).Take(2000).ToListAsync();
                 if (unindexedPlayers.Any())
                 {
@@ -25,28 +35,24 @@ namespace hypixel
                     // save all the ids
                     await context.SaveChangesAsync();
                 }
-                
+
+                if (unindexedPlayers.Count < 2000)
+                {
                     // all players in the db have an id now
                     bidNumberTask = Task.Run(NumberBids);
                     await NumberAuctions(context);
-                
-                await context.SaveChangesAsync();
 
-                for (int i = 0; i < 2; i++)
-                {
-                    var doublePlayersId = await context.Players.GroupBy(p => p.Id).Where(p => p.Key > 1).Select(p => p.Key).FirstOrDefaultAsync();
-                    if (doublePlayersId == 0)
-                        break;
+                    await context.SaveChangesAsync();
 
-                    await ResetDoublePlayers(context, doublePlayersId);
-                    // give the db a moment to store everything
-                    await Task.Delay(5000);
                 }
 
-                await context.SaveChangesAsync();
             }
             if (bidNumberTask != null)
                 await bidNumberTask;
+
+            // give the db a moment to store everything
+            await Task.Delay(2000);
+
         }
 
         private static async Task ResetDoublePlayers(HypixelContext context, int doublePlayersId)
@@ -100,7 +106,7 @@ namespace hypixel
         {
             auction.SellerId = GetOrCreatePlayerId(context, auction.AuctioneerId);
 
-            if(auction.SellerId == 0)
+            if (auction.SellerId == 0)
                 // his player has not yet received his number
                 return;
 
@@ -130,10 +136,10 @@ namespace hypixel
                 {
 
                     bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
-                    if(bid.BidderId == 0)
+                    if (bid.BidderId == 0)
                         // his player has not yet received his number
                         continue;
-                    
+
                     context.Bids.Update(bid);
                 }
 
@@ -147,7 +153,7 @@ namespace hypixel
             if (id == 0)
             {
                 id = Program.AddPlayer(context, uuid, ref Indexer.highestPlayerId);
-                if(id != 0)
+                if (id != 0)
                     Console.WriteLine($"Adding player {id} {uuid} {Indexer.highestPlayerId}");
             }
             return id;

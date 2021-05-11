@@ -148,7 +148,7 @@ namespace hypixel
                 CacheService.Instance.Save(this, data, 0);
             var json = data.Data;
             res.StatusCode = 200;
-            res.AddHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
+            res.AppendHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }
     }

@@ -28,7 +28,7 @@ namespace hypixel
             return !IsBazaar(itemId);
         }
 
-        private bool IsBazaar(int itemId)
+        public bool IsBazaar(int itemId)
         {
             return BazzarItem.ContainsKey(itemId);
         }

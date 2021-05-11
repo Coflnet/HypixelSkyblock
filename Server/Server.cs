@@ -68,7 +68,7 @@ namespace hypixel
 
             server.OnPost += async (sender, e) =>
             {
-
+                
                 if (e.Request.RawUrl == "/stripe")
                     await new StripeRequests().ProcessStripe(e);
                 if (e.Request.RawUrl.StartsWith("/command/"))
@@ -157,21 +157,17 @@ namespace hypixel
                 return;
             }
 
+            res.ContentType = "text/html";
+            res.ContentEncoding = Encoding.UTF8;
+
             if (relativePath == "files/index.html")
             {
                 Console.WriteLine("is index");
-                string response = await HtmlModifier.ModifyContent(path, contents, res);
-                /*          if (!response.StartsWith('<'))
-                          {
-                              Console.WriteLine($"{path} lead to {response}");
-                              res.Redirect(response);
-                          }*/
-                contents = Encoding.UTF8.GetBytes(response);
+                await HtmlModifier.ModifyContent(path, contents, res);
+                return;
             }
 
 
-            res.ContentType = "text/html";
-            res.ContentEncoding = Encoding.UTF8;
 
             if (path.EndsWith(".png") || path.StartsWith("/static/skin"))
             {
@@ -185,7 +181,7 @@ namespace hypixel
             {
                 res.ContentType = "text/javascript";
             }
-            res.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 7));
+            res.AppendHeader("cache-control", "public,max-age=" + (3600 * 24 * 14));
 
             res.WriteContent(contents);
         }
@@ -444,15 +440,17 @@ namespace hypixel
 
     public static class ResponseExtentions
     {
-        public static void WritePartial(
-            this HttpListenerResponse response, byte[] content
+        public static async Task WritePartial(
+            this HttpListenerResponse response, string stringContent
         )
         {
             if (response == null)
                 throw new ArgumentNullException("response");
 
-            if (content == null)
+            if (stringContent == null)
                 throw new ArgumentNullException("content");
+
+            var content = Encoding.UTF8.GetBytes(stringContent);
 
             var len = content.LongLength;
             if (len == 0)
@@ -460,14 +458,20 @@ namespace hypixel
                 return;
             }
 
-            response.ContentLength64 = len;
-
             var output = response.OutputStream;
 
             if (len <= Int32.MaxValue)
-                output.Write(content, 0, (int)len);
+                await output.WriteAsync(content, 0, (int)len);
             else
                 output.WriteBytes(content, 1024);
+        }
+        public static async Task WriteEnd(
+            this HttpListenerResponse response, string stringContent
+        )
+        {
+            await response.WritePartial(stringContent);
+            response.Close();
+
         }
 
         internal static void WriteBytes(
@@ -483,6 +487,7 @@ namespace hypixel
         {
             var url = $"https://sky.coflnet.com/{type}/{parameter}" + (seoTerm == null ? "" : $"/{seoTerm}");
             res.Redirect(url);
+            res.Close();
             return url;
         }
     }

@@ -103,7 +103,7 @@ namespace hypixel
             DeleteDir(targetTmp);
         }
 
-        public static async void ProcessQueue()
+        public static async Task ProcessQueue()
         {
             var chuckCount = 1000;
             for (int i = 0; i < auctionsQueue.Count / 1000 + 1; i++)

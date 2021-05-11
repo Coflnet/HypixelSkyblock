@@ -286,7 +286,7 @@ namespace hypixel
             Indexer.LoadFromDB();
             RunIsolatedForever(async () =>
             {
-                Indexer.ProcessQueue();
+                await Indexer.ProcessQueue();
                 await Indexer.LastHourIndex();
 
             }, "An error occured while indexing");

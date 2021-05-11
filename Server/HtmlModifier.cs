@@ -13,22 +13,32 @@ namespace hypixel
 {
     public class HtmlModifier
     {
+
+        const string defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
+        const string defaultTitle = "Skyblock Auction House History";
+        const string DETAILS_START = @"<details style=""padding:10%; margin-top:80%""><summary>Detailed Description</summary>
+                    <span data-nosnippet>This only updates when you reload the page so don't get confused :).</span>";
         public static async Task<string> ModifyContent(string path, byte[] contents, WebSocketSharp.Net.HttpListenerResponse res)
         {
-            var defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
-            var defaultTitle = "Skyblock Auction House History";
             string parameter = "";
             var urlParts = path.Split('/', '?', '#');
             if (urlParts.Length > 2)
                 parameter = urlParts[2];
-            string description = defaultText;
+            string description = "Browse over 180 million auctions, and the bazaar of Hypixel SkyBlock.";
             string longDescription = null;
             string title = defaultTitle;
             string imageUrl = "https://sky.coflnet.com/logo192.png";
             string keyword = "";
 
-            string html = Encoding.UTF8.GetString(contents);
-            
+            var parts = Encoding.UTF8.GetString(contents).Split("</head>");
+            string header = parts.First();
+            string html = parts.Last().Substring(0,parts.Last().Length - 14);
+
+
+            if(path.Contains("p/"))
+                return res.RedirectSkyblock(parameter, "player");
+            if(path.Contains("a/"))
+                return res.RedirectSkyblock(parameter, "auction");
 
             // try to fill in title
             if (path.Contains("auction/") || path.Contains("a/"))
@@ -43,20 +53,24 @@ namespace hypixel
                         var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
                         title = $"Auction for {result.ItemName} by {playerName}";
                         description = $"{title} ended on {result.End} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
-                        longDescription = description 
-                            + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
-                            + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
-                        keyword = $"{result.ItemName},{playerName}";
+
 
                         if (!string.IsNullOrEmpty(result.Tag))
                             imageUrl = "https://sky.lea.moe/item/" + result.Tag;
                         else
                             imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
 
+                        await WriteHeader(path, res, description, title, imageUrl, keyword, header);
+
+                        longDescription = description
+                            + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
+                            + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
+                        keyword = $"{result.ItemName},{playerName}";
+
+
                     }
                 }
-            }
-            if (path.Contains("player/") || path.Contains("p/"))
+            } else if (path.Contains("player/"))
             {
                 if (parameter.Length < 30)
                 {
@@ -69,13 +83,19 @@ namespace hypixel
                 title = $"{keyword} Auctions and bids";
                 description = $"Auctions and bids for {keyword} in hypixel skyblock.";
 
-                string auctionAndBids = await GetAuctionAndBids(parameter);
-
-                longDescription = description + auctionAndBids;
                 imageUrl = "https://crafatar.com/avatars/" + parameter;
-            }
 
-            if (path.Contains("item/") || path.Contains("i/"))
+                await WriteHeader(path, res, description, title, imageUrl, keyword, header);
+
+
+                var auctions = GetAuctions(parameter, keyword);
+                var bids = GetBids(parameter, keyword);
+                await res.WritePartial(html);
+                await res.WritePartial(DETAILS_START + $"<h1>{title}</h1>{description} " + await auctions);
+                await res.WriteEnd(await bids + PopularPages() + "</body></html>");
+
+                return "";
+            } else if (path.Contains("item/") || path.Contains("i/"))
             {
                 if (path.Contains("i/"))
                     return res.RedirectSkyblock(parameter, "item", keyword);
@@ -100,15 +120,31 @@ namespace hypixel
 
                 title = $"{keyword} price ";
                 description = $"Price for item {keyword} in hypixel SkyBlock";
+                imageUrl = "https://sky.lea.moe/item/" + parameter;
+                await WriteHeader(path, res, description, title, imageUrl, keyword, header);
+
                 longDescription = description
                 + AddAlternativeNames(i);
 
                 longDescription += await GetRecentAuctions(i.Tag);
-                imageUrl = "https://sky.lea.moe/item/" + parameter;
+            } else {
+                // unkown site, write the header
+                await WriteHeader(path, res, description, "", imageUrl, keyword, header);
             }
-            title += " | Hypixel SkyBlock Auction house history tracker";
             if (longDescription == null)
                 longDescription = description;
+
+
+            var newHtml = html + DETAILS_START
+                        + BottomText(title, longDescription) + "</body></html>";
+
+            await res.WriteEnd(newHtml);
+            return newHtml;
+        }
+
+        private static async Task WriteHeader(string path, WebSocketSharp.Net.HttpListenerResponse res, string description, string title, string imageUrl, string keyword, string header)
+        {
+            title += " Hypixel SkyBlock Auction house history tracker";
             // shrink to fit
             while (title.Length > 65)
             {
@@ -119,13 +155,22 @@ namespace hypixel
                 path = "";
             }
 
-            var newHtml = html
-                        .Replace(defaultText, description)
-                        .Replace, title)
-                        .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" /><meta property=\"og:image\" content=\"{imageUrl}\" />"
-                            + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com/{path}\" />")
-                        .Replace("</body>", PopularPages(title, longDescription) + "</body>");
-            return newHtml;
+
+            res.SendChunked = true;
+            res.AppendHeader("cache-control", "public,max-age=" + 3600);
+
+            await res.WritePartial(header
+            .Replace(defaultText, description)
+            .Replace(defaultTitle, title)
+            .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" />"
+                + $"<meta property=\"og:image\" content=\"{imageUrl}\" />"
+                + $"<meta property=\"og:url\" content=\"https://sky.coflnet.com/{path}\" />"
+                + $"<meta property=\"og:title\" content=\"{title}\" />"
+                + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com/{path}\" />"
+                )
+                + "</head>");
+            
+            res.OutputStream.Flush();
         }
 
         private static string CreateCanoicalPath(string[] urlParts, DBItem i)
@@ -133,31 +178,18 @@ namespace hypixel
             return $"/item/{i.Tag}" + (urlParts.Length > 3 ? $"/{ItemReferences.RemoveReforgesAndLevel(HttpUtility.UrlDecode(urlParts[3])) }" : "");
         }
 
-        private static async Task<string> GetAuctionAndBids(string parameter)
+        private static async Task<string> GetBids(string parameter, string name)
         {
-            var bidsTask =  Server.ExecuteCommandWithCache<
+            var bidsTask = Server.ExecuteCommandWithCache<
             PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request,
             List<PlayerBidsCommand.BidResult>>("playerBids", new PaginatedRequestCommand<PlayerBidsCommand.BidResult>
             .Request()
             { Amount = 20, Offset = 0, Uuid = parameter });
 
-            var auctions = await Server.ExecuteCommandWithCache<
-            PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request,
-            List<PlayerAuctionsCommand.AuctionResult>>("playerAuctions", new PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>
-            .Request()
-            { Amount = 20, Offset = 0, Uuid = parameter });
-
             var sb = new StringBuilder();
+            var bids = await bidsTask;
 
-            sb.Append("Auctions: <ul>");
-            var bids = await bidsTask; 
-            foreach (var item in auctions)
-            {
-                sb.Append($"<li><a href=\"/auction/{item.AuctionId}\">{item.ItemName}</a></li>");
-            }
-            sb.Append("</ul>");
-
-            sb.Append("Bids: <ul>");
+            sb.Append("<h2>Bids</h2> <ul>");
             foreach (var item in bids)
             {
                 sb.Append($"<li><a href=\"/auction/{item.AuctionId}\">{item.ItemName}</a></li>");
@@ -168,9 +200,32 @@ namespace hypixel
             return auctionAndBids;
         }
 
+        private static async Task<string> GetAuctions(string uuid, string name)
+        {
+            var auctions = await Server.ExecuteCommandWithCache<
+            PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request,
+            List<PlayerAuctionsCommand.AuctionResult>>("playerAuctions", new PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>
+            .Request()
+            { Amount = 20, Offset = 0, Uuid = uuid });
+
+            var sb = new StringBuilder();
+
+            sb.Append($"<h2>{name} Auctions</h2> <ul>");
+            foreach (var item in auctions)
+            {
+                sb.Append($"<li><a href=\"/auction/{item.AuctionId}\">{item.ItemName}</a></li>");
+            }
+            sb.Append("</ul>");
+            return sb.ToString();
+        }
+
         private static async Task<string> GetRecentAuctions(string tag)
         {
-            var result = await Server.ExecuteCommandWithCache<ItemSearchQuery,IEnumerable<AuctionPreview>>("recentAuctions",new ItemSearchQuery(){
+            var isBazaar = ItemPrices.Instance.IsBazaar(ItemDetails.Instance.GetItemIdForName(tag));
+            if(isBazaar)
+                return " This is a bazaar item. Bazaartracker.com currently gives you a more detailed view of this history. ";
+            var result = await Server.ExecuteCommandWithCache<ItemSearchQuery, IEnumerable<AuctionPreview>>("recentAuctions", new ItemSearchQuery()
+            {
                 name = tag,
                 Start = DateTime.Now.Subtract(TimeSpan.FromHours(3)).RoundDown(TimeSpan.FromMinutes(30))
             });
@@ -192,14 +247,17 @@ namespace hypixel
             + ". This are all names under wich we found auctins for this item in the ah. It may be historical names or names in a different language.";
         }
 
+        private static string BottomText(string title, string description)
+        {
+            return $@"<h1>{title}</h1><p>{description}</p>"
+                    + PopularPages();
+        }
 
-        private static string PopularPages(string title, string description)
+        private static string PopularPages()
         {
             var r = new Random();
             var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x => r.Next());
-            var body = $@"<details style=""padding:10%; margin-top:80%""><sumary>Description without javascript.</sumary>
-                    This only updates when you reload the page so don't get confused :).
-                    <h1>{title}</h1><p>{description}</p><p>View, search, browse, and filter by reforge or enchantment. "
+            var body = "<h2>Description</h2><p>View, search, browse, and filter by reforge or enchantment. "
                     + "You can find all current and historic prices for the auction house and bazaar on this web tracker. "
                     + "We are tracking about 175 million auctions. "
                     + "Saved more than 230 million bazaar prices in intervalls of 10 seconds. "
@@ -208,7 +266,7 @@ namespace hypixel
                     + "New Items are added automatically and available within two miniutes after the first auction is startet. "
                     + "We allow you to subscribe to auctions, item prices and being outbid with more to come. "
                     + "Quick urls allow you to link to specific sites. /p/Steve or /i/Oak allow you to create a link without visiting the site first. "
-                    + "Please use the contact on the Feedback site to send us suggestions or bug reports. ";
+                    + "Please use the contact on the Feedback site to send us suggestions or bug reports. </p>";
             if (recentSearches.Any())
                 body += "<h2>Other Players and item auctions:</h2>"
                     + recentSearches
