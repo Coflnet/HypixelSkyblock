@@ -88,6 +88,13 @@ namespace hypixel
         public SkyblockBackEnd Connection;
         private int responseCounter = 0;
 
+        public override int UserId
+        {
+            get => Connection.UserId;
+            set => Connection.UserId = value;
+        }
+
+
         public SocketMessageData()
         {
         }
@@ -137,7 +144,7 @@ namespace hypixel
             catch (System.Exception e)
             {
                 dev.Logger.Instance.Error($"received invalid command {req.RawUrl} {e.Message} {e.StackTrace}");
-                this.SendBack(new MessageData("error","commanddata was invalid"));
+                this.SendBack(new MessageData("error", "commanddata was invalid"));
             }
 
         }

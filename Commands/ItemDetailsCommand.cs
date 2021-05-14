@@ -13,7 +13,11 @@ namespace hypixel
 
         public static MessageData CreateResponse(string search)
         {
-            return new MessageData("itemDetailsResponse", JsonConvert.SerializeObject(ItemDetails.Instance.GetDetails(search)), A_WEEK);
+            var details = ItemDetails.Instance.GetDetails(search);
+            var time = A_WEEK;
+            if(details.Tag == "Unknown")
+                time = 0;
+            return new MessageData("itemDetailsResponse", JsonConvert.SerializeObject(details), time);
         }
 
         public static string ReplaceInvalidCharacters(string data)

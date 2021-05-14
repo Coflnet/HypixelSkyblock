@@ -325,6 +325,13 @@ namespace hypixel
             return JsonConvert.DeserializeObject<DBItem>(response.Data);
         }
 
+        public DBItem GetDetailsWithCache(int id)
+        {
+            // THIS IS INPERFORMANT, Todo: find a better way
+            var itemTag = TagLookup.Where(a=>a.Value == id).First().Key;
+            return GetDetailsWithCache(itemTag);
+        }
+
         public void Save()
         {
             FileController.SaveAs("itemDetails", Items);

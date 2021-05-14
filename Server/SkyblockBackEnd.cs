@@ -83,7 +83,7 @@ namespace hypixel
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
 
-
+            Commands.Add("getFilter",new Filter.GetFilterOptionsCommand());
 
         }
 
@@ -161,7 +161,7 @@ namespace hypixel
                 }
                 catch (Exception ex)
                 {
-                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message}");
+                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
                     data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
                 }
             });

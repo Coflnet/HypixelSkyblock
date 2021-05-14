@@ -16,8 +16,7 @@ namespace hypixel
 
         const string defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
         const string defaultTitle = "Skyblock Auction House History";
-        const string DETAILS_START = @"<details style=""padding:10%; margin-top:80%""><summary>Detailed Description</summary>
-                    <span data-nosnippet>This only updates when you reload the page so don't get confused :).</span>";
+        const string DETAILS_START = @"<noscript>";
         public static async Task<string> ModifyContent(string path, byte[] contents, WebSocketSharp.Net.HttpListenerResponse res)
         {
             string parameter = "";
@@ -39,22 +38,32 @@ namespace hypixel
                 return res.RedirectSkyblock(parameter, "player");
             if(path.Contains("a/"))
                 return res.RedirectSkyblock(parameter, "auction");
+            if(path == "/item/" || path == "/item")
+                return res.RedirectSkyblock();
 
             // try to fill in title
             if (path.Contains("auction/") || path.Contains("a/"))
             {
+            Console.WriteLine("ok");
                 // is an auction
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
                             .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category }).FirstOrDefault();
-                    if (result != null)
+                    if (result == null)
                     {
+                        await WriteHeader("/error",res,"This site was not found","Error",imageUrl,null,header);
+                        await res.WriteEnd(html);
+                        return "";
+                    }
+                    
+
                         var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
                         title = $"Auction for {result.ItemName} by {playerName}";
                         description = $"{title} ended on {result.End} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
 
 
+            Console.WriteLine("ok");
                         if (!string.IsNullOrEmpty(result.Tag))
                             imageUrl = "https://sky.lea.moe/item/" + result.Tag;
                         else
@@ -62,13 +71,14 @@ namespace hypixel
 
                         await WriteHeader(path, res, description, title, imageUrl, keyword, header);
 
+            Console.WriteLine("ok");
                         longDescription = description
                             + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
                             + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
                         keyword = $"{result.ItemName},{playerName}";
 
 
-                    }
+                    
                 }
             } else if (path.Contains("player/"))
             {
@@ -92,7 +102,7 @@ namespace hypixel
                 var bids = GetBids(parameter, keyword);
                 await res.WritePartial(html);
                 await res.WritePartial(DETAILS_START + $"<h1>{title}</h1>{description} " + await auctions);
-                await res.WriteEnd(await bids + PopularPages() + "</body></html>");
+                await res.WriteEnd(await bids + PopularPages());
 
                 return "";
             } else if (path.Contains("item/") || path.Contains("i/"))
@@ -119,7 +129,8 @@ namespace hypixel
                 path = CreateCanoicalPath(urlParts, i);
 
                 title = $"{keyword} price ";
-                description = $"Price for item {keyword} in hypixel SkyBlock";
+                float price = await GetAvgPrice(i);
+                description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. Visit for a nice chart and filter options";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
 
@@ -127,7 +138,8 @@ namespace hypixel
                 + AddAlternativeNames(i);
 
                 longDescription += await GetRecentAuctions(i.Tag);
-            } else {
+            }
+            else {
                 // unkown site, write the header
                 await WriteHeader(path, res, description, "", imageUrl, keyword, header);
             }
@@ -136,17 +148,25 @@ namespace hypixel
 
 
             var newHtml = html + DETAILS_START
-                        + BottomText(title, longDescription) + "</body></html>";
+                        + BottomText(title, longDescription) ;
 
             await res.WriteEnd(newHtml);
             return newHtml;
+        }
+
+        private static async Task<float> GetAvgPrice(DBItem i)
+        {
+            var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = i.Tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
+            if(prices == null || prices.Count == 0)
+                return 0;
+            return prices.Average(a => a.Avg);
         }
 
         private static async Task WriteHeader(string path, WebSocketSharp.Net.HttpListenerResponse res, string description, string title, string imageUrl, string keyword, string header)
         {
             title += " Hypixel SkyBlock Auction house history tracker";
             // shrink to fit
-            while (title.Length > 65)
+            while (title.Length > 55)
             {
                 title = title.Substring(0, title.LastIndexOf(' '));
             }
@@ -157,16 +177,16 @@ namespace hypixel
 
 
             res.SendChunked = true;
-            res.AppendHeader("cache-control", "public,max-age=" + 3600);
+            res.AppendHeader("cache-control", "public,max-age=" + 1800);
 
             await res.WritePartial(header
             .Replace(defaultText, description)
             .Replace(defaultTitle, title)
             .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" />"
                 + $"<meta property=\"og:image\" content=\"{imageUrl}\" />"
-                + $"<meta property=\"og:url\" content=\"https://sky.coflnet.com/{path}\" />"
+                + $"<meta property=\"og:url\" content=\"https://sky.coflnet.com{path}\" />"
                 + $"<meta property=\"og:title\" content=\"{title}\" />"
-                + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com/{path}\" />"
+                + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com{path}\" />"
                 )
                 + "</head>");
             
@@ -273,7 +293,7 @@ namespace hypixel
                     .Take(8)
                 .Select(p => $"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title} </a>")
                 .Aggregate((a, b) => a + b);
-            return body + "</details>";
+            return body + "</noscript>";
         }
     }
 }

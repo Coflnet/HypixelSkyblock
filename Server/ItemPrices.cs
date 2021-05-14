@@ -15,6 +15,8 @@ namespace hypixel
     {
         public static ItemPrices Instance;
 
+        public Filter.FilterEngine FilterEngine = new Filter.FilterEngine();
+
         private ConcurrentDictionary<int, ItemLookup> Hours = new ConcurrentDictionary<int, ItemLookup>();
         private ConcurrentDictionary<int, ItemLookup> IntraHour = new ConcurrentDictionary<int, ItemLookup>();
 
@@ -37,10 +39,9 @@ namespace hypixel
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
 
-            if (details.Reforge != ItemReferences.Reforge.Any 
-                    || (details.Enchantments != null && details.Enchantments.Count != 0) 
+            if (details.Reforge != ItemReferences.Reforge.Any
+                    || (details.Enchantments != null && details.Enchantments.Count != 0)
                     //|| details.Rarity != Tier.UNKNOWN 
-                    || details.Data != null
                     || details.Tier != Tier.UNKNOWN)
                 return await QueryDB(details);
 
@@ -75,7 +76,8 @@ namespace hypixel
                 Filterable = IsFilterable(itemId),
                 Bazaar = isBazaar,
                 // exclude high moving 
-                Prices = isBazaar ? prices.Where(p=>p.Max < prices.Average(pi=>pi.Min) * 1000).ToList() : prices.ToList()
+                Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList(),
+                Filters = FilterEngine.FiltersFor(ItemDetails.Instance.GetDetailsWithCache(itemId)).Select(f => f.Name)
             };
         }
 
@@ -137,7 +139,7 @@ namespace hypixel
         {
             aDay = TimeSpan.FromDays(1);
             oneHour = TimeSpan.FromHours(1);
-            lastHour = (DateTime.Now - oneHour).RoundDown( oneHour);
+            lastHour = (DateTime.Now - oneHour).RoundDown(oneHour);
             startYesterday = (DateTime.Now - aDay).RoundDown(aDay);
         }
 
@@ -174,9 +176,12 @@ namespace hypixel
             }
         }
 
-        private static IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
+        private IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
         {
             var select = AuctionSelect(details.Start, details.End, context, itemId);
+
+            if (details.Filter != null)
+                return FilterEngine.AddFilters(select, details.Filter);
 
 
             if (details.Enchantments != null && details.Enchantments.Any())
@@ -186,8 +191,8 @@ namespace hypixel
                 select = select.Where(auction => auction.Reforge == details.Reforge);
 
 
-            if(details.Tier != Tier.UNKNOWN)
-                select = select.Where(a=>a.Tier == details.Tier);
+            if (details.Tier != Tier.UNKNOWN)
+                select = select.Where(a => a.Tier == details.Tier);
             /*
             if(details.Data != null && details.Data.Count > 0)
             {
@@ -428,7 +433,7 @@ namespace hypixel
             }
 
             IEnumerable<int> ids = query.Where(e => e.ItemType == itemId && e.Type == enchantments.First().Type && e.Level == enchantments.First().Level)
-                        .OrderByDescending(e=>e.Id)
+                        .OrderByDescending(e => e.Id)
                         .Select(e => e.SaveAuctionId);
 
             if (enchantments.Count() > 1)
@@ -442,7 +447,7 @@ namespace hypixel
                         .Select(e => e.Key);
             }
 
-            if(limit > 0)
+            if (limit > 0)
                 ids = ids.Take(limit).ToList();
 
             moreThanOneBidQuery = moreThanOneBidQuery
@@ -475,8 +480,8 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
-                IQueryable<SaveAuction> select = CreateSelect(query, context, itemId,amount*2);
-                return select.OrderByDescending(a=>a.End).Take(amount).Select(a=>new AuctionPreview()
+                IQueryable<SaveAuction> select = CreateSelect(query, context, itemId, amount * 2);
+                return select.OrderByDescending(a => a.End).Take(amount).Select(a => new AuctionPreview()
                 {
                     End = a.End,
                     Price = a.HighestBidAmount,
@@ -496,6 +501,8 @@ namespace hypixel
             public bool Filterable;
             [Key("bazaar")]
             public bool Bazaar;
+            [Key("filters")]
+            public IEnumerable<string> Filters;
             [Key("prices")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
         }

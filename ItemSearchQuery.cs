@@ -28,8 +28,8 @@ namespace hypixel
         [Key("rarity")]
         public Tier Tier;
 
-        [Key("data")]
-        public Dictionary<string,string> Data;
+        [Key("filter")]
+        public Dictionary<string,string> Filter;
 
 
         [Key("start")]

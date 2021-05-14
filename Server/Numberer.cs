@@ -131,6 +131,8 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
+                try 
+                {
                 var bidsWithoutSellerId = await context.Bids.Where(a => a.BidderId == 0).Take(batchSize).ToListAsync();
                 foreach (var bid in bidsWithoutSellerId)
                 {
@@ -144,6 +146,11 @@ namespace hypixel
                 }
 
                 await context.SaveChangesAsync();
+                } catch(Exception e)
+                {
+                    Console.WriteLine($"Ran into error on numbering bids {e.Message} {e.StackTrace}");
+                }
+
             }
         }
 

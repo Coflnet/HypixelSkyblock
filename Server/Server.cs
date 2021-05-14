@@ -68,7 +68,7 @@ namespace hypixel
 
             server.OnPost += async (sender, e) =>
             {
-                
+
                 if (e.Request.RawUrl == "/stripe")
                     await new StripeRequests().ProcessStripe(e);
                 if (e.Request.RawUrl.StartsWith("/command/"))
@@ -90,15 +90,31 @@ namespace hypixel
 
             var path = req.RawUrl.Split('?')[0];
 
-            if (path == "/" || path.IsNullOrEmpty())
-            {
-                path = "index.html";
-            }
+
+            Console.WriteLine("ok");
+
 
             if (path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
             {
                 PrintStatus(res);
                 return;
+            }
+
+            if (path.StartsWith("/command/"))
+            {
+                await HandleCommand(req, res);
+                return;
+            }
+
+            if (req.UserHostName.StartsWith("skyblock"))
+            {
+                res.Redirect("https://sky.coflnet.com" + path);
+                return;
+            }
+
+            if (path == "/" || path.IsNullOrEmpty())
+            {
+                path = "index.html";
             }
 
             if (path == "/players")
@@ -123,11 +139,7 @@ namespace hypixel
                 return;
             }
 
-            if (path.StartsWith("/command/"))
-            {
-                await HandleCommand(req, res);
-                return;
-            }
+
 
             byte[] contents;
             var relativePath = $"files/{path}";
@@ -469,7 +481,7 @@ namespace hypixel
             this HttpListenerResponse response, string stringContent
         )
         {
-            await response.WritePartial(stringContent);
+            await response.WritePartial(stringContent + "</body></html>");
             response.Close();
 
         }
@@ -483,9 +495,9 @@ namespace hypixel
         }
 
 
-        public static string RedirectSkyblock(this WebSocketSharp.Net.HttpListenerResponse res, string parameter, string type, string seoTerm = null)
+        public static string RedirectSkyblock(this WebSocketSharp.Net.HttpListenerResponse res, string parameter = null, string type = null, string seoTerm = null)
         {
-            var url = $"https://sky.coflnet.com/{type}/{parameter}" + (seoTerm == null ? "" : $"/{seoTerm}");
+            var url = $"https://sky.coflnet.com" + (type == null ? "" : $"/{type}") + (parameter == null ? "" : $"/{parameter}") + (seoTerm == null ? "" : $"/{seoTerm}");
             res.Redirect(url);
             res.Close();
             return url;
