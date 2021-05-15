@@ -10,12 +10,11 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             var request = data.GetAs<Request>();
-            Console.WriteLine(MessagePackSerializer.ToJson(request));
             
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
 
             var result = GetResult(request.Uuid,request.Amount,request.Offset);
-            data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE*2));
+            data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE));
         }
 
         private List<T> GetResult(string uuid, int amount, int offset)

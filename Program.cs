@@ -138,8 +138,7 @@ namespace hypixel
                     //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
                     break;
                 case 'i':
-                    Console.WriteLine("got removed");
-                    //Indexer.BuildIndexes();
+                    Flipper.FlipperEngine.Instance.Test();
                     break;
                 case 'p':
                     Indexer.LastHourIndex().Wait();

@@ -20,7 +20,7 @@ namespace hypixel {
                 }
                 var resultJson = JSON.Stringify (result);
                 var maxAge = A_MINUTE;
-                if(result.End > DateTime.Now)
+                if(result.End < DateTime.Now)
                     // won't change anymore
                     maxAge = A_WEEK;
 

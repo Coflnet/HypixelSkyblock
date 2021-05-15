@@ -13,9 +13,9 @@ namespace hypixel
             Task bidNumberTask = null;
             using (var context = new HypixelContext())
             {
-                for (int i = 0; i < 2; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    var doublePlayersId = await context.Players.GroupBy(p => p.Id).Where(p => p.Key > 1).Select(p => p.Key).FirstOrDefaultAsync();
+                    var doublePlayersId = await context.Players.GroupBy(p => p.Id).Where(p => p.Count() > 1).Select(p => p.Key).FirstOrDefaultAsync();
                     if (doublePlayersId == 0)
                         break;
 
@@ -57,7 +57,8 @@ namespace hypixel
 
         private static async Task ResetDoublePlayers(HypixelContext context, int doublePlayersId)
         {
-            Console.WriteLine($"Found id with multiple players: {doublePlayersId}, renumbering them, highestId: {Indexer.highestPlayerId}");
+            if(doublePlayersId % 3 == 0)
+                Console.WriteLine($"Found Double player id: {doublePlayersId}, renumbering, highestId: {Indexer.highestPlayerId}");
 
             foreach (var item in context.Players.Where(p => p.Id == doublePlayersId))
             {

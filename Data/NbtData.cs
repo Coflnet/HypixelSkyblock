@@ -41,7 +41,7 @@ namespace hypixel
         }
 
         [IgnoreMember]
-        public object Data
+        public Dictionary<string,object> Data
         {
             get 
             {

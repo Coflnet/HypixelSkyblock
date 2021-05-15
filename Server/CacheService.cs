@@ -42,7 +42,7 @@ namespace hypixel
                 return item;
             });
             // keep the cache size in check
-            while(CacheSize > 20000)
+            while(CacheSize > 30000)
             {
                 cache.TryRemove(cache.Keys.First(), out CacheElement elem);
             }

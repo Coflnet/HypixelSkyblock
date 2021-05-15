@@ -111,7 +111,6 @@ namespace hypixel
             cultivating,
             delicate,
             
-            
             Any = 126
         }
 

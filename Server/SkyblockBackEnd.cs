@@ -84,6 +84,8 @@ namespace hypixel
             Commands.Add("gPurchase", new GooglePurchaseCommand());
 
             Commands.Add("getFilter",new Filter.GetFilterOptionsCommand());
+            Commands.Add("subFlip",new SubFlipperCommand());
+            Commands.Add("getFlips",new RecentFlipsCommand());
 
         }
 

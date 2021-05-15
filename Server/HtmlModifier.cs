@@ -44,7 +44,6 @@ namespace hypixel
             // try to fill in title
             if (path.Contains("auction/") || path.Contains("a/"))
             {
-            Console.WriteLine("ok");
                 // is an auction
                 using (var context = new HypixelContext())
                 {
@@ -63,7 +62,6 @@ namespace hypixel
                         description = $"{title} ended on {result.End} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
 
 
-            Console.WriteLine("ok");
                         if (!string.IsNullOrEmpty(result.Tag))
                             imageUrl = "https://sky.lea.moe/item/" + result.Tag;
                         else
@@ -71,7 +69,6 @@ namespace hypixel
 
                         await WriteHeader(path, res, description, title, imageUrl, keyword, header);
 
-            Console.WriteLine("ok");
                         longDescription = description
                             + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
                             + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
@@ -186,6 +183,7 @@ namespace hypixel
                 + $"<meta property=\"og:image\" content=\"{imageUrl}\" />"
                 + $"<meta property=\"og:url\" content=\"https://sky.coflnet.com{path}\" />"
                 + $"<meta property=\"og:title\" content=\"{title}\" />"
+                + $"<meta property=\"og:description\" content=\"{description}\" />"
                 + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com{path}\" />"
                 )
                 + "</head>");

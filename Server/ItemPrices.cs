@@ -95,7 +95,7 @@ namespace hypixel
             AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
         }
 
-        public void AddNewAuctions(IEnumerable<SaveAuction> auctions)
+        public void AddEndedAuctions(IEnumerable<SaveAuction> auctions)
         {
             TimeSpan aDay, oneHour;
             DateTime lastHour, startYesterday;
@@ -152,7 +152,7 @@ namespace hypixel
                 var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
                 var beginOfHour = DateTime.Now.RoundDown(oneHour);
                 var oneHourRecord = res.CombineIntoOne(default(DateTime), beginOfHour);
-                if (oneHourRecord.Date != default(DateTime))
+                if (oneHourRecord.Avg != 0)
                     hourly.AddNew(oneHourRecord);
                 res.Discard(beginOfHour);
 
@@ -213,7 +213,7 @@ namespace hypixel
 
         public async Task FillHours()
         {
-            await Task.Delay(10000);
+            await Task.Delay(1000);
 
             using (var context = new HypixelContext())
             {

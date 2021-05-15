@@ -24,6 +24,9 @@ namespace hypixel
 
         private static ConcurrentDictionary<string, BinInfo> LastUpdateBins = new ConcurrentDictionary<string, BinInfo>();
 
+        ConcurrentDictionary<string, int> AuctionCount;
+        public static ConcurrentDictionary<string, int> LastAuctionCount;
+
         /// <summary>
         /// Limited task factory
         /// </summary>
@@ -49,7 +52,7 @@ namespace hypixel
 
             try
             {
-                if(hypixel == null)
+                if (hypixel == null)
                     hypixel = new HypixelApi(apiKey, 50);
                 lastUpdateDone = await RunUpdate(lastUpdateDone);
                 FileController.SaveAs("lastUpdate", lastUpdateDone);
@@ -102,7 +105,7 @@ namespace hypixel
             object sumloc = new object();
             var firstPage = await hypixel?.GetAuctionPageAsync(0);
             max = firstPage.TotalPages;
-            if(firstPage.LastUpdated == updateStartTime)
+            if (firstPage.LastUpdated == updateStartTime)
             {
                 // wait for the server cache to refresh
                 await Task.Delay(5000);
@@ -110,6 +113,7 @@ namespace hypixel
             }
 
             var cancelToken = new CancellationToken();
+            AuctionCount = new ConcurrentDictionary<string, int>();
 
 
             for (int i = 0; i < max; i++)
@@ -127,7 +131,7 @@ namespace hypixel
                         if (res == null)
                             return;
 
-                        max = res.TotalPages ;
+                        max = res.TotalPages;
 
                         if (index == 0)
                         {
@@ -136,7 +140,7 @@ namespace hypixel
                             Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}\n");
                         }
 
-                        var val = Save(res, lastUpdate);
+                        var val = await Save(res, lastUpdate);
                         lock (sumloc)
                         {
                             sum += val;
@@ -150,7 +154,7 @@ namespace hypixel
                         try // again
                         {
                             var res = await hypixel?.GetAuctionPageAsync(index);
-                            var val = Save(res, lastUpdate);
+                            var val = await Save(res, lastUpdate);
                         }
                         catch (System.Exception ex)
                         {
@@ -177,6 +181,9 @@ namespace hypixel
                 PrintUpdateEstimate(max, doneCont, sum, updateStartTime, max);
             }
 
+            if(AuctionCount.Count > 2)
+                LastAuctionCount = AuctionCount;
+
             //BinUpdateSold(currentUpdateBins);
 
             if (sum > 10)
@@ -194,7 +201,7 @@ namespace hypixel
             // Fail save
             Task.Run(async () =>
             {
-                while(true)
+                while (true)
                 {
                     await Task.Delay(TimeSpan.FromMinutes(5));
                     if (lastUpdateDone > DateTime.Now.Subtract(TimeSpan.FromMinutes(6)))
@@ -239,8 +246,8 @@ namespace hypixel
 
         private static async Task WaitForServerCacheRefresh(DateTime hypixelCacheTime)
         {
-            // cache refreshes every 60 seconds, 10 seconds extra to fix timing issues
-            var timeToSleep = hypixelCacheTime.Add(TimeSpan.FromSeconds(70)) - DateTime.Now;
+            // cache refreshes every 60 seconds, 2 seconds extra to fix timing issues
+            var timeToSleep = hypixelCacheTime.Add(TimeSpan.FromSeconds(62)) - DateTime.Now;
             if (timeToSleep.Seconds > 0)
                 await Task.Delay(timeToSleep);
         }
@@ -258,7 +265,7 @@ namespace hypixel
 
         // builds the index for all auctions in the last hour
 
-        int Save(GetAuctionPage res, DateTime lastUpdate)
+        async Task<int> Save(GetAuctionPage res, DateTime lastUpdate)
         {
             int count = 0;
 
@@ -274,17 +281,28 @@ namespace hypixel
                 .Select(a =>
                 {
                     count++;
-                    return new SaveAuction(a);
+                    var auction = new SaveAuction(a);
+                    return auction;
                 }).ToList();
 
 
-
+            if (DateTime.Now.Minute % 15 == 0)
+                foreach (var a in res.Auctions)
+                {
+                    var auction = new SaveAuction(a);
+                    AuctionCount.AddOrUpdate(auction.Tag, k => {
+                        return DetermineWorth(0,auction);
+                    }, (k, c) =>
+                    {
+                        return DetermineWorth(c, auction);
+                    });
+                }
 
             var ended = res.Auctions.Where(a => a.End < DateTime.Now).Select(a => new SaveAuction(a));
-            taskFactory.StartNew(async () =>
+            var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(20));
-                ItemPrices.Instance.AddNewAuctions(ended);
+                ItemPrices.Instance.AddEndedAuctions(ended);
             });
 
 
@@ -294,14 +312,23 @@ namespace hypixel
                 FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
 
             var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
-            var started = processed.Where(a => a.Start > twoMinAgo);
-            foreach (var item in started)
+            var started = processed.Where(a => a.Start > twoMinAgo).ToList();
+            Flipper.FlipperEngine.Instance.NewAuctions(started);
+            foreach (var auction in started)
             {
-                SubscribeEngine.Instance.NewAuction(item);
+                SubscribeEngine.Instance.NewAuction(auction);
             }
-            
+
 
             return count;
+        }
+
+        private static int DetermineWorth(int c, SaveAuction auction)
+        {
+            var price = auction.HighestBidAmount == 0 ? auction.StartingBid : auction.HighestBidAmount;
+            if (price > 500_000)
+                return c + 1;
+            return c - 20;
         }
 
         internal void Stop()

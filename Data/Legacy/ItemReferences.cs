@@ -140,20 +140,29 @@ namespace hypixel
 
         public static string RemoveReforgesAndLevel(string fullItemName)
         {
-            if(fullItemName == null)
+            if (fullItemName == null)
             {
                 return fullItemName;
             }
-            fullItemName = fullItemName.Trim('✪').Replace("⚚","");
+            fullItemName = fullItemName.Trim('✪').Replace("⚚", "");
+            fullItemName = RemoveReforge(fullItemName);
+            // remove pet level
+            return Regex.Replace(fullItemName, @"\[Lvl \d{1,3}\] ", "").Trim();
+        }
+
+        public static string RemoveReforge(string fullItemName)
+        {
             var splitName = fullItemName.Split(' ');
-            if(reforges.Contains(splitName[0].ToLower()) && (splitName.Count() == 1 || splitName[1] != "Dragon") || fullItemName.StartsWith('◆'))
-            { 
-                int i = fullItemName.IndexOf(" ")+1;
+            if (reforges.Contains(splitName[0].ToLower()) && (splitName.Count() == 1 || splitName[1] != "Dragon") || fullItemName.StartsWith('◆'))
+            {
+                int i = fullItemName.IndexOf(" ") + 1;
                 fullItemName = fullItemName.Substring(i);
             }
-            // remove pet level
-            return  Regex.Replace(fullItemName,@"\[Lvl \d{1,3}\] ","").Trim();
+
+            return fullItemName;
         }
+
+
 
         /// <summary>
         /// Returns the reforge of an item name

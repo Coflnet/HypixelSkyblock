@@ -65,7 +65,7 @@ namespace hypixel
                     SubscribeEngine.Instance.BinSold(item);
                 }
                 await Task.Delay(10000);
-                ItemPrices.Instance.AddNewAuctions(auctions);
+                ItemPrices.Instance.AddEndedAuctions(auctions);
             });
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
         }

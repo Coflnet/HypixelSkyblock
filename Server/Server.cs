@@ -91,9 +91,6 @@ namespace hypixel
             var path = req.RawUrl.Split('?')[0];
 
 
-            Console.WriteLine("ok");
-
-
             if (path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
             {
                 PrintStatus(res);
@@ -103,6 +100,13 @@ namespace hypixel
             if (path.StartsWith("/command/"))
             {
                 await HandleCommand(req, res);
+                return;
+            }
+
+            if(path == "/low")
+            {
+                var relevant = Updater.LastAuctionCount.Where(a=>a.Value > 0 && a.Value < 72);
+                res.WriteContent(Encoding.UTF8.GetBytes(JSON.Stringify(relevant)));
                 return;
             }
 
@@ -174,7 +178,7 @@ namespace hypixel
 
             if (relativePath == "files/index.html")
             {
-                Console.WriteLine("is index");
+                Console.Write("is index");
                 await HtmlModifier.ModifyContent(path, contents, res);
                 return;
             }
@@ -427,7 +431,8 @@ namespace hypixel
         {
             var builder = new StringBuilder(20000);
             builder.Append("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"/>");
-            builder.Append($"<link rel=\"icon\" href=\"/favicon.ico\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>{topic} List</title><body>");
+            builder.Append($"<link rel=\"icon\" href=\"/favicon.ico\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><title>{topic} List</title>");
+            builder.Append("<style>li {padding:10px;}</style></head><body>");
             builder.Append($"<h2>List of the most recently updated {topic}s</h2><a href=\"https://sky.coflnet.com\">back to the start page</a><ul>");
             return builder;
         }
