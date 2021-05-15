@@ -9,8 +9,9 @@ namespace hypixel
 {
     public class CreatePaymentCommand : Command
     {
-        public override async void Execute(MessageData data)
+        public override void Execute(MessageData data)
         {
+
             string productId;
             try
             {
@@ -20,8 +21,8 @@ namespace hypixel
             {
                 throw new CoflnetException("invaild_data", "Data should contain a product id as string");
             }
-            var price = await GetPrice(productId);
-            Console.WriteLine(price);
+            var product = GetProduct(productId);
+            var price = GetPrice(productId);
 
             var domain = "https://sky.coflnet.com";
             var options = new SessionCreateOptions
@@ -37,7 +38,7 @@ namespace hypixel
 
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                      UnitAmount = price,
+                      UnitAmount = price.UnitAmount,
 
                       Currency = "eur",
                       Product=productId
@@ -47,6 +48,7 @@ namespace hypixel
                     Quantity = 1,
                   },
                 },
+                Metadata = product.Metadata,
                 Mode = "payment",
                 SuccessUrl = domain + "/success",
                 CancelUrl = domain + "/cancel",
@@ -74,17 +76,37 @@ namespace hypixel
             //return Json(new { id = session.Id });
         }
 
-        Dictionary<string,long?> priceCache = null;
+        Dictionary<string,Price> priceCache = null;
 
-        public async Task<long?>  GetPrice(string productId)
+        public Price GetPrice(string productId)
         {
             var service = new PriceService();
             if(priceCache == null)
             {
-                priceCache = (await service.ListAsync()).ToDictionary(e=>e.ProductId,e=>e.UnitAmount);
+                priceCache = service.List().ToDictionary(e=>e.ProductId);
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(priceCache));
             }
-            return priceCache.GetValueOrDefault(productId,1000);
+            if(priceCache.TryGetValue(productId,out Price value))
+                return value;
+
+            throw new CoflnetException("unkown_product",$"The price for id {productId} was not found");
         }
+        Dictionary<string,Product> productCache = null;
+
+        public Product  GetProduct(string productId)
+        {
+            var service = new ProductService();
+            if(priceCache == null)
+            {
+                productCache = service.List().ToDictionary(e=>e.Id);
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(priceCache));
+            }
+            if(productCache.TryGetValue(productId,out Product value))
+                return value;
+
+            throw new CoflnetException("unkown_product",$"The product with id {productId} was not found");
+        }
+
     }
 
 

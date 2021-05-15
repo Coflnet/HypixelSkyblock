@@ -163,7 +163,7 @@ namespace hypixel
         {
             title += " Hypixel SkyBlock Auction house history tracker";
             // shrink to fit
-            while (title.Length > 55)
+            while (title.Length > 65)
             {
                 title = title.Substring(0, title.LastIndexOf(' '));
             }

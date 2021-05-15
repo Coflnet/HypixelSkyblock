@@ -26,6 +26,7 @@ namespace hypixel
                   Program.StripeSigningSecret
                 );
                 Console.WriteLine("stripe valiadted");
+                Console.WriteLine(json);
 
                 if (stripeEvent.Type == Events.CheckoutSessionCompleted)
                 {
@@ -56,16 +57,17 @@ namespace hypixel
 
         private async Task FulfillOrder(Stripe.Checkout.Session session)
         {
-            var googleId = session.ClientReferenceId;
+            Console.WriteLine("Furfilling order");
+            var googleId = Int32.Parse(session.ClientReferenceId);
             var id = session.CustomerId;
             var email = session.CustomerEmail;
             var days = Int32.Parse(session.Metadata["days"]);
             Console.WriteLine("STRIPE");
             using (var context = new HypixelContext())
             {
-                var user = await context.Users.Where(u => u.GoogleId == googleId).FirstAsync();
+                var user = await context.Users.Where(u => u.Id == googleId).FirstAsync();
                 Server.AddPremiumTime(days, user);
-                user.Email = email + DateTime.Now;
+                user.Email = email;
                 context.Update(user);
                 await context.SaveChangesAsync();
                 Console.WriteLine("order completed");
