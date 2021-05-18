@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using hypixel;
 
 namespace hypixel.Migrations
 {
     [DbContext(typeof(HypixelContext))]
-    partial class HypixelContextModelSnapshot : ModelSnapshot
+    [Migration("20210516093638_nbtLookup")]
+    partial class nbtLookup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -446,13 +448,13 @@ namespace hypixel.Migrations
                         .HasColumnType("char(32)");
 
                     b.Property<bool>("Bin")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<byte>("Category")
                         .HasColumnType("TINYINT(2)");
 
                     b.Property<bool>("Claimed")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("Count")
                         .HasColumnType("int");

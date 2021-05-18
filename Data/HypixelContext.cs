@@ -50,6 +50,9 @@ namespace hypixel
         public DbSet<Enchantment> Enchantment { get; set; }
 
         public DbSet<GoogleUser> Users { get; set; }
+        public DbSet<NBTLookup> NBTLookups { get; set; }
+        public DbSet<NBTKey> NBTKeys { get; set; }
+        public DbSet<NBTValue> NBTValues { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -70,6 +73,7 @@ namespace hypixel
                 entity.HasIndex(e => e.End);
                 entity.HasIndex(e => e.SellerId);
                 entity.HasIndex(e => new { e.ItemId, e.End });
+                entity.HasMany(e=>e.NBTLookup).WithOne().HasForeignKey("AuctionId");
                 //entity.HasOne<NbtData>(d=>d.NbtData);
                 //entity.HasMany<Enchantment>(e=>e.Enchantments);
             });
@@ -140,6 +144,17 @@ namespace hypixel
             modelBuilder.Entity<Device>(entity =>
             {
                 entity.HasIndex(e => e.ConnectionId);
+            });
+
+            modelBuilder.Entity<NBTLookup>(entity =>
+            {
+                entity.HasKey(e => new {e.AuctionId,e.KeyId});
+                entity.HasIndex(e => new {e.KeyId,e.Value});
+            });
+
+            modelBuilder.Entity<NBTKey>(entity =>
+            {
+                entity.HasIndex(e => e.Slug);
             });
         }
     }

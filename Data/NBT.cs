@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -78,6 +79,147 @@ namespace hypixel
             auction.ItemCreatedAt = GetDateTime(f);
             auction.Reforge = GetReforge(f);
             auction.NbtData = new NbtData(f);
+            auction.NBTLookup = CreateLookup(auction.NbtData);
+        }
+
+        private static List<NBTLookup> CreateLookup(NbtData nbtData)
+        {
+            Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
+
+            flatten = dict => dict.SelectMany(kv =>
+                                    kv.Value is Dictionary<string, object>
+                                        ? flatten((Dictionary<string, object>)kv.Value)
+                                        : new List<KeyValuePair<string, object>>() { kv }
+                                   );
+
+            var data = nbtData.Data;
+            var name = "effects";
+            UnwrapList(data, name);
+            UnwrapList(data, "mixins");
+            UnwrapList(data, "necromancer_souls");
+            UnwrapJson(data, "petInfo");
+
+            var flatList = flatten(data).ToList();
+
+
+
+
+            if (flatList.Count > 0 && flatList.FirstOrDefault().Key == "petInfo")
+                Console.WriteLine(JSON.Stringify(data));
+
+            return flatList.Select(attr =>
+            {
+                var key = attr.Key;
+                if (TryAs<short>(attr, out NBTLookup res))
+                    return res;
+                if (TryAs<int>(attr, out res))
+                    return res;
+                if (TryAs<byte>(attr, out res))
+                    return res;
+                if (TryAs<long>(attr, out res))
+                    return res;
+                if (TryAs<float>(attr, out res))
+                    return res;
+                if (TryAs<double>(attr, out res))
+                    return res;
+                if (key == "uid" || key == "uuid")
+                    return new NBTLookup(GetLookupKey(key), UidToLong(attr));
+                if (key == "spawnedFor" || key == "bossId")
+                    return new NBTLookup(GetLookupKey(key), UidToLong(attr));
+                if ((key == "hideInfo" || key == "active") && !((bool)attr.Value))
+                    return null; // always false
+                if (key == "tier" || key == "type") // both already save on auctions table
+                    return null;
+                if (key == "color")
+                    return new NBTLookup(GetLookupKey(key), GetColor(attr));
+                Console.WriteLine(JSON.Stringify(attr));
+                return null;
+            }).Where(a => a != null).ToList();
+        }
+
+        private static void UnwrapList(Dictionary<string, object> data, string name)
+        {
+            if (data.ContainsKey(name))
+            {
+                foreach (var item in (data[name] as List<object>))
+                {
+                    var kv = (item as Dictionary<string, object>);
+                    foreach (var keys in kv)
+                    {
+                        data[keys.Key] = keys.Value;
+                    }
+                }
+                data.Remove(name);
+            }
+        }
+
+        private static void UnwrapJson(Dictionary<string, object> data, string key)
+        {
+            try 
+            {
+            if (data.ContainsKey(key))
+                data[key] = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key] as string);
+            } catch(Exception e)
+            {
+                Console.WriteLine($"Could not unwrap {JSON.Stringify(data[key])}");
+            }
+        }
+
+        private static bool TryAs<T>(KeyValuePair<string, object> attr, out NBTLookup value) where T : IComparable,IConvertible, IFormattable
+        {
+            value = null;
+            if(!(attr.Value is T))
+                return false;
+            value = new NBTLookup(GetLookupKey(attr.Key), Convert.ToInt64(attr.Value));
+            return true;
+        }
+
+        private static long GetColor(KeyValuePair<string, object> attr)
+        {
+            var parts = (attr.Value as string).Split(':');
+            int result = 0;
+            foreach (var item in parts)
+            {
+                result += int.Parse(item);
+                result = result << 8;
+            }
+            return result;
+        }
+
+        private static long UidToLong(KeyValuePair<string, object> attr)
+        {
+            var hexNum = attr.Value as string;
+            if(hexNum.Length > 16)
+                hexNum = hexNum.Substring(24);
+            return Convert.ToInt64(hexNum, 16);
+        }
+
+        private static ConcurrentDictionary<string,short> Cache = new ConcurrentDictionary<string, short>();
+
+        private static short GetLookupKey(string name)
+        {
+            lock(Cache)
+            {
+                if(Cache.Count == 0)
+                    using(var context = new HypixelContext())
+                    {
+                        foreach (var item in context.NBTKeys)
+                        {
+                            Cache.TryAdd(item.Slug,item.Id);
+                        }
+                    }
+            }
+            if(Cache.TryGetValue(name,out short id))
+                return id;
+            return Cache.AddOrUpdate(name,k=>{
+                using(var context = new HypixelContext())
+                    {
+                        var key = new NBTKey(){Slug=k};
+                        context.NBTKeys.Add(key);
+                        context.SaveChanges();
+                        return key.Id;
+                    }
+            },(K,v)=>v);
         }
 
         public static ItemReferences.Reforge GetReforge(NbtFile f)
@@ -239,6 +381,8 @@ namespace hypixel
             var tag = GetExtraTag(file);
             if (tag == null)
                 return null;
+
+
 
             tag.Remove("enchantments");
             tag.Remove("modifier");

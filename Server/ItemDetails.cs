@@ -328,7 +328,20 @@ namespace hypixel
         public DBItem GetDetailsWithCache(int id)
         {
             // THIS IS INPERFORMANT, Todo: find a better way
-            var itemTag = TagLookup.Where(a=>a.Value == id).First().Key;
+            var key = TagLookup.Where(a=>a.Value == id).FirstOrDefault();
+            string itemTag;
+            if(key.Value != 0)
+                itemTag = key.Key;
+            else 
+            {
+                using(var context = new HypixelContext())
+                {
+                    var dbResult = context.Items.Where(i=>i.Id == id).FirstOrDefault();
+                    if(dbResult == null)
+                        return new DBItem();
+                    itemTag = dbResult.Tag;
+                }
+            }
             return GetDetailsWithCache(itemTag);
         }
 

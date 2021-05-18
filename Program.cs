@@ -356,10 +356,16 @@ namespace hypixel
             }
         }
 
+        private static System.Collections.Concurrent.ConcurrentDictionary<string,int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
+
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {
-           
+
+            if(PlayerAddCache.TryGetValue(uuid, out int id))
+                return id;
+
+
             var existingPlayer = context.Players.Find(uuid);
             if (existingPlayer != null)
                 return existingPlayer.Id;
@@ -373,7 +379,7 @@ namespace hypixel
                 context.SaveChanges();
                 return p.Id;
             }
-            return highestId;
+            return 0;
         }
 
 

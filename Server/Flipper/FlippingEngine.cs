@@ -43,13 +43,19 @@ namespace hypixel.Flipper
 
         public async void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            using(var context = new HypixelContext())
-            {
-                foreach (var auction in auctions)
+            try {
+                using(var context = new HypixelContext())
                 {
-                    await NewAuction(auction,context);
+                    foreach (var auction in auctions)
+                    {
+                        await NewAuction(auction,context);
+                    }
                 }
+            } catch(Exception e)
+            {
+                dev.Logger.Instance.Error($"Flipper threw an exception {e.Message} {e.StackTrace}");
             }
+
         }
 
 

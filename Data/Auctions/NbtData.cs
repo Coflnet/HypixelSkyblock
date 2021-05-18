@@ -13,12 +13,12 @@ namespace hypixel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [IgnoreMember]
         [JsonIgnore]
-        public int Id {get;set;}
+        public int Id { get; set; }
 
         [Key(0)]
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.MaxLength(1000)]
-        public byte[] data {get;set;}
+        public byte[] data { get; set; }
 
         public void SetData(string data)
         {
@@ -32,7 +32,7 @@ namespace hypixel
 
         public NbtFile Content()
         {
-            return NBT.File(data,NbtCompression.None);
+            return NBT.File(data, NbtCompression.None);
         }
 
         public NbtCompound Root()
@@ -41,53 +41,62 @@ namespace hypixel
         }
 
         [IgnoreMember]
-        public Dictionary<string,object> Data
+        public Dictionary<string, object> Data
         {
-            get 
+            get
             {
                 return AsDictonary(Root());
             }
         }
 
-        private Dictionary<string,object> AsDictonary(NbtCompound top)
+        private Dictionary<string, object> AsDictonary(NbtCompound top)
         {
-            var dict = new Dictionary<string,object>();
+            var dict = new Dictionary<string, object>();
             foreach (var item in top)
             {
-                switch(item.TagType)
+                switch (item.TagType)
                 {
                     case NbtTagType.Byte:
-                        dict.Add(item.Name,item.ByteValue);
+                        dict.Add(item.Name, item.ByteValue);
                         break;
                     case NbtTagType.ByteArray:
-                        dict.Add(item.Name,item.ByteArrayValue);
+                        dict.Add(item.Name, item.ByteArrayValue);
                         break;
                     case NbtTagType.Compound:
-                        dict.Add(item.Name,AsDictonary(top.Get<NbtCompound>(item.Name)));
+                        dict.Add(item.Name, AsDictonary(top.Get<NbtCompound>(item.Name)));
                         break;
                     case NbtTagType.Double:
-                        dict.Add(item.Name,item.DoubleValue);
+                        dict.Add(item.Name, item.DoubleValue);
                         break;
                     case NbtTagType.Float:
-                        dict.Add(item.Name,item.FloatValue);
+                        dict.Add(item.Name, item.FloatValue);
                         break;
                     case NbtTagType.Int:
-                        dict.Add(item.Name,item.IntValue);
+                        dict.Add(item.Name, item.IntValue);
                         break;
                     case NbtTagType.IntArray:
-                        dict.Add(item.Name,item.IntArrayValue);
+                        dict.Add(item.Name, item.IntArrayValue);
                         break;
                     case NbtTagType.Long:
-                        dict.Add(item.Name,item.LongValue);
+                        dict.Add(item.Name, item.LongValue);
                         break;
                     case NbtTagType.Short:
-                        dict.Add(item.Name,item.ShortValue);
+                        dict.Add(item.Name, item.ShortValue);
                         break;
                     case NbtTagType.String:
-                        dict.Add(item.Name,item.StringValue);
+                        dict.Add(item.Name, item.StringValue);
                         break;
-                    default: dict.Add(item.Name,item.ToString());
-                    break;
+                    case NbtTagType.List:
+                        dict.Add(item.Name,top.Get<NbtList>(item.Name).Select<NbtTag,object>(i=> {
+                            var child = i as NbtCompound;
+                            if(child != null)
+                                return AsDictonary(child);
+                            return i.ToString();
+                        }).ToList());
+                        break;
+                    default:
+                        dict.Add(item.Name, item.ToString());
+                        break;
                 }
             }
             return dict;// top.ToDictionary(e=>e.Name,e=>(int)e.TagType == 10 ? e.ToString() : e.StringValue);
@@ -95,11 +104,11 @@ namespace hypixel
 
         public NbtData() { }
 
-        public NbtData(string data) 
+        public NbtData(string data)
         {
             SetData(data);
         }
-        public NbtData(NbtFile data) 
+        public NbtData(NbtFile data)
         {
             SetData(data);
         }
