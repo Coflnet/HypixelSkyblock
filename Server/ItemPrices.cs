@@ -86,14 +86,6 @@ namespace hypixel
             Instance = new ItemPrices();
         }
 
-        private void AddNewAuction(SaveAuction auction)
-        {
-            TimeSpan aDay, oneHour;
-            DateTime lastHour, startYesterday;
-            ComputeTimes(out aDay, out oneHour, out lastHour, out startYesterday);
-
-            AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
-        }
 
         public void AddEndedAuctions(IEnumerable<SaveAuction> auctions)
         {
@@ -139,7 +131,7 @@ namespace hypixel
         {
             aDay = TimeSpan.FromDays(1);
             oneHour = TimeSpan.FromHours(1);
-            lastHour = (DateTime.Now - oneHour).RoundDown(oneHour);
+            lastHour = (DateTime.Now - oneHour).RoundDown(oneHour) + TimeSpan.FromMinutes(1);
             startYesterday = (DateTime.Now - aDay).RoundDown(aDay);
         }
 
