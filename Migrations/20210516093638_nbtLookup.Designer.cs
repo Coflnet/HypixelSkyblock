@@ -388,6 +388,23 @@ namespace hypixel.Migrations
                     b.ToTable("NBTLookups");
                 });
 
+            modelBuilder.Entity("hypixel.NBTValue", b =>
+                {
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("KeyId")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NBTValues");
+                });
+
             modelBuilder.Entity("hypixel.NbtData", b =>
                 {
                     b.Property<int>("Id")

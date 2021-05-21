@@ -356,30 +356,33 @@ namespace hypixel
             }
         }
 
-        private static System.Collections.Concurrent.ConcurrentDictionary<string,int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
+        private static System.Collections.Concurrent.ConcurrentDictionary<string, int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
 
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {
+            lock (uuid)
+            {
+                if (PlayerAddCache.TryGetValue(uuid, out int id))
+                    return id;
 
-            if(PlayerAddCache.TryGetValue(uuid, out int id))
-                return id;
 
+                var existingPlayer = context.Players.Find(uuid);
+                if (existingPlayer != null)
+                    return existingPlayer.Id;
 
-            var existingPlayer = context.Players.Find(uuid);
-            if (existingPlayer != null)
-                return existingPlayer.Id;
-
-            if (uuid != null)
-            { 
-                var p = new Player() { UuId = uuid, ChangedFlag = true };
-                p.Name = name;
-                p.Id = System.Threading.Interlocked.Increment(ref highestId);
-                context.Players.Add(p);
-                context.SaveChanges();
-                return p.Id;
+                if (uuid != null)
+                {
+                    var p = new Player() { UuId = uuid, ChangedFlag = true };
+                    p.Name = name;
+                    p.Id = System.Threading.Interlocked.Increment(ref highestId);
+                    context.Players.Add(p);
+                    context.SaveChanges();
+                    return p.Id;
+                }
+                return 0;
             }
-            return 0;
+
         }
 
 

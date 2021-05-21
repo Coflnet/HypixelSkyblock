@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -82,7 +83,7 @@ namespace hypixel.Flipper
             var youngest = DateTime.Now;
             var relevantEnchants = auction.Enchantments?.Where(e => UltimateEnchants.ContainsKey(e.Type) || e.Level >= 6).ToList();
             var matchingCount = relevantEnchants.Count > 2 ? relevantEnchants.Count / 2 : relevantEnchants.Count;
-            var ulti = relevantEnchants.Where(e => UltimateEnchants.ContainsKey(e.Type)).Select(a => a.Type).FirstOrDefault();
+            var ulti = relevantEnchants.Where(e => UltimateEnchants.ContainsKey(e.Type)).FirstOrDefault();
             var ultiList = UltimateEnchants.Select(u => u.Key).ToList();
             var highLvlEnchantList = relevantEnchants.Where(e => !UltimateEnchants.ContainsKey(e.Type)).Select(a => a.Type).ToList();
             var oldest = DateTime.Now - TimeSpan.FromDays(1);
@@ -96,7 +97,7 @@ namespace hypixel.Flipper
             {
                 // to few auctions in a day, query a week
                 oldest = DateTime.Now - TimeSpan.FromDays(8);
-                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
+                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest,120)
                 .ToListAsync();
             }
 
@@ -143,7 +144,7 @@ namespace hypixel.Flipper
             FlippFound(flip);
         }
 
-        private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment.EnchantmentType ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest)
+        private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest, int limit = 60)
         {
             var select = context.Auctions
                 .Where(a => a.ItemId == itemId)
@@ -151,13 +152,39 @@ namespace hypixel.Flipper
                 .Where(a => a.HighestBidAmount > 0)
                 .Where(a => a.Tier == auction.Tier);
 
+            byte ultiLevel = 127;
+            Enchantment.EnchantmentType ultiType = Enchantment.EnchantmentType.unknown;
+            if (ulti != null)
+            {
+                ultiLevel = ulti.Level;
+                ultiType = ulti.Type;
+            }
+
+
             if (auction.ItemName != clearedName)
                 select = select.Where(a => EF.Functions.Like(a.ItemName, "%" + clearedName));
+            if (auction.Tag.StartsWith("PET"))
+            {
+                var sb = new StringBuilder(auction.ItemName);
+                if(sb[6] == ']')
+                    sb[5] = '_';
+                else
+                    sb[6] = '_';
+                select = select.Where(a => EF.Functions.Like(a.ItemName, sb.ToString()));
+            }
+                
+            select = AddEnchantmentSubselect(auction, matchingCount, ultiList, highLvlEnchantList, select, ultiLevel, ultiType);
+            return select
+                .Include(a => a.NbtData)
+                .Take(limit);
+        }
 
+        private static IQueryable<SaveAuction> AddEnchantmentSubselect(SaveAuction auction, int matchingCount, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, IQueryable<SaveAuction> select, byte ultiLevel, Enchantment.EnchantmentType ultiType)
+        {
             if (matchingCount > 0)
                 select = select.Where(a => a.Enchantments
                         .Where(e => (e.Level > 5 && highLvlEnchantList.Contains(e.Type)
-                                    || e.Type == ulti)).Count() >= matchingCount);
+                                    || e.Type == ultiType && e.Level == ultiLevel)).Count() >= matchingCount);
             else if (auction.Enchantments?.Count == 1)
                 select = select.Where(a => a.Enchantments != null && a.Enchantments.First().Type == auction.Enchantments.First().Type && a.Enchantments.First().Level == auction.Enchantments.First().Level);
             // make sure we exclude special enchants to get a reasonable price
@@ -165,9 +192,7 @@ namespace hypixel.Flipper
                 select = select.Where(a => !a.Enchantments.Where(e => ultiList.Contains(e.Type) || e.Level > 5).Any());
             else if (auction.Category == Category.WEAPON || auction.Category == Category.ARMOR || auction.Tag == "ENCHANTED_BOOK")
                 select = select.Where(a => !a.Enchantments.Any());
-            return select
-                .Include(a => a.NbtData)
-                .Take(60);
+            return select;
         }
 
         private void FlippFound(FlipInstance flip)

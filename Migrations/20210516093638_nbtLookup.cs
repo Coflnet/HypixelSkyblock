@@ -77,6 +77,20 @@ namespace hypixel.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "NBTValues",
+                columns: table => new
+                {
+                    Id = table.Column<short>(nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    KeyId = table.Column<short>(nullable: false),
+                    Value = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NBTValues", x => x.Id);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Users_GoogleId",
                 table: "Users",

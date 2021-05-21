@@ -83,6 +83,7 @@ namespace hypixel
             var auctionsWithoutSellerId = await context
                                     .Auctions.Where(a => a.SellerId == 0)
                                     .Include(a => a.Enchantments)
+                                    .Include(a=>a.NBTLookup)
                                     .OrderByDescending(a => a.Id)
                                     .Take(5000).ToListAsync();
             if (auctionsWithoutSellerId.Count() > 0)
@@ -123,6 +124,7 @@ namespace hypixel
                 }
             }
 
+
             context.Auctions.Update(auction);
         }
 
@@ -161,7 +163,7 @@ namespace hypixel
             if (id == 0)
             {
                 id = Program.AddPlayer(context, uuid, ref Indexer.highestPlayerId);
-                if (id != 0)
+                if (id != 0 && id % 10 == 0)
                     Console.WriteLine($"Adding player {id} {uuid} {Indexer.highestPlayerId}");
             }
             return id;
