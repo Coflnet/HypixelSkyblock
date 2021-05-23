@@ -197,7 +197,7 @@ namespace hypixel
             {
                 res.ContentType = "text/javascript";
             }
-            res.AppendHeader("cache-control", "public,max-age=" + (3600 * 24 * 14));
+            res.AppendHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
 
             res.WriteContent(contents);
         }

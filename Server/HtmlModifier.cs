@@ -29,21 +29,24 @@ namespace hypixel
             string imageUrl = "https://sky.coflnet.com/logo192.png";
             string keyword = "";
 
-            var parts = Encoding.UTF8.GetString(contents).Split("</head>");
+            var start = Encoding.UTF8.GetString(contents).Split("<title>");
+            var headerStart = start[0] + "<title>";
+            var parts = start[1].Split("</head>");
             string header = parts.First();
             string html = parts.Last().Substring(0,parts.Last().Length - 14);
 
 
-            if(path.Contains("p/"))
+            if(path.StartsWith("/p/"))
                 return res.RedirectSkyblock(parameter, "player");
-            if(path.Contains("a/"))
+            if(path.StartsWith("/a/"))
                 return res.RedirectSkyblock(parameter, "auction");
             if(path == "/item/" || path == "/item")
                 return res.RedirectSkyblock();
 
             // try to fill in title
-            if (path.Contains("auction/") || path.Contains("a/"))
+            if (path.Contains("auction/"))
             {
+                await WriteStart(res,headerStart);
                 // is an auction
                 using (var context = new HypixelContext())
                 {
@@ -84,6 +87,8 @@ namespace hypixel
                     var uuid = PlayerSearch.Instance.GetIdForName(parameter);
                     return res.RedirectSkyblock(uuid, "player", parameter);
                 }
+
+                await WriteStart(res,headerStart);
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
                 if (urlParts.Length <= 3)
                     path += $"/{keyword}";
@@ -106,8 +111,11 @@ namespace hypixel
             {
                 if (path.Contains("i/"))
                     return res.RedirectSkyblock(parameter, "item", keyword);
-                if (parameter.ToUpper() != parameter && !parameter.StartsWith("POTION"))
+                if (!ItemDetails.Instance.TagLookup.ContainsKey(parameter) )
                 {
+                    var upperCased = parameter.ToUpper();
+                    if(ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
+                        return res.RedirectSkyblock(upperCased, "item");
                     // likely not a tag
                     parameter = HttpUtility.UrlDecode(parameter);
                     var thread = ItemDetails.Instance.Search(parameter, 1);
@@ -117,10 +125,9 @@ namespace hypixel
                     parameter = item?.Tag;
                     return res.RedirectSkyblock(parameter, "item", keyword);
                 }
-                else
-                {
-                    keyword = ItemDetails.TagToName(parameter);
-                }
+                await WriteStart(res,headerStart);
+                keyword = ItemDetails.TagToName(parameter);
+                
 
                 var i = ItemDetails.Instance.GetDetailsWithCache(parameter);
                 path = CreateCanoicalPath(urlParts, i);
@@ -134,10 +141,11 @@ namespace hypixel
                 longDescription = description
                 + AddAlternativeNames(i);
 
-                longDescription += await GetRecentAuctions(i.Tag);
+                longDescription += await GetRecentAuctions(i.Tag == "Unknown" ? parameter : i.Tag);
             }
             else {
                 // unkown site, write the header
+                await WriteStart(res,headerStart);
                 await WriteHeader(path, res, description, "", imageUrl, keyword, header);
             }
             if (longDescription == null)
@@ -159,6 +167,15 @@ namespace hypixel
             return prices.Average(a => a.Avg);
         }
 
+        private static async Task WriteStart(WebSocketSharp.Net.HttpListenerResponse res, string content)
+        {
+            await res.WritePartial(content);
+            res.SendChunked = true;
+            res.AppendHeader("cache-control", "public,max-age=" + 1800);
+
+            res.OutputStream.Flush();
+        }
+
         private static async Task WriteHeader(string path, WebSocketSharp.Net.HttpListenerResponse res, string description, string title, string imageUrl, string keyword, string header)
         {
             title += " Hypixel SkyBlock Auction house history tracker";
@@ -172,9 +189,6 @@ namespace hypixel
                 path = "";
             }
 
-
-            res.SendChunked = true;
-            res.AppendHeader("cache-control", "public,max-age=" + 1800);
 
             await res.WritePartial(header
             .Replace(defaultText, description)

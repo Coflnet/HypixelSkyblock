@@ -10,7 +10,7 @@ namespace hypixel.Filter
         public override FilterType FilterType => FilterType.Equal | FilterType.NUMERICAL;
         public override IEnumerable<object> Options => new object[]{1,100};
 
-        public override Func<DBItem, bool> IsApplicable => item => item.Tag.StartsWith("PET_");
+        public override Func<DBItem, bool> IsApplicable => item => item?.Tag?.StartsWith("PET_") ?? false;
 
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {

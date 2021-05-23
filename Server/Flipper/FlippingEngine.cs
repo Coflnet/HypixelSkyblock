@@ -134,7 +134,9 @@ namespace hypixel.Flipper
                 Name = auction.ItemName,
                 Uuid = auction.Uuid,
                 LastKnownCost = (int)price,
-                Volume = (float)(relevantAuctions.Count / (DateTime.Now - oldest).TotalDays)
+                Volume = (float)(relevantAuctions.Count / (DateTime.Now - oldest).TotalDays),
+                Tag = auction.Tag,
+                Bin = auction.Bin
             };
             Flipps.Enqueue(flip);
             if (Flipps.Count > 200)
@@ -229,6 +231,10 @@ namespace hypixel.Flipper
             public string Name;
             [DataMember(Name = "volume")]
             public float Volume;
+            [DataMember(Name = "tag")]
+            public string Tag;
+            [DataMember(Name = "bin")]
+            public bool Bin;
         }
     }
 

@@ -83,9 +83,9 @@ namespace hypixel
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
 
-            Commands.Add("getFilter",new Filter.GetFilterOptionsCommand());
-            Commands.Add("subFlip",new SubFlipperCommand());
-            Commands.Add("getFlips",new RecentFlipsCommand());
+            Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());
+            Commands.Add("subFlip", new SubFlipperCommand());
+            Commands.Add("getFlips", new RecentFlipsCommand());
 
         }
 
@@ -126,9 +126,10 @@ namespace hypixel
                 if (waiting > 30)
                 {
                     dev.Logger.Instance.Error("triggered rate limit");
-                    throw new CoflnetException("stop_it", "You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 20$ per month of data");
+                    throw new CoflnetException("stop_it", "You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 50$ per month of data");
                 }
-                Console.WriteLine($"r {data.Type} {data.Data.Truncate(20)}");
+                if (data.Type != "playerName")
+                    Console.WriteLine($"r {data.Type} {data.Data.Truncate(20)}");
 
                 ExecuteCommand(data);
             }
@@ -151,7 +152,8 @@ namespace hypixel
             Task.Run(async () =>
             {
                 System.Threading.Interlocked.Increment(ref waiting);
-                await limiter;
+                if (data.Type != "playerName")
+                    await limiter;
                 System.Threading.Interlocked.Decrement(ref waiting);
                 try
                 {
