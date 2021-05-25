@@ -42,7 +42,8 @@ namespace hypixel
             if (details.Reforge != ItemReferences.Reforge.Any
                     || (details.Enchantments != null && details.Enchantments.Count != 0)
                     //|| details.Rarity != Tier.UNKNOWN 
-                    || details.Tier != Tier.UNKNOWN)
+                    || details.Tier != Tier.UNKNOWN
+                    || details.Filter != null)
                 return await QueryDB(details);
 
 
@@ -170,6 +171,9 @@ namespace hypixel
 
         private IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
         {
+            var min = DateTime.Now-TimeSpan.FromDays(35);
+            if(details.Filter != null && details.Start < min)
+                throw new CoflnetException("filter_to_large",$"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
             var select = AuctionSelect(details.Start, details.End, context, itemId);
 
             if (details.Filter != null)

@@ -40,5 +40,4 @@
     <None Include="keyfile.p12" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
 
   </ItemGroup>
-
 </Project>

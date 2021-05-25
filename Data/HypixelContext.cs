@@ -56,7 +56,7 @@ namespace hypixel
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL("server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=3600",
+            optionsBuilder.UseMySQL(SimplerConfig.Config.Instance["DBConnection"],
             opts => opts.CommandTimeout(3600));
         }
 

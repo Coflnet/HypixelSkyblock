@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -42,7 +43,7 @@ namespace hypixel.Flipper
 
         }
 
-        public async void NewAuctions(IEnumerable<SaveAuction> auctions)
+        public async Task NewAuctions(IEnumerable<SaveAuction> auctions)
         {
             try {
                 using(var context = new HypixelContext())
@@ -56,7 +57,6 @@ namespace hypixel.Flipper
             {
                 dev.Logger.Instance.Error($"Flipper threw an exception {e.Message} {e.StackTrace}");
             }
-
         }
 
 

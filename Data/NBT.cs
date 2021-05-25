@@ -105,6 +105,7 @@ namespace hypixel
             "talisman_enrichment",
             "repelling_color",
             "fungi_cutter_mode",
+            "builder's_wand_data",
 
 
             "ability_scroll",
@@ -303,7 +304,7 @@ namespace hypixel
 
         private static ConcurrentDictionary<string, short> Cache = new ConcurrentDictionary<string, short>();
 
-        private static short GetLookupKey(string name)
+        public static short GetLookupKey(string name)
         {
             lock (Cache)
             {

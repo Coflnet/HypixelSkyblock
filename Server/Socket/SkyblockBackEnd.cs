@@ -161,14 +161,26 @@ namespace hypixel
                 }
                 catch (CoflnetException ex)
                 {
-                    data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = data.mId });
+                    SendCoflnetException(data, ex);
                 }
                 catch (Exception ex)
                 {
-                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
+                    var cofl = ex.InnerException as CoflnetException;
+                    if(cofl != null)
+                    {
+                        // wrapped exception (eg. Theaded)
+                        SendCoflnetException(data, cofl);
+                        return;
+                    }
+                    dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
                     data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
                 }
             });
+        }
+
+        private static void SendCoflnetException(SocketMessageData data, CoflnetException ex)
+        {
+            data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = data.mId });
         }
 
         private static SocketMessageData ParseData(string body)

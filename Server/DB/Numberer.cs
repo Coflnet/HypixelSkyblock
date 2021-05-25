@@ -57,7 +57,7 @@ namespace hypixel
 
         private static async Task ResetDoublePlayers(HypixelContext context, int doublePlayersId)
         {
-            if(doublePlayersId % 3 == 0)
+            if (doublePlayersId % 3 == 0)
                 Console.WriteLine($"Found Double player id: {doublePlayersId}, renumbering, highestId: {Indexer.highestPlayerId}");
 
             foreach (var item in context.Players.Where(p => p.Id == doublePlayersId))
@@ -83,7 +83,7 @@ namespace hypixel
             var auctionsWithoutSellerId = await context
                                     .Auctions.Where(a => a.SellerId == 0)
                                     .Include(a => a.Enchantments)
-                                    .Include(a=>a.NBTLookup)
+                                    .Include(a => a.NBTLookup)
                                     .OrderByDescending(a => a.Id)
                                     .Take(5000).ToListAsync();
             if (auctionsWithoutSellerId.Count() > 0)
@@ -134,22 +134,23 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                try 
+                try
                 {
-                var bidsWithoutSellerId = await context.Bids.Where(a => a.BidderId == 0).Take(batchSize).ToListAsync();
-                foreach (var bid in bidsWithoutSellerId)
-                {
+                    var bidsWithoutSellerId = await context.Bids.Where(a => a.BidderId == 0).Take(batchSize).ToListAsync();
+                    foreach (var bid in bidsWithoutSellerId)
+                    {
 
-                    bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
-                    if (bid.BidderId == 0)
-                        // his player has not yet received his number
-                        continue;
+                        bid.BidderId = GetOrCreatePlayerId(context, bid.Bidder);
+                        if (bid.BidderId == 0)
+                            // his player has not yet received his number
+                            continue;
 
-                    context.Bids.Update(bid);
+                        context.Bids.Update(bid);
+                    }
+
+                    await context.SaveChangesAsync();
                 }
-
-                await context.SaveChangesAsync();
-                } catch(Exception e)
+                catch (Exception e)
                 {
                     Console.WriteLine($"Ran into error on numbering bids {e.Message} {e.StackTrace}");
                 }
@@ -168,5 +169,7 @@ namespace hypixel
             }
             return id;
         }
+
+
     }
 }

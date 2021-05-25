@@ -112,8 +112,12 @@ namespace hypixel
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
+            // this should be a tag by now
+            if (TagLookup.TryGetValue(name, out int value))
+                return value;
+            // may be a name
             var tag = GetIdForName(name);
-            if (!TagLookup.TryGetValue(tag, out int value) && forceGet)
+            if (!TagLookup.TryGetValue(tag, out  value) && forceGet)
                 throw new CoflnetException("item_not_found", $"could not find the item with the name `{name}`");
             return value;
         }

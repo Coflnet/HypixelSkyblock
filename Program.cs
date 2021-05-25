@@ -299,6 +299,20 @@ namespace hypixel
         private static void RunUserIndexer()
         {
             RunIsolatedForever(Numberer.NumberUsers, "Error occured while userIndexing");
+            
+            int minId = 0;
+            using(var context = new HypixelContext())
+            {
+                minId = context.NBTLookups.Min(l=>l.AuctionId);
+            }
+            if(minId == 0)
+            {
+                Console.WriteLine("All nbt is indexed :)");
+                return;
+            }
+            var bwi = new BackWardsNBTIndexer(minId);
+            RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
+
         }
 
         private static void RunIsolatedForever(Func<Task> todo, string message)

@@ -16,6 +16,7 @@ namespace hypixel.Filter
             Filters.Add<ReforgeFilter>();
             Filters.Add<RarityFilter>();
             Filters.Add<PetLevelFilter>();
+            Filters.Add<PetItemFilter>();
             Filters.Add<EnchantmentFilter>();
             Filters.Add<EnchantLvlFilter>();
         }
