@@ -13,6 +13,7 @@ namespace hypixel
     {
         public static CacheService Instance { get; protected set; }
 
+        private static int MaxCacheSize = Int32.Parse( SimplerConfig.Config.Instance["MaxCacheItems"]);
         private ConcurrentDictionary<string, CacheElement> cache = new ConcurrentDictionary<string, CacheElement>();
 
         public int CacheSize => cache.Count;
@@ -42,7 +43,7 @@ namespace hypixel
                 return item;
             });
             // keep the cache size in check
-            while(CacheSize > 30000)
+            while(CacheSize > MaxCacheSize)
             {
                 cache.TryRemove(cache.Keys.First(), out CacheElement elem);
             }

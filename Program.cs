@@ -299,6 +299,20 @@ namespace hypixel
         private static void RunUserIndexer()
         {
             RunIsolatedForever(Numberer.NumberUsers, "Error occured while userIndexing");
+            
+            int minId = 0;
+            using(var context = new HypixelContext())
+            {
+                minId = context.NBTLookups.Min(l=>l.AuctionId);
+            }
+            if(minId == 0)
+            {
+                Console.WriteLine("All nbt is indexed :)");
+                return;
+            }
+            var bwi = new BackWardsNBTIndexer(minId);
+            RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
+
         }
 
         private static void RunIsolatedForever(Func<Task> todo, string message)
@@ -356,24 +370,33 @@ namespace hypixel
             }
         }
 
+        private static System.Collections.Concurrent.ConcurrentDictionary<string, int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
+
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {
-           
-            var existingPlayer = context.Players.Find(uuid);
-            if (existingPlayer != null)
-                return existingPlayer.Id;
+            lock (uuid)
+            {
+                if (PlayerAddCache.TryGetValue(uuid, out int id))
+                    return id;
 
-            if (uuid != null)
-            { 
-                var p = new Player() { UuId = uuid, ChangedFlag = true };
-                p.Name = name;
-                p.Id = System.Threading.Interlocked.Increment(ref highestId);
-                context.Players.Add(p);
-                context.SaveChanges();
-                return p.Id;
+
+                var existingPlayer = context.Players.Find(uuid);
+                if (existingPlayer != null)
+                    return existingPlayer.Id;
+
+                if (uuid != null)
+                {
+                    var p = new Player() { UuId = uuid, ChangedFlag = true };
+                    p.Name = name;
+                    p.Id = System.Threading.Interlocked.Increment(ref highestId);
+                    context.Players.Add(p);
+                    context.SaveChanges();
+                    return p.Id;
+                }
+                return 0;
             }
-            return highestId;
+
         }
 
 

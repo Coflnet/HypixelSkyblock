@@ -6,7 +6,7 @@
     <!--GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute-->
   </PropertyGroup>
       <ItemGroup>
-         <ProjectReference Include = "../websocket-sharp/websocket-sharp/websocket-sharp.csproj" />
+         <ProjectReference Include="../websocket-sharp/websocket-sharp/websocket-sharp.csproj" />
     </ItemGroup>
 
   <ItemGroup>
@@ -40,5 +40,4 @@
     <None Include="keyfile.p12" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
 
   </ItemGroup>
-
 </Project>

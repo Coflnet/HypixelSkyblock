@@ -30,11 +30,10 @@ namespace hypixel
             Limiter = new IpRateLimiter(ip =>
             {
                 var constraint = new CountByIntervalAwaitableConstraint(10, TimeSpan.FromSeconds(1));
-                var constraint2 = new CountByIntervalAwaitableConstraint(30, TimeSpan.FromSeconds(10));
-                var heavyUsage = new CountByIntervalAwaitableConstraint(100, TimeSpan.FromMinutes(1));
+                var constraint2 = new CountByIntervalAwaitableConstraint(35, TimeSpan.FromSeconds(10));
 
                 // Compose the two constraints
-                return TimeLimiter.Compose(constraint, constraint2, heavyUsage);
+                return TimeLimiter.Compose(constraint, constraint2);
             });
         }
         HttpServer server;
@@ -52,6 +51,11 @@ namespace hypixel
             server.AddWebSocketService<SkyblockBackEnd>(urlPath);
             // do NOT timeout after 60 sec
             server.KeepClean = false;
+            server.OnOptions += async (sender, e) => {
+                e.Response.AppendHeader("Allow","OPTIONS, GET, POST");
+                e.Response.AppendHeader("access-control-allow-origin","*");
+                e.Response.AppendHeader("Access-Control-Allow-Headers","*");
+            };
             server.OnGet += async (sender, e) =>
             {
                 try
@@ -178,7 +182,7 @@ namespace hypixel
 
             if (relativePath == "files/index.html")
             {
-                Console.Write("is index");
+                Console.Write("i+");
                 await HtmlModifier.ModifyContent(path, contents, res);
                 return;
             }
@@ -197,7 +201,7 @@ namespace hypixel
             {
                 res.ContentType = "text/javascript";
             }
-            res.AppendHeader("cache-control", "public,max-age=" + (3600 * 24 * 14));
+            res.AppendHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
 
             res.WriteContent(contents);
         }
@@ -210,10 +214,10 @@ namespace hypixel
             HttpMessageData data = new HttpMessageData(req, res);
             try
             {
-                var conId = req.Headers["ConId"].Truncate(32);
-                if (conId == null | conId.Length < 32)
+                var conId = req.Headers["ConId"];
+                if (conId == null || conId.Length < 32)
                     throw new CoflnetException("invalid_conid", "The 'ConId' Header has to be at least 32 characters long and generated randomly");
-
+                conId = conId.Truncate(32);
                 data.SetUserId = id =>
                 {
                     this.ConnectionToUserId.TryAdd(conId, id);
@@ -235,8 +239,14 @@ namespace hypixel
                 if (CacheService.Instance.TryFromCache(data))
                     return;
 
-                await Limiter.WaitUntilAllowed(req.RemoteEndPoint.Address.ToString());
-
+              /*  var ip = req.Headers["Cf-Connecting-Ip"];
+                if(ip == null)
+                    ip = req.Headers["X-Real-Ip"];
+                if(ip == null)
+                    ip = req.RemoteEndPoint.Address.ToString();
+                Console.WriteLine($"rc {data.Type} {data.Data.Truncate(20)}");
+                await Limiter.WaitUntilAllowed(ip); */
+                Console.Write($"r {data.Type} {data.Data.Truncate(15)} ");
                 if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
                     command.Execute(data);
                 else

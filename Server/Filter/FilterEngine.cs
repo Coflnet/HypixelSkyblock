@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,8 +16,10 @@ namespace hypixel.Filter
             Filters.Add<ReforgeFilter>();
             Filters.Add<RarityFilter>();
             Filters.Add<PetLevelFilter>();
+            Filters.Add<PetItemFilter>();
             Filters.Add<EnchantmentFilter>();
             Filters.Add<EnchantLvlFilter>();
+            Filters.Add<UIdFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)
@@ -47,7 +50,22 @@ namespace hypixel.Filter
 
         public IEnumerable<IFilter> FiltersFor(DBItem item)
         {
-            return Filters.Values.Where(f=>f.IsApplicable(item));
+            try 
+            {
+                return Filters.Values.Where(f=>{
+                    try 
+                    {
+                        return f.IsApplicable(item);
+                    } catch(Exception e)
+                    {
+                        Console.WriteLine($"Could not get filter {f.Name} for Item {item.Id} {item.Tag}. \n{e.StackTrace}");
+                        return false;
+                    }});
+            } catch(Exception e)
+            {
+                Console.WriteLine($"Could not get filter for Item {item.Id} {item.Tag}. \n{e.StackTrace}");
+                return new IFilter[0];
+            }
         }
 
         public IFilter GetFilter(string name)

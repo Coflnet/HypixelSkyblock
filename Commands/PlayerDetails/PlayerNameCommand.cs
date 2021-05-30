@@ -11,7 +11,8 @@ namespace hypixel
         public static MessageData CreateResponse(MessageData data, string uuid)
         {
             var name = PlayerSearch.Instance.GetName(uuid);
-            return data.Create("nameResponse",name,A_WEEK);
+            // player names don't change often, but are easy to compute
+            return data.Create("nameResponse",name,A_HOUR);
         }
     }
 }

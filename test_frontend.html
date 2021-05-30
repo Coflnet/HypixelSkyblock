@@ -9,9 +9,9 @@
 
         ws.onmessage = function(evt) {
             var received_msg = JSON.parse(evt.data);
-            console.log(received_msg);
 
             last = JSON.parse(received_msg.data);
+            console.log(last)
             if (received_msg.type == "itemDetailsResponse") {
                 console.log(JSON.parse(received_msg.data).IconUrl)
             }

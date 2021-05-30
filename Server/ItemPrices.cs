@@ -42,7 +42,8 @@ namespace hypixel
             if (details.Reforge != ItemReferences.Reforge.Any
                     || (details.Enchantments != null && details.Enchantments.Count != 0)
                     //|| details.Rarity != Tier.UNKNOWN 
-                    || details.Tier != Tier.UNKNOWN)
+                    || details.Tier != Tier.UNKNOWN
+                    || details.Filter != null)
                 return await QueryDB(details);
 
 
@@ -86,14 +87,6 @@ namespace hypixel
             Instance = new ItemPrices();
         }
 
-        private void AddNewAuction(SaveAuction auction)
-        {
-            TimeSpan aDay, oneHour;
-            DateTime lastHour, startYesterday;
-            ComputeTimes(out aDay, out oneHour, out lastHour, out startYesterday);
-
-            AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
-        }
 
         public void AddEndedAuctions(IEnumerable<SaveAuction> auctions)
         {
@@ -139,7 +132,7 @@ namespace hypixel
         {
             aDay = TimeSpan.FromDays(1);
             oneHour = TimeSpan.FromHours(1);
-            lastHour = (DateTime.Now - oneHour).RoundDown(oneHour);
+            lastHour = (DateTime.Now - oneHour).RoundDown(oneHour) + TimeSpan.FromMinutes(1);
             startYesterday = (DateTime.Now - aDay).RoundDown(aDay);
         }
 
@@ -147,7 +140,6 @@ namespace hypixel
         {
             if (res.Oldest.Date != default(DateTime) && res.Oldest.Date < lastHour)
             {
-                Console.WriteLine("combining " + id);
                 // move the intrahour to hour
                 var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
                 var beginOfHour = DateTime.Now.RoundDown(oneHour);
@@ -178,6 +170,9 @@ namespace hypixel
 
         private IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
         {
+            var min = DateTime.Now-TimeSpan.FromDays(35);
+            if(details.Filter != null && details.Start < min)
+                throw new CoflnetException("filter_to_large",$"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
             var select = AuctionSelect(details.Start, details.End, context, itemId);
 
             if (details.Filter != null)

@@ -14,7 +14,6 @@ namespace hypixel
 {
     public class Updater
     {
-        private const int Miniute = 60000;
         private string apiKey;
         private bool abort;
         private static bool minimumOutput;
@@ -23,6 +22,8 @@ namespace hypixel
         public static int UpdateSize { get; internal set; }
 
         private static ConcurrentDictionary<string, BinInfo> LastUpdateBins = new ConcurrentDictionary<string, BinInfo>();
+
+        private static ConcurrentDictionary<string, bool> AlreadyChecked = new ConcurrentDictionary<string, bool>();
 
         ConcurrentDictionary<string, int> AuctionCount;
         public static ConcurrentDictionary<string, int> LastAuctionCount;
@@ -122,9 +123,6 @@ namespace hypixel
                 await Task.Delay(100);
                 tasks.Add(taskFactory.StartNew(async () =>
                 {
-
-                    // spread out the saving load burst
-                    await Task.Delay(index * 100);
                     try
                     {
                         var res = index != 0 ? await hypixel?.GetAuctionPageAsync(index) : firstPage;
@@ -140,6 +138,8 @@ namespace hypixel
                             Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}\n");
                         }
 
+                        // spread out the saving load burst
+                        await Task.Delay(index * 150);
                         var val = await Save(res, lastUpdate);
                         lock (sumloc)
                         {
@@ -165,8 +165,8 @@ namespace hypixel
                 }, cancelToken).Unwrap());
                 PrintUpdateEstimate(i, doneCont, sum, updateStartTime, max);
 
-                // try to stay under 500MB
-                if (System.GC.GetTotalMemory(false) > 500000000)
+                // try to stay under 600MB
+                if (System.GC.GetTotalMemory(false) > 600000000)
                 {
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
@@ -181,7 +181,7 @@ namespace hypixel
                 PrintUpdateEstimate(max, doneCont, sum, updateStartTime, max);
             }
 
-            if(AuctionCount.Count > 2)
+            if (AuctionCount.Count > 2)
                 LastAuctionCount = AuctionCount;
 
             //BinUpdateSold(currentUpdateBins);
@@ -272,14 +272,13 @@ namespace hypixel
 
             var processed = res.Auctions.Where(item =>
                 {
-                    ItemDetails.Instance.AddOrIgnoreDetails(item);
-
                     // nothing changed if the last bid is older than the last update
                     return !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
                         item.Bids.Count == 0 && item.Start < lastUpdate);
                 })
                 .Select(a =>
                 {
+                    ItemDetails.Instance.AddOrIgnoreDetails(a);
                     count++;
                     var auction = new SaveAuction(a);
                     return auction;
@@ -290,8 +289,9 @@ namespace hypixel
                 foreach (var a in res.Auctions)
                 {
                     var auction = new SaveAuction(a);
-                    AuctionCount.AddOrUpdate(auction.Tag, k => {
-                        return DetermineWorth(0,auction);
+                    AuctionCount.AddOrUpdate(auction.Tag, k =>
+                    {
+                        return DetermineWorth(0, auction);
                     }, (k, c) =>
                     {
                         return DetermineWorth(c, auction);
@@ -311,9 +311,10 @@ namespace hypixel
             else
                 FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
 
+
             var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
             var started = processed.Where(a => a.Start > twoMinAgo).ToList();
-            Flipper.FlipperEngine.Instance.NewAuctions(started);
+            await Flipper.FlipperEngine.Instance.NewAuctions(started);
             foreach (var auction in started)
             {
                 SubscribeEngine.Instance.NewAuction(auction);
