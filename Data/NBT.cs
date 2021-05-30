@@ -112,6 +112,7 @@ namespace hypixel
             "large_backpack_data",
             "small_backpack_data",
             "spray",
+            "new_year_cake_bag_data",
 
             "ability_scroll",
             "mixins"

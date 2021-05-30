@@ -120,7 +120,6 @@ namespace hypixel
             for (int i = 0; i < max; i++)
             {
                 var index = i;
-                await Task.Delay(100);
                 tasks.Add(taskFactory.StartNew(async () =>
                 {
                     try
@@ -171,6 +170,8 @@ namespace hypixel
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
                 }
+
+                await Task.Delay(100);
             }
 
             foreach (var item in tasks)
@@ -285,7 +286,7 @@ namespace hypixel
                 }).ToList();
 
 
-            if (DateTime.Now.Minute % 15 == 0)
+            if (DateTime.Now.Minute % 15 == 7)
                 foreach (var a in res.Auctions)
                 {
                     var auction = new SaveAuction(a);
@@ -314,11 +315,18 @@ namespace hypixel
 
             var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
             var started = processed.Where(a => a.Start > twoMinAgo).ToList();
-            await Flipper.FlipperEngine.Instance.NewAuctions(started);
-            foreach (var auction in started)
+
+            variableHereToRemoveWarning = taskFactory.StartNew(async () =>
             {
-                SubscribeEngine.Instance.NewAuction(auction);
-            }
+                // do not slow down the update
+                await Flipper.FlipperEngine.Instance.NewAuctions(started);
+                foreach (var auction in started)
+                {
+                    SubscribeEngine.Instance.NewAuction(auction);
+                }
+            });
+
+
 
 
             return count;

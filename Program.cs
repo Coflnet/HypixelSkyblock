@@ -311,7 +311,11 @@ namespace hypixel
                 return;
             }
             var bwi = new BackWardsNBTIndexer(minId);
-            RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
+            Task.Run(() =>
+            {
+                Task.Delay(TimeSpan.FromMinutes(11));
+                RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
+            });
 
         }
 

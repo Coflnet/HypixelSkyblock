@@ -15,7 +15,7 @@ namespace hypixel.Flipper
     {
         public static FlipperEngine Instance { get; }
 
-
+        private static int MIN_PRICE_POINT = 500000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
@@ -31,6 +31,12 @@ namespace hypixel.Flipper
                 if (item.ToString().StartsWith("ultimate_", true, null))
                     UltimateEnchants.TryAdd((Enchantment.EnchantmentType)item, true);
             }
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromMinutes(7));
+                // set price lower after the startup overhead cleared
+                MIN_PRICE_POINT = 200000;
+            });
         }
 
         public void AddConnection(SkyblockBackEnd con, int id = 0)
@@ -66,7 +72,7 @@ namespace hypixel.Flipper
 
             // determine flippability
             var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-            if (price < 200000 || !auction.Bin || auction.Tag.Contains("RUNE"))
+            if (price < MIN_PRICE_POINT || !auction.Bin || auction.Tag.StartsWith("RUNE"))
                 return; // unflipable
 
             if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
@@ -180,6 +186,7 @@ namespace hypixel.Flipper
                 
             select = AddEnchantmentSubselect(auction, matchingCount, ultiList, highLvlEnchantList, select, ultiLevel, ultiType);
             return select
+                .OrderByDescending(a=>a.Id)
                 .Include(a => a.NbtData)
                 .Take(limit);
         }
