@@ -155,6 +155,9 @@ namespace hypixel
                 CacheService.Instance.Save(this, data, 0);
             var json = data.Data;
             res.StatusCode = 200;
+            res.AppendHeader("access-control-allow-origin","*");
+            res.AppendHeader("Access-Control-Allow-Headers","*");
+            res.AppendHeader("Access-Control-Allow-Methods","*");
             res.AppendHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
             res.WriteContent(Encoding.UTF8.GetBytes(json));
         }

@@ -106,7 +106,12 @@ namespace hypixel
             "repelling_color",
             "fungi_cutter_mode",
             "builder's_wand_data",
-
+            "jumbo_backpack_data",
+            "greater_backpack_data",
+            "medium_backpack_data",
+            "large_backpack_data",
+            "small_backpack_data",
+            "spray",
 
             "ability_scroll",
             "mixins"
@@ -199,7 +204,7 @@ namespace hypixel
                     return res;
                 if (TryAs<double>(attr, out res))
                     return res;
-                 
+
                 if (key == "uid" || key == "uuid")
                     return new NBTLookup(GetLookupKey(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
@@ -208,22 +213,22 @@ namespace hypixel
                     return null; // always false
                 if (key == "tier" || key == "type") // both already save on auctions table
                     return null;
-                if(key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
+                if (key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
                     return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + (attr.Value as string)));
                 if (KeysWithItem.Contains(key))
                     return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName(attr.Value as string));
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
-                    return new NBTLookup(keyId, GetValue(keyId, attr.Value as string));
+                    return new NBTLookup(keyId, GetValueId(keyId, attr.Value as string));
                 }
                 if (key == "color")
                     return new NBTLookup(GetLookupKey(key), GetColor(attr));
                 Console.WriteLine(JSON.Stringify(attr));
                 // just save it as strings
 
-                var lookupKey = GetLookupKey(key);   
-                return new NBTLookup(lookupKey, GetValue(lookupKey,JsonConvert.SerializeObject(attr.Value)));
+                var lookupKey = GetLookupKey(key);
+                return new NBTLookup(lookupKey, GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
             }).Where(a => a != null).ToList();
         }
 
@@ -233,7 +238,7 @@ namespace hypixel
             {
                 Console.WriteLine(abilityScroll.GetType());
                 var list = (abilityScroll as List<object>)
-                    .Select(o=>o.ToString())
+                    .Select(o => o.ToString())
                     .Select(s => s.Replace("TAG_String:", "")
                     .Replace("\"", ""))
                     .OrderBy(a => a);
@@ -297,6 +302,11 @@ namespace hypixel
         private static long UidToLong(KeyValuePair<string, object> attr)
         {
             var hexNum = attr.Value as string;
+            return UidToLong(hexNum);
+        }
+
+        public static long UidToLong(string hexNum)
+        {
             if (hexNum.Length > 16)
                 hexNum = hexNum.Substring(24);
             return Convert.ToInt64(hexNum, 16);
@@ -332,7 +342,7 @@ namespace hypixel
         }
         private static ConcurrentDictionary<(short, string), short> ValueCache = new ConcurrentDictionary<(short, string), short>();
 
-        private static short GetValue(short key, string name)
+        private static short GetValueId(short key, string value)
         {
             lock (ValueCache)
             {
@@ -341,22 +351,33 @@ namespace hypixel
                     {
                         foreach (var item in context.NBTValues)
                         {
-                            ValueCache.TryAdd((item.KeyId, item.Value), item.Id);
+                            if(item?.Value == null)
+                                continue;
+                            if (item.Value.Length < 40)
+                                ValueCache.TryAdd((item.KeyId, item.Value), item.Id);
                         }
                     }
             }
-            if (ValueCache.TryGetValue((key, name), out short id))
+            if (ValueCache.TryGetValue((key, value), out short id))
                 return id;
-            return ValueCache.AddOrUpdate((key, name), k =>
-             {
-                 using (var context = new HypixelContext())
-                 {
-                     var key = new NBTValue() { Value = k.Item2, KeyId = k.Item1 };
-                     context.NBTValues.Add(key);
-                     context.SaveChanges();
-                     return key.Id;
-                 }
-             }, (K, v) => v);
+
+            using (var context = new HypixelContext())
+            {
+                var item = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).FirstOrDefault();
+                if (item != null)
+                    return item.Id;
+            }
+
+            return ValueCache.AddOrUpdate((key, value), k =>
+            {
+                using (var context = new HypixelContext())
+                {
+                    var key = new NBTValue() { Value = k.Item2, KeyId = k.Item1 };
+                    context.NBTValues.Add(key);
+                    context.SaveChanges();
+                    return key.Id;
+                }
+            }, (K, v) => v);
         }
 
         public static ItemReferences.Reforge GetReforge(NbtFile f)

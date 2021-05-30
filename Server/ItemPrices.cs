@@ -140,7 +140,6 @@ namespace hypixel
         {
             if (res.Oldest.Date != default(DateTime) && res.Oldest.Date < lastHour)
             {
-                Console.WriteLine("combining " + id);
                 // move the intrahour to hour
                 var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
                 var beginOfHour = DateTime.Now.RoundDown(oneHour);

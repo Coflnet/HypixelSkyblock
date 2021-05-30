@@ -19,6 +19,7 @@ namespace hypixel.Filter
             Filters.Add<PetItemFilter>();
             Filters.Add<EnchantmentFilter>();
             Filters.Add<EnchantLvlFilter>();
+            Filters.Add<UIdFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)

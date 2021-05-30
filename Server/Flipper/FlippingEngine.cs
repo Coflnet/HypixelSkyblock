@@ -19,7 +19,7 @@ namespace hypixel.Flipper
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
-        private ConcurrentDictionary<long,bool> Subs = new ConcurrentDictionary<long, bool>();
+        private ConcurrentDictionary<long,int> Subs = new ConcurrentDictionary<long, int>();
 
         private ConcurrentDictionary<int,bool> AlreadyChecked = new ConcurrentDictionary<int, bool>();
 
@@ -33,9 +33,9 @@ namespace hypixel.Flipper
             }
         }
 
-        public void AddConnection(SkyblockBackEnd con)
+        public void AddConnection(SkyblockBackEnd con, int id = 0)
         {
-            Subs.TryAdd(con.Id,true);
+            Subs.AddOrUpdate(con.Id,cid=>id,(cid,oldMId)=>id);
         }
 
         public void Test()
@@ -66,7 +66,7 @@ namespace hypixel.Flipper
 
             // determine flippability
             var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-            if (price < 300000 || auction.Tag.Contains("RUNE"))
+            if (price < 200000 || !auction.Bin || auction.Tag.Contains("RUNE"))
                 return; // unflipable
 
             if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
@@ -75,6 +75,9 @@ namespace hypixel.Flipper
             if (AlreadyChecked.Count > 20_000)
                 AlreadyChecked.Clear();
             AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
+
+           // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
+            //    Console.WriteLine("easy item");
 
 
             var itemData = auction.NbtData.Data;
@@ -130,7 +133,7 @@ namespace hypixel.Flipper
 
             var flip = new FlipInstance()
             {
-                MedianPrice = (int)recomendedBuyUnder,
+                MedianPrice = (int)medianPrice,
                 Name = auction.ItemName,
                 Uuid = auction.Uuid,
                 LastKnownCost = (int)price,
@@ -202,8 +205,16 @@ namespace hypixel.Flipper
             var message = new MessageData("flip",JSON.Stringify(flip),60);
             foreach (var item in Subs.Keys)
             {
-                if(!SkyblockBackEnd.SendTo(message,item))
-                    Subs.TryRemove(item,out bool value);
+                var m = MessageData.Copy(message);
+                m.mId = Subs[item];
+                try {
+                if(!SkyblockBackEnd.SendTo(m,item))
+                    Subs.TryRemove(item,out int value);
+                } catch(Exception e)
+                {
+                    Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
+                    Subs.TryRemove(item,out int value);
+                }
             }
         }
 
