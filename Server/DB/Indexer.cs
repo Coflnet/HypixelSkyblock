@@ -182,29 +182,24 @@ namespace hypixel
         {
 
             auctions = auctions.Distinct(new AuctionComparer()).ToList();
-            lock(nameof(highestPlayerId))
+            lock (nameof(highestPlayerId))
             {
-                if(highestPlayerId == 1)
+                if (highestPlayerId == 1)
                     LoadFromDB();
             }
 
             using (var context = new HypixelContext())
             {
-                List<string> playerIds = new List<string>();
                 Dictionary<string, SaveAuction> inDb = await GetExistingAuctions(auctions, context);
 
                 var comparer = new BidComparer();
 
                 foreach (var auction in auctions)
                 {
-                    ProcessAuction(context, playerIds, inDb, comparer, auction);
-
+                    ProcessAuction(context, inDb, comparer, auction);
                 }
 
-                foreach (var player in playerIds)
-                {
-                    Program.AddPlayer(context, player, ref highestPlayerId);
-                }
+
                 //Program.AddPlayers (context, playerIds);
 
                 await context.SaveChangesAsync();
@@ -212,12 +207,10 @@ namespace hypixel
             }
         }
 
-        private static void ProcessAuction(HypixelContext context, List<string> playerIds, Dictionary<string, SaveAuction> inDb, BidComparer comparer, SaveAuction auction)
+        private static void ProcessAuction(HypixelContext context, Dictionary<string, SaveAuction> inDb, BidComparer comparer, SaveAuction auction)
         {
             try
             {
-                AddPlayerId(playerIds, auction);
-
                 var id = auction.Uuid;
                 MigrateAuction(auction);
 
@@ -228,6 +221,16 @@ namespace hypixel
                 else
                 {
                     context.Auctions.Add(auction);
+                    try
+                    {
+                        auction.NBTLookup = NBT.CreateLookup(auction.NbtData);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Instance.Error($"Error on CreateLookup: {e.Message} \n{e.StackTrace} \n{JSON.Stringify(auction.NbtData.Data)}");
+                        throw e;
+                    }
+
                 }
 
                 count++;
@@ -270,7 +273,7 @@ namespace hypixel
                 dbauction.ProfileId = auction.ProfileId;
             if (dbauction.Start == default(DateTime))
                 dbauction.Start = auction.Start;
-                dbauction.End = auction.End;
+            dbauction.End = auction.End;
             if (dbauction.Category == Category.UNKNOWN)
                 dbauction.Category = auction.Category;
 
@@ -286,20 +289,6 @@ namespace hypixel
                 .ToDictionary(a => a.Uuid);
         }
 
-        private static void AddPlayerId(List<string> playerIds, SaveAuction auction)
-        {
-            if (auction?.AuctioneerId == null)
-                return;
-
-            playerIds?.Add(auction?.AuctioneerId);
-            if (auction?.Bids == null)
-                return;
-            foreach (var bid in auction?.Bids)
-            {
-                //Program.AddPlayer (context, bid.Bidder);
-                playerIds.Add(bid.Bidder);
-            }
-        }
 
         internal static void Stop()
         {

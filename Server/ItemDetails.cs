@@ -112,8 +112,12 @@ namespace hypixel
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
+            // this should be a tag by now
+            if (TagLookup.TryGetValue(name, out int value))
+                return value;
+            // may be a name
             var tag = GetIdForName(name);
-            if (!TagLookup.TryGetValue(tag, out int value) && forceGet)
+            if (!TagLookup.TryGetValue(tag, out  value) && forceGet)
                 throw new CoflnetException("item_not_found", $"could not find the item with the name `{name}`");
             return value;
         }
@@ -328,7 +332,20 @@ namespace hypixel
         public DBItem GetDetailsWithCache(int id)
         {
             // THIS IS INPERFORMANT, Todo: find a better way
-            var itemTag = TagLookup.Where(a=>a.Value == id).First().Key;
+            var key = TagLookup.Where(a=>a.Value == id).FirstOrDefault();
+            string itemTag;
+            if(key.Value != 0)
+                itemTag = key.Key;
+            else 
+            {
+                using(var context = new HypixelContext())
+                {
+                    var dbResult = context.Items.Where(i=>i.Id == id).FirstOrDefault();
+                    if(dbResult == null)
+                        return new DBItem();
+                    itemTag = dbResult.Tag;
+                }
+            }
             return GetDetailsWithCache(itemTag);
         }
 

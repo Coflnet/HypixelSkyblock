@@ -181,6 +181,9 @@ namespace hypixel
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
         public int ItemId { get; set; }
+        [IgnoreMember]
+        [JsonIgnore]
+        public List<NBTLookup> NBTLookup { get; set; }
 
 
         public SaveAuction(Hypixel.NET.SkyblockApi.Auction auction)

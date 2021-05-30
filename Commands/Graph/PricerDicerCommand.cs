@@ -12,7 +12,9 @@ namespace hypixel
             if (details.Reforge == Reforge.None)
                 details.Reforge = Reforge.Any;
 
-            var res = ItemPrices.Instance.GetPriceFor(details);
+            var thread = ItemPrices.Instance.GetPriceFor(details);
+            thread.Wait();
+            var res = thread.Result;
 
             var maxAge = A_MINUTE;
             if (IsDayRange(details))

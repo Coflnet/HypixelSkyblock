@@ -8,6 +8,7 @@ namespace hypixel
             if(socketData == null)
                 throw new CoflnetException("invalid_command","this command can only be called by a socket connection");
             socketData.Connection.SetConnectionId(data.GetAs<string>());
+            data.Ok();
         }
     }
 }
