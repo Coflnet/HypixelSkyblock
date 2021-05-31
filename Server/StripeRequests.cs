@@ -13,11 +13,11 @@ namespace hypixel
         public async Task ProcessStripe(HttpRequestEventArgs e)
         {
             Console.WriteLine("received callback from stripe --");
-
+            string json = "";
             try
             {
                 Console.WriteLine("reading json");
-                var json = new StreamReader(e.Request.InputStream).ReadToEnd();
+                json = new StreamReader(e.Request.InputStream).ReadToEnd();
                 //Console.WriteLine(e.)
 
                 var stripeEvent = EventUtility.ConstructEvent(
@@ -46,7 +46,7 @@ namespace hypixel
             }
             catch (StripeException ex)
             {
-                Console.WriteLine($"Ran into exception for stripe callback {ex.Message}");
+                Console.WriteLine($"Ran into exception for stripe callback {ex.Message} \n{ex.StackTrace} {json}");
                 e.Response.StatusCode = 400;
             }
             catch (Exception ex)

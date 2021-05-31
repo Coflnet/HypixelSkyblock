@@ -15,7 +15,7 @@ namespace hypixel.Flipper
     {
         public static FlipperEngine Instance { get; }
 
-        private static int MIN_PRICE_POINT = 500000;
+        private static int MIN_PRICE_POINT = 1000000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
@@ -35,7 +35,7 @@ namespace hypixel.Flipper
             {
                 await Task.Delay(TimeSpan.FromMinutes(7));
                 // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 200000;
+                MIN_PRICE_POINT = 300000;
             });
         }
 
@@ -186,7 +186,7 @@ namespace hypixel.Flipper
                 
             select = AddEnchantmentSubselect(auction, matchingCount, ultiList, highLvlEnchantList, select, ultiLevel, ultiType);
             return select
-                .OrderByDescending(a=>a.Id)
+                //.OrderByDescending(a=>a.Id)
                 .Include(a => a.NbtData)
                 .Take(limit);
         }
