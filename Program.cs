@@ -169,6 +169,21 @@ namespace hypixel
             FullServerMode = true;
             Indexer.MiniumOutput();
 
+            Task.Run(async () =>
+            {
+                Console.WriteLine("\n---------------\nresult:");
+                try
+                {
+                    Console.WriteLine(await CacheService.Instance.GetFromRedis<int>("e"));
+                    Console.WriteLine(await CacheService.Instance.GetFromRedis<string>("e"));
+                    Console.WriteLine(await CacheService.Instance.GetFromRedis<bool>("e"));
+                } catch(Exception e)
+                {
+                    Console.WriteLine($"{e.Message} {e.StackTrace}");
+                }
+                Console.WriteLine("-- end res:");
+            });
+
             Updater updater = new Updater(apiKey);
             updater.UpdateForEver();
             Server server = new Server();
@@ -299,13 +314,13 @@ namespace hypixel
         private static void RunUserIndexer()
         {
             RunIsolatedForever(Numberer.NumberUsers, "Error occured while userIndexing");
-            
+
             int minId = 0;
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
-                minId = context.NBTLookups.Min(l=>l.AuctionId);
+                minId = context.NBTLookups.Min(l => l.AuctionId);
             }
-            if(minId == 0)
+            if (minId == 0)
             {
                 Console.WriteLine("All nbt is indexed :)");
                 return;

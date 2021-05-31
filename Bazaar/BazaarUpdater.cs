@@ -82,7 +82,11 @@ namespace dev
                 Console.Write("\r" + i);
 
             }
-            ItemPrices.Instance.AddBazaarData(pull);
+            var saveTask = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1));
+                await ItemPrices.Instance.AddBazaarData(pull);
+            });
             SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);

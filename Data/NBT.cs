@@ -352,7 +352,7 @@ namespace hypixel
                     {
                         foreach (var item in context.NBTValues)
                         {
-                            if(item?.Value == null)
+                            if (item?.Value == null)
                                 continue;
                             if (item.Value.Length < 40)
                                 ValueCache.TryAdd((item.KeyId, item.Value), item.Id);
@@ -579,7 +579,8 @@ namespace hypixel
         {
             var f = new NbtFile();
             var stream = new MemoryStream(input);
-            f.LoadFromStream(stream, compression);
+            if (input != null)
+                f.LoadFromStream(stream, compression);
 
             return f;
         }

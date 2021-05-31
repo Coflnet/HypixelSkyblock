@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace hypixel
 {
@@ -18,9 +19,39 @@ namespace hypixel
 
         public int CacheSize => cache.Count;
 
+        public ConnectionMultiplexer RedisConnection { get; }
+
         static CacheService()
         {
             Instance = new CacheService();
+        }
+
+        public CacheService()
+        {
+            ConfigurationOptions options = ConfigurationOptions.Parse(SimplerConfig.Config.Instance["redisCon"]);
+            options.Password = SimplerConfig.Config.Instance["redisPassword"];
+            //options.AsyncTimeout = 60;
+            RedisConnection = ConnectionMultiplexer.Connect(options);
+        }
+
+        public async Task<T> GetFromRedis<T>(RedisKey key)
+        {
+            var value = await RedisConnection.GetDatabase().StringGetAsync(key);
+            if(value == RedisValue.Null)
+                return default(T);
+            return MessagePack.MessagePackSerializer.Deserialize<T>(value);
+        }
+
+        public async Task SaveInRedis<T>(RedisKey key, T obj, TimeSpan timeout = default(TimeSpan))
+        {
+            if(timeout == default(TimeSpan))
+                timeout = TimeSpan.FromDays(1);
+            await RedisConnection.GetDatabase().StringSetAsync(key,MessagePack.MessagePackSerializer.Serialize(obj),timeout);
+        }
+
+        public async Task ModifyInRedis<T>(RedisKey key, Func<T,T> modifier, TimeSpan timeout = default(TimeSpan))
+        {
+            await SaveInRedis(key, modifier(await GetFromRedis<T>(key)), timeout);
         }
 
         public void Save(MessageData request, MessageData response, int index)

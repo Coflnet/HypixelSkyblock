@@ -28,6 +28,7 @@
     <PackageReference Include="RestSharp" Version="106.11.7" />
     <PackageReference Include="SimplerConfig" Version="1.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
     <PackageReference Include="Stripe.net" Version="39.31.0" />
     <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />
 
