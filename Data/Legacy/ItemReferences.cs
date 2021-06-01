@@ -115,6 +115,7 @@ namespace hypixel
             stiff,
             bulky,
             lucky,
+            bountiful,
 
 
 

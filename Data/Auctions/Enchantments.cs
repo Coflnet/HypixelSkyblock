@@ -110,6 +110,8 @@ namespace hypixel
             None,
             cultivating,
             delicate,
+            mana_steal,
+            smarty_pants,
             
             Any = 126
         }
