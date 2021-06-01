@@ -303,7 +303,7 @@ namespace hypixel
             var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(20));
-                ItemPrices.Instance.AddEndedAuctions(ended);
+                await ItemPrices.Instance.AddEndedAuctions(ended);
             });
 
 

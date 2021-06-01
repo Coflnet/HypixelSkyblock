@@ -2,15 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using dev;
+using MessagePack;
 
 namespace hypixel
 {
     public partial class ItemPrices
     {
-        private class ItemLookup
+        [MessagePackObject]
+        public class ItemLookup
         {
+            [IgnoreMember]
             public int ItemId => (int)(Prices.FirstOrDefault() == null ? 0 : Prices.FirstOrDefault().ItemId);
+            [IgnoreMember]
             public AveragePrice Oldest => Prices.FirstOrDefault();
+            [Key("p")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
 
             public ItemLookup()

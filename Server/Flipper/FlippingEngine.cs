@@ -35,7 +35,10 @@ namespace hypixel.Flipper
             {
                 await Task.Delay(TimeSpan.FromMinutes(7));
                 // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 300000;
+                MIN_PRICE_POINT = 500000;
+                await Task.Delay(TimeSpan.FromMinutes(17));
+                // set price lower after the startup overhead cleared
+                MIN_PRICE_POINT = 400000;
             });
         }
 

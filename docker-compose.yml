@@ -25,4 +25,9 @@ services:
     restart: always
     depends_on:
       - mariadb
+  redis:
+    image: "redis:alpine"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+ 
 

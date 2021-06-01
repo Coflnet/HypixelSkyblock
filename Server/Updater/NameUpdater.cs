@@ -48,7 +48,7 @@ namespace hypixel
         {
             Task.Run(async () =>
             {
-                await Task.Delay(90000);
+                await Task.Delay(TimeSpan.FromMinutes(9));
                 await RunForever();
             });
         }
