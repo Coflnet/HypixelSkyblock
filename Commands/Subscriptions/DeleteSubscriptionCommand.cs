@@ -5,14 +5,14 @@ namespace hypixel
 {
     public class DeleteSubscriptionCommand : Command
     {
-        public override async void Execute(MessageData data)
+        public override void Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
                 var args = data.GetAs<Arguments>();
                 var userId = data.UserId;
                 
-                var affected = await SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type);
+                var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
 
                 data.SendBack(data.Create("unsubscribed", affected));
             }

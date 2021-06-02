@@ -169,20 +169,6 @@ namespace hypixel
             FullServerMode = true;
             Indexer.MiniumOutput();
 
-            Task.Run(async () =>
-            {
-                Console.WriteLine("\n---------------\nresult:");
-                try
-                {
-                    Console.WriteLine(await CacheService.Instance.GetFromRedis<int>("e"));
-                    Console.WriteLine(await CacheService.Instance.GetFromRedis<string>("e"));
-                    Console.WriteLine(await CacheService.Instance.GetFromRedis<bool>("e"));
-                } catch(Exception e)
-                {
-                    Console.WriteLine($"{e.Message} {e.StackTrace}");
-                }
-                Console.WriteLine("-- end res:");
-            });
 
             Updater updater = new Updater(apiKey);
             updater.UpdateForEver();
@@ -193,20 +179,7 @@ namespace hypixel
             GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
             SubscribeEngine.Instance.LoadFromDb();
-
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await ItemPrices.Instance.FillHours();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
-                }
-            });
-
+            MakeSureRedisIsInitialized();
 
             Console.WriteLine("booting db dependend stuff");
 
@@ -233,6 +206,42 @@ namespace hypixel
             }
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+
+        }
+
+        public static void FillRedisCache()
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await ItemPrices.Instance.FillHours();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
+                }
+            });
+        }
+
+        public static async Task MakeSureRedisIsInitialized()
+        {
+            try
+            {
+                await CacheService.Instance.ModifyInRedis<DateTime>("LastbazaarUpdate", last =>
+                {
+                    if (last == default(DateTime))
+                    {
+                        Program.FillRedisCache();
+                    }
+
+                    return DateTime.Now;
+                });
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Error($"Redis init failed {e.Message} \n{e.StackTrace}");
+            }
 
         }
 

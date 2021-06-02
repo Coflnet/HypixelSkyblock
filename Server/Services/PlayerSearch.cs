@@ -16,10 +16,6 @@ namespace hypixel
     {
         public static PlayerSearch Instance;
 
-        public static Dictionary<string, HashSet<PlayerResult>> players = new Dictionary<string, HashSet<PlayerResult>>();
-
-        private static ConcurrentDictionary<string, int> nameRequests = new ConcurrentDictionary<string, int>();
-
         ConcurrentDictionary<string, int> playerHits = new ConcurrentDictionary<string, int>();
 
         static PlayerSearch()
@@ -61,10 +57,6 @@ namespace hypixel
             return task.Result;
         }
 
-        public static void ClearCache()
-        {
-            players.Clear();
-        }
 
         /// <summary>
         /// Registers that a specific player was looked up and modifies the search order acordingly

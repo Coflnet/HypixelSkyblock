@@ -57,9 +57,9 @@ namespace dev
         {
             var result = await api.GetBazaarProductsAsync();
             var pull = new BazaarPull(result);
+            await Program.MakeSureRedisIsInitialized();
             using (var context = new HypixelContext())
             {
-                context.Database.Migrate();
 
                 var lastMinPulls = await context.BazaarPull
 
@@ -92,6 +92,8 @@ namespace dev
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
             LastUpdate = DateTime.Now;
         }
+
+
 
         private static void UpdateItemBazaarState(BazaarPull pull, HypixelContext context)
         {

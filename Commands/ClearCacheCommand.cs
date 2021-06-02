@@ -29,7 +29,6 @@ namespace hypixel
             }
             StorageManager.ClearCache();
             ItemDetails.Instance.Items = null;
-            PlayerSearch.ClearCache();
         }
     }
 }

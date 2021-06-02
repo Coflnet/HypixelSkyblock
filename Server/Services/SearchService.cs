@@ -21,7 +21,6 @@ namespace hypixel
         
 
         ConcurrentDictionary<string, CacheItem> cache = new ConcurrentDictionary<string, CacheItem>();
-        ConcurrentQueue<string> cacheKeyUpdate = new ConcurrentQueue<string>();
         ConcurrentQueue<PopularSite> popularSite = new ConcurrentQueue<PopularSite>();
 
         private int updateCount = 0;

@@ -319,14 +319,9 @@ namespace hypixel
             return new DBItem() { Tag = "Unknown", Name = fullName };
         }
 
-        public DBItem GetDetailsWithCache(string uuid)
+        public async Task<DBItem> GetDetailsWithCache(string uuid)
         {
-            if(CacheService.Instance.GetFromCache("itemDetails",uuid, out string json))
-                return JsonConvert.DeserializeObject<DBItem>(json);
-            
-            var response = ItemDetailsCommand.CreateResponse(uuid);
-            CacheService.Instance.Save("itemDetails",uuid,response);
-            return JsonConvert.DeserializeObject<DBItem>(response.Data);
+            return await Server.ExecuteCommandWithCache<string, DBItem>("itemDetails", uuid);
         }
 
         public DBItem GetDetailsWithCache(int id)
@@ -346,7 +341,7 @@ namespace hypixel
                     itemTag = dbResult.Tag;
                 }
             }
-            return GetDetailsWithCache(itemTag);
+            return GetDetailsWithCache(itemTag).GetAwaiter().GetResult();
         }
 
         public void Save()

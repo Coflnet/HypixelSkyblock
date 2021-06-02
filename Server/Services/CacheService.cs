@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MessagePack;
 using StackExchange.Redis;
 
 namespace hypixel
@@ -14,10 +15,9 @@ namespace hypixel
     {
         public static CacheService Instance { get; protected set; }
 
-        private static int MaxCacheSize = Int32.Parse( SimplerConfig.Config.Instance["MaxCacheItems"]);
-        private ConcurrentDictionary<string, CacheElement> cache = new ConcurrentDictionary<string, CacheElement>();
+        private static int MaxCacheSize = Int32.Parse(SimplerConfig.Config.Instance["MaxCacheItems"]);
 
-        public int CacheSize => cache.Count;
+        public int CacheSize => -1;
 
         public ConnectionMultiplexer RedisConnection { get; }
 
@@ -30,54 +30,53 @@ namespace hypixel
         {
             ConfigurationOptions options = ConfigurationOptions.Parse(SimplerConfig.Config.Instance["redisCon"]);
             options.Password = SimplerConfig.Config.Instance["redisPassword"];
-            //options.AsyncTimeout = 60;
+            options.AsyncTimeout = 15;
             RedisConnection = ConnectionMultiplexer.Connect(options);
         }
 
         public async Task<T> GetFromRedis<T>(RedisKey key)
         {
-            var value = await RedisConnection.GetDatabase().StringGetAsync(key);
-            if(value == RedisValue.Null)
+            try
+            {
+                var value = await RedisConnection.GetDatabase().StringGetAsync(key);
+                if (value == RedisValue.Null)
+                    return default(T);
+                return MessagePack.MessagePackSerializer.Deserialize<T>(value);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error("Redis error " + e.Message);
                 return default(T);
-            return MessagePack.MessagePackSerializer.Deserialize<T>(value);
+            }
+
         }
 
         public async Task SaveInRedis<T>(RedisKey key, T obj, TimeSpan timeout = default(TimeSpan))
         {
-            if(timeout == default(TimeSpan))
+            if (timeout == default(TimeSpan))
                 timeout = TimeSpan.FromDays(1);
-            await RedisConnection.GetDatabase().StringSetAsync(key,MessagePack.MessagePackSerializer.Serialize(obj),timeout);
+            await RedisConnection.GetDatabase().StringSetAsync(key, MessagePack.MessagePackSerializer.Serialize(obj), timeout);
         }
 
-        public async Task ModifyInRedis<T>(RedisKey key, Func<T,T> modifier, TimeSpan timeout = default(TimeSpan))
+        public async Task ModifyInRedis<T>(RedisKey key, Func<T, T> modifier, TimeSpan timeout = default(TimeSpan))
         {
             await SaveInRedis(key, modifier(await GetFromRedis<T>(key)), timeout);
         }
 
-        public void Save(MessageData request, MessageData response, int index)
+        public async void Save(MessageData request, MessageData response, int index)
         {
             if (response.MaxAge == 0)
                 return;
 
             string key = GetCacheKey(request);
-            AddOrUpdateCache(response, index, key);
+            await AddOrUpdateCache(response, index, key);
         }
 
-        private void AddOrUpdateCache(MessageData response, int index, string key)
+        private async Task AddOrUpdateCache(MessageData response, int index, string key)
         {
-            var newEntry = new CacheElement(DateTime.Now + TimeSpan.FromSeconds(response.MaxAge), new List<MessageData>() { response });
-            cache.AddOrUpdate(key, newEntry, (key, item) =>
-            {
-                if (index == 0)
-                    return newEntry;
-                item.Add(response);
-                return item;
-            });
-            // keep the cache size in check
-            while(CacheSize > MaxCacheSize)
-            {
-                cache.TryRemove(cache.Keys.First(), out CacheElement elem);
-            }
+            var span = TimeSpan.FromSeconds(response.MaxAge);
+            var newEntry = new CacheElement(DateTime.Now + span, new List<MessageData>() { response });
+            await SaveInRedis(key, newEntry, span);
         }
 
         public void Save(string type, string data, MessageData response)
@@ -88,8 +87,14 @@ namespace hypixel
 
         public bool TryFromCache(MessageData request)
         {
+            return TryFromCacheAsync(request).GetAwaiter().GetResult();
+        }
+
+        public async Task<bool> TryFromCacheAsync(MessageData request)
+        {
             var key = GetCacheKey(request);
-            if (!cache.TryGetValue(key, out CacheElement responses))
+            var responses = await GetFromRedis<CacheElement>(key);
+            if (responses == null)
                 return false;
 
             if (responses.Expires < DateTime.Now)
@@ -104,26 +109,15 @@ namespace hypixel
             return true;
         }
 
-        public bool GetFromCache(string command, string data, out string value)
-        {
-            var key = GetCacheKey(command, data);
-            value = null;
-            if (!cache.TryGetValue(key, out CacheElement responses))
-                return false;
-            if (responses.Expires < DateTime.Now)
-                return false;
-            value = responses.Responses.First().Data;
-            return true;
-        }
 
         public void ClearStale()
-        {
+        {/*
             var toRemove = cache.Where(item => item.Value.Expires < DateTime.Now)
                             .Select(item => item.Key).ToList();
             foreach (var item in toRemove)
             {
                 cache.TryRemove(item, out CacheElement value);
-            }
+            }*/
         }
 
         private static string GetCacheKey(MessageData request)
@@ -139,18 +133,26 @@ namespace hypixel
             return type + data;
         }
 
+        [MessagePackObject]
         public class CacheElement
         {
+            [Key(0)]
             public DateTime Expires;
-            public IEnumerable<MessageData> Responses => Reduced.Select(e=>new MessageData(e.type,Unzip(e.data)));
+            [IgnoreMember]
+            public IEnumerable<MessageData> Responses => Reduced.Select(e => new MessageData(e.type, Unzip(e.data)));
 
-            private List<ReducedCommandData> Reduced;
+            [Key(1)]
+            public List<ReducedCommandData> Reduced;
 
             public CacheElement(DateTime expires, List<MessageData> responses)
             {
                 Expires = expires;
                 Reduced = responses.Select(CreateItem)
                             .ToList();
+            }
+
+            public CacheElement()
+            {
             }
 
             public void Add(MessageData data)
@@ -165,16 +167,25 @@ namespace hypixel
             }
         }
 
+        [MessagePackObject]
         public class ReducedCommandData
         {
+            [Key(0)]
             public string type;
+            [Key(1)]
             public byte[] data;
+
+            public ReducedCommandData()
+            {
+            }
 
             public ReducedCommandData(string type, byte[] data)
             {
                 this.type = type;
                 this.data = data;
             }
+
+
         }
 
         internal void RunForEver()
@@ -211,7 +222,7 @@ namespace hypixel
         public static byte[] Zip(string str)
         {
             var bytes = Encoding.UTF8.GetBytes(str);
-            if(bytes.Length < 100)
+            if (bytes.Length < 100)
                 return bytes;
 
             using (var msi = new MemoryStream(bytes))
@@ -229,7 +240,7 @@ namespace hypixel
 
         public static string Unzip(byte[] bytes)
         {
-            if(bytes.Length < 100)
+            if (bytes.Length < 100)
                 return Encoding.UTF8.GetString(bytes);
             using (var msi = new MemoryStream(bytes))
             using (var mso = new MemoryStream())

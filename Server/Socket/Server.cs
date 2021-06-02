@@ -236,7 +236,7 @@ namespace hypixel
                     return;
                 }
 
-                if (CacheService.Instance.TryFromCache(data))
+                if (await CacheService.Instance.TryFromCacheAsync(data))
                     return;
 
               /*  var ip = req.Headers["Cf-Connecting-Ip"];

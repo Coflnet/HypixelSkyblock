@@ -129,7 +129,7 @@ namespace hypixel
                 keyword = ItemDetails.TagToName(parameter);
                 
 
-                var i = ItemDetails.Instance.GetDetailsWithCache(parameter);
+                var i = await ItemDetails.Instance.GetDetailsWithCache(parameter);
                 path = CreateCanoicalPath(urlParts, i);
 
                 title = $"{keyword} price ";

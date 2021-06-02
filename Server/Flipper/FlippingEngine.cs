@@ -19,9 +19,9 @@ namespace hypixel.Flipper
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
-        private ConcurrentDictionary<long,int> Subs = new ConcurrentDictionary<long, int>();
+        private ConcurrentDictionary<long, int> Subs = new ConcurrentDictionary<long, int>();
 
-        private ConcurrentDictionary<int,bool> AlreadyChecked = new ConcurrentDictionary<int, bool>();
+        private ConcurrentDictionary<int, bool> AlreadyChecked = new ConcurrentDictionary<int, bool>();
 
         static FlipperEngine()
         {
@@ -44,7 +44,17 @@ namespace hypixel.Flipper
 
         public void AddConnection(SkyblockBackEnd con, int id = 0)
         {
-            Subs.AddOrUpdate(con.Id,cid=>id,(cid,oldMId)=>id);
+            Subs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
+            Task.Run(async () =>
+            {
+                foreach (var item in Flipps.Reverse().Take(3))
+                {
+                    await Task.Delay(6000);
+                    var data = CreateDataFromFlip(item);
+                    data.mId = id;
+                    con.SendBack(data);
+                }
+            });
         }
 
         public void Test()
@@ -54,15 +64,19 @@ namespace hypixel.Flipper
 
         public async Task NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            try {
-                using(var context = new HypixelContext())
+            try
+            {
+                if(new Random().Next(5) == 1)
+                    await Task.Delay(TimeSpan.FromSeconds(20));
+                using (var context = new HypixelContext())
                 {
                     foreach (var auction in auctions)
                     {
-                        await NewAuction(auction,context);
+                        await NewAuction(auction, context);
                     }
                 }
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 dev.Logger.Instance.Error($"Flipper threw an exception {e.Message} {e.StackTrace}");
             }
@@ -85,7 +99,7 @@ namespace hypixel.Flipper
                 AlreadyChecked.Clear();
             AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
 
-           // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
+            // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
             //    Console.WriteLine("easy item");
 
 
@@ -105,15 +119,15 @@ namespace hypixel.Flipper
             var relevantAuctions = await select
                 .ToListAsync();
 
-            if(relevantAuctions.Count < 50)
+            if (relevantAuctions.Count < 50)
             {
                 // to few auctions in a day, query a week
                 oldest = DateTime.Now - TimeSpan.FromDays(8);
-                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest,120)
+                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 120)
                 .ToListAsync();
             }
 
-            if(relevantAuctions.Count < 3)
+            if (relevantAuctions.Count < 3)
             {
                 oldest = DateTime.Now - TimeSpan.FromDays(25);
                 relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
@@ -180,13 +194,13 @@ namespace hypixel.Flipper
             if (auction.Tag.StartsWith("PET"))
             {
                 var sb = new StringBuilder(auction.ItemName);
-                if(sb[6] == ']')
+                if (sb[6] == ']')
                     sb[5] = '_';
                 else
                     sb[6] = '_';
                 select = select.Where(a => EF.Functions.Like(a.ItemName, sb.ToString()));
             }
-                
+
             select = AddEnchantmentSubselect(auction, matchingCount, ultiList, highLvlEnchantList, select, ultiLevel, ultiType);
             return select
                 //.OrderByDescending(a=>a.Id)
@@ -212,20 +226,27 @@ namespace hypixel.Flipper
 
         private void FlippFound(FlipInstance flip)
         {
-            var message = new MessageData("flip",JSON.Stringify(flip),60);
+            MessageData message = CreateDataFromFlip(flip);
             foreach (var item in Subs.Keys)
             {
                 var m = MessageData.Copy(message);
                 m.mId = Subs[item];
-                try {
-                if(!SkyblockBackEnd.SendTo(m,item))
-                    Subs.TryRemove(item,out int value);
-                } catch(Exception e)
+                try
+                {
+                    if (!SkyblockBackEnd.SendTo(m, item))
+                        Subs.TryRemove(item, out int value);
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    Subs.TryRemove(item,out int value);
+                    Subs.TryRemove(item, out int value);
                 }
             }
+        }
+
+        private static MessageData CreateDataFromFlip(FlipInstance flip)
+        {
+            return new MessageData("flip", JSON.Stringify(flip), 60);
         }
 
         /*

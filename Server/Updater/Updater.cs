@@ -14,6 +14,7 @@ namespace hypixel
 {
     public class Updater
     {
+        private const string LAST_UPDATE_KEY = "lastUpdate";
         private string apiKey;
         private bool abort;
         private static bool minimumOutput;
@@ -55,8 +56,12 @@ namespace hypixel
             {
                 if (hypixel == null)
                     hypixel = new HypixelApi(apiKey, 50);
+
+                if(lastUpdateDone == default(DateTime))
+                    lastUpdateDone = await CacheService.Instance.GetFromRedis<DateTime>(LAST_UPDATE_KEY);
                 lastUpdateDone = await RunUpdate(lastUpdateDone);
-                FileController.SaveAs("lastUpdate", lastUpdateDone);
+                FileController.SaveAs(LAST_UPDATE_KEY, lastUpdateDone);
+                await CacheService.Instance.SaveInRedis(LAST_UPDATE_KEY, lastUpdateDone);
                 FileController.Delete("lastUpdateStart");
             }
             catch (Exception e)
@@ -72,7 +77,7 @@ namespace hypixel
             return lastUpdateDone;
         }
 
-        DateTime lastUpdateDone = new DateTime(1970, 1, 1);
+        DateTime lastUpdateDone = default(DateTime);
 
         async Task<DateTime> RunUpdate(DateTime updateStartTime)
         {

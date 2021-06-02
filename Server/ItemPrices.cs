@@ -17,10 +17,8 @@ namespace hypixel
 
         public Filter.FilterEngine FilterEngine = new Filter.FilterEngine();
 
-        private ConcurrentDictionary<int, ItemLookup> Hours = new ConcurrentDictionary<int, ItemLookup>();
-        private ConcurrentDictionary<int, ItemLookup> IntraHour = new ConcurrentDictionary<int, ItemLookup>();
-
-        private ConcurrentHashSet<string> pathsToSave = new ConcurrentHashSet<string>();
+        private const string INTRA_HOUR_PREFIX = "IPH";
+        private const string INTRA_DAY_PREFIX = "IPD";
 
         private Dictionary<int, bool> BazzarItem = new Dictionary<int, bool>();
 
@@ -47,12 +45,12 @@ namespace hypixel
                 return await QueryDB(details);
 
 
-            if (details.Start > DateTime.Now - TimeSpan.FromHours(2) && IntraHour.TryGetValue(itemId, out ItemLookup value))
-                return FromItemLookup(value);
+            if (details.Start > DateTime.Now - TimeSpan.FromHours(1.1))
+                return await RespondIntraHour(itemId);
 
 
-            if (details.Start > DateTime.Now - TimeSpan.FromDays(1.01) && Hours.TryGetValue(itemId, out ItemLookup hourValue))
-                return FromItemLookup(hourValue, IntraHour.GetValueOrDefault(itemId)?.CombineIntoOne(default(DateTime), DateTime.Now));
+            if (details.Start > DateTime.Now - TimeSpan.FromDays(1.01))
+                return await RespondHourly(itemId);
 
             using (var context = new HypixelContext())
             {
@@ -62,6 +60,46 @@ namespace hypixel
 
                 return FromList(response, itemId);
             }
+        }
+
+        protected virtual async Task<Resonse> RespondIntraHour(int itemId)
+        {
+            ItemLookup res = await GetHourlyLookup(itemId);
+            if (res != null)
+                return FromItemLookup(res);
+            throw new CoflnetException("404", "there was no data found for this item. retry in a miniute");
+        }
+
+        private static async Task<ItemLookup> GetHourlyLookup(int itemId)
+        {
+            var key = GetIntraHourKey(itemId);
+            var res = await CacheService.Instance.GetFromRedis<ItemLookup>(key);
+            return res;
+        }
+
+        private static string GetIntraHourKey(int itemId)
+        {
+            return INTRA_HOUR_PREFIX + DateTime.Now.Hour + itemId;
+        }
+
+        protected virtual async Task<Resonse> RespondHourly(int itemId)
+        {
+            ItemLookup res = await GetLookupForToday(itemId);
+            if (res != null)
+                return FromItemLookup(res, (await GetHourlyLookup(itemId))?.CombineIntoOne(default(DateTime), DateTime.Now));
+            throw new CoflnetException("404", "there was no data found for this item. retry in a miniute");
+        }
+
+        private static async Task<ItemLookup> GetLookupForToday(int itemId)
+        {
+            var key = GetIntradayKey(itemId);
+            var res = await CacheService.Instance.GetFromRedis<ItemLookup>(key);
+            return res;
+        }
+
+        private static string GetIntradayKey(int itemId)
+        {
+            return INTRA_DAY_PREFIX + itemId;
         }
 
         private Resonse FromItemLookup(ItemLookup value, AveragePrice additional = null)
@@ -88,7 +126,7 @@ namespace hypixel
         }
 
 
-        public void AddEndedAuctions(IEnumerable<SaveAuction> auctions)
+        public async Task AddEndedAuctions(IEnumerable<SaveAuction> auctions)
         {
             TimeSpan aDay, oneHour;
             DateTime lastHour, startYesterday;
@@ -96,19 +134,22 @@ namespace hypixel
 
             foreach (var auction in auctions)
             {
-                AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
+                await AddAuction(aDay, oneHour, lastHour, startYesterday, auction);
             }
         }
 
-        private void AddAuction(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, SaveAuction auction)
+        private async Task AddAuction(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, SaveAuction auction)
         {
             var id = ItemDetails.Instance.GetItemIdForName(auction.Tag);
-            var res = IntraHour.GetOrAdd(id, (id) => new ItemLookup());
+            var res = await GetHourlyLookup(id);
+            if (res == null)
+                res = new ItemLookup();
             res.AddNew(auction);
-            DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
+            await CacheService.Instance.SaveInRedis(GetIntraHourKey(id), res, TimeSpan.FromHours(1));
+            await DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
         }
 
-        public void AddBazaarData(BazaarPull pull)
+        public async Task AddBazaarData(BazaarPull pull)
         {
             TimeSpan aDay, oneHour;
             DateTime lastHour, startYesterday;
@@ -116,9 +157,13 @@ namespace hypixel
             foreach (var item in pull.Products)
             {
                 var id = ItemDetails.Instance.GetOrCreateItemByTag(item.ProductId);
-                var res = IntraHour.GetOrAdd(id, (id) => new ItemLookup());
+                //await CacheService.Instance.ModifyInRedis(GetIntraHourKey(id),)
+                var res = await GetHourlyLookup(id);
+                if (res == null)
+                    res = new ItemLookup();
                 res.AddNew(item, pull.Timestamp);
-                DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
+                await CacheService.Instance.SaveInRedis(GetIntraHourKey(id), res);
+                await DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
             }
 
             if (BazzarItem.Count() == 0)
@@ -136,23 +181,25 @@ namespace hypixel
             startYesterday = (DateTime.Now - aDay).RoundDown(aDay);
         }
 
-        private void DropYesterDay(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, int id, ItemLookup res)
+        private async Task DropYesterDay(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, int id, ItemLookup res)
         {
             if (res.Oldest.Date != default(DateTime) && res.Oldest.Date < lastHour)
             {
                 // move the intrahour to hour
-                var hourly = Hours.GetOrAdd(id, id => new ItemLookup());
+                var hourly = await GetLookupForToday(id);
+                if (hourly == null)
+                    hourly = new ItemLookup();
                 var beginOfHour = DateTime.Now.RoundDown(oneHour);
                 var oneHourRecord = res.CombineIntoOne(default(DateTime), beginOfHour);
                 if (oneHourRecord.Avg != 0)
                     hourly.AddNew(oneHourRecord);
-                res.Discard(beginOfHour);
 
                 if (hourly.Oldest.Date < startYesterday)
                 {
                     hourly.Discard(DateTime.Now - aDay);
                     //ComputeBazaarPriceFor(id);
                 }
+                await CacheService.Instance.SaveInRedis(GetIntradayKey(id), hourly);
             }
         }
 
@@ -170,9 +217,9 @@ namespace hypixel
 
         private IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
         {
-            var min = DateTime.Now-TimeSpan.FromDays(35);
-            if(details.Filter != null && details.Start < min)
-                throw new CoflnetException("filter_to_large",$"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
+            var min = DateTime.Now - TimeSpan.FromDays(35);
+            if (details.Filter != null && details.Start < min)
+                throw new CoflnetException("filter_to_large", $"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
             var select = AuctionSelect(details.Start, details.End, context, itemId);
 
             if (details.Filter != null)
@@ -216,29 +263,57 @@ namespace hypixel
                 foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
                 {
                     var select = AuctionSelect(DateTime.Now - TimeSpan.FromDays(1), DateTime.Now, context, itemId);
-                    var result = await AvgFromAuctions(itemId, select, true);
-                    var hoursList = Hours.GetOrAdd(itemId, id => new ItemLookup());
-                    foreach (var item in result)
-                    {
-                        hoursList.AddNew(item);
-                    }
+                    await UpdateAuctionsInRedis(itemId, select);
+
                 }
 
                 DateTime start;
                 var end = DateTime.Now - TimeSpan.FromDays(1);
+                var removeBefore = end - TimeSpan.FromHours(1);
                 for (int i = 0; i < 24; i++)
                 {
                     start = end;
                     end = start + TimeSpan.FromHours(1);
-
-                    foreach (var item in await AvgBazzarHistory(start, end))
-                    {
-                        var hoursList = Hours.GetOrAdd(item.ItemId, id => new ItemLookup());
-                        hoursList.AddNew(item);
-                    }
+                    await UpdateBazaarFor(start, end, removeBefore);
                 }
             }
             await BackfillPrices();
+        }
+
+        private static void FillLastHour()
+        {
+            
+        }
+
+        private static async Task UpdateAuctionsInRedis(int itemId, IQueryable<SaveAuction> select)
+        {
+            var result = await AvgFromAuctions(itemId, select, true);
+            await CacheService.Instance.ModifyInRedis<ItemLookup>(GetIntradayKey(itemId), hoursList =>
+            {
+                if (hoursList == null)
+                    hoursList = new ItemLookup();
+                foreach (var item in result)
+                {
+                    hoursList.AddNew(item);
+                }
+                return hoursList;
+            });
+        }
+
+        private static async Task UpdateBazaarFor(DateTime start, DateTime end, DateTime removeBefore)
+        {
+            foreach (var item in await AvgBazzarHistory(start, end))
+            {
+                await CacheService.Instance.ModifyInRedis<ItemLookup>(GetIntradayKey(item.ItemId), hoursList =>
+                {
+                    if (hoursList == null)
+                        hoursList = new ItemLookup();
+
+                    hoursList.AddNew(item);
+                    hoursList.Discard(removeBefore);
+                    return hoursList;
+                });
+            }
         }
 
         private async Task BackfillPrices()

@@ -209,7 +209,7 @@ namespace hypixel
             Close();
         }
 
-        private void Close()
+        private new void Close()
         {
             Subscribers.TryRemove(Id, out SkyblockBackEnd value);
         }
@@ -223,6 +223,7 @@ namespace hypixel
         {
             IncreaseRateLimit();
             long id = GetSessionId(stringId);
+            long oldId = this.Id;
             this.Id = id;
             if (id == 0)
                 return;
@@ -232,6 +233,8 @@ namespace hypixel
                 // there was an old session, clean up
                 // Todo (currently nothing to clean)
             }
+            // remove previously set id
+            Subscribers.TryRemove(oldId, out value);
 
             Subscribers.AddOrUpdate(id, this, (key, old) => this);
         }

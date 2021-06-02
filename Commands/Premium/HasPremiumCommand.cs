@@ -7,11 +7,17 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            var googleId = data.GetAs<string>();
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
-                var user = context.Users.Where(u=>u.GoogleId == googleId).FirstOrDefault();
-                data.SendBack(data.Create("premiumExpiration",user?.PremiumExpires));
+                try
+                {
+                    var user = data.User;
+                    data.SendBack(data.Create("premiumExpiration", user?.PremiumExpires));
+                } catch(Exception)
+                {
+                    // no premium
+                    data.SendBack(data.Create<string>("premiumExpiration", null));
+                }
             }
         }
     }

@@ -38,9 +38,8 @@ namespace hypixel
                 }
                 else
                 {
-                    Console.WriteLine("sripe  is not comlete type of " + stripeEvent.Type);
+                    Console.WriteLine("sripe is not comlete type of " + stripeEvent.Type);
                 }
-
 
                 e.Response.StatusCode = 200;
             }
