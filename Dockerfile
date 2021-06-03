@@ -5,7 +5,8 @@ RUN mkdir -p /build/skyblock/External/api
 RUN git clone https://github.com/Ekwav/Hypixel.NET.git /build/skyblock/External/api
 WORKDIR /build/skyblock
 COPY . .
-RUN pwd
+RUN touch keyfile.p12 
+RUN cp -n appsettings.json custom.conf.json
 RUN dotnet restore
 RUN dotnet publish -c release
 
