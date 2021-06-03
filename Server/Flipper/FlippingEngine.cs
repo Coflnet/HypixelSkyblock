@@ -25,6 +25,8 @@ namespace hypixel.Flipper
 
         private ConcurrentQueue<SaveAuction> PotetialFlipps = new ConcurrentQueue<SaveAuction>();
 
+        public int QueueSize => PotetialFlipps.Count;
+
         static FlipperEngine()
         {
             Instance = new FlipperEngine();
@@ -35,12 +37,12 @@ namespace hypixel.Flipper
             }
             Task.Run(async () =>
             {
-                await Task.Delay(TimeSpan.FromMinutes(7));
+                await Task.Delay(TimeSpan.FromMinutes(3));
                 // set price lower after the startup overhead cleared
                 MIN_PRICE_POINT = 500000;
                 await Task.Delay(TimeSpan.FromMinutes(17));
                 // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 400000;
+                MIN_PRICE_POINT = 350000;
             });
         }
 
@@ -76,7 +78,7 @@ namespace hypixel.Flipper
                 if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
                     return;
 
-                if (AlreadyChecked.Count > 20_000)
+                if (AlreadyChecked.Count > 10_000)
                     AlreadyChecked.Clear();
                 AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
 

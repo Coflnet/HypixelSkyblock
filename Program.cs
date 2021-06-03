@@ -23,6 +23,7 @@ namespace hypixel
         public static bool displayMode = false;
 
         public static bool FullServerMode { get; private set; }
+        public static bool LightClient { get; private set; }
 
         public static int usersLoaded = 0;
 
@@ -170,10 +171,15 @@ namespace hypixel
             FullServerMode = true;
             Indexer.MiniumOutput();
 
-            Updater updater = new Updater(apiKey);
-            updater.UpdateForEver();
             Server server = new Server();
             Task.Run(() => server.Start());
+
+            LightClient = SimplerConfig.Config.Instance["MODE"] == "ligth";
+            if(LightClient)
+                System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+
+            Updater updater = new Updater(apiKey);
+            updater.UpdateForEver();
 
             // bring the db up to date
             GetDBToDesiredState();
@@ -225,7 +231,7 @@ namespace hypixel
                 {
                     Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
                 }
-            },fillRedisCacheTokenSource.Token);
+            }, fillRedisCacheTokenSource.Token);
         }
 
         public static async Task MakeSureRedisIsInitialized()
@@ -233,14 +239,14 @@ namespace hypixel
             var Key = "LastbazaarUpdate";
             try
             {
-                
+
                 var last = await CacheService.Instance.GetFromRedis<DateTime>(Key);
                 await CacheService.Instance.SaveInRedis(Key, DateTime.Now);
-                
+
 
                 if (last < DateTime.Now - TimeSpan.FromMinutes(2))
                     Program.FillRedisCache();
-                
+
 
             }
             catch (Exception e)

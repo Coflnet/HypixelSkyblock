@@ -16,7 +16,7 @@ services:
     volumes:
       - './phpmyadmin_data:/bitnami'
   skyblock:
-    build: .
+    build: Legacy.Dockerfile
     ports:
     - "8108:8008"
     volumes:

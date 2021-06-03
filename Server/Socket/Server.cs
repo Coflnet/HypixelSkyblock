@@ -385,6 +385,7 @@ namespace hypixel
                 LastNameUpdate = NameUpdater.LastUpdate,
                 CacheSize = CacheService.Instance.CacheSize,
                 QueueSize = Indexer.QueueCount,
+                FlipSize = Flipper.FlipperEngine.Instance.QueueSize,
                 LastAuctionPull = Updater.LastPull,
                 LastUpdateSize = Updater.UpdateSize,
                 SubscriptionTobics = SubscribeEngine.Instance.SubCount,

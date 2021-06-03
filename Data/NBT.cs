@@ -578,9 +578,10 @@ namespace hypixel
         public static NbtFile File(byte[] input, NbtCompression compression = NbtCompression.GZip)
         {
             var f = new NbtFile();
-            var stream = new MemoryStream(input);
-            if (input != null)
+            if (input != null){
+                var stream = new MemoryStream(input);
                 f.LoadFromStream(stream, compression);
+            }
 
             return f;
         }
