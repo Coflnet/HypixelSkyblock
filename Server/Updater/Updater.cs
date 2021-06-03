@@ -59,6 +59,9 @@ namespace hypixel
 
                 if(lastUpdateDone == default(DateTime))
                     lastUpdateDone = await CacheService.Instance.GetFromRedis<DateTime>(LAST_UPDATE_KEY);
+
+                if(lastUpdateDone == default(DateTime))
+                    lastUpdateDone = new DateTime(2017, 1, 1);
                 lastUpdateDone = await RunUpdate(lastUpdateDone);
                 FileController.SaveAs(LAST_UPDATE_KEY, lastUpdateDone);
                 await CacheService.Instance.SaveInRedis(LAST_UPDATE_KEY, lastUpdateDone);
@@ -305,11 +308,11 @@ namespace hypixel
                 }
 
             var ended = res.Auctions.Where(a => a.End < DateTime.Now).Select(a => new SaveAuction(a));
-            var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
+           /* var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(20));
                 await ItemPrices.Instance.AddEndedAuctions(ended);
-            });
+            });*/
 
 
             if (Program.FullServerMode)
@@ -321,10 +324,10 @@ namespace hypixel
             var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
             var started = processed.Where(a => a.Start > twoMinAgo).ToList();
 
-            variableHereToRemoveWarning = taskFactory.StartNew(async () =>
+            var waithandleUnused = taskFactory.StartNew(() =>
             {
                 // do not slow down the update
-                await Flipper.FlipperEngine.Instance.NewAuctions(started);
+                Flipper.FlipperEngine.Instance.NewAuctions(started);
                 foreach (var auction in started)
                 {
                     SubscribeEngine.Instance.NewAuction(auction);

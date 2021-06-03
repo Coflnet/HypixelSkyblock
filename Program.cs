@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet;
 using dev;
@@ -169,7 +170,6 @@ namespace hypixel
             FullServerMode = true;
             Indexer.MiniumOutput();
 
-
             Updater updater = new Updater(apiKey);
             updater.UpdateForEver();
             Server server = new Server();
@@ -186,6 +186,7 @@ namespace hypixel
             var bazzar = new BazaarUpdater();
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
+            RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper got error");
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
@@ -209,37 +210,42 @@ namespace hypixel
 
         }
 
+        static CancellationTokenSource fillRedisCacheTokenSource;
         public static void FillRedisCache()
         {
+            fillRedisCacheTokenSource?.Cancel();
+            fillRedisCacheTokenSource = new CancellationTokenSource();
             Task.Run(async () =>
             {
                 try
                 {
-                    await ItemPrices.Instance.FillHours();
+                    await ItemPrices.Instance.FillHours(fillRedisCacheTokenSource.Token);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
                 }
-            });
+            },fillRedisCacheTokenSource.Token);
         }
 
         public static async Task MakeSureRedisIsInitialized()
         {
+            var Key = "LastbazaarUpdate";
             try
             {
-                await CacheService.Instance.ModifyInRedis<DateTime>("LastbazaarUpdate", last =>
-                {
-                    if (last == default(DateTime))
-                    {
-                        Program.FillRedisCache();
-                    }
+                
+                var last = await CacheService.Instance.GetFromRedis<DateTime>(Key);
+                await CacheService.Instance.SaveInRedis(Key, DateTime.Now);
+                
 
-                    return DateTime.Now;
-                });
+                if (last < DateTime.Now - TimeSpan.FromMinutes(2))
+                    Program.FillRedisCache();
+                
+
             }
             catch (Exception e)
             {
+                await CacheService.Instance.SaveInRedis(Key, default(DateTime));
                 Logger.Instance.Error($"Redis init failed {e.Message} \n{e.StackTrace}");
             }
 

@@ -20,5 +20,22 @@ namespace hypixel
         public int ItemId { get; set; }
         [Key("time")]
         public DateTime Date { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is AveragePrice price &&
+                   Volume == price.Volume &&
+                   ItemId == price.ItemId &&
+                   Date == price.Date;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 320423494;
+            hashCode = hashCode * -1521134295 + Volume.GetHashCode();
+            hashCode = hashCode * -1521134295 + ItemId.GetHashCode();
+            hashCode = hashCode * -1521134295 + Date.GetHashCode();
+            return hashCode;
+        }
     }
 }

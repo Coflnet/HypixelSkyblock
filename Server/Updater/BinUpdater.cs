@@ -57,7 +57,7 @@ namespace hypixel
             });
             Indexer.AddToQueue(auctions);
 
-            Task.Run(async () =>
+         /*   Task.Run(async () =>
             {
                 foreach (var item in auctions)
                 {
@@ -66,7 +66,7 @@ namespace hypixel
                 }
                 await Task.Delay(10000);
                 await ItemPrices.Instance.AddEndedAuctions(auctions);
-            });
+            }); */
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
         }
     }

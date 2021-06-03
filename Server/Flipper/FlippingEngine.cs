@@ -23,6 +23,8 @@ namespace hypixel.Flipper
 
         private ConcurrentDictionary<int, bool> AlreadyChecked = new ConcurrentDictionary<int, bool>();
 
+        private ConcurrentQueue<SaveAuction> PotetialFlipps = new ConcurrentQueue<SaveAuction>();
+
         static FlipperEngine()
         {
             Instance = new FlipperEngine();
@@ -62,19 +64,46 @@ namespace hypixel.Flipper
 
         }
 
-        public async Task NewAuctions(IEnumerable<SaveAuction> auctions)
+        public void NewAuctions(IEnumerable<SaveAuction> auctions)
+        {
+            foreach (var auction in auctions)
+            {
+                // determine flippability
+                var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
+                if (price < MIN_PRICE_POINT || !auction.Bin || auction.Tag.StartsWith("RUNE"))
+                    return; // unflipable
+
+                if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
+                    return;
+
+                if (AlreadyChecked.Count > 20_000)
+                    AlreadyChecked.Clear();
+                AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
+
+
+                PotetialFlipps.Enqueue(auction);
+            }
+
+        }
+
+        public async Task ProcessPotentialFlipps()
         {
             try
             {
-                if(new Random().Next(5) == 1)
-                    await Task.Delay(TimeSpan.FromSeconds(20));
                 using (var context = new HypixelContext())
                 {
-                    foreach (var auction in auctions)
+                    var batchSize = 5;
+                    if (PotetialFlipps.Count > 200)
+                        batchSize = 10;
+                    if (PotetialFlipps.Count > 400)
+                        batchSize = 20;
+                    for (int i = 0; i < batchSize; i++)
                     {
-                        await NewAuction(auction, context);
+                        if (PotetialFlipps.TryDequeue(out SaveAuction auction))
+                            await NewAuction(auction, context);
                     }
                 }
+                await Task.Delay(TimeSpan.FromSeconds(2));
             }
             catch (Exception e)
             {
@@ -87,17 +116,8 @@ namespace hypixel.Flipper
         public async System.Threading.Tasks.Task NewAuction(SaveAuction auction, HypixelContext context)
         {
 
-            // determine flippability
+
             var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-            if (price < MIN_PRICE_POINT || !auction.Bin || auction.Tag.StartsWith("RUNE"))
-                return; // unflipable
-
-            if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
-                return;
-
-            if (AlreadyChecked.Count > 20_000)
-                AlreadyChecked.Clear();
-            AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
 
             // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
             //    Console.WriteLine("easy item");

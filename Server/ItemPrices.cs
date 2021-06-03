@@ -116,8 +116,19 @@ namespace hypixel
                 Bazaar = isBazaar,
                 // exclude high moving 
                 Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList(),
-                Filters = FilterEngine.FiltersFor(ItemDetails.Instance.GetDetailsWithCache(itemId)).Select(f => f.Name)
+                Filters = GetFiltersForItem(itemId)
             };
+        }
+
+        private Dictionary<int, IEnumerable<string>> FilterCache = new Dictionary<int, IEnumerable<string>>();
+
+        private IEnumerable<string> GetFiltersForItem(int itemId)
+        {
+            if(FilterCache.TryGetValue(itemId, out IEnumerable<string> filters))
+                return filters;
+            filters = FilterEngine.FiltersFor(ItemDetails.Instance.GetDetailsWithCache(itemId)).Select(f => f.Name);
+            FilterCache[itemId] = filters;
+            return filters;
         }
 
         static ItemPrices()
@@ -253,39 +264,89 @@ namespace hypixel
                         .Where(auction => auction.HighestBidAmount > 1);
         }
 
-        public async Task FillHours()
+        public async Task FillHours(System.Threading.CancellationToken token)
         {
             await Task.Delay(1000);
 
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(3600);
-                foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
+                foreach (var itemId in ItemDetails.Instance.TagLookup.Values.ToList())
                 {
                     var select = AuctionSelect(DateTime.Now - TimeSpan.FromDays(1), DateTime.Now, context, itemId);
                     await UpdateAuctionsInRedis(itemId, select);
 
+                    if (token.IsCancellationRequested)
+                        return;
                 }
 
                 DateTime start;
+                var bucket = await GetLookupForToday(ItemDetails.Instance.TagLookup.GetValueOrDefault("ENCHANTED_LAVA_BUCKET"));
+                Console.WriteLine("----------\nyoungest lava bucket is " + bucket.Youngest.Date);
                 var end = DateTime.Now - TimeSpan.FromDays(1);
+                if (bucket != null)
+                    end = bucket.Youngest.Date.RoundDown(TimeSpan.FromHours(1)) + TimeSpan.FromHours(1);
                 var removeBefore = end - TimeSpan.FromHours(1);
-                for (int i = 0; i < 24; i++)
+                while (end < DateTime.Now)
                 {
                     start = end;
                     end = start + TimeSpan.FromHours(1);
+                    Console.WriteLine($"Caching bazaar for {start}");
                     await UpdateBazaarFor(start, end, removeBefore);
+
+                    if (token.IsCancellationRequested)
+                        return;
                 }
             }
+            if (token.IsCancellationRequested)
+                return;
             await BackfillPrices();
         }
 
-        private static void FillLastHour()
+        public static async Task FillLastHourIfDue()
         {
-            
+            // determine if due
+            if (DateTime.Now.Minute != 0)
+                return;
+            const string Key = "lasthourly";
+            var time = await CacheService.Instance.GetFromRedis<DateTime>(Key);
+            if (time > DateTime.Now - TimeSpan.FromMinutes(5))
+                return;
+
+            // is due
+            try
+            {
+                await CacheService.Instance.SaveInRedis<DateTime>(Key, DateTime.Now);
+                await FillLastHour();
+
+            }
+            catch (Exception e)
+            {
+                // allow another try
+                CacheService.Instance.RedisConnection.GetDatabase().KeyDelete(Key);
+                dev.Logger.Instance.Error($"FillLastHour got exception {e.Message} {e.StackTrace}");
+            }
+
         }
 
-        private static async Task UpdateAuctionsInRedis(int itemId, IQueryable<SaveAuction> select)
+        private static async Task FillLastHour()
+        {
+            var end = DateTime.Now;
+            var start = end - TimeSpan.FromMinutes(60);
+            var removeBefore = start - TimeSpan.FromDays(1);
+            using (var context = new HypixelContext())
+            {
+                foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
+                {
+                    var select = AuctionSelect(start, end, context, itemId);
+                    await UpdateAuctionsInRedis(itemId, select, removeBefore);
+
+                }
+            }
+            await UpdateBazaarFor(start, end, removeBefore);
+        }
+
+        private static async Task UpdateAuctionsInRedis(int itemId, IQueryable<SaveAuction> select, DateTime removeBefore = default(DateTime))
         {
             var result = await AvgFromAuctions(itemId, select, true);
             await CacheService.Instance.ModifyInRedis<ItemLookup>(GetIntradayKey(itemId), hoursList =>
@@ -294,8 +355,10 @@ namespace hypixel
                     hoursList = new ItemLookup();
                 foreach (var item in result)
                 {
-                    hoursList.AddNew(item);
+                    if (hoursList.Youngest == null || item.Date > hoursList.Youngest.Date)
+                        hoursList.AddNew(item);
                 }
+                hoursList.Discard(removeBefore);
                 return hoursList;
             });
         }
@@ -309,7 +372,16 @@ namespace hypixel
                     if (hoursList == null)
                         hoursList = new ItemLookup();
 
-                    hoursList.AddNew(item);
+                    try
+                    {
+                        hoursList.AddNew(item);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(hoursList));
+                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+                        throw e;
+                    }
                     hoursList.Discard(removeBefore);
                     return hoursList;
                 });

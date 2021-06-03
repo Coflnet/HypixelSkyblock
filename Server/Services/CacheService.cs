@@ -30,7 +30,7 @@ namespace hypixel
         {
             ConfigurationOptions options = ConfigurationOptions.Parse(SimplerConfig.Config.Instance["redisCon"]);
             options.Password = SimplerConfig.Config.Instance["redisPassword"];
-            options.AsyncTimeout = 15;
+            options.AsyncTimeout = 10000;
             RedisConnection = ConnectionMultiplexer.Connect(options);
         }
 
@@ -45,7 +45,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error("Redis error " + e.Message);
+                dev.Logger.Instance.Error($"Redis error {e.Message} {e.StackTrace} \n on key {key}" );
                 return default(T);
             }
 
@@ -60,7 +60,8 @@ namespace hypixel
 
         public async Task ModifyInRedis<T>(RedisKey key, Func<T, T> modifier, TimeSpan timeout = default(TimeSpan))
         {
-            await SaveInRedis(key, modifier(await GetFromRedis<T>(key)), timeout);
+            var val = modifier(await GetFromRedis<T>(key));
+            await SaveInRedis(key, val, timeout);
         }
 
         public async void Save(MessageData request, MessageData response, int index)

@@ -15,6 +15,8 @@ namespace hypixel
             public int ItemId => (int)(Prices.FirstOrDefault() == null ? 0 : Prices.FirstOrDefault().ItemId);
             [IgnoreMember]
             public AveragePrice Oldest => Prices.FirstOrDefault();
+            [IgnoreMember]
+            public AveragePrice Youngest => Prices.LastOrDefault();
             [Key("p")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
 
@@ -30,7 +32,11 @@ namespace hypixel
 
             public void AddNew(AveragePrice price)
             {
-                Prices.Add(price);
+                // only add if the date is newer
+                if(Youngest == null || Youngest.Date < price.Date)
+                    Prices.Add(price);
+                else
+                    throw new Exception("to early");//Console.Write("ta - " + price.ItemId);
             }
 
             public void AddNew(SaveAuction auction)

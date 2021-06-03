@@ -58,6 +58,7 @@ namespace dev
             var result = await api.GetBazaarProductsAsync();
             var pull = new BazaarPull(result);
             await Program.MakeSureRedisIsInitialized();
+            await ItemPrices.FillLastHourIfDue();
             using (var context = new HypixelContext())
             {
 
@@ -82,11 +83,11 @@ namespace dev
                 Console.Write("\r" + i);
 
             }
-            var saveTask = Task.Run(async () =>
+         /*   var saveTask = Task.Run(async () =>
             {
                 await Task.Delay(TimeSpan.FromMinutes(1));
                 await ItemPrices.Instance.AddBazaarData(pull);
-            });
+            });*/
             SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);

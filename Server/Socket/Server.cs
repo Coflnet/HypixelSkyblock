@@ -6,7 +6,6 @@ using Coflnet;
 using RestSharp;
 using WebSocketSharp.Server;
 using WebSocketSharp;
-using RestSharp.Extensions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -51,16 +50,27 @@ namespace hypixel
             server.AddWebSocketService<SkyblockBackEnd>(urlPath);
             // do NOT timeout after 60 sec
             server.KeepClean = false;
-            server.OnOptions += async (sender, e) => {
-                e.Response.AppendHeader("Allow","OPTIONS, GET, POST");
-                e.Response.AppendHeader("access-control-allow-origin","*");
-                e.Response.AppendHeader("Access-Control-Allow-Headers","*");
+            server.OnOptions += async (sender, e) =>
+            {
+                e.Response.AppendHeader("Allow", "OPTIONS, GET, POST");
+                e.Response.AppendHeader("access-control-allow-origin", "*");
+                e.Response.AppendHeader("Access-Control-Allow-Headers", "*");
             };
             server.OnGet += async (sender, e) =>
             {
+                var getEvent = e;
                 try
                 {
-                    await AnswerGetRequest(e);
+                    try
+                    {
+                        await AnswerGetRequest(e);
+                    }
+                    catch (CoflnetException ex)
+                    {
+                        getEvent.Response.StatusCode = 500;
+                        getEvent.Response.SendChunked = true;
+                        await getEvent.Response.WriteEnd(ex.Message);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -107,9 +117,9 @@ namespace hypixel
                 return;
             }
 
-            if(path == "/low")
+            if (path == "/low")
             {
-                var relevant = Updater.LastAuctionCount.Where(a=>a.Value > 0 && a.Value < 72);
+                var relevant = Updater.LastAuctionCount.Where(a => a.Value > 0 && a.Value < 72);
                 res.WriteContent(Encoding.UTF8.GetBytes(JSON.Stringify(relevant)));
                 return;
             }
@@ -239,13 +249,13 @@ namespace hypixel
                 if (await CacheService.Instance.TryFromCacheAsync(data))
                     return;
 
-              /*  var ip = req.Headers["Cf-Connecting-Ip"];
-                if(ip == null)
-                    ip = req.Headers["X-Real-Ip"];
-                if(ip == null)
-                    ip = req.RemoteEndPoint.Address.ToString();
-                Console.WriteLine($"rc {data.Type} {data.Data.Truncate(20)}");
-                await Limiter.WaitUntilAllowed(ip); */
+                /*  var ip = req.Headers["Cf-Connecting-Ip"];
+                  if(ip == null)
+                      ip = req.Headers["X-Real-Ip"];
+                  if(ip == null)
+                      ip = req.RemoteEndPoint.Address.ToString();
+                  Console.WriteLine($"rc {data.Type} {data.Data.Truncate(20)}");
+                  await Limiter.WaitUntilAllowed(ip); */
                 Console.Write($"r {data.Type} {data.Data.Truncate(15)} ");
                 if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
                     command.Execute(data);
