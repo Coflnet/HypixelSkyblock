@@ -193,6 +193,7 @@ namespace hypixel
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
             RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper got error");
+            RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper 2 got error");
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
@@ -298,6 +299,8 @@ namespace hypixel
                     context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
                     //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
                     context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
+                    // this is a new instance start syncing
+
                 }
                 catch (Exception e)
                 {

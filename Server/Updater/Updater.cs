@@ -39,7 +39,7 @@ namespace hypixel
         {
             this.apiKey = apiKey;
 
-            var scheduler = new LimitedConcurrencyLevelTaskScheduler(4);
+            var scheduler = new LimitedConcurrencyLevelTaskScheduler(3);
             taskFactory = new TaskFactory(scheduler);
         }
 
@@ -321,9 +321,7 @@ namespace hypixel
                 FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
 
 
-            var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
-            var started = processed.Where(a => a.Start > twoMinAgo).ToList();
-
+            var started = processed.Where(a => a.Start > lastUpdate).ToList();
 
             // do not slow down the update
             Flipper.FlipperEngine.Instance.NewAuctions(started);

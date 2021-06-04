@@ -86,6 +86,10 @@ namespace hypixel
             Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());
             Commands.Add("subFlip", new SubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
+            // sync commands
+            Commands.Add("playerSync", new PlayerSyncCommand());
+            Commands.Add("itemSync", new ItemSyncCommand());
+            Commands.Add("auctionSync", new AuctionSyncCommand());
 
         }
 

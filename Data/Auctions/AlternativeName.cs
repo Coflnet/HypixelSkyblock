@@ -1,7 +1,9 @@
+using MessagePack;
 using Newtonsoft.Json;
 
 namespace hypixel
 {
+    [MessagePackObject(true)]
     public class AlternativeName
     {
         [JsonIgnore]

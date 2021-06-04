@@ -62,7 +62,7 @@ namespace hypixel
 
                         var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
                         title = $"Auction for {result.ItemName} by {playerName}";
-                        description = $"{title} ended on {result.End} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
+                        description = $"{title} ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
 
 
                         if (!string.IsNullOrEmpty(result.Tag))
@@ -161,10 +161,18 @@ namespace hypixel
 
         private static async Task<float> GetAvgPrice(DBItem i)
         {
+            try 
+            {
             var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = i.Tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
             if(prices == null || prices.Count == 0)
                 return 0;
             return prices.Average(a => a.Avg);
+            } catch (Exception e)
+            {
+                Console.WriteLine($"Could not get price for {i.Tag} {e.Message} {e.StackTrace}");
+                return -1;
+            }
+
         }
 
         private static async Task WriteStart(WebSocketSharp.Net.HttpListenerResponse res, string content)
@@ -253,6 +261,8 @@ namespace hypixel
 
         private static async Task<string> GetRecentAuctions(string tag)
         {
+            if(tag == null)
+                return "";
             var isBazaar = ItemPrices.Instance.IsBazaar(ItemDetails.Instance.GetItemIdForName(tag));
             if(isBazaar)
                 return " This is a bazaar item. Bazaartracker.com currently gives you a more detailed view of this history. ";

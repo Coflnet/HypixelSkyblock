@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace hypixel
 {
+    [MessagePackObject(true)]
     public class DBItem : IItem, IHitCount
     {
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
-using Microsoft.EntityFrameworkCore;
 using WebSocketSharp;
 
 namespace hypixel
@@ -9,6 +8,28 @@ namespace hypixel
     public class ClientProxy
     {
         WebSocket socket = new WebSocket("wss://skyblock-backend.coflnet.com");
+
+        public static Dictionary<string, Command> ClientComands = new Dictionary<string, Command>();
+
+        public ClientProxy()
+        {
+            socket.OnMessage += (sender, e) =>
+            {
+                System.Console.WriteLine(e.Data);
+            };
+        }
+
+        static ClientProxy()
+        {
+            ClientComands.Add("playerSyncResponse", new PlayerSyncResponse());
+            ClientComands.Add("itemSyncResponse", new ItemsSyncResponse());
+        }
+
+        public void InitialSync()
+        {
+            socket.Send(MessagePackSerializer.ToJson(new MessageData("itemSync", null)));
+            socket.Send(MessagePackSerializer.ToJson(new MessageData("playerSync", null)));
+        }
 
         public void Sync()
         {
@@ -39,61 +60,6 @@ namespace hypixel
         public int HighestBid;
     }
 
-    public class AuctionSyncCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            var auctions = data.GetAs<List<AuctionSync>>();
-            using (var context = new HypixelContext())
-            {
-
-
-                List<string> incomplete = new List<string>();
-
-                foreach (var auction in auctions)
-                {
-                    var a = context.Auctions.Where(p => p.Uuid == auction.Id).Select(a => new { a.Id, a.HighestBidAmount }).FirstOrDefault();
-                    if (a.HighestBidAmount == auction.HighestBid)
-                        continue;
-                    incomplete.Add(auction.Id);
-                }
-            }
-        }
-    }
-
-
-    public class PlayerSyncCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            using (var context = new HypixelContext())
-            {
-                var done = false;
-                var index = 0;
-                var batchAmount = 10000;
-                while (!done)
-                {
-                    var response = context.Players.Skip(batchAmount * index++).Take(batchAmount).ToList();
-                    if (response.Count == 0)
-                        return;
-                    data.SendBack(data.Create("playerSyncResponse", response));
-                }
-            }
-        }
-    }
-
-    public class ItemSyncCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            using (var context = new HypixelContext())
-            {
-                var response = context.Items.Include(i => i.Names).ToList();
-                data.SendBack(data.Create("playerSyncResponse", response));
-            }
-        }
-    }
-
     public class PlayerSyncResponse : Command
     {
         public override void Execute(MessageData data)
@@ -116,6 +82,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
+            data.Data = CacheService.Unzip(data.GetAs<byte[]>());
             var items = data.GetAs<List<DBItem>>();
             using (var context = new HypixelContext())
             {

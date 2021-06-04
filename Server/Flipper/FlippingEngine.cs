@@ -16,7 +16,7 @@ namespace hypixel.Flipper
         public static FlipperEngine Instance { get; }
 
         private const string FoundFlippsKey = "foundFlipps";
-        private static int MIN_PRICE_POINT = 1000000;
+        private static int MIN_PRICE_POINT = 500000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
@@ -40,10 +40,10 @@ namespace hypixel.Flipper
             {
                 await Task.Delay(TimeSpan.FromMinutes(3));
                 // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 500000;
-                await Task.Delay(TimeSpan.FromMinutes(17));
+                MIN_PRICE_POINT = 400000;
+                await Task.Delay(TimeSpan.FromMinutes(7));
                 // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 350000;
+                MIN_PRICE_POINT = 300000;
             });
         }
 
@@ -69,7 +69,9 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            var minPricePointAdopted = Flipps.Count > 50 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 3;
+            var minPricePointAdopted = PotetialFlipps.Count > 80 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 4;
+            if(PotetialFlipps.Count < 30)
+                minPricePointAdopted = MIN_PRICE_POINT / 10;
             foreach (var auction in auctions)
             {
                 // determine flippability
