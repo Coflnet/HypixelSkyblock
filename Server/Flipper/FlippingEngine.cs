@@ -15,6 +15,7 @@ namespace hypixel.Flipper
     {
         public static FlipperEngine Instance { get; }
 
+        private const string FoundFlippsKey = "foundFlipps";
         private static int MIN_PRICE_POINT = 1000000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
@@ -68,11 +69,12 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
+            var minPricePointAdopted = Flipps.Count > 50 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 3;
             foreach (var auction in auctions)
             {
                 // determine flippability
                 var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-                if (price < MIN_PRICE_POINT || !auction.Bin || auction.Tag.StartsWith("RUNE"))
+                if (price < minPricePointAdopted || !auction.Bin)
                     return; // unflipable
 
                 if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
@@ -92,6 +94,7 @@ namespace hypixel.Flipper
         {
             try
             {
+                await TryLoadFromCache();
                 using (var context = new HypixelContext())
                 {
                     var batchSize = 5;
@@ -113,7 +116,17 @@ namespace hypixel.Flipper
             }
         }
 
+        private async Task TryLoadFromCache()
+        {
+            if (Flipps.Count == 0)
+            {
+                // try to get from redis
 
+                var fromCache = await CacheService.Instance.GetFromRedis<ConcurrentQueue<FlipInstance>>(FoundFlippsKey);
+                if (fromCache != default(ConcurrentQueue<FlipInstance>))
+                    Flipps = fromCache;
+            }
+        }
 
         public async System.Threading.Tasks.Task NewAuction(SaveAuction auction, HypixelContext context)
         {
@@ -190,8 +203,8 @@ namespace hypixel.Flipper
             if (Flipps.Count > 200)
                 Flipps.TryDequeue(out FlipInstance result);
 
-
             FlippFound(flip);
+            await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
 
         private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest, int limit = 60)

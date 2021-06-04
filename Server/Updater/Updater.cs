@@ -57,10 +57,10 @@ namespace hypixel
                 if (hypixel == null)
                     hypixel = new HypixelApi(apiKey, 50);
 
-                if(lastUpdateDone == default(DateTime))
+                if (lastUpdateDone == default(DateTime))
                     lastUpdateDone = await CacheService.Instance.GetFromRedis<DateTime>(LAST_UPDATE_KEY);
 
-                if(lastUpdateDone == default(DateTime))
+                if (lastUpdateDone == default(DateTime))
                     lastUpdateDone = new DateTime(2017, 1, 1);
                 lastUpdateDone = await RunUpdate(lastUpdateDone);
                 FileController.SaveAs(LAST_UPDATE_KEY, lastUpdateDone);
@@ -146,7 +146,7 @@ namespace hypixel
                         }
 
                         // spread out the saving load burst
-                        await Task.Delay(index * 150);
+                        //await Task.Delay(index * 150);
                         var val = await Save(res, lastUpdate);
                         lock (sumloc)
                         {
@@ -173,13 +173,13 @@ namespace hypixel
                 PrintUpdateEstimate(i, doneCont, sum, updateStartTime, max);
 
                 // try to stay under 600MB
-                if (System.GC.GetTotalMemory(false) > 600000000)
+                if (System.GC.GetTotalMemory(false) > 500000000)
                 {
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
                 }
 
-                await Task.Delay(100);
+                //await Task.Delay(100);
             }
 
             foreach (var item in tasks)
@@ -294,7 +294,7 @@ namespace hypixel
                 }).ToList();
 
 
-            if (DateTime.Now.Minute % 15 == 7)
+            if (DateTime.Now.Minute % 30 == 7)
                 foreach (var a in res.Auctions)
                 {
                     var auction = new SaveAuction(a);
@@ -308,11 +308,11 @@ namespace hypixel
                 }
 
             var ended = res.Auctions.Where(a => a.End < DateTime.Now).Select(a => new SaveAuction(a));
-           /* var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
-            {
-                await Task.Delay(TimeSpan.FromSeconds(20));
-                await ItemPrices.Instance.AddEndedAuctions(ended);
-            });*/
+            /* var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
+             {
+                 await Task.Delay(TimeSpan.FromSeconds(20));
+                 await ItemPrices.Instance.AddEndedAuctions(ended);
+             });*/
 
 
             if (Program.FullServerMode)
@@ -324,15 +324,14 @@ namespace hypixel
             var twoMinAgo = DateTime.Now - TimeSpan.FromMinutes(2);
             var started = processed.Where(a => a.Start > twoMinAgo).ToList();
 
-            var waithandleUnused = taskFactory.StartNew(() =>
+
+            // do not slow down the update
+            Flipper.FlipperEngine.Instance.NewAuctions(started);
+            foreach (var auction in started)
             {
-                // do not slow down the update
-                Flipper.FlipperEngine.Instance.NewAuctions(started);
-                foreach (var auction in started)
-                {
-                    SubscribeEngine.Instance.NewAuction(auction);
-                }
-            });
+                SubscribeEngine.Instance.NewAuction(auction);
+            }
+
 
 
 

@@ -69,7 +69,8 @@ namespace hypixel
                     {
                         getEvent.Response.StatusCode = 500;
                         getEvent.Response.SendChunked = true;
-                        await getEvent.Response.WriteEnd(ex.Message);
+                        getEvent.Response.WriteContent(Encoding.UTF8.GetBytes(ex.Message));
+                        return;
                     }
                 }
                 catch (Exception ex)

@@ -11,7 +11,7 @@ namespace hypixel
                 if (data.UserId != 0)
                     flipps = Flipper.FlipperEngine.Instance.Flipps.Skip(50).Take(50);
                 if (data.User.HasPremium)
-                    flipps = Flipper.FlipperEngine.Instance.Flipps.Reverse().Take(50);
+                    flipps = Flipper.FlipperEngine.Instance.Flipps.Reverse().Skip(2).Take(50);
             } catch(CoflnetException)
             {
                 // no premium, continue

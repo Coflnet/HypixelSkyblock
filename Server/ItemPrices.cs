@@ -623,12 +623,13 @@ namespace hypixel
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
                 IQueryable<SaveAuction> select = CreateSelect(query, context, itemId, amount * 2);
-                return select.OrderByDescending(a => a.End).Take(amount).Select(a => new AuctionPreview()
+                return select.OrderByDescending(a => a.End).Take(amount).AsParallel().Select(a => new AuctionPreview()
                 {
                     End = a.End,
                     Price = a.HighestBidAmount,
                     Seller = a.AuctioneerId,
-                    Uuid = a.Uuid
+                    Uuid = a.Uuid,
+                    PlayerName = PlayerSearch.Instance.GetNameWithCache(a.AuctioneerId)
                 }).ToList();
             }
         }
@@ -660,6 +661,8 @@ namespace hypixel
             public DateTime End;
             [Key("uuid")]
             public string Uuid;
+            [Key("playerName")]
+            public string PlayerName;
         }
     }
 }
