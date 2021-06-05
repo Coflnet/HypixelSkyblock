@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using MessagePack;
 
 namespace hypixel
 {
-
+    [MessagePackObject(true)]
     public class Player : IHitCount
     {
         public int Id {get;set;}

@@ -89,6 +89,7 @@ namespace hypixel
             // sync commands
             Commands.Add("playerSync", new PlayerSyncCommand());
             Commands.Add("itemSync", new ItemSyncCommand());
+            Commands.Add("pricesSync", new PricesSyncCommand());
             Commands.Add("auctionSync", new AuctionSyncCommand());
 
         }

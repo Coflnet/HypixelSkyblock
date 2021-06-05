@@ -323,7 +323,7 @@ namespace hypixel
                     //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
                     context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
                     // this is a new instance start syncing
-
+                    ClientProxy.Instance.InitialSync();
                 }
                 catch (Exception e)
                 {
