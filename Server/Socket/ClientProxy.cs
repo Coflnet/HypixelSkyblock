@@ -59,7 +59,7 @@ namespace hypixel
             socket.Send(MessagePackSerializer.ToJson(new MessageData("itemSync", null)));
             socket.Send(MessagePackSerializer.ToJson(new MessageData("playerSync", null)));
             socket.Send(MessagePackSerializer.ToJson(new MessageData("pricesSync", null)));
-
+            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(3));
         }
 
         public void Sync()
