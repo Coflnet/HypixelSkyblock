@@ -168,7 +168,7 @@ namespace hypixel
         }
 
         public static void CreateHost(string[] args)
-         {
+        {
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -179,7 +179,7 @@ namespace hypixel
                     Console.WriteLine("calling configure\n+#+#+#+#+#");
                     webBuilder.UseStartup<Startup>();
                 });
-        
+
 
 
 
@@ -195,7 +195,7 @@ namespace hypixel
             Task.Run(() => CreateHost(new string[0]));
 
             LightClient = SimplerConfig.Config.Instance["MODE"] == "light";
-            if(LightClient)
+            if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
@@ -315,6 +315,7 @@ namespace hypixel
 
         private static void GetDBToDesiredState()
         {
+            bool isNew = false;
             using (var context = new HypixelContext())
             {
                 try
@@ -322,8 +323,7 @@ namespace hypixel
                     context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
                     //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
                     context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
-                    // this is a new instance start syncing
-                    ClientProxy.Instance.InitialSync();
+                    isNew = true;
                 }
                 catch (Exception e)
                 {
@@ -336,9 +336,16 @@ namespace hypixel
                 context.Database.Migrate();
                 Console.WriteLine("\nmigrated :)\n");
 
-                if (!context.Items.Any())
+
+                if (!context.Items.Any() && !isNew)
                     context.Items.AddRange(ItemDetails.Instance.Items.Values.Select(v => new DBItem(v)));
                 context.SaveChanges();
+            }
+            if (isNew)
+            {
+                Console.WriteLine("detected that this is a new instance, starting syncing");
+                ClientProxy.Instance.InitialSync();
+                Console.WriteLine("sync is over now, continuing with operation");
             }
         }
 
