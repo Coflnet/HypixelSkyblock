@@ -21,6 +21,7 @@ namespace hypixel
             {
                 maxAge = A_DAY;
             }
+            Console.WriteLine("made response");
 
             data.SendBack(data.Create("itemResponse", res, maxAge));
         }

@@ -48,20 +48,30 @@ namespace hypixel
                 {
                     ToFillDetails.TryAdd(item.Tag, item);
                 }
+
+            }
+            LoadLookup();
+        }
+
+        public void LoadLookup()
+        {
+            using (var context = new HypixelContext())
+            {
                 TagLookup = context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
-                    .ToDictionary(item => item.Tag, item => item.Id);
+                                    .ToDictionary(item => item.Tag, item => item.Id);
             }
         }
 
         public void Load()
         {
-            try 
+            try
             {
                 if (FileController.Exists("itemDetails"))
                     Items = FileController.LoadAs<Dictionary<string, Item>>("itemDetails");
-            } catch(Exception)
+            }
+            catch (Exception)
             {
-                FileController.Move("itemDetails","corruptedItemDetails"+DateTime.Now.Ticks);
+                FileController.Move("itemDetails", "corruptedItemDetails" + DateTime.Now.Ticks);
             }
 
             if (Items == null)
@@ -117,7 +127,7 @@ namespace hypixel
                 return value;
             // may be a name
             var tag = GetIdForName(name);
-            if (!TagLookup.TryGetValue(tag, out  value) && forceGet)
+            if (!TagLookup.TryGetValue(tag, out value) && forceGet)
                 throw new CoflnetException("item_not_found", $"could not find the item with the name `{name}`");
             return value;
         }
@@ -307,7 +317,7 @@ namespace hypixel
 
                 if (id > 1)
                 {
-                    var item = context.Items.Include(i=>i.Names).Where(i => i.Id == id).First();
+                    var item = context.Items.Include(i => i.Names).Where(i => i.Id == id).First();
                     item.Name = fullName;
                     // cooler icons 
                     //if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
@@ -321,22 +331,25 @@ namespace hypixel
 
         public async Task<DBItem> GetDetailsWithCache(string uuid)
         {
-            return await Server.ExecuteCommandWithCache<string, DBItem>("itemDetails", uuid);
+            var details = await Server.ExecuteCommandWithCache<string, DBItem>("itemDetails", uuid);
+            if(details == default(DBItem))
+                Console.WriteLine("got default");
+            return details;
         }
 
         public DBItem GetDetailsWithCache(int id)
         {
             // THIS IS INPERFORMANT, Todo: find a better way
-            var key = TagLookup.Where(a=>a.Value == id).FirstOrDefault();
+            var key = TagLookup.Where(a => a.Value == id).FirstOrDefault();
             string itemTag;
-            if(key.Value != 0)
+            if (key.Value != 0)
                 itemTag = key.Key;
-            else 
+            else
             {
-                using(var context = new HypixelContext())
+                using (var context = new HypixelContext())
                 {
-                    var dbResult = context.Items.Where(i=>i.Id == id).FirstOrDefault();
-                    if(dbResult == null)
+                    var dbResult = context.Items.Where(i => i.Id == id).FirstOrDefault();
+                    if (dbResult == null)
                         return new DBItem();
                     itemTag = dbResult.Tag;
                 }

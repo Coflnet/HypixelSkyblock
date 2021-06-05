@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
 using Stripe;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace hypixel
 {
@@ -38,6 +40,8 @@ namespace hypixel
         public static int RequestsSinceStart { get; private set; }
 
         public static event Action onStop;
+
+        public static Server server;
 
         static void Main(string[] args)
         {
@@ -163,6 +167,21 @@ namespace hypixel
             return false;
         }
 
+        public static void CreateHost(string[] args)
+         {
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    Console.WriteLine("calling configure\n+#+#+#+#+#");
+                    webBuilder.UseStartup<Startup>();
+                });
+        
+
+
 
         private static void FullServer()
         {
@@ -171,12 +190,16 @@ namespace hypixel
             FullServerMode = true;
             Indexer.MiniumOutput();
 
-            Server server = new Server();
+            server = new Server();
             Task.Run(() => server.Start());
+            Task.Run(() => CreateHost(new string[0]));
 
-            LightClient = SimplerConfig.Config.Instance["MODE"] == "ligth";
+            LightClient = SimplerConfig.Config.Instance["MODE"] == "light";
             if(LightClient)
+            {
+                ItemDetails.Instance.LoadLookup();
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+            }
 
             Updater updater = new Updater(apiKey);
             updater.UpdateForEver();

@@ -18,6 +18,7 @@ using System.Collections.Concurrent;
 using RateLimiter;
 using Microsoft.EntityFrameworkCore;
 using MessagePack;
+using System.Collections.Generic;
 
 namespace hypixel
 {
@@ -63,7 +64,8 @@ namespace hypixel
                 {
                     try
                     {
-                        await AnswerGetRequest(e);
+
+                        await AnswerGetRequest(new WebsocketRequestContext(e));
                     }
                     catch (CoflnetException ex)
                     {
@@ -86,8 +88,8 @@ namespace hypixel
 
                 if (e.Request.RawUrl == "/stripe")
                     await new StripeRequests().ProcessStripe(e);
-                if (e.Request.RawUrl.StartsWith("/command/"))
-                    await HandleCommand(e.Request, e.Response);
+                //if (e.Request.RawUrl.StartsWith("/command/"))
+                //    await HandleCommand(e.Request, e.Response);
 
             };
 
@@ -98,36 +100,105 @@ namespace hypixel
             server.Stop();
         }
 
-        private async Task AnswerGetRequest(HttpRequestEventArgs e)
+        public abstract class RequestContext
         {
-            var req = e.Request;
-            var res = e.Response;
+            public abstract string path { get; }
+            public abstract string HostName { get; }
+            public abstract Task WriteAsync(string data);
+            public abstract void WriteAsync(byte[] data);
+            public abstract void SetContentType(string type);
+            public abstract void SetStatusCode(int code);
+            public abstract void AddHeader(string name, string value);
+            public abstract void Redirect(string uri);
+            public abstract IDictionary<string,string> QueryString { get; }
 
-            var path = req.RawUrl.Split('?')[0];
+            internal virtual void ForceSend()
+            {
+                // do nothing
+            }
+        }
+
+        public class WebsocketRequestContext : RequestContext
+        {
+            HttpRequestEventArgs original;
+
+            public WebsocketRequestContext(HttpRequestEventArgs original)
+            {
+                this.original = original;
+                this.original.Response.SendChunked = true;
+            }
+
+            public override string HostName => original.Request.UserHostName;
+
+            public override IDictionary<string, string> QueryString => (IDictionary<string, string>)original.Request.QueryString;
+
+            public override string path => original.Request.RawUrl;
+
+            public override void AddHeader(string name, string value)
+            {
+                original.Response.AppendHeader(name, value);
+            }
+
+            public override void Redirect(string uri)
+            {
+                original.Response.Redirect(uri);
+
+            }
+
+            public override void SetContentType(string type)
+            {
+                original.Response.ContentType = type;
+            }
+
+            public override void SetStatusCode(int code)
+            {
+                original.Response.StatusCode = code;
+            }
+
+            public override Task WriteAsync(string data)
+            {
+                return original.Response.WritePartial(data);
+            }
+
+            public override void WriteAsync(byte[] data)
+            {
+                original.Response.WriteContent(data);
+            }
+
+            internal override void ForceSend()
+            {
+                original.Response.OutputStream.Flush();
+            }
+        }
+
+        public async Task AnswerGetRequest(RequestContext context)
+        {
+            var path = context.path.Split('?')[0];
 
 
             if (path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
             {
-                PrintStatus(res);
+                PrintStatus(context);
+                Console.WriteLine(DateTime.Now);
                 return;
             }
 
             if (path.StartsWith("/command/"))
             {
-                await HandleCommand(req, res);
+                await HandleCommand(context);
                 return;
             }
 
             if (path == "/low")
             {
                 var relevant = Updater.LastAuctionCount.Where(a => a.Value > 0 && a.Value < 72);
-                res.WriteContent(Encoding.UTF8.GetBytes(JSON.Stringify(relevant)));
+                await context.WriteAsync(JSON.Stringify(relevant));
                 return;
             }
 
-            if (req.UserHostName.StartsWith("skyblock"))
+            if (context.HostName.StartsWith("skyblock") && !Program.LightClient)
             {
-                res.Redirect("https://sky.coflnet.com" + path);
+                context.Redirect("https://sky.coflnet.com" + path);
                 return;
             }
 
@@ -138,23 +209,23 @@ namespace hypixel
 
             if (path == "/players")
             {
-                await PrintPlayers(req, res);
+                await PrintPlayers(context);
                 return;
             }
             if (path == "/items")
             {
-                await PrintItems(req, res);
+                await PrintItems(context);
                 return;
             }
 
             if (path == "/api/items/bazaar")
             {
-                await PrintBazaarItems(req, res);
+                await PrintBazaarItems(context);
                 return;
             }
             if (path == "/api/items/search")
             {
-                await SearchItems(req, res);
+                await SearchItems(context);
                 return;
             }
 
@@ -184,17 +255,17 @@ namespace hypixel
             }
             catch (Exception)
             {
-                res.WriteContent(Encoding.UTF8.GetBytes("File not found, maybe you fogot to upload the fronted"));
+                await context.WriteAsync("File not found, maybe you fogot to upload the fronted");
                 return;
             }
 
-            res.ContentType = "text/html";
-            res.ContentEncoding = Encoding.UTF8;
+            context.SetContentType("text/html");
+            //context.ContentEncoding = Encoding.UTF8;
 
             if (relativePath == "files/index.html")
             {
                 Console.Write("i+");
-                await HtmlModifier.ModifyContent(path, contents, res);
+                await HtmlModifier.ModifyContent(path, contents, context);
                 return;
             }
 
@@ -202,30 +273,30 @@ namespace hypixel
 
             if (path.EndsWith(".png") || path.StartsWith("/static/skin"))
             {
-                res.ContentType = "image/png";
+                context.SetContentType("image/png");
             }
             else if (path.EndsWith(".css"))
             {
-                res.ContentType = "text/css";
+                context.SetContentType("text/css");
             }
             else if (path.EndsWith(".js"))
             {
-                res.ContentType = "text/javascript";
+                context.SetContentType("text/javascript");
             }
-            res.AppendHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
+            context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
 
-            res.WriteContent(contents);
+            context.WriteAsync(contents);
         }
 
 
 
 
-        private async Task HandleCommand(HttpListenerRequest req, HttpListenerResponse res)
+        private async Task HandleCommand(RequestContext context)
         {
-            HttpMessageData data = new HttpMessageData(req, res);
+            HttpMessageData data = new HttpMessageData(context);
             try
             {
-                var conId = req.Headers["ConId"];
+                /*var conId = req.Headers["ConId"];
                 if (conId == null || conId.Length < 32)
                     throw new CoflnetException("invalid_conid", "The 'ConId' Header has to be at least 32 characters long and generated randomly");
                 conId = conId.Truncate(32);
@@ -245,7 +316,7 @@ namespace hypixel
                         Console.WriteLine($"{item.ToString()}: {req.Headers[item]}");
                     }
                     return;
-                }
+                } */
 
                 if (await CacheService.Instance.TryFromCacheAsync(data))
                     return;
@@ -258,6 +329,7 @@ namespace hypixel
                   Console.WriteLine($"rc {data.Type} {data.Data.Truncate(20)}");
                   await Limiter.WaitUntilAllowed(ip); */
                 Console.Write($"r {data.Type} {data.Data.Truncate(15)} ");
+                //ExecuteCommandWithCache
                 if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
                     command.Execute(data);
                 else
@@ -265,12 +337,12 @@ namespace hypixel
             }
             catch (CoflnetException ex)
             {
-                res.StatusCode = 400;
+                context.SetStatusCode(400);
                 data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })));
             }
             catch (Exception ex)
             {
-                res.StatusCode = 500;
+                context.SetStatusCode(500);
                 dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}");
                 data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })));
             }
@@ -375,7 +447,7 @@ namespace hypixel
                 user.PremiumExpires = DateTime.Now + TimeSpan.FromDays(days);
         }
 
-        private static void PrintStatus(HttpListenerResponse res)
+        private static void PrintStatus(RequestContext res)
         {
             var data = new Stats()
             {
@@ -394,31 +466,31 @@ namespace hypixel
             };
 
             // determine status
-            res.StatusCode = 200;
+            res.SetStatusCode(200);
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0, 5, 0));
             if (data.LastIndexFinish < maxTime
                 || data.LastBazaarUpdate < maxTime
                 || data.LastNameUpdate < maxTime
                 || data.LastAuctionPull < maxTime)
             {
-                res.StatusCode = 500;
+            res.SetStatusCode(500);
             }
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
-            res.WriteContent(Encoding.UTF8.GetBytes(json));
+            res.WriteAsync(json);
         }
 
-        private static async Task PrintBazaarItems(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task PrintBazaarItems(RequestContext context)
         {
             var data = await ItemDetails.Instance.GetBazaarItems();
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i => new { i.Name, i.Tag, i.MinecraftType, i.IconUrl }));
-            res.WriteContent(Encoding.UTF8.GetBytes(json));
+                await context.WriteAsync(json);
         }
 
-        private static async Task PrintPlayers(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task PrintPlayers(RequestContext reqcon)
         {
             using (var context = new HypixelContext())
             {
@@ -430,11 +502,11 @@ namespace hypixel
                         continue;
                     builder.AppendFormat("<li><a href=\"{0}\">{1}</a></li>", $"/player/{item.UuId}/{item.Name}", $"{item.Name} auctions");
                 }
-                res.WriteContent(Encoding.UTF8.GetBytes(builder.ToString()));
+                await reqcon.WriteAsync(builder.ToString());
             }
         }
 
-        private static async Task PrintItems(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task PrintItems(RequestContext reqcon)
         {
             using (var context = new HypixelContext())
             {
@@ -445,7 +517,7 @@ namespace hypixel
                     var name = ItemDetails.TagToName(item.Tag);
                     builder.AppendFormat("<li><a href=\"{0}\">{1}</a></li>", $"/item/{item.Tag}/{name}", $"{name} auctions");
                 }
-                res.WriteContent(Encoding.UTF8.GetBytes(builder.ToString()));
+                await reqcon.WriteAsync(builder.ToString());
             }
         }
 
@@ -459,16 +531,16 @@ namespace hypixel
             return builder;
         }
 
-        private static async Task SearchItems(HttpListenerRequest req, HttpListenerResponse res)
+        private static async Task SearchItems(RequestContext context)
         {
-            var term = req.QueryString["term"];
+            var term = context.QueryString["term"];
             Console.WriteLine("searchig for:");
             Console.WriteLine(term);
             var data = await ItemDetails.Instance.Search(term);
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
-            res.WriteContent(Encoding.UTF8.GetBytes(json));
+            await context.WriteAsync(json);
         }
 
         public void Stop()
@@ -505,11 +577,11 @@ namespace hypixel
                 output.WriteBytes(content, 1024);
         }
         public static async Task WriteEnd(
-            this HttpListenerResponse response, string stringContent
+            this Server.RequestContext response, string stringContent
         )
         {
-            await response.WritePartial(stringContent + "</body></html>");
-            response.Close();
+            await response.WriteAsync(stringContent + "</body></html>");
+            //response.Close();
 
         }
 
@@ -522,11 +594,11 @@ namespace hypixel
         }
 
 
-        public static string RedirectSkyblock(this WebSocketSharp.Net.HttpListenerResponse res, string parameter = null, string type = null, string seoTerm = null)
+        public static string RedirectSkyblock(this Server.RequestContext res, string parameter = null, string type = null, string seoTerm = null)
         {
             var url = $"https://sky.coflnet.com" + (type == null ? "" : $"/{type}") + (parameter == null ? "" : $"/{parameter}") + (seoTerm == null ? "" : $"/{seoTerm}");
             res.Redirect(url);
-            res.Close();
+            //res.Close();
             return url;
         }
     }

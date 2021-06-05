@@ -17,7 +17,7 @@ namespace hypixel
         const string defaultText = "Browse over 100 million auctions, and the bazzar of Hypixel SkyBlock";
         const string defaultTitle = "Skyblock Auction House History";
         const string DETAILS_START = @"<noscript>";
-        public static async Task<string> ModifyContent(string path, byte[] contents, WebSocketSharp.Net.HttpListenerResponse res)
+        public static async Task<string> ModifyContent(string path, byte[] contents, Server.RequestContext res)
         {
             string parameter = "";
             var urlParts = path.Split('/', '?', '#');
@@ -102,8 +102,8 @@ namespace hypixel
 
                 var auctions = GetAuctions(parameter, keyword);
                 var bids = GetBids(parameter, keyword);
-                await res.WritePartial(html);
-                await res.WritePartial(DETAILS_START + $"<h1>{title}</h1>{description} " + await auctions);
+                await res.WriteAsync(html);
+                await res.WriteAsync(DETAILS_START + $"<h1>{title}</h1>{description} " + await auctions);
                 await res.WriteEnd(await bids + PopularPages());
 
                 return "";
@@ -133,7 +133,7 @@ namespace hypixel
                 path = CreateCanoicalPath(urlParts, i);
 
                 title = $"{keyword} price ";
-                float price = await GetAvgPrice(i);
+                float price = await GetAvgPrice(parameter);
                 description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. Visit for a nice chart and filter options";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
@@ -141,7 +141,7 @@ namespace hypixel
                 longDescription = description
                 + AddAlternativeNames(i);
 
-                longDescription += await GetRecentAuctions(i.Tag == "Unknown" ? parameter : i.Tag);
+                longDescription += await GetRecentAuctions(i.Tag == "Unknown" || i.Tag == null ? parameter : i.Tag);
             }
             else {
                 // unkown site, write the header
@@ -159,32 +159,32 @@ namespace hypixel
             return newHtml;
         }
 
-        private static async Task<float> GetAvgPrice(DBItem i)
+        private static async Task<float> GetAvgPrice(string tag)
         {
             try 
             {
-            var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = i.Tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
+            var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
             if(prices == null || prices.Count == 0)
                 return 0;
             return prices.Average(a => a.Avg);
             } catch (Exception e)
             {
-                Console.WriteLine($"Could not get price for {i.Tag} {e.Message} {e.StackTrace}");
+                Console.WriteLine($"Could not get price for {tag} {e.Message} {e.StackTrace}");
                 return -1;
             }
 
         }
 
-        private static async Task WriteStart(WebSocketSharp.Net.HttpListenerResponse res, string content)
+        private static async Task WriteStart(Server.RequestContext res, string content)
         {
-            await res.WritePartial(content);
-            res.SendChunked = true;
-            res.AppendHeader("cache-control", "public,max-age=" + 1800);
+            await res.WriteAsync(content);
+           // res.SendChunked = true;
+            res.AddHeader("cache-control", "public,max-age=" + 1800);
 
-            res.OutputStream.Flush();
+            res.ForceSend();
         }
 
-        private static async Task WriteHeader(string path, WebSocketSharp.Net.HttpListenerResponse res, string description, string title, string imageUrl, string keyword, string header)
+        private static async Task WriteHeader(string path, Server.RequestContext res, string description, string title, string imageUrl, string keyword, string header)
         {
             title += " Hypixel SkyBlock Auction house history tracker";
             // shrink to fit
@@ -198,7 +198,7 @@ namespace hypixel
             }
 
 
-            await res.WritePartial(header
+            await res.WriteAsync(header
             .Replace(defaultText, description)
             .Replace(defaultTitle, title)
             .Replace("</title>", $"</title><meta property=\"keywords\" content=\"{keyword},hypixel,skyblock,auction,history,bazaar,tracker\" />"
@@ -210,7 +210,7 @@ namespace hypixel
                 )
                 + "</head>");
             
-            res.OutputStream.Flush();
+            res.ForceSend();
         }
 
         private static string CreateCanoicalPath(string[] urlParts, DBItem i)

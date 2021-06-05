@@ -128,6 +128,7 @@ namespace hypixel
             for (int i = 0; i < max; i++)
             {
                 var index = i;
+                await Task.Delay(200);
                 tasks.Add(taskFactory.StartNew(async () =>
                 {
                     try

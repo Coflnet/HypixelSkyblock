@@ -54,9 +54,11 @@ namespace hypixel
         public DbSet<NBTKey> NBTKeys { get; set; }
         public DbSet<NBTValue> NBTValues { get; set; }
 
+        public static string DbContextId = SimplerConfig.Config.Instance["DBConnection"];
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL(SimplerConfig.Config.Instance["DBConnection"],
+            optionsBuilder.UseMySQL(DbContextId,
             opts => opts.CommandTimeout(3600));
         }
 

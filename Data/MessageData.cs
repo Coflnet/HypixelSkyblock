@@ -115,7 +115,7 @@ namespace hypixel
 
     public class HttpMessageData : MessageData
     {
-        private HttpListenerResponse res;
+        private Server.RequestContext context;
 
         public override int UserId
         {
@@ -128,22 +128,24 @@ namespace hypixel
         }
         public Action<int> SetUserId { get; set; }
 
-        public HttpMessageData(HttpListenerRequest req, HttpListenerResponse res)
+        public HttpMessageData(Server.RequestContext context)
         {
-            Type = req.RawUrl.Split('/')[2];
-            this.res = res;
-            if (req.HttpMethod == "POST")
+            Type = context.path.Split('/')[2];
+            this.context = context;
+            // default status code
+            context.SetStatusCode(201);
+            /*if (req.HttpMethod == "POST")
             {
                 Data = new StreamReader(req.InputStream).ReadToEnd();
                 return;
-            }
+            } */
             try
             {
-                Data = Encoding.UTF8.GetString(Convert.FromBase64String(req.RawUrl.Split('/')[3]));
+                Data = Encoding.UTF8.GetString(Convert.FromBase64String(context.path.Split('/')[3]));
             }
             catch (System.Exception e)
             {
-                dev.Logger.Instance.Error($"received invalid command {req.RawUrl} {e.Message} {e.StackTrace}");
+                dev.Logger.Instance.Error($"received invalid command {context.path} {e.Message} {e.StackTrace}");
                 this.SendBack(new MessageData("error", "commanddata was invalid"));
             }
 
@@ -154,12 +156,16 @@ namespace hypixel
             if (cache)
                 CacheService.Instance.Save(this, data, 0);
             var json = data.Data;
-            res.StatusCode = 200;
-            res.AppendHeader("access-control-allow-origin","*");
-            res.AppendHeader("Access-Control-Allow-Headers","*");
-            res.AppendHeader("Access-Control-Allow-Methods","*");
-            res.AppendHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
-            res.WriteContent(Encoding.UTF8.GetBytes(json));
+            context.SetStatusCode(200);
+            context.AddHeader("access-control-allow-origin","*");
+            context.AddHeader("Access-Control-Allow-Headers","*");
+            context.AddHeader("Access-Control-Allow-Methods","*");
+            context.AddHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
+            if(string.IsNullOrEmpty(json))
+            {
+                Console.WriteLine("returned empty response on " + JSON.Stringify(this));
+            }
+            context.WriteAsync(json).Wait();
         }
     }
 }

@@ -70,7 +70,7 @@ namespace hypixel.Flipper
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
             var minPricePointAdopted = PotetialFlipps.Count > 80 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 4;
-            if(PotetialFlipps.Count < 30)
+            if (PotetialFlipps.Count < 30)
                 minPricePointAdopted = MIN_PRICE_POINT / 10;
             foreach (var auction in auctions)
             {
@@ -149,25 +149,33 @@ namespace hypixel.Flipper
             var ulti = relevantEnchants.Where(e => UltimateEnchants.ContainsKey(e.Type)).FirstOrDefault();
             var ultiList = UltimateEnchants.Select(u => u.Key).ToList();
             var highLvlEnchantList = relevantEnchants.Where(e => !UltimateEnchants.ContainsKey(e.Type)).Select(a => a.Type).ToList();
-            var oldest = DateTime.Now - TimeSpan.FromDays(1);
+            var oldest = DateTime.Now - TimeSpan.FromHours(1);
 
-            IQueryable<SaveAuction> select = GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest);
+            IQueryable<SaveAuction> select = GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest,10);
 
             var relevantAuctions = await select
                 .ToListAsync();
+
+            if (relevantAuctions.Count < 9)
+            {
+                // to few auctions in last hour, try a whole day
+                oldest = DateTime.Now - TimeSpan.FromDays(1);
+                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
+                .ToListAsync();
+            }
 
             if (relevantAuctions.Count < 50)
             {
                 // to few auctions in a day, query a week
                 oldest = DateTime.Now - TimeSpan.FromDays(8);
-                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 120)
+                relevantAuctions = await GetSelect(auction, context, clearedName.Replace("✪",""), itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 120)
                 .ToListAsync();
             }
 
             if (relevantAuctions.Count < 3)
             {
                 oldest = DateTime.Now - TimeSpan.FromDays(25);
-                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
+                relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                         .ToListAsync();
             }
 
@@ -226,7 +234,7 @@ namespace hypixel.Flipper
             }
 
 
-            if (auction.ItemName != clearedName)
+            if (auction.ItemName != clearedName && clearedName != null)
                 select = select.Where(a => EF.Functions.Like(a.ItemName, "%" + clearedName));
             if (auction.Tag.StartsWith("PET"))
             {
