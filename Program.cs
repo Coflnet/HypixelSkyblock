@@ -322,8 +322,9 @@ namespace hypixel
                 {
                     context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
                     //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
-                    context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
                     isNew = true;
+                    //context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
+                    
                 }
                 catch (Exception e)
                 {
@@ -339,6 +340,8 @@ namespace hypixel
 
                 if (!context.Items.Any() && !isNew)
                     context.Items.AddRange(ItemDetails.Instance.Items.Values.Select(v => new DBItem(v)));
+                else if(!context.Items.Any())
+                    isNew = true;
                 context.SaveChanges();
             }
             if (isNew)
