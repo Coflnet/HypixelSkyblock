@@ -338,9 +338,7 @@ namespace hypixel
                 Console.WriteLine("\nmigrated :)\n");
 
 
-                if (!context.Items.Any() && !isNew)
-                    context.Items.AddRange(ItemDetails.Instance.Items.Values.Select(v => new DBItem(v)));
-                else if(!context.Items.Any())
+                if(!context.Items.Any())
                     isNew = true;
                 context.SaveChanges();
             }
