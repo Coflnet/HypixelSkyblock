@@ -75,7 +75,10 @@ namespace hypixel
             Send(new MessageData("itemSync", null));
             Send(new MessageData("playerSync", null));
             Send(new MessageData("pricesSync", null));
-            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(3));
+            while(!Program.Migrated)
+            {
+                System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+            }
         }
 
         public void Send(MessageData data)
