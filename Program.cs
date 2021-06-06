@@ -353,7 +353,8 @@ namespace hypixel
                 ClientProxy.Instance.InitialSync();
                 Console.WriteLine("sync is over now, continuing with operation");
             }
-            Migrated = true;
+            else
+                Migrated = true;
         }
 
         private static void RunIndexer()

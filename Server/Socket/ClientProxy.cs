@@ -58,7 +58,7 @@ namespace hypixel
                 System.Console.WriteLine(e.Message);
                 Reconnect();
             };
-            socket.ConnectAsync();
+            socket.Connect();
         }
 
         static ClientProxy()
