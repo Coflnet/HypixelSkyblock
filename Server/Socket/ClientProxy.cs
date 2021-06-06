@@ -28,6 +28,14 @@ namespace hypixel
             socket.OnMessage += (sender, e) =>
             {
                 System.Console.WriteLine(e.Data);
+                try
+                {
+                    var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                    ClientComands[data.Type].Execute(data);
+                } catch(Exception ex)
+                {
+                    dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace}");
+                }
             };
 
             socket.OnOpen += (sender, e) =>
@@ -40,12 +48,14 @@ namespace hypixel
             {
                 System.Console.WriteLine("closed socket");
                 System.Console.WriteLine(e.Reason);
+                Reconnect();
             };
 
             socket.OnError += (sender, e) =>
             {
                 System.Console.WriteLine("socket error");
                 System.Console.WriteLine(e.Message);
+                Reconnect();
             };
         }
 
@@ -55,7 +65,7 @@ namespace hypixel
             ClientComands.Add("itemSyncResponse", new ItemsSyncResponse());
             ClientComands.Add("pricesSyncResponse", new PricesSyncResponse());
             var adress = SimplerConfig.Config.Instance["BACKEND_URL"];
-            if(adress == null)
+            if (adress == null)
                 adress = "wss://skyblock-backend.coflnet.com";
             Instance = new ClientProxy(adress);
         }
@@ -76,16 +86,21 @@ namespace hypixel
 
         private void ProcessSendQueue()
         {
-            if(socket.ReadyState != WebSocketState.Open)
+            if (socket.ReadyState != WebSocketState.Open)
             {
-                if(socket.ReadyState != WebSocketState.Connecting)
-                    Reconect(socket.Url.AbsoluteUri);
+                if (socket.ReadyState != WebSocketState.Connecting)
+                    Reconnect();
                 return;
             }
-            while(SendQueue.TryDequeue(out MessageData result))
+            while (SendQueue.TryDequeue(out MessageData result))
             {
                 socket.Send(MessagePackSerializer.ToJson(result));
             }
+        }
+
+        private void Reconnect()
+        {
+            Reconect(socket.Url.AbsoluteUri);
         }
 
         public void Sync()
@@ -100,9 +115,9 @@ namespace hypixel
                     var response = context.Auctions.Skip(batchAmount * index++).Take(batchAmount).Select(a => new { a.Uuid, a.HighestBidAmount }).ToList();
                     if (response.Count == 0)
                         return;
-                    
-                   // socket.Send()
-                   // data.SendBack(data.Create("playerSyncResponse", response));
+
+                    // socket.Send()
+                    // data.SendBack(data.Create("playerSyncResponse", response));
                 }
             }
         }

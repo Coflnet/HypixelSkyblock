@@ -38,6 +38,7 @@ namespace hypixel
         public static string Version => version;
 
         public static int RequestsSinceStart { get; private set; }
+        public static bool Migrated { get; internal set; }
 
         public static event Action onStop;
 
@@ -194,12 +195,16 @@ namespace hypixel
             Task.Run(() => server.Start());
             Task.Run(() => CreateHost(new string[0]));
 
-            LightClient = SimplerConfig.Config.Instance["MODE"] == "light";
+            var mode = SimplerConfig.Config.Instance["MODE"];
+            LightClient = mode == "light";
             if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
+            if(mode == "indexer")
+                GetDBToDesiredState();
+
 
             Updater updater = new Updater(apiKey);
             updater.UpdateForEver();
@@ -348,6 +353,7 @@ namespace hypixel
                 ClientProxy.Instance.InitialSync();
                 Console.WriteLine("sync is over now, continuing with operation");
             }
+            Migrated = true;
         }
 
         private static void RunIndexer()
