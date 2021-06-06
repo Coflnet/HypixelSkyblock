@@ -164,7 +164,8 @@ namespace hypixel
                         continue;
                     context.Items.Add(item);
                 }
-                context.SaveChanges();
+                var affected = context.SaveChanges();
+                Console.WriteLine($"Synced items {affected}");
             }
         }
     }
