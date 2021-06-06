@@ -25,7 +25,7 @@ namespace hypixel
         private void Reconect(string backendAdress)
         {
             socket = new WebSocket(backendAdress);
-            socket.Log.Level = LogLevel.Trace;
+            socket.Log.Level = LogLevel.Debug;
             socket.OnMessage += (sender, e) =>
             {
                 System.Console.WriteLine(e.Data);
@@ -58,6 +58,7 @@ namespace hypixel
                 System.Console.WriteLine(e.Message);
                 Reconnect();
             };
+            socket.Connect();
         }
 
         static ClientProxy()
