@@ -68,7 +68,7 @@ namespace hypixel
             ClientComands.Add("pricesSyncResponse", new PricesSyncResponse());
             var adress = SimplerConfig.Config.Instance["BACKEND_URL"];
             if (adress == null)
-                adress = "wss://skyblock-backend.coflnet.com/skyblock";
+                adress = "wss://skyblock-backend.coflnet.com/skyblock?id=clusterClient";
             Instance = new ClientProxy(adress);
         }
 
