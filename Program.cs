@@ -34,7 +34,7 @@ namespace hypixel
         /// </summary>
         /// <returns></returns>
         private static DateTime BlockedSince = new DateTime(0);
-        private static string version = "0.3.2";
+        private static string version = "0.3.3";
         public static string Version => version;
 
         public static int RequestsSinceStart { get; private set; }
