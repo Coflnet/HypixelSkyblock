@@ -78,6 +78,7 @@ namespace hypixel
             while(!Program.Migrated)
             {
                 System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+                ProcessSendQueue();
             }
         }
 
@@ -91,6 +92,7 @@ namespace hypixel
         {
             if (socket.ReadyState != WebSocketState.Open)
             {
+                Console.WriteLine("websocket is " + socket.ReadyState);
                 if (socket.ReadyState != WebSocketState.Connecting)
                     Reconnect();
                 return;
