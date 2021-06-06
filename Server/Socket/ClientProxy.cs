@@ -58,7 +58,7 @@ namespace hypixel
                 System.Console.WriteLine(e.Message);
                 Reconnect();
             };
-            socket.Connect();
+            socket.ConnectAsync();
         }
 
         static ClientProxy()
@@ -68,7 +68,7 @@ namespace hypixel
             ClientComands.Add("pricesSyncResponse", new PricesSyncResponse());
             var adress = SimplerConfig.Config.Instance["BACKEND_URL"];
             if (adress == null)
-                adress = "wss://skyblock-backend.coflnet.com";
+                adress = "wss://skyblock-backend.coflnet.com/skyblock";
             Instance = new ClientProxy(adress);
         }
 
