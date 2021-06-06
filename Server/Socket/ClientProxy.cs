@@ -92,6 +92,7 @@ namespace hypixel
                     Reconnect();
                 return;
             }
+            Console.WriteLine("processing send queue");
             while (SendQueue.TryDequeue(out MessageData result))
             {
                 socket.Send(MessagePackSerializer.ToJson(result));
@@ -185,6 +186,8 @@ namespace hypixel
                     context.Prices.Add(item);
                 }
                 context.SaveChanges();
+                if(context.Items.Any() && context.Players.Count() > 2_000_000)
+                    Program.Migrated = true;
             }
         }
     }
