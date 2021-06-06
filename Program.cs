@@ -202,7 +202,7 @@ namespace hypixel
                 ItemDetails.Instance.LoadLookup();
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
-            if(mode == "indexer")
+            if (mode == "indexer")
                 GetDBToDesiredState();
 
 
@@ -329,7 +329,7 @@ namespace hypixel
                     //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
                     isNew = true;
                     //context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -343,7 +343,7 @@ namespace hypixel
                 Console.WriteLine("\nmigrated :)\n");
 
 
-                if(!context.Items.Any())
+                if (!context.Items.Any())
                     isNew = true;
                 context.SaveChanges();
             }
@@ -379,7 +379,8 @@ namespace hypixel
             int minId = 0;
             using (var context = new HypixelContext())
             {
-                minId = context.NBTLookups.Min(l => l.AuctionId);
+                if (context.NBTLookups.Any())
+                    minId = context.NBTLookups.Min(l => l.AuctionId);
             }
             if (minId == 0)
             {

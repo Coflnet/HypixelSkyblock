@@ -288,7 +288,8 @@ namespace hypixel
                 })
                 .Select(a =>
                 {
-                    ItemDetails.Instance.AddOrIgnoreDetails(a);
+                    if(Program.Migrated)
+                        ItemDetails.Instance.AddOrIgnoreDetails(a);
                     count++;
                     var auction = new SaveAuction(a);
                     return auction;
