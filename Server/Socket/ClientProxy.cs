@@ -19,6 +19,11 @@ namespace hypixel
 
         public ClientProxy(string backendAdress)
         {
+            Reconect(backendAdress);
+        }
+
+        private void Reconect(string backendAdress)
+        {
             socket = new WebSocket(backendAdress);
             socket.OnMessage += (sender, e) =>
             {
@@ -28,6 +33,7 @@ namespace hypixel
             socket.OnOpen += (sender, e) =>
             {
                 System.Console.WriteLine("opened scoket");
+                ProcessSendQueue();
             };
 
             socket.OnClose += (sender, e) =>
@@ -56,10 +62,30 @@ namespace hypixel
 
         public void InitialSync()
         {
-            socket.Send(MessagePackSerializer.ToJson(new MessageData("itemSync", null)));
-            socket.Send(MessagePackSerializer.ToJson(new MessageData("playerSync", null)));
-            socket.Send(MessagePackSerializer.ToJson(new MessageData("pricesSync", null)));
+            Send(new MessageData("itemSync", null));
+            Send(new MessageData("playerSync", null));
+            Send(new MessageData("pricesSync", null));
             System.Threading.Thread.Sleep(TimeSpan.FromMinutes(3));
+        }
+
+        public void Send(MessageData data)
+        {
+            SendQueue.Enqueue(data);
+            ProcessSendQueue();
+        }
+
+        private void ProcessSendQueue()
+        {
+            if(socket.ReadyState != WebSocketState.Open)
+            {
+                if(socket.ReadyState != WebSocketState.Connecting)
+                    Reconect(socket.Url.AbsoluteUri);
+                return;
+            }
+            while(SendQueue.TryDequeue(out MessageData result))
+            {
+                socket.Send(MessagePackSerializer.ToJson(result));
+            }
         }
 
         public void Sync()
