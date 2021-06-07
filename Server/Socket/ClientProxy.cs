@@ -27,7 +27,7 @@ namespace hypixel
             [IgnoreMember]
             public byte[] data;
 
-             
+
             public override T GetAs<T>()
             {
                 return MessagePackSerializer.Deserialize<T>(data);
@@ -70,7 +70,7 @@ namespace hypixel
                     }
                     catch (Exception ex)
                     {
-                        dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace}");
+                        dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
                     }
                 });
             };
@@ -113,7 +113,7 @@ namespace hypixel
             Send(new MessageData("itemSync", null));
             Send(new MessageData("playerSync", null));
             Send(new MessageData("pricesSync", null));
-            while(!Program.Migrated)
+            while (!Program.Migrated)
             {
                 System.Threading.Thread.Sleep(TimeSpan.FromSeconds(10));
                 ProcessSendQueue();
@@ -135,13 +135,14 @@ namespace hypixel
                     Reconnect();
                 return;
             }
-            
+
             while (SendQueue.TryDequeue(out MessageData result))
             {
                 Console.WriteLine($"{DateTime.Now} sent {result.Type} {result.Data.Truncate(20)}");
                 socket.Send(MessagePackSerializer.ToJson(result));
             }
-            socket.Ping();
+            if (!socket.Ping())
+                Console.WriteLine("did not receive pong");
         }
 
         private void Reconnect()
@@ -191,6 +192,9 @@ namespace hypixel
                     if (context.Players.Any(p => p.UuId == player.UuId))
                         continue;
                     context.Players.Add(player);
+                    count++;
+                    if (count % 100 == 0)
+                        await context.SaveChangesAsync();
                 }
                 await context.SaveChangesAsync();
                 count = context.Players.Count();
@@ -221,7 +225,7 @@ namespace hypixel
 
     public class PricesSyncResponse : Command
     {
-        public override void Execute(MessageData data)
+        public override async void Execute(MessageData data)
         {
             var items = data.GetAs<List<AveragePrice>>();
             int count = 0;
@@ -232,9 +236,13 @@ namespace hypixel
                     if (context.Prices.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
                         continue;
                     context.Prices.Add(item);
+
+                    count++;
+                    if (count % 100 == 0)
+                        await context.SaveChangesAsync();
                 }
                 context.SaveChanges();
-                if(context.Items.Any() && context.Players.Count() > 2_000_000)
+                if (context.Items.Any() && context.Players.Count() > 2_000_000)
                     Program.Migrated = true;
                 count = context.Prices.Count();
             }
