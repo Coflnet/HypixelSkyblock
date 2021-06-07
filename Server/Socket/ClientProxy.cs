@@ -22,17 +22,39 @@ namespace hypixel
             Reconect(backendAdress);
         }
 
+        class ClientMessageData : MessageData
+        {
+            [IgnoreMember]
+            public byte[] data;
+
+             
+            public override T GetAs<T>()
+            {
+                return MessagePackSerializer.Deserialize<T>(data);
+            }
+
+
+        }
+
         private void Reconect(string backendAdress)
         {
             socket = new WebSocket(backendAdress);
             socket.Log.Level = LogLevel.Debug;
             socket.OnMessage += (sender, e) =>
             {
-                System.Console.WriteLine(e.Data);
+                System.Console.WriteLine(e.Data.Truncate(100));
                 try
                 {
                     var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
-                    ClientComands[data.Type].Execute(data);
+                    if(ClientComands.ContainsKey(data.Type))
+                    {
+                        data = new ClientMessageData()
+                        {
+                            Type = data.Type,
+                            data = System.Convert.FromBase64String(data.Data)
+                        };
+                        ClientComands[data.Type].Execute(data);
+                    }
                 } catch(Exception ex)
                 {
                     dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace}");
@@ -162,7 +184,7 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            data.Data = CacheService.Unzip(data.GetAs<byte[]>());
+            //data.Data = CacheService.Unzip(data.GetAs<byte[]>());
             var items = data.GetAs<List<DBItem>>();
             using (var context = new HypixelContext())
             {

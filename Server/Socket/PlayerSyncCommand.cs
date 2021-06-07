@@ -17,7 +17,7 @@ namespace hypixel
                     var response = context.Players.Skip(batchAmount * index++).Take(batchAmount).ToList();
                     if (response.Count == 0)
                         return;
-                    data.SendBack(data.Create("playerSyncResponse", response));
+                    data.SendBack(new MessageData("playerSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
                 }
             }
         }

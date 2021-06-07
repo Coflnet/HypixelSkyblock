@@ -191,7 +191,8 @@ namespace hypixel
         private static SocketMessageData ParseData(string body)
         {
             var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.FromJson(body));
-            data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
+            if(data.Data != null)
+                data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
             return data;
         }
 

@@ -18,7 +18,7 @@ namespace hypixel
                     var response = context.Prices.Skip(batchAmount * index++).Take(batchAmount).ToList();
                     if (response.Count == 0)
                         return;
-                    data.SendBack(data.Create("pricesSyncResponse", response));
+                    data.SendBack(new MessageData("pricesSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
                 }
             }
         }
