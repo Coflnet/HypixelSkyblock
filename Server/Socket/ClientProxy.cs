@@ -184,12 +184,14 @@ namespace hypixel
         public override async void Execute(MessageData data)
         {
             var players = data.GetAs<List<Player>>();
+            var ids = players.Select(p => p.UuId);
             int count = 0;
             using (var context = new HypixelContext())
             {
+                var existing = context.Players.Where(p => ids.Contains(p.UuId)).ToDictionary(p=>p.UuId);
                 foreach (var player in players)
                 {
-                    if (context.Players.Any(p => p.UuId == player.UuId))
+                    if (existing.ContainsKey(player.UuId))
                         continue;
                     context.Players.Add(player);
                     count++;
