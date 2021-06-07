@@ -33,6 +33,16 @@ namespace hypixel
                 return MessagePackSerializer.Deserialize<T>(data);
             }
 
+            public override void SendBack(MessageData data, bool cache = true)
+            {
+                ClientProxy.Instance.Send(data);
+            }
+
+            public override MessageData Create<T>(string type, T data, int maxAge = 0)
+            {
+                return new MessageData(type, Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(data))), maxAge);
+            }
+
 
         }
 
@@ -167,6 +177,7 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             var players = data.GetAs<List<Player>>();
+            int count = 0;
             using (var context = new HypixelContext())
             {
                 foreach (var player in players)
@@ -176,7 +187,9 @@ namespace hypixel
                     context.Players.Add(player);
                 }
                 context.SaveChanges();
+                count = context.Players.Count();
             }
+            data.SendBack(data.Create("playerSync", count));
         }
     }
 
@@ -206,6 +219,7 @@ namespace hypixel
         {
             data.Data = CacheService.Unzip(data.GetAs<byte[]>());
             var items = data.GetAs<List<AveragePrice>>();
+            int count = 0;
             using (var context = new HypixelContext())
             {
                 foreach (var item in items)
@@ -217,7 +231,9 @@ namespace hypixel
                 context.SaveChanges();
                 if(context.Items.Any() && context.Players.Count() > 2_000_000)
                     Program.Migrated = true;
+                count = context.Prices.Count();
             }
+            data.SendBack(data.Create("pricesSync", count));
         }
     }
 }
