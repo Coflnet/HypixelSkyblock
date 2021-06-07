@@ -53,27 +53,31 @@ namespace hypixel
             socket.OnMessage += (sender, e) =>
             {
                 System.Console.WriteLine(e.Data.Truncate(100));
-                try
+                System.Threading.Tasks.Task.Run(() =>
                 {
-                    var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
-                    if(ClientComands.ContainsKey(data.Type))
+                    try
                     {
-                        data = new ClientMessageData()
+                        var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                        if (ClientComands.ContainsKey(data.Type))
                         {
-                            Type = data.Type,
-                            data = System.Convert.FromBase64String(data.Data)
-                        };
-                        ClientComands[data.Type].Execute(data);
+                            data = new ClientMessageData()
+                            {
+                                Type = data.Type,
+                                data = System.Convert.FromBase64String(data.Data)
+                            };
+                            ClientComands[data.Type].Execute(data);
+                        }
                     }
-                } catch(Exception ex)
-                {
-                    dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace}");
-                }
+                    catch (Exception ex)
+                    {
+                        dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace}");
+                    }
+                });
             };
 
             socket.OnOpen += (sender, e) =>
             {
-                System.Console.WriteLine("opened scoket");
+                System.Console.WriteLine("opened socket");
                 ProcessSendQueue();
             };
 
@@ -131,11 +135,13 @@ namespace hypixel
                     Reconnect();
                 return;
             }
+            
             while (SendQueue.TryDequeue(out MessageData result))
             {
                 Console.WriteLine($"{DateTime.Now} sent {result.Type} {result.Data.Truncate(20)}");
                 socket.Send(MessagePackSerializer.ToJson(result));
             }
+            socket.Ping();
         }
 
         private void Reconnect()
