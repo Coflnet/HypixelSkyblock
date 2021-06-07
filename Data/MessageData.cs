@@ -49,6 +49,8 @@ namespace hypixel
 
         public virtual T GetAs<T>()
         {
+            if(String.IsNullOrEmpty(Data))
+                return default(T);
             return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
         }
 

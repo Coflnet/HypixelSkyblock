@@ -342,10 +342,9 @@ namespace hypixel
                 context.Database.Migrate();
                 Console.WriteLine("\nmigrated :)\n");
 
-
-                if (!context.Items.Any())
-                    isNew = true;
                 context.SaveChanges();
+                if (!context.Items.Any() || context.Players.Count() < 2_000_000)
+                    isNew = true;
             }
             if (isNew)
             {
