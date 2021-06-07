@@ -111,7 +111,7 @@ namespace hypixel
             Send(new MessageData("pricesSync", null));
             while(!Program.Migrated)
             {
-                System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(10));
                 ProcessSendQueue();
             }
         }
@@ -131,9 +131,9 @@ namespace hypixel
                     Reconnect();
                 return;
             }
-            Console.WriteLine("processing send queue");
             while (SendQueue.TryDequeue(out MessageData result))
             {
+                Console.WriteLine($"{DateTime.Now} sent {result.Type} {result.Data.Truncate(20)}");
                 socket.Send(MessagePackSerializer.ToJson(result));
             }
         }
@@ -174,7 +174,7 @@ namespace hypixel
 
     public class PlayerSyncResponse : Command
     {
-        public override void Execute(MessageData data)
+        public override async void Execute(MessageData data)
         {
             var players = data.GetAs<List<Player>>();
             int count = 0;
@@ -186,7 +186,7 @@ namespace hypixel
                         continue;
                     context.Players.Add(player);
                 }
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 count = context.Players.Count();
             }
             data.SendBack(data.Create("playerSync", count));
@@ -217,7 +217,6 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            data.Data = CacheService.Unzip(data.GetAs<byte[]>());
             var items = data.GetAs<List<AveragePrice>>();
             int count = 0;
             using (var context = new HypixelContext())
