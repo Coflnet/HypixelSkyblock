@@ -195,7 +195,7 @@ namespace hypixel
                         continue;
                     context.Players.Add(player);
                     count++;
-                    if (count % 100 == 0)
+                    if (count % 1000 == 0)
                         await context.SaveChangesAsync();
                 }
                 await context.SaveChangesAsync();
@@ -236,14 +236,12 @@ namespace hypixel
                 var exising = context.Prices.Where(p => items.Contains(p)).ToList();
                 foreach (var item in items.ConvertAll(p=>p.GetBack()))
                 {
-                    if (count % 10 == 0)
-                        Console.WriteLine($"Adding {JSON.Stringify(item)} {count}");
                     if (exising.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
                         continue;
                     context.Prices.Add(item);
 
                     count++;
-                    if (count % 100 == 0)
+                    if (count % 1000 == 0)
                         await context.SaveChangesAsync();
                 }
                 context.SaveChanges();
