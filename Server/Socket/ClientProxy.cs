@@ -234,7 +234,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var exising = context.Prices.Where(p => items.Contains(p)).ToList();
-                foreach (var item in items.ConvertAll(p=>p as AveragePrice))
+                foreach (var item in items.ConvertAll(p=>p.GetBack()))
                 {
                     if (count % 10 == 0)
                         Console.WriteLine($"Adding {JSON.Stringify(item)} {count}");

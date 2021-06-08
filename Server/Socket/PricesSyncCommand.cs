@@ -43,6 +43,20 @@ namespace hypixel
             public int SItemId;
 
             public override int ItemId { get => SItemId; }
+
+            public AveragePrice GetBack()
+            {
+                return new AveragePrice()
+                {
+                    Avg = Avg,
+                    Date = Date,
+                    Id = Id,
+                    ItemId = SItemId,
+                    Max = Max,
+                    Min = Min,
+                    Volume = Volume
+                };
+            }
         }
     }
 }
