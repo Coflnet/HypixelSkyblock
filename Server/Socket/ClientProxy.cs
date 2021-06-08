@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 using WebSocketSharp;
 
@@ -183,8 +184,11 @@ namespace hypixel
     {
         public override async void Execute(MessageData data)
         {
-            var players = data.GetAs<List<Player>>();
+            var response = data.GetAs<PlayerSyncCommand.PlayerSyncData>();
+            var players = response.Players;
             var ids = players.Select(p => p.UuId);
+            if(players.Count == 0)
+                return; // done
             int count = 0;
             using (var context = new HypixelContext())
             {
@@ -201,7 +205,7 @@ namespace hypixel
                 await context.SaveChangesAsync();
                 count = context.Players.Count();
             }
-            data.SendBack(data.Create("playerSync", count));
+            data.SendBack(data.Create("playerSync", response.Offset));
         }
     }
 
@@ -215,7 +219,7 @@ namespace hypixel
             {
                 foreach (var item in items)
                 {
-                    if (context.Items.Any(p => p.Tag == item.Tag))
+                    if (context.Items.Any(p => p.Tag == item.Tag || p.Id == item.Id))
                         continue;
                     context.Items.Add(item);
                 }
@@ -227,30 +231,47 @@ namespace hypixel
 
     public class PricesSyncResponse : Command
     {
+        static int ReceivedCount = 0;
         public override async void Execute(MessageData data)
         {
-            var items = data.GetAs<List<PricesSyncCommand.AveragePriceSync>>().ConvertAll(p=>p.GetBack());
+            var items = data.GetAs<List<PricesSyncCommand.AveragePriceSync>>()
+                .ConvertAll(p => p.GetBack())
+                .OrderBy(p=>p.Date)
+                .ToList();
             int count = 0;
+            ReceivedCount += items.Count;
+            if(items.Count == 0)
+                return;
             using (var context = new HypixelContext())
             {
-                var lookup = items.Select(p => p.Id).ToList();
-                var exising = context.Prices.Where(p => lookup.Contains(p.Id)).ToList();
-                foreach (var item in items)
+                var batchsize = 200;
+                for (int i = 0; i < items.Count / batchsize; i++)
                 {
-                    if (exising.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
-                        continue;
-                    context.Prices.Add(item);
-
-                    count++;
-                    if (count % 1000 == 0)
-                        await context.SaveChangesAsync();
+                    await DoBatch(items.Skip(i*batchsize).Take(batchsize), count, context);
                 }
-                context.SaveChanges();
-                if (context.Items.Any() && context.Players.Count() > 2_000_000)
-                    Program.Migrated = true;
                 count = context.Prices.Count();
             }
-            data.SendBack(data.Create("pricesSync", count));
+            data.SendBack(data.Create("pricesSync", ReceivedCount));
+        }
+
+        private static async Task<int> DoBatch(IEnumerable<AveragePrice> items, int count, HypixelContext context)
+        {
+            var lookup = items.Select(p => p.Date).ToList();
+            var exising = context.Prices.Where(p => lookup.Any(l => l == p.Date)).ToList();
+            Console.WriteLine($"loaded a total of {exising.Count} prices to check against");
+            foreach (var item in items)
+            {
+                if (context.Prices.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
+                    continue;
+                item.Id = 0;
+                context.Prices.Add(item);
+
+                count++;
+            }
+            await context.SaveChangesAsync();
+            if (context.Items.Any() && context.Players.Count() > 2_000_000)
+                Program.Migrated = true;
+            return count;
         }
     }
 }

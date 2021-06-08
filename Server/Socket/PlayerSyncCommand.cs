@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using MessagePack;
 using WebSocketSharp;
 
 namespace hypixel
@@ -14,12 +16,32 @@ namespace hypixel
                 if(offset != 0)
                     offset -= 120; // two update batch wide overlap
                 
-                var response = context.Players.Skip(offset).Take(batchAmount).ToList();
-                if (response.Count == 0)
-                    return;
+                var response = new PlayerSyncData(context.Players.Skip(offset).Take(batchAmount).ToList(),offset+batchAmount);
+                
                 data.SendBack(new MessageData("playerSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
             
             }
+        }
+
+        [MessagePackObject]
+        public class PlayerSyncData
+        {
+            [Key(0)]
+            public List<Player> Players;
+            [Key(1)]
+            public int Offset;
+
+            public PlayerSyncData()
+            {
+            }
+
+            public PlayerSyncData(List<Player> players, int offset)
+            {
+                Players = players;
+                Offset = offset;
+            }
+
+            
         }
     }
 }
