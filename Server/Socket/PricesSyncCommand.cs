@@ -29,8 +29,7 @@ namespace hypixel
             }
             public AveragePriceSync(AveragePrice price)
             {
-                this.Id = price.Id;
-                this.ItemId = price.ItemId;
+                this.SId = price.Id;
                 this.SItemId = price.ItemId;
                 this.Max = price.Max;
                 this.Avg = price.Avg;
@@ -42,6 +41,9 @@ namespace hypixel
             [Key("iId")]
             public int SItemId;
 
+            [Key("id")]
+            public int SId;
+
             public override int ItemId { get => SItemId; }
 
             public AveragePrice GetBack()
@@ -50,7 +52,7 @@ namespace hypixel
                 {
                     Avg = Avg,
                     Date = Date,
-                    Id = Id,
+                    Id = SId,
                     ItemId = SItemId,
                     Max = Max,
                     Min = Min,
