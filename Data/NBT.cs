@@ -341,9 +341,9 @@ namespace hypixel
                 }
             }, (K, v) => v);
         }
-        private static ConcurrentDictionary<(short, string), short> ValueCache = new ConcurrentDictionary<(short, string), short>();
+        private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
 
-        private static short GetValueId(short key, string value)
+        private static int GetValueId(short key, string value)
         {
             lock (ValueCache)
             {
@@ -359,7 +359,7 @@ namespace hypixel
                         }
                     }
             }
-            if (ValueCache.TryGetValue((key, value), out short id))
+            if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
 
             using (var context = new HypixelContext())

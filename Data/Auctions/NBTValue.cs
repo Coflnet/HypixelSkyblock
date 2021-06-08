@@ -9,7 +9,7 @@ namespace hypixel
     public class NBTValue
     {
         [Key(0)]
-        public short Id { get; set; }
+        public int Id { get; set; }
         [Key(1)]
         public short KeyId { get; set; }
         [Key(2)]
