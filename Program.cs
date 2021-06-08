@@ -34,7 +34,7 @@ namespace hypixel
         /// </summary>
         /// <returns></returns>
         private static DateTime BlockedSince = new DateTime(0);
-        private static string version = "0.3.3";
+        private static string version = "0.3.4";
         public static string Version => version;
 
         public static int RequestsSinceStart { get; private set; }
@@ -226,6 +226,11 @@ namespace hypixel
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
             CacheService.Instance.RunForEver();
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromMinutes(3));
+                await ItemPrices.Instance.BackfillPrices();
+            });
 
 
             onStop += () =>

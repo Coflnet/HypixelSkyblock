@@ -233,9 +233,10 @@ namespace hypixel
             int count = 0;
             using (var context = new HypixelContext())
             {
+                var exising = context.Prices.Where(p => items.Contains(p));
                 foreach (var item in items)
                 {
-                    if (context.Prices.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
+                    if (exising.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
                         continue;
                     context.Prices.Add(item);
 

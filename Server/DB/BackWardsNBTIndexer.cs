@@ -37,7 +37,7 @@ namespace hypixel
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"could not generate nbtlookup for {auction.Uuid} {e.Message} \n{e.StackTrace}" );
+                        Console.WriteLine($"could not generate nbtlookup for {auction.Uuid} {e.Message} \n{e.StackTrace} \n {e.InnerException?.Message} {e.InnerException.StackTrace}" );
                     }
                 }
                 int updated = await context.SaveChangesAsync();

@@ -300,7 +300,6 @@ namespace hypixel
             }
             if (token.IsCancellationRequested)
                 return;
-            await BackfillPrices();
         }
 
         public static async Task FillLastHourIfDue()
@@ -388,7 +387,7 @@ namespace hypixel
             }
         }
 
-        private async Task BackfillPrices()
+        public async Task BackfillPrices()
         {
             Console.WriteLine("starting to backfill item prices :)");
             using (var context = new HypixelContext())
