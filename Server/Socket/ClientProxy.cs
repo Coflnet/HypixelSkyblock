@@ -233,7 +233,8 @@ namespace hypixel
             int count = 0;
             using (var context = new HypixelContext())
             {
-                var exising = context.Prices.Where(p => items.Any(i=> i.ItemId == p.ItemId && i.Date == p.Date)).ToList();
+                var lookup = items.Select(p => new { p.Date, p.ItemId }).ToList();
+                var exising = context.Prices.Select(p=>new {p.Date,p.ItemId}).Where(p => lookup.Contains(p)).ToList();
                 foreach (var item in items.ConvertAll(p=>p.GetBack()))
                 {
                     if (exising.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))

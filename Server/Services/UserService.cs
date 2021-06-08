@@ -28,6 +28,11 @@ namespace hypixel
                     context.Users.Add(user);
                     context.SaveChanges();
                 }
+                if(user.Email == null)
+                {
+                    user.Email = email;
+                    context.SaveChanges();
+                }
 
                 return user;
             }

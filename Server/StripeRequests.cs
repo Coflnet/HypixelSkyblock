@@ -59,14 +59,14 @@ namespace hypixel
             Console.WriteLine("Furfilling order");
             var googleId = Int32.Parse(session.ClientReferenceId);
             var id = session.CustomerId;
-            var email = session.CustomerEmail;
+            //var email = session.CustomerEmail;
             var days = Int32.Parse(session.Metadata["days"]);
             Console.WriteLine("STRIPE");
             using (var context = new HypixelContext())
             {
                 var user = await context.Users.Where(u => u.Id == googleId).FirstAsync();
                 Server.AddPremiumTime(days, user);
-                user.Email = email;
+                //user.Email = email;
                 context.Update(user);
                 await context.SaveChangesAsync();
                 Console.WriteLine("order completed");
