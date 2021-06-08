@@ -16,7 +16,7 @@ namespace hypixel
 
         public async Task DoBatch()
         {
-            await Task.Delay(18765);
+            await Task.Delay(TimeSpan.FromMinutes(5));
             var batchSize = 2000;
             using (var context = new HypixelContext())
             {

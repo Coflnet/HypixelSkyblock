@@ -188,7 +188,7 @@ namespace hypixel
             int count = 0;
             using (var context = new HypixelContext())
             {
-                var existing = context.Players.Where(p => ids.Contains(p.UuId)).ToDictionary(p=>p.UuId);
+                var existing = context.Players.Where(p => ids.Contains(p.UuId)).ToDictionary(p => p.UuId);
                 foreach (var player in players)
                 {
                     if (existing.ContainsKey(player.UuId))
@@ -236,7 +236,8 @@ namespace hypixel
                 var exising = context.Prices.Where(p => items.Contains(p)).ToList();
                 foreach (var item in items)
                 {
-                    Console.WriteLine($"Adding {JSON.Stringify(item)} {count}");
+                    if (count % 10 == 0)
+                        Console.WriteLine($"Adding {JSON.Stringify(item)} {count}");
                     if (exising.Any(p => p.ItemId == item.ItemId && p.Date == item.Date))
                         continue;
                     context.Prices.Add(item);

@@ -17,7 +17,7 @@ namespace hypixel
         [Key("volume")]
         public int Volume { get; set; }
         [IgnoreMember]
-        public int ItemId { get; set; }
+        public virtual int ItemId { get; set; }
         [Key("time")]
         public DateTime Date { get; set; }
 

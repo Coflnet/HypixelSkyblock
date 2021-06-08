@@ -31,6 +31,7 @@ namespace hypixel
             {
                 this.Id = price.Id;
                 this.ItemId = price.ItemId;
+                this.SItemId = price.ItemId;
                 this.Max = price.Max;
                 this.Avg = price.Avg;
                 this.Min = price.Min;
@@ -39,9 +40,9 @@ namespace hypixel
             }
 
             [Key("iId")]
-            public int SItemId => ItemId;
+            public int SItemId;
 
-            
+            public override int ItemId { get => SItemId; }
         }
     }
 }
