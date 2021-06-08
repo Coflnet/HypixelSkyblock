@@ -229,7 +229,7 @@ namespace hypixel
     {
         public override async void Execute(MessageData data)
         {
-            var items = data.GetAs<List<AveragePrice>>();
+            var items = data.GetAs<List<PricesSyncCommand.AveragePriceSync>>();
             int count = 0;
             using (var context = new HypixelContext())
             {
