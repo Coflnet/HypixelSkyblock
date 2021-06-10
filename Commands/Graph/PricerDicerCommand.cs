@@ -12,6 +12,13 @@ namespace hypixel
             if (details.Reforge == Reforge.None)
                 details.Reforge = Reforge.Any;
 
+
+            if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
+            {
+                ClientProxy.Instance.Proxy(data);
+                return;
+            }
+
             var thread = ItemPrices.Instance.GetPriceFor(details);
             thread.Wait();
             var res = thread.Result;

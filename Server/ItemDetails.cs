@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using dev;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace hypixel
 {
@@ -300,7 +301,7 @@ namespace hypixel
         public DBItem GetDetails(string fullName)
         {
             if (Items == null)
-                Load();
+                LoadFromDB();
             var cleanedName = ItemReferences.RemoveReforgesAndLevel(fullName);
             /*if (ReverseNames.TryGetValue(name, out string key) &&
                 Items.TryGetValue(key, out Item value))
@@ -318,6 +319,8 @@ namespace hypixel
                 if (id > 1)
                 {
                     var item = context.Items.Include(i => i.Names).Where(i => i.Id == id).First();
+                    if (item.Names != null)
+                        item.Names = item.Names.OrderBy(n => GetScoreFor(n)).ToList();
                     item.Name = fullName;
                     // cooler icons 
                     //if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
@@ -329,10 +332,17 @@ namespace hypixel
             return new DBItem() { Tag = "Unknown", Name = fullName };
         }
 
-        public async Task<DBItem> GetDetailsWithCache(string uuid)
+        private static int GetScoreFor(AlternativeName n)
         {
-            var details = await Server.ExecuteCommandWithCache<string, DBItem>("itemDetails", uuid);
-            if(details == default(DBItem))
+            if (n == null || n.Name == null)
+                return 100;
+            return n.Name.Length + (Regex.IsMatch(n.Name, "^[a-zA-Z0-9]*$") ? 0 : 40);
+        }
+
+        public async Task<DBItem> GetDetailsWithCache(string itemTag)
+        {
+            var details = await Server.ExecuteCommandWithCache<string, DBItem>("itemDetails", itemTag);
+            if (details.Tag == null)
                 Console.WriteLine("got default");
             return details;
         }

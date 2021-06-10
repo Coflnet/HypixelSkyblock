@@ -10,6 +10,12 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             var request = data.GetAs<Request>();
+
+            if(Program.LightClient && request.Offset > 0)
+            {
+                ClientProxy.Instance.Proxy(data);
+                return;
+            }
             
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
 

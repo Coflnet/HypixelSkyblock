@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MessagePack;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace hypixel
 {
-    [MessagePackObject(true)]
+    [DataContract]
     public class DBItem : IItem, IHitCount
     {
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
-        [JsonIgnore]
+        [IgnoreDataMember]
         public int Id { get; set; }
 
         private string _tag;
 
         [System.ComponentModel.DataAnnotations.MaxLength(44)]
-        [JsonProperty("tag")]
+        [DataMember(Name = "tag")]
         public string Tag
         {
             get
@@ -31,52 +31,52 @@ namespace hypixel
         }
 
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
-        [JsonProperty("name")]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
-        [JsonProperty("altNames")]
+        [DataMember(Name = "altNames")]
         public List<AlternativeName> Names { get; set; }
 
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
-        [JsonProperty("description")]
+        [DataMember(Name = "description")]
         public string Description { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
-        [JsonProperty("category")]
+        [DataMember(Name = "category")]
         public Category Category { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
-        [JsonProperty("tier")]
+        [DataMember(Name = "tier")]
 
         public Tier Tier { get; set; }
-        [JsonProperty("iconUrl")]
+        [DataMember(Name = "iconUrl")]
 
         public string IconUrl { get; set; }
 
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
-        [JsonProperty("extra")]
+        [DataMember(Name = "extra")]
         public string Extra { get; set; }
 
         [System.ComponentModel.DataAnnotations.MaxLength(44)]
         [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
-        [JsonProperty("minecraftType")]
+        [DataMember(Name = "minecraftType")]
         public string MinecraftType { get; set; }
 
         [System.ComponentModel.DataAnnotations.MaxLength(12)]
-        [JsonProperty("color")]
+        [DataMember(Name = "color")]
         public string color { get; set; }
 
-        [JsonIgnore]
+        [IgnoreDataMember]
         public int HitCount { get; set; }
         /// <summary>
         /// <see cref="true"/> if there has been at least one auction with a reforge for this item
         /// </summary>
-        [JsonProperty("reforgeable")]
+        [DataMember(Name = "reforgeable")]
         public bool Reforgeable { get; set; }
         /// <summary>
         /// <see cref="true"/> if there has been at least one auction with enchantments for this item
         /// </summary>
-        [JsonProperty("enchantable")]
+        [DataMember(Name = "enchantable")]
         public bool Enchantable { get; set; }
-        [JsonProperty("bazaar")]
+        [DataMember(Name = "bazaar")]
         public bool IsBazaar { get; set; }
 
         public DBItem()

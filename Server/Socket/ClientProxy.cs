@@ -14,6 +14,9 @@ namespace hypixel
 
         public static Dictionary<string, Command> ClientComands = new Dictionary<string, Command>();
 
+        private ConcurrentDictionary<long, MessageData> WaitingResponse = new ConcurrentDictionary<long, MessageData>();
+        private long lastMessageId = 0;
+
         public static ClientProxy Instance { get; }
 
         private ConcurrentQueue<MessageData> SendQueue = new ConcurrentQueue<MessageData>();
@@ -43,8 +46,15 @@ namespace hypixel
             {
                 return new MessageData(type, Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(data))), maxAge);
             }
+        }
 
-
+        public void Proxy(MessageData data)
+        {
+            data.mId = System.Threading.Interlocked.Increment(ref lastMessageId);
+            data.Data = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data.Data));
+            Console.WriteLine($"Proxying {data.Type} {data.mId} {MessagePackSerializer.ToJson(data)}");
+            WaitingResponse[data.mId] = data;
+            Send(data);
         }
 
         private void Reconect(string backendAdress)
@@ -53,27 +63,7 @@ namespace hypixel
             socket.Log.Level = LogLevel.Debug;
             socket.OnMessage += (sender, e) =>
             {
-                System.Console.WriteLine(e.Data.Truncate(100));
-                System.Threading.Tasks.Task.Run(() =>
-                {
-                    try
-                    {
-                        var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
-                        if (ClientComands.ContainsKey(data.Type))
-                        {
-                            data = new ClientMessageData()
-                            {
-                                Type = data.Type,
-                                data = System.Convert.FromBase64String(data.Data)
-                            };
-                            ClientComands[data.Type].Execute(data);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
-                    }
-                });
+                ProcessMessage(e);
             };
 
             socket.OnOpen += (sender, e) =>
@@ -96,6 +86,42 @@ namespace hypixel
                 Reconnect();
             };
             socket.Connect();
+        }
+
+        private void ProcessMessage(MessageEventArgs e)
+        {
+            System.Console.WriteLine(e.Data.Truncate(100));
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    var data = MessagePackSerializer.Deserialize<MessageData>(MessagePackSerializer.FromJson(e.Data));
+                    if (ClientComands.ContainsKey(data.Type))
+                    {
+                        data = new ClientMessageData()
+                        {
+                            Type = data.Type,
+                            data = System.Convert.FromBase64String(data.Data)
+                        };
+                        ClientComands[data.Type].Execute(data);
+                    }
+                    else
+                    {
+                        if (WaitingResponse.TryGetValue(data.mId, out MessageData original))
+                        {
+                            original.SendBack(data);
+                        }
+                        else
+                        {
+                            dev.Logger.Instance.Log($"received command with no request {data.Type}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
+                }
+            });
         }
 
         static ClientProxy()
@@ -187,7 +213,7 @@ namespace hypixel
             var response = data.GetAs<PlayerSyncCommand.PlayerSyncData>();
             var players = response.Players;
             var ids = players.Select(p => p.UuId);
-            if(players.Count == 0)
+            if (players.Count == 0)
                 return; // done
             int count = 0;
             using (var context = new HypixelContext())
@@ -236,18 +262,18 @@ namespace hypixel
         {
             var items = data.GetAs<List<PricesSyncCommand.AveragePriceSync>>()
                 .ConvertAll(p => p.GetBack())
-                .OrderBy(p=>p.Date)
+                .OrderBy(p => p.Date)
                 .ToList();
             int count = 0;
             ReceivedCount += items.Count;
-            if(items.Count == 0)
+            if (items.Count == 0)
                 return;
             using (var context = new HypixelContext())
             {
                 var batchsize = 200;
                 for (int i = 0; i < items.Count / batchsize; i++)
                 {
-                    await DoBatch(items.Skip(i*batchsize).Take(batchsize), count, context);
+                    await DoBatch(items.Skip(i * batchsize).Take(batchsize), count, context);
                 }
                 count = context.Prices.Count();
             }

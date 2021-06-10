@@ -7,17 +7,17 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            string search = ReplaceInvalidCharacters(data.Data); // rgx.Replace(data.Data, "");
-            data.SendBack(CreateResponse(search));
+            data.SendBack(CreateResponse(data));
         }
 
-        public static MessageData CreateResponse(string search)
+        public static MessageData CreateResponse(MessageData data)
         {
+            string search = ReplaceInvalidCharacters(data.Data); 
             var details = ItemDetails.Instance.GetDetails(search);
             var time = A_WEEK;
-            if(details.Tag == "Unknown")
+            if(details.Tag == "Unknown" || string.IsNullOrEmpty(details.Tag))
                 time = 0;
-            return new MessageData("itemDetailsResponse", JsonConvert.SerializeObject(details), time);
+            return data.Create("itemDetailsResponse", details, time);
         }
 
         public static string ReplaceInvalidCharacters(string data)

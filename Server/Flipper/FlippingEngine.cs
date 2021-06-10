@@ -69,8 +69,8 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            var minPricePointAdopted = PotetialFlipps.Count > 80 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 4;
-            if (PotetialFlipps.Count < 30)
+            var minPricePointAdopted = PotetialFlipps.Count > 120 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 4;
+            if (PotetialFlipps.Count < 60)
                 minPricePointAdopted = MIN_PRICE_POINT / 10;
             foreach (var auction in auctions)
             {

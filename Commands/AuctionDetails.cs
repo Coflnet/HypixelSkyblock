@@ -16,6 +16,10 @@ namespace hypixel {
                             .Include(a=>a.Bids)
                             .Where (a => a.Uuid == search).FirstOrDefault ();
                 if (result == null) {
+                    if(Program.LightClient){
+                        ClientProxy.Instance.Proxy(data);
+                        return;
+                    }
                     throw new CoflnetException ("error", $"The Auction `{search}` wasn't found");
                 }
                 var resultJson = JSON.Stringify (result);
