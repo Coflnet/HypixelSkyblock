@@ -7,7 +7,7 @@
         ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
 
 
-        ws.onmessage = function(evt) {
+        ws.onmessage = function (evt) {
             var received_msg = JSON.parse(evt.data);
 
             last = JSON.parse(received_msg.data);
@@ -30,24 +30,8 @@
         send(type, JSON.stringify(data));
     }
 </script>
-
-<!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
-
-<!-- TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
-
-<script>
-    // Your web app's Firebase configuration
-    var firebaseConfig = {
-        apiKey: "AIzaSyDbRWxLN9YNaVuJejcfMnwhhC-FMZ0zGUA",
-        authDomain: "test-6629a.firebaseapp.com",
-        databaseURL: "https://test-6629a.firebaseio.com",
-        projectId: "test-6629a",
-        storageBucket: "test-6629a.appspot.com",
-        messagingSenderId: "820775011151",
-        appId: "1:820775011151:web:5a1f2cffd37e86a3847b3a"
-    };
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-</script>
+<p>
+    Delete from UuId;
+    Delete from BuyOrder;
+    Delete from SellOrder;
+</p>

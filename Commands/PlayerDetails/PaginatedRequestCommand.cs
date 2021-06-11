@@ -20,6 +20,11 @@ namespace hypixel
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
 
             var result = GetResult(request.Uuid,request.Amount,request.Offset);
+            if(Program.LightClient && result.Count == 0)
+            {
+                ClientProxy.Instance.Proxy(data);
+                return;
+            }
             data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE));
         }
 
