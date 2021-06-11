@@ -107,7 +107,7 @@ namespace hypixel
                     }
                     else
                     {
-                        if (WaitingResponse.TryGetValue(data.mId, out MessageData original))
+                        if (WaitingResponse.TryRemove(data.mId, out MessageData original))
                         {
                             original.SendBack(data);
                         }

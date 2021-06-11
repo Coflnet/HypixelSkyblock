@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using MessagePack;
 using WebSocketSharp;
 using WebSocketSharp.Net;
@@ -119,6 +120,10 @@ namespace hypixel
     {
         private Server.RequestContext context;
 
+        TaskCompletionSource<bool> source = new TaskCompletionSource<bool>();
+
+        public TaskCompletionSource<bool> CompletionSource => source;
+
         public override int UserId
         {
             get => base.UserId;
@@ -168,6 +173,7 @@ namespace hypixel
                 Console.WriteLine("returned empty response on " + JSON.Stringify(this));
             }
             context.WriteAsync(json).Wait();
+            source.SetResult(true);
         }
     }
 }

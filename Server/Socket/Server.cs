@@ -330,9 +330,10 @@ namespace hypixel
                   await Limiter.WaitUntilAllowed(ip); */
                 Console.Write($"r {data.Type} {data.Data.Truncate(15)} ");
                 //ExecuteCommandWithCache
-                if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
+                if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command)){
                     command.Execute(data);
-                else
+                    await data.CompletionSource.Task;
+                }else
                     throw new CoflnetException("unkown_command", "Command not known, check the docs");
             }
             catch (CoflnetException ex)
@@ -478,7 +479,7 @@ namespace hypixel
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
-            res.WriteAsync(json);
+            res.WriteAsync(json).GetAwaiter().GetResult();
         }
 
         private static async Task PrintBazaarItems(RequestContext context)
