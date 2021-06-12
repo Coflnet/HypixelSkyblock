@@ -60,11 +60,13 @@ namespace hypixel
             server.OnGet += async (sender, e) =>
             {
                 var getEvent = e;
+                e.Response.AppendHeader("Allow", "OPTIONS, GET");
+                e.Response.AppendHeader("access-control-allow-origin", "*");
+                e.Response.AppendHeader("Access-Control-Allow-Headers", "*");
                 try
                 {
                     try
                     {
-
                         await AnswerGetRequest(new WebsocketRequestContext(e));
                     }
                     catch (CoflnetException ex)

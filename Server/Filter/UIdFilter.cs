@@ -18,6 +18,7 @@ namespace hypixel.Filter
         {
             var key = NBT.GetLookupKey("uid");
             var val = NBT.UidToLong(args.Get(this));
+            Console.WriteLine("uuid as int " + val);
             return query.Where(a => a.NBTLookup.Where(l=>l.KeyId == key && l.Value == val).Any());
         }
     }

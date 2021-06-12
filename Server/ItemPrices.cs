@@ -234,8 +234,8 @@ namespace hypixel
             if (details.Filter != null && details.Start < min)
                 throw new CoflnetException("filter_to_large", $"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
             var select = AuctionSelect(details.Start, details.End, context, itemId);
-
-            if (details.Filter != null)
+            
+            if (details.Filter != null && details.Filter.Count > 0)
                 return FilterEngine.AddFilters(select, details.Filter);
 
 
@@ -623,6 +623,18 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
+                try
+                {
+                    Console.WriteLine(JSON.Stringify(query));
+                    foreach (var filter in query.Filter?.Keys)
+                    {
+                        Console.WriteLine($"query has filter {filter} {query.Filter?[filter]}");
+                    }
+                } catch(Exception e)
+                {
+                    Console.WriteLine($"{e.Message} {e.StackTrace}");
+                }
+
                 IQueryable<SaveAuction> select = CreateSelect(query, context, itemId, amount * 2);
                 return select.OrderByDescending(a => a.End).Take(amount).AsParallel().Select(a => new AuctionPreview()
                 {
