@@ -36,6 +36,7 @@ namespace hypixel
         internal async Task<Resonse> GetPriceFor(ItemSearchQuery details)
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
+            var itemTag = details.name;
 
             if (details.Reforge != ItemReferences.Reforge.Any
                     || (details.Enchantments != null && details.Enchantments.Count != 0)
@@ -46,11 +47,11 @@ namespace hypixel
 
 
             if (details.Start > DateTime.Now - TimeSpan.FromHours(1.1))
-                return await RespondIntraHour(itemId);
+                return await RespondIntraHour(itemId, itemTag);
 
 
             if (details.Start > DateTime.Now - TimeSpan.FromDays(1.01))
-                return await RespondHourly(itemId);
+                return await RespondHourly(itemId, itemTag);
 
             using (var context = new HypixelContext())
             {
@@ -58,15 +59,15 @@ namespace hypixel
                 var response = await context.Prices
                                 .Where(p => p.ItemId == itemId && p.Date > details.Start && p.Date <= details.End).ToListAsync();
 
-                return FromList(response, itemId);
+                return FromList(response, itemTag);
             }
         }
 
-        protected virtual async Task<Resonse> RespondIntraHour(int itemId)
+        protected virtual async Task<Resonse> RespondIntraHour(int itemId, string tag)
         {
             ItemLookup res = await GetHourlyLookup(itemId);
             if (res != null)
-                return FromItemLookup(res);
+                return FromItemLookup(res, tag);
             throw new CoflnetException("404", "there was no data found for this item. retry in a miniute");
         }
 
@@ -82,11 +83,11 @@ namespace hypixel
             return INTRA_HOUR_PREFIX + DateTime.Now.Hour + itemId;
         }
 
-        protected virtual async Task<Resonse> RespondHourly(int itemId)
+        protected virtual async Task<Resonse> RespondHourly(int itemId, string tag)
         {
             ItemLookup res = await GetLookupForToday(itemId);
             if (res != null)
-                return FromItemLookup(res, (await GetHourlyLookup(itemId))?.CombineIntoOne(default(DateTime), DateTime.Now));
+                return FromItemLookup(res, tag, (await GetHourlyLookup(itemId))?.CombineIntoOne(default(DateTime), DateTime.Now));
             throw new CoflnetException("404", "there was no data found for this item. retry in a miniute");
         }
 
@@ -102,32 +103,33 @@ namespace hypixel
             return INTRA_DAY_PREFIX + itemId;
         }
 
-        private Resonse FromItemLookup(ItemLookup value, AveragePrice additional = null)
+        private Resonse FromItemLookup(ItemLookup value, string itemTag, AveragePrice additional = null)
         {
-            return FromList(additional == null || additional.Volume == 0 ? value.Prices : value.Prices.Append(additional), value.ItemId);
+            return FromList(additional == null || additional.Volume == 0 ? value.Prices : value.Prices.Append(additional), itemTag);
         }
 
-        private Resonse FromList(IEnumerable<AveragePrice> prices, int itemId)
+        private Resonse FromList(IEnumerable<AveragePrice> prices, string itemTag)
         {
-            var isBazaar = IsBazaar(itemId);
+            var isBazaar = IsBazaar(ItemDetails.Instance.GetItemIdForName(itemTag));
             return new Resonse()
             {
-                Filterable = IsFilterable(itemId),
+                Filterable = true,
                 Bazaar = isBazaar,
                 // exclude high moving 
                 Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList(),
-                Filters = GetFiltersForItem(itemId)
+                Filters = GetFiltersForItem(itemTag)
             };
         }
 
-        private Dictionary<int, IEnumerable<string>> FilterCache = new Dictionary<int, IEnumerable<string>>();
+        private Dictionary<string, IEnumerable<string>> FilterCache = new Dictionary<string, IEnumerable<string>>();
 
-        private IEnumerable<string> GetFiltersForItem(int itemId)
+        private IEnumerable<string> GetFiltersForItem(string itemTag)
         {
-            if(FilterCache.TryGetValue(itemId, out IEnumerable<string> filters))
+            if (FilterCache.TryGetValue(itemTag, out IEnumerable<string> filters))
                 return filters;
-            filters = FilterEngine.FiltersFor(ItemDetails.Instance.GetDetailsWithCache(itemId)).Select(f => f.Name);
-            FilterCache[itemId] = filters;
+            var details = ItemDetails.Instance.GetDetailsWithCache(itemTag).Result;
+            filters = FilterEngine.FiltersFor(details).Select(f => f.Name);
+            FilterCache[itemTag] = filters;
             return filters;
         }
 
@@ -222,7 +224,7 @@ namespace hypixel
                 IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
                 IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select);
 
-                return FromList(response.ToList(), itemId);
+                return FromList(response.ToList(), details.name);
             }
         }
 

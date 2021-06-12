@@ -11,8 +11,6 @@ namespace hypixel.Filter
         public FilterEngine()
         {
             
-            Filters.Add<EndBeforeFilter>();
-            Filters.Add<EndAfterFilter>();
             Filters.Add<ReforgeFilter>();
             Filters.Add<RarityFilter>();
             Filters.Add<PetLevelFilter>();
@@ -20,6 +18,8 @@ namespace hypixel.Filter
             Filters.Add<EnchantmentFilter>();
             Filters.Add<EnchantLvlFilter>();
             Filters.Add<UIdFilter>();
+            Filters.Add<EndBeforeFilter>();
+            Filters.Add<EndAfterFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)
