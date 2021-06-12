@@ -50,7 +50,7 @@ namespace hypixel
 
         public virtual T GetAs<T>()
         {
-            if(String.IsNullOrEmpty(Data))
+            if (String.IsNullOrEmpty(Data))
                 return default(T);
             return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
         }
@@ -148,7 +148,9 @@ namespace hypixel
             } */
             try
             {
-                Data = Encoding.UTF8.GetString(Convert.FromBase64String(context.path.Split('/')[3]));
+                var parts = context.path.Split('/');
+                if (parts.Length > 3)
+                    Data = Encoding.UTF8.GetString(Convert.FromBase64String(parts[3]));
             }
             catch (System.Exception e)
             {
@@ -164,11 +166,11 @@ namespace hypixel
                 CacheService.Instance.Save(this, data, 0);
             var json = data.Data;
             context.SetStatusCode(200);
-            context.AddHeader("access-control-allow-origin","*");
-            context.AddHeader("Access-Control-Allow-Headers","*");
-            context.AddHeader("Access-Control-Allow-Methods","*");
+            context.AddHeader("access-control-allow-origin", "*");
+            context.AddHeader("Access-Control-Allow-Headers", "*");
+            context.AddHeader("Access-Control-Allow-Methods", "*");
             context.AddHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
-            if(string.IsNullOrEmpty(json))
+            if (string.IsNullOrEmpty(json))
             {
                 Console.WriteLine("returned empty response on " + JSON.Stringify(this));
             }

@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace hypixel
 {
+    [DataContract]
     public class PopularSite
     {
+        [DataMember(Name = "title")]
         public string Title;
+        [DataMember(Name = "url")]
         public string Url;
 
         public PopularSite(string title, string url)

@@ -131,6 +131,9 @@ namespace hypixel
 
                 var i = await ItemDetails.Instance.GetDetailsWithCache(parameter);
                 path = CreateCanoicalPath(urlParts, i);
+                var name = i?.Names?.FirstOrDefault();
+                if(name != null)
+                    keyword = name;
 
                 title = $"{keyword} price ";
                 float price = await GetAvgPrice(parameter);

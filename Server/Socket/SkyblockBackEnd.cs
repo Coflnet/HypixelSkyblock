@@ -92,6 +92,15 @@ namespace hypixel
             Commands.Add("pricesSync", new PricesSyncCommand());
             Commands.Add("auctionSync", new AuctionSyncCommand());
 
+
+            Commands.Add("newPlayers", new NewPlayersCommand());
+            Commands.Add("newItems", new NewItemsCommand());
+            Commands.Add("popularSearches", new PopularSearchesCommand());
+            Commands.Add("endedAuctions", new EndedAuctionsCommand());
+            Commands.Add("newAuctions", new NewAuctionsCommand());
+
+
+        
         }
 
         public SkyblockBackEnd()

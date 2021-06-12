@@ -206,7 +206,7 @@ namespace hypixel
                 GetDBToDesiredState();
 
 
-            Updater updater = new Updater(apiKey);
+            updater = new Updater(apiKey);
             updater.UpdateForEver();
 
             // bring the db up to date
@@ -222,6 +222,7 @@ namespace hypixel
             RunIndexer();
             RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper got error");
             RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper 2 got error");
+            RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper 3 got error");
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
@@ -457,7 +458,7 @@ namespace hypixel
         }
 
         private static System.Collections.Concurrent.ConcurrentDictionary<string, int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
-
+        public static Updater updater;
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {

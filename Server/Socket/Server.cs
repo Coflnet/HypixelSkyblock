@@ -339,13 +339,13 @@ namespace hypixel
             catch (CoflnetException ex)
             {
                 context.SetStatusCode(400);
-                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })));
+                await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
             }
             catch (Exception ex)
             {
                 context.SetStatusCode(500);
                 dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}");
-                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })));
+                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected error occured, make sure the format of Data is correct" })));
             }
         }
 

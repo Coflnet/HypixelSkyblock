@@ -16,17 +16,19 @@ namespace hypixel.Flipper
         public static FlipperEngine Instance { get; }
 
         private const string FoundFlippsKey = "foundFlipps";
-        private static int MIN_PRICE_POINT = 500000;
+        private static int MIN_PRICE_POINT = 1000000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
         private ConcurrentDictionary<long, int> Subs = new ConcurrentDictionary<long, int>();
+        private ConcurrentDictionary<long, int> SlowSubs = new ConcurrentDictionary<long, int>();
 
         private ConcurrentDictionary<int, bool> AlreadyChecked = new ConcurrentDictionary<int, bool>();
 
         private ConcurrentQueue<SaveAuction> PotetialFlipps = new ConcurrentQueue<SaveAuction>();
+        private ConcurrentQueue<SaveAuction> LowPriceQueue = new ConcurrentQueue<SaveAuction>();
 
-        public int QueueSize => PotetialFlipps.Count;
+        public int QueueSize => PotetialFlipps.Count + LowPriceQueue.Count * 10000;
 
         static FlipperEngine()
         {
@@ -38,23 +40,52 @@ namespace hypixel.Flipper
             }
             Task.Run(async () =>
             {
-                await Task.Delay(TimeSpan.FromMinutes(3));
-                // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 400000;
-                await Task.Delay(TimeSpan.FromMinutes(7));
-                // set price lower after the startup overhead cleared
-                MIN_PRICE_POINT = 300000;
+                while (Program.updater == null)
+                    await Task.Delay(TimeSpan.FromSeconds(10));
+                Console.WriteLine("booting flipper");
+                Program.updater.OnNewUpdateStart += () =>
+                {
+                    Instance.LowPriceQueue.Clear();
+                    if (Instance.PotetialFlipps.Count < 100)
+                        return;
+                    var boostCount = Instance.PotetialFlipps.Count / 12;
+                    Console.WriteLine($"boosting flipper with {boostCount}");
+                    // the flipper didn't get thorough all items in the last min increase the worker count
+                    for (int i = 0; i < boostCount; i++)
+                    {
+                        Task.Run(async () =>
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(10 + i));
+                            await Instance.ProcessPotentialFlipps();
+                        });
+                    }
+
+                };
             });
         }
+
 
         public void AddConnection(SkyblockBackEnd con, int id = 0)
         {
             Subs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
+            var toSendFlips = Flipps.Reverse().Take(3);
+            SendFlipHistory(con, id, toSendFlips);
+        }
+
+        public void AddNonConnection(SkyblockBackEnd con, int id = 0)
+        {
+            SlowSubs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
+            var toSendFlips = Flipps.Take(23);
+            SendFlipHistory(con, id, toSendFlips);
+        }
+
+        private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips)
+        {
             Task.Run(async () =>
             {
-                foreach (var item in Flipps.Reverse().Take(3))
+                foreach (var item in toSendFlips)
                 {
-                    await Task.Delay(6000);
+                    await Task.Delay(5000);
                     var data = CreateDataFromFlip(item);
                     data.mId = id;
                     con.SendBack(data);
@@ -69,18 +100,22 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            var minPricePointAdopted = PotetialFlipps.Count > 120 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 4;
+            var minPricePointAdopted = PotetialFlipps.Count > 120 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 2;
             if (PotetialFlipps.Count < 60)
-                minPricePointAdopted = MIN_PRICE_POINT / 10;
+                minPricePointAdopted = MIN_PRICE_POINT / 5;
             foreach (var auction in auctions)
             {
                 // determine flippability
                 var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
                 if (price < minPricePointAdopted || !auction.Bin)
-                    return; // unflipable
+                {
+                    if (price > minPricePointAdopted / 10)
+                        LowPriceQueue.Enqueue(auction);
+                    continue; // unflipable
+                }
 
                 if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
-                    return;
+                    continue;
 
                 if (AlreadyChecked.Count > 10_000)
                     AlreadyChecked.Clear();
@@ -106,7 +141,8 @@ namespace hypixel.Flipper
                         batchSize = 20;
                     for (int i = 0; i < batchSize; i++)
                     {
-                        if (PotetialFlipps.TryDequeue(out SaveAuction auction))
+                        SaveAuction auction;
+                        if (GetAuctionToCheckFlipability(out auction))
                             await NewAuction(auction, context);
                     }
                 }
@@ -116,6 +152,13 @@ namespace hypixel.Flipper
             {
                 dev.Logger.Instance.Error($"Flipper threw an exception {e.Message} {e.StackTrace}");
             }
+        }
+
+        private bool GetAuctionToCheckFlipability(out SaveAuction auction)
+        {
+            if (!PotetialFlipps.TryDequeue(out auction))
+                return LowPriceQueue.TryDequeue(out auction);
+            return true;
         }
 
         private async Task TryLoadFromCache()
@@ -151,7 +194,7 @@ namespace hypixel.Flipper
             var highLvlEnchantList = relevantEnchants.Where(e => !UltimateEnchants.ContainsKey(e.Type)).Select(a => a.Type).ToList();
             var oldest = DateTime.Now - TimeSpan.FromHours(1);
 
-            IQueryable<SaveAuction> select = GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest,10);
+            IQueryable<SaveAuction> select = GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 10);
 
             var relevantAuctions = await select
                 .ToListAsync();
@@ -162,15 +205,16 @@ namespace hypixel.Flipper
                 oldest = DateTime.Now - TimeSpan.FromDays(1);
                 relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                 .ToListAsync();
+
+                if (relevantAuctions.Count < 50)
+                {
+                    // to few auctions in a day, query a week
+                    oldest = DateTime.Now - TimeSpan.FromDays(8);
+                    relevantAuctions = await GetSelect(auction, context, clearedName.Replace("✪", ""), itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 120)
+                    .ToListAsync();
+                }
             }
 
-            if (relevantAuctions.Count < 50)
-            {
-                // to few auctions in a day, query a week
-                oldest = DateTime.Now - TimeSpan.FromDays(8);
-                relevantAuctions = await GetSelect(auction, context, clearedName.Replace("✪",""), itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 120)
-                .ToListAsync();
-            }
 
             if (relevantAuctions.Count < 3)
             {
@@ -192,11 +236,13 @@ namespace hypixel.Flipper
             var medianPrice = relevantAuctions
                 .OrderByDescending(a => a.HighestBidAmount).Select(a => a.HighestBidAmount).Skip(relevantAuctions.Count / 2).First();
 
+
             var recomendedBuyUnder = medianPrice * 0.8;
             if (price > recomendedBuyUnder) // at least 20% profit
             {
                 return; // not a good flip
             }
+
 
 
             var flip = new FlipInstance()
@@ -272,19 +318,30 @@ namespace hypixel.Flipper
         private void FlippFound(FlipInstance flip)
         {
             MessageData message = CreateDataFromFlip(flip);
-            foreach (var item in Subs.Keys)
+            var subscribers = Subs;
+            NotifyAll(message, Subs);
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromMinutes(3));
+                NotifyAll(message, SlowSubs);
+            });
+        }
+
+        private static void NotifyAll(MessageData message, ConcurrentDictionary<long, int> subscribers)
+        {
+            foreach (var item in subscribers.Keys)
             {
                 var m = MessageData.Copy(message);
-                m.mId = Subs[item];
+                m.mId = subscribers[item];
                 try
                 {
                     if (!SkyblockBackEnd.SendTo(m, item))
-                        Subs.TryRemove(item, out int value);
+                        subscribers.TryRemove(item, out int value);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    Subs.TryRemove(item, out int value);
+                    subscribers.TryRemove(item, out int value);
                 }
             }
         }

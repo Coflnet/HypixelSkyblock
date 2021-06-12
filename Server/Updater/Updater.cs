@@ -19,6 +19,8 @@ namespace hypixel
         private bool abort;
         private static bool minimumOutput;
 
+        public event Action OnNewUpdateStart;
+
         public static DateTime LastPull { get; internal set; }
         public static int UpdateSize { get; internal set; }
 
@@ -120,6 +122,7 @@ namespace hypixel
                 await Task.Delay(5000);
                 return updateStartTime;
             }
+            OnNewUpdateStart?.Invoke();
 
             var cancelToken = new CancellationToken();
             AuctionCount = new ConcurrentDictionary<string, int>();

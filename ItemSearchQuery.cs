@@ -97,5 +97,12 @@ namespace hypixel
             hash.Add(End);
             return hash.ToHashCode();
         }
+
+        public enum SortBy
+        {
+            ASYNC,
+            CREATED = 2,
+            ENDED = 4
+        }
     }
 }
