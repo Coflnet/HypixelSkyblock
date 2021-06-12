@@ -6,7 +6,7 @@ namespace hypixel.Filter
 {
     public class UIdFilter : GeneralFilter
     {
-        public override FilterType FilterType => FilterType.Equal;
+        public override FilterType FilterType => FilterType.Equal | FilterType.RANGE;
         public override IEnumerable<object> Options => new object[] { "000000000000", "ffffffffffff" };
 
         public override Func<DBItem, bool> IsApplicable => item 

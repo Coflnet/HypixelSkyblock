@@ -7,7 +7,7 @@ namespace hypixel.Filter
 {
     public class PetLevelFilter : GeneralFilter
     {
-        public override FilterType FilterType => FilterType.Equal | FilterType.NUMERICAL;
+        public override FilterType FilterType => FilterType.Equal | FilterType.NUMERICAL | FilterType.RANGE;
         public override IEnumerable<object> Options => new object[] { 1, 100 };
 
         public override Func<DBItem, bool> IsApplicable => item => item?.Tag?.StartsWith("PET_") ?? false;
