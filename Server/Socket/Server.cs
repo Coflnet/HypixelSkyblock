@@ -281,13 +281,13 @@ namespace hypixel
             {
                 context.SetContentType("text/css");
             }
-            else if (path.EndsWith(".js") || path.Contains("/js/"))
+            if (path.EndsWith(".js") || path.Contains("/js/"))
             {
                 context.SetContentType("text/javascript");
             }
             context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
 
-            context.WriteAsync(contents);
+            await context.WriteAsync(contents);
         }
 
 
