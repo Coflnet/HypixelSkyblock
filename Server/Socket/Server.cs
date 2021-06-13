@@ -281,7 +281,7 @@ namespace hypixel
             {
                 context.SetContentType("text/css");
             }
-            else if (path.EndsWith(".js"))
+            else if (path.EndsWith(".js") || path.Contains("/js/"))
             {
                 context.SetContentType("text/javascript");
             }
