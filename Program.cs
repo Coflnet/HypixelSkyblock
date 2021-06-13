@@ -220,9 +220,10 @@ namespace hypixel
             var bazzar = new BazaarUpdater();
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
-            RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper got error");
-            RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper 2 got error");
-            RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, "flipper 3 got error");
+            for (int i = 0; i < 3; i++)
+            {
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error");
+            }
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();

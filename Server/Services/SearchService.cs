@@ -158,8 +158,15 @@ namespace hypixel
 
             foreach (var letter in letters)
             {
+                try 
+                {
+
                 await CreateAndCache(letter.ToString());
                 await Task.Delay(100);
+                } catch(Exception e)
+                {
+                    Console.WriteLine($"Search service cache {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace}");
+                }
             }
             //await CreateAndCache("");
             Console.WriteLine("populated Cache");

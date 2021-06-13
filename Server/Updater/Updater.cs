@@ -20,6 +20,10 @@ namespace hypixel
         private static bool minimumOutput;
 
         public event Action OnNewUpdateStart;
+        /// <summary>
+        /// Gets invoked when an update is done
+        /// </summary>
+        public event Action OnNewUpdateEnd;
 
         public static DateTime LastPull { get; internal set; }
         public static int UpdateSize { get; internal set; }
@@ -182,7 +186,6 @@ namespace hypixel
                     Console.Write("\t mem: " + System.GC.GetTotalMemory(false));
                     System.GC.Collect();
                 }
-
                 //await Task.Delay(100);
             }
 
@@ -204,6 +207,8 @@ namespace hypixel
 
             Console.WriteLine($"Updated {sum} auctions {doneCont} pages");
             UpdateSize = sum;
+
+            OnNewUpdateEnd?.Invoke();
 
             return lastHypixelCache;
         }
@@ -291,7 +296,7 @@ namespace hypixel
                 })
                 .Select(a =>
                 {
-                    if(Program.Migrated)
+                    if (Program.Migrated)
                         ItemDetails.Instance.AddOrIgnoreDetails(a);
                     count++;
                     var auction = new SaveAuction(a);

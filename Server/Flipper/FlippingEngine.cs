@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ namespace hypixel.Flipper
         public static FlipperEngine Instance { get; }
 
         private const string FoundFlippsKey = "foundFlipps";
-        private static int MIN_PRICE_POINT = 1000000;
+        private static int MIN_PRICE_POINT = 800000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
@@ -27,6 +28,8 @@ namespace hypixel.Flipper
 
         private ConcurrentQueue<SaveAuction> PotetialFlipps = new ConcurrentQueue<SaveAuction>();
         private ConcurrentQueue<SaveAuction> LowPriceQueue = new ConcurrentQueue<SaveAuction>();
+        private Queue<Task> TempFlipWorkers = new Queue<Task>();
+        CancellationTokenSource TempWorkersStopSource = new CancellationTokenSource();
 
         public int QueueSize => PotetialFlipps.Count + LowPriceQueue.Count * 10000;
 
@@ -43,27 +46,71 @@ namespace hypixel.Flipper
                 while (Program.updater == null)
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 Console.WriteLine("booting flipper");
-                Program.updater.OnNewUpdateStart += () =>
-                {
-                    Instance.LowPriceQueue.Clear();
-                    if (Instance.PotetialFlipps.Count < 100)
-                        return;
-                    var boostCount = Instance.PotetialFlipps.Count / 12;
-                    Console.WriteLine($"boosting flipper with {boostCount}");
-                    // the flipper didn't get thorough all items in the last min increase the worker count
-                    for (int i = 0; i < boostCount; i++)
-                    {
-                        Task.Run(async () =>
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(10 + i));
-                            await Instance.ProcessPotentialFlipps();
-                        });
-                    }
-
-                };
+                Program.updater.OnNewUpdateStart += Instance.OnUpdateStart;
+                Program.updater.OnNewUpdateEnd += Instance.OnUpdateEnd;
             });
         }
 
+        private void OnUpdateStart()
+        {
+            TempWorkersStopSource.Cancel();
+            TempWorkersStopSource = new CancellationTokenSource();
+            var skippCount = Instance.LowPriceQueue.Count * 4 / 5 -50;
+            if(skippCount <= 0)
+            {
+                Console.WriteLine("got through all auctions :)");
+                return;
+            }
+            Console.WriteLine($"flipper skipping {skippCount} auctions");
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                for (int i = 0; i < skippCount; i++)
+                {
+                    Instance.LowPriceQueue.TryDequeue(out SaveAuction removed);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Gets called when the updater has finished an update
+        /// </summary>
+        private void OnUpdateEnd()
+        {
+            var cancleToken = TempWorkersStopSource.Token;
+            var workerCount = 3;
+            Console.WriteLine($"Starting {workerCount} temp flip workers"); 
+            for (int i = 0; i < workerCount; i++)
+            {
+                var worker = Task.Run(async () =>
+                {
+                    await DoFlipWork(cancleToken);
+
+                }, cancleToken);
+            }
+        }
+
+        private async Task DoFlipWork(CancellationToken cancleToken)
+        {
+            try
+            {
+                while (LowPriceQueue.Count > 100)
+                {
+                    
+                    await ProcessPotentialFlipps(cancleToken);
+                    if (cancleToken.IsCancellationRequested)
+                    {
+                        Console.Write(" canceled temp worker :/ ");
+                        return;
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Temp flip worker got exception {e.Message} {e.StackTrace}");
+            }
+        }
 
         public void AddConnection(SkyblockBackEnd con, int id = 0)
         {
@@ -100,18 +147,14 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            var minPricePointAdopted = PotetialFlipps.Count > 120 ? MIN_PRICE_POINT : MIN_PRICE_POINT / 2;
-            if (PotetialFlipps.Count < 60)
-                minPricePointAdopted = MIN_PRICE_POINT / 5;
             foreach (var auction in auctions)
             {
                 // determine flippability
                 var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-                if (price < minPricePointAdopted || !auction.Bin)
+                if (price < MIN_PRICE_POINT || !auction.Bin)
                 {
-                    if (price > minPricePointAdopted / 10)
-                        LowPriceQueue.Enqueue(auction);
-                    continue; // unflipable
+                    LowPriceQueue.Enqueue(auction);
+                    continue; // low profit
                 }
 
                 if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
@@ -129,6 +172,11 @@ namespace hypixel.Flipper
 
         public async Task ProcessPotentialFlipps()
         {
+            ProcessPotentialFlipps(CancellationToken.None);
+        }
+
+        public async Task ProcessPotentialFlipps(CancellationToken cancleToken)
+        {
             try
             {
                 await TryLoadFromCache();
@@ -141,12 +189,13 @@ namespace hypixel.Flipper
                         batchSize = 20;
                     for (int i = 0; i < batchSize; i++)
                     {
+                        if (cancleToken.IsCancellationRequested)
+                            return;
                         SaveAuction auction;
                         if (GetAuctionToCheckFlipability(out auction))
                             await NewAuction(auction, context);
                     }
                 }
-                await Task.Delay(TimeSpan.FromSeconds(2));
             }
             catch (Exception e)
             {
@@ -260,7 +309,8 @@ namespace hypixel.Flipper
                 Flipps.TryDequeue(out FlipInstance result);
 
             FlippFound(flip);
-            await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
+            if (auction.Uuid[0] == 'a') // reduce saves
+                await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
 
         private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest, int limit = 60)
