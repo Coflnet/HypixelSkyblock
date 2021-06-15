@@ -79,7 +79,7 @@ namespace hypixel
                 }
                 catch (Exception ex)
                 {
-                    dev.Logger.Instance.Error(ex,$"Ran into an error on get `{e.Request.RawUrl}`");
+                    dev.Logger.Instance.Error(ex, $"Ran into an error on get `{e.Request.RawUrl}`");
                     return;
                 }
 
@@ -337,6 +337,12 @@ namespace hypixel
                     try
                     {
                         command.Execute(data);
+
+                        if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
+                        {
+                            throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
+                        }
+                        return;
                     }
                     catch (CoflnetException ex)
                     {
@@ -355,10 +361,6 @@ namespace hypixel
                         data.CompletionSource.TrySetException(e);
                         Console.WriteLine($"{e.InnerException?.Message} {e.InnerException?.StackTrace}");
                         //throw e;
-                    }
-                    if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
-                    {
-                        throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
                     }
                 }
                 else
