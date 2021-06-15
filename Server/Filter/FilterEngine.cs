@@ -10,7 +10,6 @@ namespace hypixel.Filter
 
         public FilterEngine()
         {
-            
             Filters.Add<ReforgeFilter>();
             Filters.Add<RarityFilter>();
             Filters.Add<PetLevelFilter>();
@@ -20,6 +19,7 @@ namespace hypixel.Filter
             Filters.Add<UIdFilter>();
             Filters.Add<EndBeforeFilter>();
             Filters.Add<EndAfterFilter>();
+            Filters.Add<ItemIdFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)

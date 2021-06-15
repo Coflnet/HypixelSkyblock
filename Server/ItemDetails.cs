@@ -123,6 +123,15 @@ namespace hypixel
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
+            if(TagLookup.Count == 0)
+            {
+                using(var context = new HypixelContext())
+                {
+                    var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
+                    if(id != 0)
+                        return id;
+                }
+            }
             // this should be a tag by now
             if (TagLookup.TryGetValue(name, out int value))
                 return value;

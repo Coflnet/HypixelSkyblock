@@ -20,7 +20,6 @@ namespace hypixel
             }
 
             var thread = ItemPrices.Instance.GetPriceFor(details);
-            thread.Wait();
             var res = thread.Result;
 
             var maxAge = A_MINUTE;

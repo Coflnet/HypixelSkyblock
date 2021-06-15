@@ -33,20 +33,20 @@ namespace hypixel
             var headerStart = start[0] + "<title>";
             var parts = start[1].Split("</head>");
             string header = parts.First();
-            string html = parts.Last().Substring(0,parts.Last().Length - 14);
+            string html = parts.Last().Substring(0, parts.Last().Length - 14);
 
 
-            if(path.StartsWith("/p/"))
+            if (path.StartsWith("/p/"))
                 return res.RedirectSkyblock(parameter, "player");
-            if(path.StartsWith("/a/"))
+            if (path.StartsWith("/a/"))
                 return res.RedirectSkyblock(parameter, "auction");
-            if(path == "/item/" || path == "/item")
+            if (path == "/item/" || path == "/item")
                 return res.RedirectSkyblock();
 
             // try to fill in title
             if (path.Contains("auction/"))
             {
-                await WriteStart(res,headerStart);
+                await WriteStart(res, headerStart);
                 // is an auction
                 using (var context = new HypixelContext())
                 {
@@ -54,33 +54,34 @@ namespace hypixel
                             .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category }).FirstOrDefault();
                     if (result == null)
                     {
-                        await WriteHeader("/error",res,"This site was not found","Error",imageUrl,null,header);
+                        await WriteHeader("/error", res, "This site was not found", "Error", imageUrl, null, header);
                         await res.WriteEnd(html);
                         return "";
                     }
-                    
-
-                        var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
-                        title = $"Auction for {result.ItemName} by {playerName}";
-                        description = $"{title} ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
 
 
-                        if (!string.IsNullOrEmpty(result.Tag))
-                            imageUrl = "https://sky.lea.moe/item/" + result.Tag;
-                        else
-                            imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
-
-                        await WriteHeader(path, res, description, title, imageUrl, keyword, header);
-
-                        longDescription = description
-                            + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
-                            + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
-                        keyword = $"{result.ItemName},{playerName}";
+                    var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
+                    title = $"Auction for {result.ItemName} by {playerName}";
+                    description = $"{title} ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
 
 
-                    
+                    if (!string.IsNullOrEmpty(result.Tag))
+                        imageUrl = "https://sky.lea.moe/item/" + result.Tag;
+                    else
+                        imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
+
+                    await WriteHeader(path, res, description, title, imageUrl, keyword, header);
+
+                    longDescription = description
+                        + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
+                        + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
+                    keyword = $"{result.ItemName},{playerName}";
+
+
+
                 }
-            } else if (path.Contains("player/"))
+            }
+            else if (path.Contains("player/"))
             {
                 if (parameter.Length < 30)
                 {
@@ -88,7 +89,7 @@ namespace hypixel
                     return res.RedirectSkyblock(uuid, "player", parameter);
                 }
 
-                await WriteStart(res,headerStart);
+                await WriteStart(res, headerStart);
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
                 if (urlParts.Length <= 3)
                     path += $"/{keyword}";
@@ -107,14 +108,15 @@ namespace hypixel
                 await res.WriteEnd(await bids + PopularPages());
 
                 return "";
-            } else if (path.Contains("item/") || path.Contains("i/"))
+            }
+            else if (path.Contains("item/") || path.Contains("i/"))
             {
                 if (path.Contains("i/"))
                     return res.RedirectSkyblock(parameter, "item", keyword);
-                if (!ItemDetails.Instance.TagLookup.ContainsKey(parameter) )
+                if (!ItemDetails.Instance.TagLookup.ContainsKey(parameter))
                 {
                     var upperCased = parameter.ToUpper();
-                    if(ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
+                    if (ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
                         return res.RedirectSkyblock(upperCased, "item");
                     // likely not a tag
                     parameter = HttpUtility.UrlDecode(parameter);
@@ -125,21 +127,21 @@ namespace hypixel
                     parameter = item?.Tag;
                     return res.RedirectSkyblock(parameter, "item", keyword);
                 }
-                await WriteStart(res,headerStart);
+                await WriteStart(res, headerStart);
                 keyword = ItemDetails.TagToName(parameter);
-                
+
 
                 var i = await ItemDetails.Instance.GetDetailsWithCache(parameter);
                 path = CreateCanoicalPath(urlParts, i);
                 var name = i?.Names?.FirstOrDefault();
-                if(name != null)
+                if (name != null)
                     keyword = name;
 
                 title = $"{keyword} price ";
                 float price = await GetAvgPrice(parameter);
                 description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. Visit for a nice chart and filter options";
                 imageUrl = "https://sky.lea.moe/item/" + parameter;
-                if(parameter.StartsWith("PET_") && !parameter.StartsWith("PET_ITEM") || parameter.StartsWith("POTION"))
+                if (parameter.StartsWith("PET_") && !parameter.StartsWith("PET_ITEM") || parameter.StartsWith("POTION"))
                     imageUrl = i.IconUrl;
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
 
@@ -148,17 +150,24 @@ namespace hypixel
 
                 longDescription += await GetRecentAuctions(i.Tag == "Unknown" || i.Tag == null ? parameter : i.Tag);
             }
-            else {
+            else
+            {
+                if(path.Contains("/flipper"))
+                {
+                    title = "Skyblock AH history auction flipper";
+                    description = "Free auction house item flipper for Hypixel Skyblock";
+                    keyword = "flipper";
+                }
                 // unkown site, write the header
-                await WriteStart(res,headerStart);
-                await WriteHeader(path, res, description, "", imageUrl, keyword, header);
+                await WriteStart(res, headerStart);
+                await WriteHeader(path, res, description, title, imageUrl, keyword, header);
             }
             if (longDescription == null)
                 longDescription = description;
 
 
             var newHtml = html + DETAILS_START
-                        + BottomText(title, longDescription) ;
+                        + BottomText(title, longDescription);
 
             await res.WriteEnd(newHtml);
             return newHtml;
@@ -166,13 +175,14 @@ namespace hypixel
 
         private static async Task<float> GetAvgPrice(string tag)
         {
-            try 
+            try
             {
-            var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
-            if(prices == null || prices.Count == 0)
-                return 0;
-            return prices.Average(a => a.Avg);
-            } catch (Exception e)
+                var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
+                if (prices == null || prices.Count == 0)
+                    return 0;
+                return prices.Average(a => a.Avg);
+            }
+            catch (Exception e)
             {
                 Console.WriteLine($"Could not get price for {tag} {e.Message} {e.StackTrace}");
                 return -1;
@@ -183,7 +193,7 @@ namespace hypixel
         private static async Task WriteStart(Server.RequestContext res, string content)
         {
             await res.WriteAsync(content);
-           // res.SendChunked = true;
+            // res.SendChunked = true;
             res.AddHeader("cache-control", "public,max-age=" + 1800);
 
             res.ForceSend();
@@ -214,7 +224,7 @@ namespace hypixel
                 + $"<link rel=\"canonical\" href=\"https://sky.coflnet.com{path}\" />"
                 )
                 + "</head>");
-            
+
             res.ForceSend();
         }
 
@@ -266,10 +276,10 @@ namespace hypixel
 
         private static async Task<string> GetRecentAuctions(string tag)
         {
-            if(tag == null)
+            if (tag == null)
                 return "";
             var isBazaar = ItemPrices.Instance.IsBazaar(ItemDetails.Instance.GetItemIdForName(tag));
-            if(isBazaar)
+            if (isBazaar)
                 return " This is a bazaar item. Bazaartracker.com currently gives you a more detailed view of this history. ";
             var result = await Server.ExecuteCommandWithCache<ItemSearchQuery, IEnumerable<AuctionPreview>>("recentAuctions", new ItemSearchQuery()
             {

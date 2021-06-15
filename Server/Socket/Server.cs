@@ -79,7 +79,7 @@ namespace hypixel
                 }
                 catch (Exception ex)
                 {
-                    dev.Logger.Instance.Error($"Ran into an error on get `{e.Request.RawUrl}` {ex.Message} {ex.StackTrace}");
+                    dev.Logger.Instance.Error(ex,$"Ran into an error on get `{e.Request.RawUrl}`");
                     return;
                 }
 
@@ -112,7 +112,7 @@ namespace hypixel
             public abstract void SetStatusCode(int code);
             public abstract void AddHeader(string name, string value);
             public abstract void Redirect(string uri);
-            public abstract IDictionary<string,string> QueryString { get; }
+            public abstract IDictionary<string, string> QueryString { get; }
 
             internal virtual void ForceSend()
             {
@@ -332,10 +332,36 @@ namespace hypixel
                   await Limiter.WaitUntilAllowed(ip); */
                 Console.Write($"r {data.Type} {data.Data.Truncate(15)} ");
                 //ExecuteCommandWithCache
-                if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command)){
-                    command.Execute(data);
-                    await data.CompletionSource.Task;
-                }else
+                if (SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
+                {
+                    try
+                    {
+                        command.Execute(data);
+                    }
+                    catch (CoflnetException ex)
+                    {
+                        context.SetStatusCode(400);
+                        await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
+                    }
+                    catch (Exception e)
+                    {
+                        if (e.InnerException is CoflnetException ex)
+                        {
+                            context.SetStatusCode(400);
+                            await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
+                            return;
+                        }
+                        Console.WriteLine("holly shit");
+                        data.CompletionSource.TrySetException(e);
+                        Console.WriteLine($"{e.InnerException?.Message} {e.InnerException?.StackTrace}");
+                        //throw e;
+                    }
+                    if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
+                    {
+                        throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
+                    }
+                }
+                else
                     throw new CoflnetException("unkown_command", "Command not known, check the docs");
             }
             catch (CoflnetException ex)
@@ -346,8 +372,8 @@ namespace hypixel
             catch (Exception ex)
             {
                 context.SetStatusCode(500);
-                dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}");
                 data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected error occured, make sure the format of Data is correct" })));
+                dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}\n {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
             }
         }
 
@@ -476,7 +502,7 @@ namespace hypixel
                 || data.LastNameUpdate < maxTime
                 || data.LastAuctionPull < maxTime)
             {
-            res.SetStatusCode(500);
+                res.SetStatusCode(500);
             }
 
 
@@ -490,7 +516,7 @@ namespace hypixel
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data.Select(i => new { i.Name, i.Tag, i.MinecraftType, i.IconUrl }));
-                await context.WriteAsync(json);
+            await context.WriteAsync(json);
         }
 
         private static async Task PrintPlayers(RequestContext reqcon)

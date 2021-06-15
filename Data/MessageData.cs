@@ -172,7 +172,7 @@ namespace hypixel
                 Console.WriteLine("returned empty response on " + JSON.Stringify(this));
             }
             context.WriteAsync(json).Wait();
-            source.SetResult(true);
+            source.TrySetResult(true);
         }
     }
 }

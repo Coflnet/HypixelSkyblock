@@ -24,5 +24,15 @@ namespace dev
             } catch(System.Exception)
             { }
         }
+
+
+        public void Error(System.Exception error, string message = null)
+        {
+            if(message != null)
+                Error(message);
+            Error($"{error.Message} {error.StackTrace}");
+            if(error.InnerException != null)
+                Error(error.InnerException);
+        }
     }
 }

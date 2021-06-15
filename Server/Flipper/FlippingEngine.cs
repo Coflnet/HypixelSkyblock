@@ -55,8 +55,8 @@ namespace hypixel.Flipper
         {
             TempWorkersStopSource.Cancel();
             TempWorkersStopSource = new CancellationTokenSource();
-            var skippCount = Instance.LowPriceQueue.Count * 4 / 5 -50;
-            if(skippCount <= 0)
+            var skippCount = Instance.LowPriceQueue.Count * 4 / 5 - 50;
+            if (skippCount <= 0)
             {
                 Console.WriteLine("got through all auctions :)");
                 return;
@@ -79,7 +79,7 @@ namespace hypixel.Flipper
         {
             var cancleToken = TempWorkersStopSource.Token;
             var workerCount = 3;
-            Console.WriteLine($"Starting {workerCount} temp flip workers"); 
+            Console.WriteLine($"Starting {workerCount} temp flip workers");
             for (int i = 0; i < workerCount; i++)
             {
                 var worker = Task.Run(async () =>
@@ -96,7 +96,7 @@ namespace hypixel.Flipper
             {
                 while (LowPriceQueue.Count > 100)
                 {
-                    
+
                     await ProcessPotentialFlipps(cancleToken);
                     if (cancleToken.IsCancellationRequested)
                     {
@@ -151,11 +151,6 @@ namespace hypixel.Flipper
             {
                 // determine flippability
                 var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-                if (price < MIN_PRICE_POINT || !auction.Bin)
-                {
-                    LowPriceQueue.Enqueue(auction);
-                    continue; // low profit
-                }
 
                 if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
                     continue;
@@ -163,6 +158,14 @@ namespace hypixel.Flipper
                 if (AlreadyChecked.Count > 10_000)
                     AlreadyChecked.Clear();
                 AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
+
+                if (price < MIN_PRICE_POINT || !auction.Bin)
+                {
+                    LowPriceQueue.Enqueue(auction);
+                    continue; // low profit
+                }
+
+
 
 
                 PotetialFlipps.Enqueue(auction);

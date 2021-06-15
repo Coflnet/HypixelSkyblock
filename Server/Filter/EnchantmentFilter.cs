@@ -17,6 +17,20 @@ namespace hypixel.Filter
         }
     }
 
+    public class ItemIdFilter : GeneralFilter
+    {
+        public override FilterType FilterType => FilterType.Equal | FilterType.NUMERICAL;
+        public override IEnumerable<object> Options => new object[] { 1, 1000 };
+
+        public override Func<DBItem, bool> IsApplicable => i => false;
+
+        public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
+        {
+            return query;
+        }
+
+    }
+
     public class EnchantLvlFilter : GeneralFilter
     {
         public override FilterType FilterType => FilterType.Equal;
@@ -35,7 +49,9 @@ namespace hypixel.Filter
         {
             var enchant = Enum.Parse<Enchantment.EnchantmentType>(args.Filters["Enchantment"]);
             var lvl = (short)args.GetAsLong(this);
-            return query.Include(a => a.Enchantments).Where(a => a.Enchantments.Where(e => e.Type == enchant && e.Level == lvl).Any());
+            var itemid = int.Parse(args.Filters["ItemId"]);
+            Console.WriteLine(itemid);
+            return query.Where(a => a.Enchantments.Where(e => itemid == e.ItemType && e.Type == enchant && e.Level == lvl).Any());
         }
     }
 }

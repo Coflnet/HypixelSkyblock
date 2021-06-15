@@ -6,7 +6,7 @@ namespace hypixel.Filter
 {
     public abstract class GeneralFilter : IFilter
     {
-        public string Name => this.GetType().Name.Replace("Filter", "").ToLower();
+        public string Name => this.GetType().Name.Replace("Filter", "");
 
         public virtual Func<DBItem, bool> IsApplicable => item => true;
 

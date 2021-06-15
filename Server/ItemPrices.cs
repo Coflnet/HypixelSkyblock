@@ -234,10 +234,12 @@ namespace hypixel
             if (details.Filter != null && details.Start < min)
                 throw new CoflnetException("filter_to_large", $"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
             var select = AuctionSelect(details.Start, details.End, context, itemId);
-            
-            if (details.Filter != null && details.Filter.Count > 0)
-                return FilterEngine.AddFilters(select, details.Filter);
 
+            if (details.Filter != null && details.Filter.Count > 0)
+            {
+                details.Filter["ItemId"] = itemId.ToString();
+                return FilterEngine.AddFilters(select, details.Filter);
+            }
 
             if (details.Enchantments != null && details.Enchantments.Any())
                 select = AddEnchantmentWhere(details.Enchantments, select, context, itemId, limit);
@@ -541,8 +543,7 @@ namespace hypixel
             if (detailed)
                 groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
 
-
-            return (await groupedSelect
+            var dbResult = await groupedSelect
                 .Select(item =>
                     new
                     {
@@ -551,7 +552,9 @@ namespace hypixel
                         Max = (int)item.Max(a => ((int)a.HighestBidAmount) / a.Count),
                         Min = (int)item.Min(a => ((int)a.HighestBidAmount) / a.Count),
                         Count = item.Sum(a => a.Count)
-                    }).ToListAsync())
+                    }).ToListAsync();
+
+            return dbResult
                 .Select(i => new AveragePrice()
                 {
                     Volume = i.Count,
@@ -630,7 +633,8 @@ namespace hypixel
                     {
                         Console.WriteLine($"query has filter {filter} {query.Filter?[filter]}");
                     }
-                } catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine($"{e.Message} {e.StackTrace}");
                 }
