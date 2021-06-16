@@ -52,7 +52,18 @@ namespace hypixel
         {
             if (String.IsNullOrEmpty(Data))
                 return default(T);
-            return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
+            try
+            {
+                return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
+            }
+            catch (Exception)
+            {
+                if (typeof(T) == typeof(string))
+                {
+                    return (T)(object)Convert.ToBase64String(Encoding.UTF8.GetBytes(Data)) ;
+                }  
+                throw;
+            }
         }
 
 

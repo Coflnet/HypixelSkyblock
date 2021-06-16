@@ -28,10 +28,22 @@ namespace hypixel
 
         public CacheService()
         {
-            ConfigurationOptions options = ConfigurationOptions.Parse(SimplerConfig.Config.Instance["redisCon"]);
-            options.Password = SimplerConfig.Config.Instance["redisPassword"];
-            options.AsyncTimeout = 10000;
-            RedisConnection = ConnectionMultiplexer.Connect(options);
+            try
+            {
+                ConfigurationOptions options = ConfigurationOptions.Parse(SimplerConfig.Config.Instance["redisCon"]);
+                options.Password = SimplerConfig.Config.Instance["redisPassword"];
+                options.AsyncTimeout = 10000;
+                RedisConnection = ConnectionMultiplexer.Connect(options);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "Cache service constructor ");
+                Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1));
+                    Instance = new CacheService();
+                });
+            }
         }
 
         public async Task<T> GetFromRedis<T>(RedisKey key)
@@ -45,7 +57,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error($"Redis error {e.Message} {e.StackTrace} \n on key {key}" );
+                dev.Logger.Instance.Error($"Redis error {e.Message} {e.StackTrace} \n on key {key}");
                 return default(T);
             }
 

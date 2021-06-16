@@ -125,6 +125,7 @@ namespace hypixel.Flipper
             var toSendFlips = Flipps.Take(23);
             SendFlipHistory(con, id, toSendFlips);
         }
+        
 
         private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips)
         {
@@ -235,6 +236,48 @@ namespace hypixel.Flipper
             //    Console.WriteLine("easy item");
 
 
+            var (relevantAuctions,oldest) = await GetRelevantAuctions(auction,context);
+
+            if (relevantAuctions.Count < 2)
+            {
+                Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
+                return;
+            }
+
+            var medianPrice = relevantAuctions
+                .OrderByDescending(a => a.HighestBidAmount)
+                .Select(a => a.HighestBidAmount)
+                .Skip(relevantAuctions.Count / 2)
+                .FirstOrDefault();
+
+
+            var recomendedBuyUnder = medianPrice * 0.8;
+            if (price > recomendedBuyUnder) // at least 20% profit
+            {
+                return; // not a good flip
+            }
+
+            var flip = new FlipInstance()
+            {
+                MedianPrice = (int)medianPrice,
+                Name = auction.ItemName,
+                Uuid = auction.Uuid,
+                LastKnownCost = (int)price,
+                Volume = (float)(relevantAuctions.Count / (DateTime.Now - oldest).TotalDays),
+                Tag = auction.Tag,
+                Bin = auction.Bin
+            };
+            Flipps.Enqueue(flip);
+            if (Flipps.Count > 200)
+                Flipps.TryDequeue(out FlipInstance result);
+
+            FlippFound(flip);
+            if (auction.Uuid[0] == 'a') // reduce saves
+                await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
+        }
+
+        public async Task<(List<SaveAuction>,DateTime)> GetRelevantAuctions(SaveAuction auction, HypixelContext context)
+        {
             var itemData = auction.NbtData.Data;
             var clearedName = auction.Reforge != ItemReferences.Reforge.None ? ItemReferences.RemoveReforge(auction.ItemName) : auction.ItemName;
             var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
@@ -276,44 +319,7 @@ namespace hypixel.Flipper
             }
 
 
-            // client filter
-            //               if (matchingCount > 0)
-            //                    relevantAuctions = relevantAuctions.Where(a => a.Enchantments.Where(e => relevantEnchants.Where(r => r.Type == e.Type).First().Level == e.Level).Any()).ToList();
-            if (relevantAuctions.Count < 2)
-            {
-                Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({clearedName} {auction.Enchantments.Count} {matchingCount}");
-                return;
-            }
-
-            var medianPrice = relevantAuctions
-                .OrderByDescending(a => a.HighestBidAmount).Select(a => a.HighestBidAmount).Skip(relevantAuctions.Count / 2).First();
-
-
-            var recomendedBuyUnder = medianPrice * 0.8;
-            if (price > recomendedBuyUnder) // at least 20% profit
-            {
-                return; // not a good flip
-            }
-
-
-
-            var flip = new FlipInstance()
-            {
-                MedianPrice = (int)medianPrice,
-                Name = auction.ItemName,
-                Uuid = auction.Uuid,
-                LastKnownCost = (int)price,
-                Volume = (float)(relevantAuctions.Count / (DateTime.Now - oldest).TotalDays),
-                Tag = auction.Tag,
-                Bin = auction.Bin
-            };
-            Flipps.Enqueue(flip);
-            if (Flipps.Count > 200)
-                Flipps.TryDequeue(out FlipInstance result);
-
-            FlippFound(flip);
-            if (auction.Uuid[0] == 'a') // reduce saves
-                await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
+            return (relevantAuctions,oldest);
         }
 
         private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest, int limit = 60)
@@ -359,7 +365,7 @@ namespace hypixel.Flipper
                         .Where(e => (e.Level > 5 && highLvlEnchantList.Contains(e.Type)
                                     || e.Type == ultiType && e.Level == ultiLevel)).Count() >= matchingCount);
             else if (auction.Enchantments?.Count == 1)
-                select = select.Where(a => a.Enchantments != null && a.Enchantments.First().Type == auction.Enchantments.First().Type && a.Enchantments.First().Level == auction.Enchantments.First().Level);
+                select = select.Where(a => a.Enchantments != null && a.Enchantments.Any() && a.Enchantments.First().Type == auction.Enchantments.First().Type && a.Enchantments.First().Level == auction.Enchantments.First().Level);
             // make sure we exclude special enchants to get a reasonable price
             else if (auction.Enchantments.Any())
                 select = select.Where(a => !a.Enchantments.Where(e => ultiList.Contains(e.Type) || e.Level > 5).Any());
