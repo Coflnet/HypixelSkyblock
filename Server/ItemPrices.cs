@@ -222,7 +222,7 @@ namespace hypixel
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
                 IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
-                IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select);
+                IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now - TimeSpan.FromDays(1.1));
 
                 return FromList(response.ToList(), details.name);
             }
