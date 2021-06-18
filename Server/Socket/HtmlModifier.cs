@@ -86,7 +86,7 @@ namespace hypixel
                 if (parameter.Length < 30)
                 {
                     var uuid = PlayerSearch.Instance.GetIdForName(parameter);
-                    return res.RedirectSkyblock(uuid, "player", parameter);
+                    return res.RedirectSkyblock(uuid, "player", uuid);
                 }
 
                 await WriteStart(res, headerStart);
