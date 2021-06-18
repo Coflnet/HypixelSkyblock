@@ -7,6 +7,11 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             ItemSearchQuery details = ItemPricesCommand.GetQuery(data);
+            if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
+            {
+                ClientProxy.Instance.Proxy(data);
+                return;
+            }
             // temporary map none (0) to any
             if (details.Reforge == Reforge.None)
                 details.Reforge = Reforge.Any;
