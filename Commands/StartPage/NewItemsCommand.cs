@@ -10,11 +10,11 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var items = context.Items.OrderByDescending(p => p.Id)
-                    .Where(i=>i.Names.FirstOrDefault() != null)
+                    .Where(i=>i.Names.FirstOrDefault() != null && i.Names.FirstOrDefault() != "null")
                     .Take(50)
                     .Select(i=>new Response(){IconUrl = i.IconUrl,Name = i.Names.FirstOrDefault(),Tag= i.Tag})
                     .ToList();
-                data.SendBack(data.Create("newItemsResponse", items, A_MINUTE));
+                data.SendBack(data.Create("newItemsResponse", items, A_HOUR));
             }
         }
 
