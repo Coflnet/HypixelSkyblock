@@ -77,8 +77,6 @@ namespace hypixel
                         + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
                     keyword = $"{result.ItemName},{playerName}";
 
-
-
                 }
             }
             else if (path.Contains("player/"))

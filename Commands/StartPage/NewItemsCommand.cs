@@ -10,6 +10,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var items = context.Items.OrderByDescending(p => p.Id)
+                    .Where(i=>i.Names.FirstOrDefault() != null)
                     .Take(50)
                     .Select(i=>new Response(){IconUrl = i.IconUrl,Name = i.Names.FirstOrDefault(),Tag= i.Tag})
                     .ToList();

@@ -27,8 +27,6 @@ namespace hypixel
                 data.SendBack(data.Create("popularSearches", pages
                     .OrderBy(s => r.Next()).Take(50).ToList(), A_MINUTE * 5));
             }
-
-
         }
 
         [DataContract]
