@@ -18,7 +18,7 @@ namespace hypixel
     {
         const int targetAmount = 5;
 
-        
+
 
         ConcurrentDictionary<string, CacheItem> cache = new ConcurrentDictionary<string, CacheItem>();
         ConcurrentQueue<PopularSite> popularSite = new ConcurrentQueue<PopularSite>();
@@ -29,14 +29,14 @@ namespace hypixel
         internal void AddPopularSite(string type, string id)
         {
             string title = "";
-            if(type == "player")
+            if (type == "player")
                 title = PlayerSearch.Instance.GetNameWithCache(id) + " auctions hypixel skyblock";
-            else if(type == "item")
+            else if (type == "item")
                 title = ItemDetails.TagToName(id) + " price hypixel skyblock";
             var entry = new PopularSite(title, $"{type}/{id}");
-            if(!popularSite.Contains(entry))
+            if (!popularSite.Contains(entry))
                 popularSite.Enqueue(entry);
-            if(popularSite.Count > 100)
+            if (popularSite.Count > 100)
                 popularSite.TryDequeue(out PopularSite result);
         }
 
@@ -73,7 +73,7 @@ namespace hypixel
 
         private async Task Work()
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
 
                 if (updateCount % 10000 == 9999)
@@ -101,7 +101,7 @@ namespace hypixel
             }
             var update = cache.Where(el => el.Value.hitCount > 1)
                 .OrderBy(el => el.Value.created)
-                .OrderByDescending(el=>el.Value.hitCount)
+                .OrderByDescending(el => el.Value.hitCount)
                 .Select(el => el.Key)
                 .Take(maxUpdateCount)
                 .ToList();
@@ -158,12 +158,13 @@ namespace hypixel
 
             foreach (var letter in letters)
             {
-                try 
+                try
                 {
 
-                await CreateAndCache(letter.ToString());
-                await Task.Delay(100);
-                } catch(Exception e)
+                    await CreateAndCache(letter.ToString());
+                    await Task.Delay(100);
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine($"Search service cache {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace}");
                 }
@@ -179,7 +180,7 @@ namespace hypixel
             var items = await ItemDetails.Instance.Search(search, 20);
             var players = await PlayerSearch.Instance.Search(search, targetAmount, false);
 
-            if(items.Count() == 0 && players.Count() == 0)
+            if (items.Count() == 0 && players.Count() == 0)
                 items = await ItemDetails.Instance.FindClosest(search);
 
             result.AddRange(items.Select(item => new SearchResultItem(item)));
@@ -232,7 +233,7 @@ namespace hypixel
                 else
                     this.IconUrl = item.IconUrl;
                 this.HitCount = item.HitCount + ITEM_EXTRA_IMPORTANCE;
-                if(ItemReferences.RemoveReforgesAndLevel(Name) != Name)
+                if (ItemReferences.RemoveReforgesAndLevel(Name) != Name)
                     this.HitCount -= NOT_NORMALIZED_PENILTY;
             }
 
@@ -245,10 +246,17 @@ namespace hypixel
             {
                 this.Name = player.Name;
                 this.Id = player.UUid;
-                this.IconUrl = "https://crafatar.com/avatars/" + player.UUid;
+                this.IconUrl = PlayerHeadUrl(player.UUid);
                 this.Type = "player";
                 this.HitCount = player.HitCount;
             }
+
+
+        }
+
+        public static string PlayerHeadUrl(string playerUuid)
+        {
+            return "https://crafatar.com/avatars/" + playerUuid;
         }
     }
 

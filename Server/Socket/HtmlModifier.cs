@@ -68,7 +68,7 @@ namespace hypixel
                     if (!string.IsNullOrEmpty(result.Tag))
                         imageUrl = "https://sky.lea.moe/item/" + result.Tag;
                     else
-                        imageUrl = "https://crafatar.com/avatars/" + result.AuctioneerId;
+                        imageUrl = SearchService.PlayerHeadUrl(result.AuctioneerId);
 
                     await WriteHeader(path, res, description, title, imageUrl, keyword, header);
 
@@ -96,7 +96,7 @@ namespace hypixel
                 title = $"{keyword} Auctions and bids";
                 description = $"Auctions and bids for {keyword} in hypixel skyblock.";
 
-                imageUrl = "https://crafatar.com/avatars/" + parameter;
+                imageUrl = SearchService.PlayerHeadUrl(parameter);
 
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
 

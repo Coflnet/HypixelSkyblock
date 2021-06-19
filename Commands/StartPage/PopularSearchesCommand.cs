@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace hypixel
 {
@@ -6,21 +7,39 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
-            var pages = SearchService.Instance.GetPopularSites().Take(50).ToList();
-            if(pages.Count < 10)
+            var r = new System.Random();
+            using (var context = new HypixelContext())
             {
-                using(var context = new HypixelContext())
-                {
-                    pages = context.Items
-                        .OrderByDescending(i => i.HitCount)
-                        .Select(i=>new {Name=i.Names.FirstOrDefault(),i.Tag})
-                        .Take(40).ToList()
-                        .Select(i => new PopularSite(i.Name, "/item/" + i.Tag))
-                        .ToList();
-                }
-            }
-            data.SendBack(data.Create("popularSearches", pages, A_MINUTE * 5));
+                var pages = context.Items
+                    .OrderByDescending(i => i.HitCount)
+                    .Select(i => new { Name = i.Names.FirstOrDefault(), i.Tag, i.IconUrl })
+                    .Take(40).ToList()
+                    .Select(i => new Result() { title = i.Name?.Name, url = "/item/" + i.Tag, img = i.IconUrl })
+                    .ToList();
 
+
+                pages.AddRange(context.Players
+                    .OrderByDescending(i => i.HitCount).Select(i => new { Name = i.Name, i.UuId })
+                    .Take(40)
+                    .ToList()
+                    .Select(p => new Result() { title = p.Name, url = "/player/" + p.UuId, img = SearchService.PlayerHeadUrl(p.UuId) }));
+
+                data.SendBack(data.Create("popularSearches", pages
+                    .OrderBy(s => r.Next()).Take(50).ToList(), A_MINUTE * 5));
+            }
+
+
+        }
+
+        [DataContract]
+        public class Result
+        {
+            [DataMember]
+            public string title;
+            [DataMember]
+            public string url;
+            [DataMember]
+            public string img;
         }
     }
 }

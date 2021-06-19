@@ -212,12 +212,5 @@ namespace hypixel
         {
             return ItemIconsBase + $"/{tag}";
         }
-
-        string PlayerIconUrl(string uuid)
-        {
-            return "https://crafatar.com/avatars/" + uuid;
-        }
-
-
     }
 }
