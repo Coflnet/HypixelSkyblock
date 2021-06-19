@@ -359,8 +359,8 @@ namespace hypixel
                         }
                         Console.WriteLine("holly shit");
                         data.CompletionSource.TrySetException(e);
-                        Console.WriteLine($"{e.InnerException?.Message} {e.InnerException?.StackTrace}");
-                        //throw e;
+                        dev.Logger.Instance.Error(e);
+                        throw e;
                     }
                 }
                 else
@@ -374,7 +374,7 @@ namespace hypixel
             catch (Exception ex)
             {
                 context.SetStatusCode(500);
-                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected error occured, make sure the format of Data is correct" })));
+                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
                 dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}\n {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
             }
         }
