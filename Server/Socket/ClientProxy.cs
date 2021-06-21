@@ -218,11 +218,20 @@ namespace hypixel
             int count = 0;
             using (var context = new HypixelContext())
             {
-                var existing = context.Players.Where(p => ids.Contains(p.UuId)).ToDictionary(p => p.UuId);
+                var existingPlayers = context.Players.Where(p => ids.Contains(p.UuId));
+                var existing = existingPlayers.ToDictionary(p => p.UuId);
                 foreach (var player in players)
                 {
                     if (existing.ContainsKey(player.UuId))
+                    {
+                        var existingPlayer =   existingPlayers.Where(p => p.UuId == player.UuId).FirstOrDefault();
+                        if(existingPlayer.Name == null)
+                        {
+                            existingPlayer.Name = player.Name;
+                            context.Update(existingPlayer);
+                        }
                         continue;
+                    }
                     context.Players.Add(player);
                     count++;
                     if (count % 1000 == 0)
@@ -295,7 +304,7 @@ namespace hypixel
                 count++;
             }
             await context.SaveChangesAsync();
-            if (context.Items.Any() && context.Players.Count() > 2_000_000)
+            if (context.Items.Any() && context.Players.Count() > 20_000)
                 Program.Migrated = true;
             return count;
         }

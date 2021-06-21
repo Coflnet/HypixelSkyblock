@@ -184,6 +184,12 @@ namespace hypixel
         [IgnoreMember]
         [JsonIgnore]
         public List<NBTLookup> NBTLookup { get; set; }
+        /// <summary>
+        /// The first part of a uuid converted to a long for faster lookups
+        /// </summary>
+        [Key(26)]
+        [JsonIgnore]
+        public long UId { get; set; }
 
 
         public SaveAuction(Hypixel.NET.SkyblockApi.Auction auction)
@@ -217,6 +223,7 @@ namespace hypixel
             }
             NBT.FillDetails(this, auction.ItemBytes);
             Bin = auction.BuyItNow; // missing from nuget package
+            UId = AuctionService.Instance.GetId(auction.Uuid);
         }
 
         public SaveAuction(Hypixel.NET.SkyblockApi.Auctions.Auction auction)

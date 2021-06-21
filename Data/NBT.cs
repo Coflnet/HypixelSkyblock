@@ -416,7 +416,7 @@ namespace hypixel
             return new DateTime();
         }
 
-        public static short AnvilUses(NbtFile data)
+        public static byte AnvilUses(NbtFile data)
         {
             var extra = GetExtraTag(data);
             if (extra == null || !extra.TryGet<NbtInt>("anvil_uses", out NbtInt anvilUses))
@@ -424,7 +424,7 @@ namespace hypixel
                 return 0;
             }
 
-            return (short)anvilUses.IntValue;
+            return (byte)(anvilUses.IntValue < 100 ? anvilUses.IntValue : 100);
         }
 
         public static short HotPotatoCount(NbtFile data)

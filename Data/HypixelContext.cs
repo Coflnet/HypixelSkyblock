@@ -76,6 +76,7 @@ namespace hypixel
                 entity.HasIndex(e => e.SellerId);
                 entity.HasIndex(e => new { e.ItemId, e.End });
                 entity.HasMany(e=>e.NBTLookup).WithOne().HasForeignKey("AuctionId");
+                entity.HasIndex(e => e.UId);
                 //entity.HasOne<NbtData>(d=>d.NbtData);
                 //entity.HasMany<Enchantment>(e=>e.Enchantments);
             });
@@ -109,6 +110,7 @@ namespace hypixel
                 entity.HasKey(e => e.UuId);
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.Id);
+                entity.HasIndex(e => e.UId);
                 //entity.Property(e=>e.Id).ValueGeneratedOnAdd();
                 //entity.HasMany(p=>p.Auctions).WithOne().HasForeignKey(a=>a.SellerId).HasPrincipalKey(p=>p.Id);
                 //entity.HasMany(p=>p.Bids).WithOne().HasForeignKey(a=>a.BidderId).HasPrincipalKey(p=>p.Id);

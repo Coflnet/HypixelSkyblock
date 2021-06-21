@@ -7,6 +7,7 @@ namespace hypixel
     [MessagePackObject(true)]
     public class Player : IHitCount
     {
+        [IgnoreMember]
         public int Id {get;set;}
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         public string UuId {get;set;}
@@ -20,6 +21,7 @@ namespace hypixel
         public bool ChangedFlag {get;set;}
 
         public int HitCount {get;set;}
+        public int UId {get;set;}
 
         public Player() { }
 
