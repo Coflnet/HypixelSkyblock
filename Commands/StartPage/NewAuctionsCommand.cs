@@ -9,7 +9,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var pages = context.Auctions.OrderByDescending(a => a.Id)
-                    .Take(50)
+                    .Take(30)
                     .Select(p=>new PlayerAuctionsCommand.AuctionResult(p))
                     .ToList();
                 data.SendBack(data.Create("newAuctions", pages, A_MINUTE));

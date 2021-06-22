@@ -11,7 +11,7 @@ namespace hypixel
                 var end = System.DateTime.Now;
                 var pages = context.Auctions.Where(a => a.End < end)
                     .OrderByDescending(a => a.End)
-                    .Take(20)
+                    .Take(30)
                     .Select(p=>new PlayerAuctionsCommand.AuctionResult(p))
                     .ToList()
                     .Select(a=>{
