@@ -12,7 +12,8 @@ namespace hypixel.Filter
         public override Func<DBItem, bool> IsApplicable => item 
                     => item?.Category.HasFlag(Category.WEAPON) ?? false 
                     || item.Category.HasFlag(Category.ARMOR)
-                    || item.Category.HasFlag(Category.CONSUMABLES);
+                    || item.Category.HasFlag(Category.CONSUMABLES)
+                    || item.Tag.StartsWith("PET_");
 
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {
