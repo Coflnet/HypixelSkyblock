@@ -13,7 +13,14 @@ namespace hypixel
                     .OrderByDescending(a => a.End)
                     .Take(20)
                     .Select(p=>new PlayerAuctionsCommand.AuctionResult(p))
-                    .ToList();
+                    .ToList()
+                    .Select(a=>{
+                        if(a.ItemName == null)
+                        {
+                            a.ItemName = ItemDetails.TagToName(a.Tag);
+                        }
+                        return a;
+                    }).ToList();
                 data.SendBack(data.Create("endedAuctions", pages, A_MINUTE));
             }
         }
