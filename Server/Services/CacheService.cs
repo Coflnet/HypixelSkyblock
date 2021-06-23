@@ -82,7 +82,14 @@ namespace hypixel
                 return;
 
             string key = GetCacheKey(request);
-            await AddOrUpdateCache(response, index, key);
+            try
+            {
+                await AddOrUpdateCache(response, index, key);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "saving into cache");
+            }
         }
 
         private async Task AddOrUpdateCache(MessageData response, int index, string key)
@@ -92,11 +99,6 @@ namespace hypixel
             await SaveInRedis(key, newEntry, span);
         }
 
-        public void Save(string type, string data, MessageData response)
-        {
-            string key = GetCacheKey(type, data);
-            AddOrUpdateCache(response, 0, key);
-        }
 
         public bool TryFromCache(MessageData request)
         {

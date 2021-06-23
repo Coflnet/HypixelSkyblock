@@ -67,6 +67,9 @@ namespace hypixel
             Commands.Add("paymentSession", new CreatePaymentCommand());
             Commands.Add("premiumExpiration", new PremiumExpirationCommand());
             Commands.Add("setConId", new SetConnectionIdCommand());
+            Commands.Add("getRefInfo", new GetRefInfoCommand());
+            Commands.Add("setRef", new SetMyReferalCommand());
+            
 
             Commands.Add("subscribe", new PushSubscribeCommand());
             Commands.Add("unsubscribe", new DeleteSubscriptionCommand());
