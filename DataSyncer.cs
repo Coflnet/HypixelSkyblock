@@ -19,7 +19,6 @@ public class DataSyncer
                 ParameterType.RequestBody);
         IRestResponse response = client.Execute(request);
         dynamic result = JsonConvert.DeserializeObject(response.Content);
-        Console.WriteLine(result.data.auction.id);
         var a = StorageManager.GetOrCreateAuction((string)result.data.auction.id);
         Console.WriteLine(JsonConvert.SerializeObject(a));
         NBT.FillDetails(a,(string)result.data.auction.itemBytes);

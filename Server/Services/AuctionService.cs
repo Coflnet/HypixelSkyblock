@@ -37,7 +37,6 @@ namespace hypixel
             var builder = new System.Text.StringBuilder(uuid);
             builder.Remove(12, 1);
             builder.Remove(16, uuid.Length -17);
-            Console.WriteLine(builder.ToString());
             var id = Convert.ToInt64(builder.ToString(), 16);
             if(id == 0)
                 id = 1; // allow uId == 0 to be false if not calculated

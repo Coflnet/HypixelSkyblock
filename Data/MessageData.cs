@@ -173,8 +173,6 @@ namespace hypixel
 
         public override void SendBack(MessageData data, bool cache = true)
         {
-            if (cache)
-                CacheService.Instance.Save(this, data, 0);
             var json = data.Data;
             context.SetStatusCode(200);
             context.AddHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
@@ -184,6 +182,9 @@ namespace hypixel
             }
             context.WriteAsync(json).Wait();
             source.TrySetResult(true);
+
+            if (cache)
+                CacheService.Instance.Save(this, data, 0);
         }
     }
 }
