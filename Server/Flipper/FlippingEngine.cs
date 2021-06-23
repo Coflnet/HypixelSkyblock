@@ -230,7 +230,7 @@ namespace hypixel.Flipper
         {
 
 
-            var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
+            var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
             // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
             //    Console.WriteLine("easy item");
@@ -246,7 +246,7 @@ namespace hypixel.Flipper
 
             var medianPrice = relevantAuctions
                 .OrderByDescending(a => a.HighestBidAmount)
-                .Select(a => a.HighestBidAmount)
+                .Select(a => a.HighestBidAmount / a.Count)
                 .Skip(relevantAuctions.Count / 2)
                 .FirstOrDefault();
 
