@@ -75,9 +75,44 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-
+                if (updateCount % 11 == 9)
+                    await AddOccurences(context);
                 if (updateCount % 10000 == 9999)
                     ShrinkHits(context);
+            }
+            await SaveHits();
+        }
+
+        private async Task AddOccurences(HypixelContext context)
+        {
+            foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
+            {
+                var sample = await context.Auctions
+                                .Where(a=>a.ItemId == itemId)
+                                .OrderByDescending(a => a.Id)
+                                .Take(20)
+                                .Select(a => a.ItemName)
+                                .ToListAsync();
+
+                var names = context.AltItemNames.Where(n => n.DBItemId == itemId);
+                foreach (var item in names)
+                {
+                    var occured = sample.Count(s => s == item.Name);
+                    if(occured == 0)
+                        continue;
+                    item.OccuredTimes += occured;
+                    context.Update(item);
+                }
+                await context.SaveChangesAsync();
+            }
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+
+        public async Task SaveHits()
+        {
+            using (var context = new HypixelContext())
+            {
                 if (updateCount % 12 == 5)
                     PartialUpdateCache(context);
                 ItemDetails.Instance.SaveHits(context);

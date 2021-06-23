@@ -123,12 +123,12 @@ namespace hypixel
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
-            if(TagLookup.Count == 0)
+            if (TagLookup.Count == 0)
             {
-                using(var context = new HypixelContext())
+                using (var context = new HypixelContext())
                 {
                     var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
-                    if(id != 0)
+                    if (id != 0)
                         return id;
                 }
             }
@@ -345,7 +345,7 @@ namespace hypixel
         {
             if (n == null || n.Name == null)
                 return 100;
-            return n.Name.Length + (Regex.IsMatch(n.Name, "^[a-zA-Z0-9]*$") ? 0 : 40);
+            return n.Name.Length + (Regex.IsMatch(n.Name, "^[a-zA-Z0-9 ]*$") ? 0 : 40) - n.OccuredTimes;
         }
 
         public async Task<DBItem> GetDetailsWithCache(string itemTag)

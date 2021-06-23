@@ -200,6 +200,11 @@ namespace hypixel
             if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
+                RunIsolatedForever(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1));
+                    await SearchService.Instance.SaveHits();
+                }, "saving hits failed");
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
             if (mode == "indexer")
