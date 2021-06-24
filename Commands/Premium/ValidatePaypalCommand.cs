@@ -19,7 +19,7 @@ namespace hypixel
             OrdersGetRequest request = new OrdersGetRequest(args.OrderId);
             if(string.IsNullOrEmpty(clientId))
                 throw new CoflnetException("unavailable", "checkout via paypal has not yet been enabled, please contact an admin");
-            var client = new PayPalHttpClient(new SandboxEnvironment(clientId, clientSecret));
+            var client = new PayPalHttpClient(new LiveEnvironment(clientId, clientSecret));
             //3. Call PayPal to get the transaction
             PayPalHttp.HttpResponse response;
             try {

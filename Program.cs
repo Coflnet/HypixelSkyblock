@@ -402,7 +402,7 @@ namespace hypixel
             var bwi = new BackWardsNBTIndexer(minId);
             Task.Run(() =>
             {
-                Task.Delay(TimeSpan.FromMinutes(11));
+                Task.Delay(TimeSpan.FromSeconds(11));
                 RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
             });
 

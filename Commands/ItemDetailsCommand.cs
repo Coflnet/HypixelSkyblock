@@ -14,7 +14,7 @@ namespace hypixel
         {
             string search = ReplaceInvalidCharacters(data.Data); 
             var details = ItemDetails.Instance.GetDetails(search);
-            var time = A_WEEK;
+            var time = A_DAY;
             if(details.Tag == "Unknown" || string.IsNullOrEmpty(details.Tag))
                 time = 0;
             return data.Create("itemDetailsResponse", details, time);

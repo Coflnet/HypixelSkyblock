@@ -237,7 +237,13 @@ namespace hypixel
                     if (count % 1000 == 0)
                         await context.SaveChangesAsync();
                 }
-                await context.SaveChangesAsync();
+                try 
+                {
+                    await context.SaveChangesAsync();
+                } catch(Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "playerSync");
+                }
                 count = context.Players.Count();
             }
             data.SendBack(data.Create("playerSync", response.Offset));

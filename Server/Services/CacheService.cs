@@ -113,15 +113,35 @@ namespace hypixel
             if (responses.Expires < DateTime.Now)
                 return false;
 
+            var maxAgeLeft = (int)(responses.Expires - DateTime.Now).TotalSeconds;
             foreach (var response in responses.Responses)
             {
                 // adjust the cache time to when it expires on the server
-                response.MaxAge = (int)(responses.Expires - DateTime.Now).TotalSeconds;
+                response.MaxAge = maxAgeLeft;
                 request.SendBack(response, false);
             }
+            if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
+                RefreshResponse(request);
+                
             return true;
         }
 
+        private static void RefreshResponse(MessageData request)
+        {
+            var proxyReq = new CacheMessageData(request.Type, request.Data);
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    Console.WriteLine("renewing cache for " + request.Type);
+                    Server.ExecuteCommandHeadless(proxyReq);
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "cache refresh failed");
+                }
+            });
+        }
 
         public void ClearStale()
         {/*
@@ -157,11 +177,15 @@ namespace hypixel
             [Key(1)]
             public List<ReducedCommandData> Reduced;
 
+            [Key(2)]
+            public DateTime Created;
+
             public CacheElement(DateTime expires, List<MessageData> responses)
             {
                 Expires = expires;
                 Reduced = responses.Select(CreateItem)
                             .ToList();
+                Created = DateTime.Now;
             }
 
             public CacheElement()
@@ -265,6 +289,21 @@ namespace hypixel
                 }
 
                 return Encoding.UTF8.GetString(mso.ToArray());
+            }
+        }
+
+        public class CacheMessageData : MessageData
+        {
+            public CacheMessageData(string type, string data)
+            {
+                this.Type = type;
+                this.Data = data;
+            }
+
+            public override void SendBack(MessageData data, bool cache = true)
+            {
+                CacheService.Instance.Save(Type, this.Data, data);
+                Console.WriteLine("X-X-X\nwrote into cache");
             }
         }
     }

@@ -336,12 +336,7 @@ namespace hypixel
                 {
                     try
                     {
-                        command.Execute(data);
-
-                        if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
-                        {
-                            throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
-                        }
+                        ExecuteCommand(data, command);
                         return;
                     }
                     catch (CoflnetException ex)
@@ -355,12 +350,15 @@ namespace hypixel
                         {
                             context.SetStatusCode(400);
                             await context.WriteAsync(JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
-                            return;
+
                         }
-                        Console.WriteLine("holly shit");
-                        data.CompletionSource.TrySetException(e);
-                        dev.Logger.Instance.Error(e);
-                        throw e;
+                        else
+                        {
+                            Console.WriteLine("holly shit");
+                            data.CompletionSource.TrySetException(e);
+                            dev.Logger.Instance.Error(e);
+                            throw e;
+                        }
                     }
                 }
                 else
@@ -376,6 +374,31 @@ namespace hypixel
                 context.SetStatusCode(500);
                 data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
                 dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}\n {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
+            }
+        }
+
+        public static void ExecuteCommandHeadless(MessageData data)
+        {
+            if (!SkyblockBackEnd.Commands.TryGetValue(data.Type, out Command command))
+                return; // unkown command
+
+            try
+            {
+                command.Execute(data);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "Failed to update cache");
+            }
+        }
+
+        private static void ExecuteCommand(HttpMessageData data, Command command)
+        {
+            command.Execute(data);
+
+            if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
+            {
+                throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
             }
         }
 
