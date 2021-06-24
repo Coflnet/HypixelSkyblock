@@ -82,6 +82,7 @@ namespace hypixel
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
+            Commands.Add("paypalPurchase", new ValidatePaypalCommand());
 
             Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());
             Commands.Add("subFlip", new SubFlipperCommand());
