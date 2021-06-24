@@ -56,6 +56,7 @@ namespace hypixel
             
             UsedIds.Add(args.OrderId);
             FileController.AppendLineAs("purchases",JSON.Stringify(result));
+            data.Ok();
         }
 
         [DataContract]
