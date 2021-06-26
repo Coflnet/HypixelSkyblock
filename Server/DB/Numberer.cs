@@ -43,8 +43,16 @@ namespace hypixel
                     await NumberAuctions(context);
 
                     await context.SaveChangesAsync();
-
                 }
+
+                // temp migration
+                foreach (var item in context.Auctions.Where(a=>a.UId == 0)
+                                    .OrderByDescending(a => a.Id).Take(5000))
+                {
+                    item.UId = AuctionService.Instance.GetId(item.Uuid);
+                    context.Update(item);
+                }
+                await context.SaveChangesAsync();
 
             }
             if (bidNumberTask != null)

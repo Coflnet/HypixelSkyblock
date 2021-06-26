@@ -67,7 +67,14 @@ namespace hypixel
         {
             if (timeout == default(TimeSpan))
                 timeout = TimeSpan.FromDays(1);
-            await RedisConnection.GetDatabase().StringSetAsync(key, MessagePack.MessagePackSerializer.Serialize(obj), timeout);
+            try
+            {
+                await RedisConnection.GetDatabase().StringSetAsync(key, MessagePack.MessagePackSerializer.Serialize(obj), timeout);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "Saving into redis");
+            }
         }
 
         public async Task ModifyInRedis<T>(RedisKey key, Func<T, T> modifier, TimeSpan timeout = default(TimeSpan))
@@ -122,7 +129,7 @@ namespace hypixel
             }
             if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
                 RefreshResponse(request);
-                
+
             return true;
         }
 

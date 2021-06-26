@@ -186,11 +186,10 @@ namespace hypixel.Flipper
 
                 if (price < MIN_PRICE_POINT || !auction.Bin)
                 {
-                    LowPriceQueue.Enqueue(auction);
-                    continue; // low profit
+                    if (price > 10) // we only care about auctions worth more than the fee
+                        LowPriceQueue.Enqueue(auction);
+                    continue;
                 }
-
-
 
 
                 PotetialFlipps.Enqueue(auction);
@@ -256,15 +255,14 @@ namespace hypixel.Flipper
             }
         }
 
+        public ConcurrentDictionary<long, List<long>> relevantAuctionIds = new ConcurrentDictionary<long, List<long>>();
+
         public async System.Threading.Tasks.Task NewAuction(SaveAuction auction, HypixelContext context)
         {
-
-
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
             // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
             //    Console.WriteLine("easy item");
-
 
             var (relevantAuctions, oldest) = await GetRelevantAuctions(auction, context);
 
@@ -285,6 +283,12 @@ namespace hypixel.Flipper
             if (price > recomendedBuyUnder) // at least 20% profit
             {
                 return; // not a good flip
+            }
+
+            relevantAuctionIds[auction.UId] = relevantAuctions.Select(a => a.UId == 0 ? AuctionService.Instance.GetId(a.Uuid) : a.UId).ToList();
+            if (relevantAuctionIds.Count > 10000)
+            {
+                relevantAuctionIds.Clear();
             }
 
             var flip = new FlipInstance()
