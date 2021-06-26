@@ -33,6 +33,10 @@ namespace hypixel.Flipper
 
         public int QueueSize => PotetialFlipps.Count + LowPriceQueue.Count * 10000;
         private ConcurrentDictionary<long, DateTime> SoldAuctions = new ConcurrentDictionary<long, DateTime>();
+        /// <summary>
+        /// Wherether or not a given <see cref="SaveAuction.UId"/> was a flip or not
+        /// </summary>
+        private ConcurrentDictionary<long, bool> FlipIdLookup = new ConcurrentDictionary<long, bool>();
 
         static FlipperEngine()
         {
@@ -101,7 +105,7 @@ namespace hypixel.Flipper
             var oldestTime = DateTime.Now - TimeSpan.FromMinutes(10);
             foreach (var item in SoldAuctions)
             {
-                if(item.Value < oldestTime)
+                if (item.Value < oldestTime)
                     toRemove.Add(item.Key);
             }
             foreach (var item in toRemove)
@@ -145,7 +149,7 @@ namespace hypixel.Flipper
             var toSendFlips = Flipps.Take(23);
             SendFlipHistory(con, id, toSendFlips);
         }
-        
+
 
         private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips)
         {
@@ -242,7 +246,13 @@ namespace hypixel.Flipper
 
                 var fromCache = await CacheService.Instance.GetFromRedis<ConcurrentQueue<FlipInstance>>(FoundFlippsKey);
                 if (fromCache != default(ConcurrentQueue<FlipInstance>))
+                {
                     Flipps = fromCache;
+                    foreach (var item in Flipps)
+                    {
+                        FlipIdLookup[item.UId] = true;
+                    }
+                }
             }
         }
 
@@ -256,7 +266,7 @@ namespace hypixel.Flipper
             //    Console.WriteLine("easy item");
 
 
-            var (relevantAuctions,oldest) = await GetRelevantAuctions(auction,context);
+            var (relevantAuctions, oldest) = await GetRelevantAuctions(auction, context);
 
             if (relevantAuctions.Count < 2)
             {
@@ -285,18 +295,16 @@ namespace hypixel.Flipper
                 LastKnownCost = (int)price,
                 Volume = (float)(relevantAuctions.Count / (DateTime.Now - oldest).TotalDays),
                 Tag = auction.Tag,
-                Bin = auction.Bin
+                Bin = auction.Bin,
+                UId = auction.UId
             };
-            Flipps.Enqueue(flip);
-            if (Flipps.Count > 200)
-                Flipps.TryDequeue(out FlipInstance result);
 
-            FlippFound(flip,auction.UId);
+            FlippFound(flip);
             if (auction.Uuid[0] == 'a') // reduce saves
                 await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
 
-        public async Task<(List<SaveAuction>,DateTime)> GetRelevantAuctions(SaveAuction auction, HypixelContext context)
+        public async Task<(List<SaveAuction>, DateTime)> GetRelevantAuctions(SaveAuction auction, HypixelContext context)
         {
             var itemData = auction.NbtData.Data;
             var clearedName = auction.Reforge != ItemReferences.Reforge.None ? ItemReferences.RemoveReforge(auction.ItemName) : auction.ItemName;
@@ -339,7 +347,7 @@ namespace hypixel.Flipper
             }
 
 
-            return (relevantAuctions,oldest);
+            return (relevantAuctions, oldest);
         }
 
         private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest, int limit = 60)
@@ -394,20 +402,30 @@ namespace hypixel.Flipper
             return select;
         }
 
-        private void FlippFound(FlipInstance flip, long flipUid)
+        private void FlippFound(FlipInstance flip)
         {
             MessageData message = CreateDataFromFlip(flip);
             NotifyAll(message, Subs);
             Task.Run(async () =>
             {
                 await Task.Delay(TimeSpan.FromMinutes(3));
-                if(SoldAuctions.ContainsKey(flipUid))
+                if (SoldAuctions.ContainsKey(flip.UId))
                 {
                     flip.Sold = true;
                     message = CreateDataFromFlip(flip);
                 }
                 NotifyAll(message, SlowSubs);
             });
+
+            Flipps.Enqueue(flip);
+            FlipIdLookup[flip.UId] = true;
+            if (Flipps.Count > 800)
+            {
+                if (Flipps.TryDequeue(out FlipInstance result))
+                {
+                    FlipIdLookup.Remove(result.UId, out bool value);
+                }
+            }
         }
 
         /// <summary>
@@ -416,6 +434,8 @@ namespace hypixel.Flipper
         /// <param name="auction"></param>
         public void AuctionSold(SaveAuction auction)
         {
+            if (!FlipIdLookup.ContainsKey(auction.UId))
+                return;
             var message = new MessageData("sold", auction.Uuid);
             NotifyAll(message, Subs);
             SoldAuctions[auction.UId] = auction.End;
@@ -475,6 +495,8 @@ namespace hypixel.Flipper
             public bool Bin;
             [DataMember(Name = "sold")]
             public bool Sold { get; internal set; }
+            [IgnoreDataMember]
+            public long UId;
         }
     }
 

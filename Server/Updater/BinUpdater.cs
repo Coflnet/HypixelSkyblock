@@ -49,7 +49,8 @@ namespace hypixel
                         },
                     HighestBidAmount = item.Price,
                     Bin = item.BuyItemNow,
-                    End = DateTime.Now
+                    End = DateTime.Now,
+                    UId = AuctionService.Instance.GetId(item.Uuid)
                 };
 
                 NBT.FillDetails(a, item.ItemBytes);
