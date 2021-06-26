@@ -57,16 +57,14 @@ namespace hypixel
             });
             Indexer.AddToQueue(auctions);
 
-         /*   Task.Run(async () =>
+            Task.Run(() =>
             {
                 foreach (var item in auctions)
                 {
-                    // has to be faster
                     SubscribeEngine.Instance.BinSold(item);
+                    Flipper.FlipperEngine.Instance.AuctionSold(item);
                 }
-                await Task.Delay(10000);
-                await ItemPrices.Instance.AddEndedAuctions(auctions);
-            }); */
+            });
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
         }
     }

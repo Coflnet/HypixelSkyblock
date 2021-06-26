@@ -32,6 +32,7 @@ namespace hypixel.Flipper
         CancellationTokenSource TempWorkersStopSource = new CancellationTokenSource();
 
         public int QueueSize => PotetialFlipps.Count + LowPriceQueue.Count * 10000;
+        private ConcurrentDictionary<long, DateTime> SoldAuctions = new ConcurrentDictionary<long, DateTime>();
 
         static FlipperEngine()
         {
@@ -87,6 +88,25 @@ namespace hypixel.Flipper
                     await DoFlipWork(cancleToken);
 
                 }, cancleToken);
+            }
+            ClearSoldBuffer();
+        }
+
+        /// <summary>
+        /// Removes old <see cref="SoldAuctions"/>
+        /// </summary>
+        private void ClearSoldBuffer()
+        {
+            var toRemove = new List<long>();
+            var oldestTime = DateTime.Now - TimeSpan.FromMinutes(10);
+            foreach (var item in SoldAuctions)
+            {
+                if(item.Value < oldestTime)
+                    toRemove.Add(item.Key);
+            }
+            foreach (var item in toRemove)
+            {
+                SoldAuctions.TryRemove(item, out DateTime deleted);
             }
         }
 
@@ -271,7 +291,7 @@ namespace hypixel.Flipper
             if (Flipps.Count > 200)
                 Flipps.TryDequeue(out FlipInstance result);
 
-            FlippFound(flip);
+            FlippFound(flip,auction.UId);
             if (auction.Uuid[0] == 'a') // reduce saves
                 await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
@@ -374,16 +394,31 @@ namespace hypixel.Flipper
             return select;
         }
 
-        private void FlippFound(FlipInstance flip)
+        private void FlippFound(FlipInstance flip, long flipUid)
         {
             MessageData message = CreateDataFromFlip(flip);
-            var subscribers = Subs;
             NotifyAll(message, Subs);
             Task.Run(async () =>
             {
                 await Task.Delay(TimeSpan.FromMinutes(3));
+                if(SoldAuctions.ContainsKey(flipUid))
+                {
+                    flip.Sold = true;
+                    message = CreateDataFromFlip(flip);
+                }
                 NotifyAll(message, SlowSubs);
             });
+        }
+
+        /// <summary>
+        /// Tell the flipper that an auction was sold
+        /// </summary>
+        /// <param name="auction"></param>
+        public void AuctionSold(SaveAuction auction)
+        {
+            var message = new MessageData("sold", auction.Uuid);
+            NotifyAll(message, Subs);
+            SoldAuctions[auction.UId] = auction.End;
         }
 
         private static void NotifyAll(MessageData message, ConcurrentDictionary<long, int> subscribers)
@@ -438,6 +473,8 @@ namespace hypixel.Flipper
             public string Tag;
             [DataMember(Name = "bin")]
             public bool Bin;
+            [DataMember(Name = "sold")]
+            public bool Sold { get; internal set; }
         }
     }
 
