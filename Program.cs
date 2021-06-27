@@ -207,10 +207,7 @@ namespace hypixel
                 }, "saving hits failed");
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
-            if (mode == "indexer")
-                GetDBToDesiredState();
-
-
+            
             updater = new Updater(apiKey);
             updater.UpdateForEver();
 
@@ -332,40 +329,51 @@ namespace hypixel
 
         private static void GetDBToDesiredState()
         {
-            bool isNew = false;
-            using (var context = new HypixelContext())
+            try
             {
-                try
+                bool isNew = false;
+                using (var context = new HypixelContext())
                 {
-                    context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
-                    //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
-                    isNew = true;
-                    //context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
+                        //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
+                        isNew = true;
+                        //context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
 
+                    }
+                    catch (Exception e)
+                    {
+                        if (e.Message != "Table '__EFMigrationsHistory' already exists")
+                            Console.WriteLine($"creating migrations table failed {e.Message} {e.StackTrace}");
+                    }
+                    //context.Database.ExecuteSqlRaw("set net_write_timeout=99999; set net_read_timeout=99999");
+                    context.Database.SetCommandTimeout(99999);
+                    // Creates the database if not exists
+                    context.Database.Migrate();
+                    Console.WriteLine("\nmigrated :)\n");
+
+                    context.SaveChanges();
+                    if (!context.Items.Any() || context.Players.Count() < 2_000_000)
+                        isNew = true;
                 }
-                catch (Exception e)
+                if (isNew)
                 {
-                    if (e.Message != "Table '__EFMigrationsHistory' already exists")
-                        Console.WriteLine($"creating migrations table failed {e.Message} {e.StackTrace}");
+                    Console.WriteLine("detected that this is a new instance, starting syncing");
+                    ClientProxy.Instance.InitialSync();
+                    Console.WriteLine("sync is over now, continuing with operation");
                 }
-                //context.Database.ExecuteSqlRaw("set net_write_timeout=99999; set net_read_timeout=99999");
-                context.Database.SetCommandTimeout(99999);
-                // Creates the database if not exists
-                context.Database.Migrate();
-                Console.WriteLine("\nmigrated :)\n");
-
-                context.SaveChanges();
-                if (!context.Items.Any() || context.Players.Count() < 2_000_000)
-                    isNew = true;
+                else
+                    Migrated = true;
             }
-            if (isNew)
+            catch (Exception e)
             {
-                Console.WriteLine("detected that this is a new instance, starting syncing");
-                ClientProxy.Instance.InitialSync();
-                Console.WriteLine("sync is over now, continuing with operation");
+                Logger.Instance.Error(e, "GetDB to desired state failed");
+                Thread.Sleep(TimeSpan.FromSeconds(20));
+                GetDBToDesiredState();
             }
-            else
-                Migrated = true;
+
+
         }
 
         private static void RunIndexer()

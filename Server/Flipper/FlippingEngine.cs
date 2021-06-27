@@ -259,6 +259,13 @@ namespace hypixel.Flipper
 
         public async System.Threading.Tasks.Task NewAuction(SaveAuction auction, HypixelContext context)
         {
+            if (!Program.Migrated)
+            {
+                if (auction.UId % 20 == 0) // don't spam the log
+                    Console.WriteLine("not yet migrated skiping flip");
+                return;
+            }
+
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
             // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
@@ -343,7 +350,7 @@ namespace hypixel.Flipper
             }
 
 
-            if (relevantAuctions.Count < 3)
+            if (relevantAuctions.Count < 3 && PotetialFlipps.Count < 200)
             {
                 oldest = DateTime.Now - TimeSpan.FromDays(25);
                 relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)

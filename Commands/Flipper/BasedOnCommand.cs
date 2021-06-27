@@ -30,6 +30,7 @@ namespace hypixel
                     System.Console.WriteLine("sending based on id list " + uuid);
                     return;
                 }
+                    System.Console.WriteLine($"uuid not found on id list " + Flipper.FlipperEngine.Instance.relevantAuctionIds.Count);
 
                 var result = Flipper.FlipperEngine.Instance.GetRelevantAuctions(auction, context);
                 result.Wait();
