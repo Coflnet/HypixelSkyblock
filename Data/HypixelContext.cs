@@ -59,7 +59,7 @@ namespace hypixel
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseMySQL(DbContextId,
-            opts => opts.CommandTimeout(3600));
+            opts => opts.CommandTimeout(60));
         }
 
 

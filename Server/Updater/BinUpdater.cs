@@ -20,6 +20,8 @@ namespace hypixel
         /// <returns></returns>
         private static ConcurrentDictionary<uint, short> PulledAlready = new ConcurrentDictionary<uint, short>();
 
+        public static List<SaveAuction> SoldLastMin = new List<SaveAuction>();
+
         public BinUpdater(IEnumerable<string> apiKeys)
         {
             this.apiKeys.AddRange(apiKeys);
@@ -55,7 +57,8 @@ namespace hypixel
 
                 NBT.FillDetails(a, item.ItemBytes);
                 return a;
-            });
+            }).ToList();
+            SoldLastMin = auctions;
             Indexer.AddToQueue(auctions);
 
             Task.Run(() =>

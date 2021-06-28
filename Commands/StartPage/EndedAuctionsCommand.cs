@@ -1,4 +1,5 @@
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -6,16 +7,35 @@ namespace hypixel
     {
         public override void Execute(MessageData data)
         {
+            if(BinUpdater.SoldLastMin.Count > 0)
+            {
+                var recentSold = BinUpdater.SoldLastMin.Take(40).Select(a => new PlayerAuctionsCommand.AuctionResult(a)).ToList();
+
+                data.SendBack(data.Create("endedAuctions",recentSold , A_MINUTE));
+                return;
+            }
+
             using (var context = new HypixelContext())
             {
+                context.Database.SetCommandTimeout(30); 
                 var end = System.DateTime.Now;
-                var pages = context.Auctions.Where(a => a.End < end)
+                var highVolumeIds = new System.Collections.Generic.HashSet<int>()
+                {
+                    ItemDetails.Instance.GetItemIdForName("ENCHANTED_BOOK"),
+                    ItemDetails.Instance.GetItemIdForName("GRAPPLING_HOOK"),
+                    ItemDetails.Instance.GetItemIdForName("KISMET_FEATHER"),
+
+                };
+                var pages = context.Auctions.Where(a => highVolumeIds.Contains(a.ItemId) && a.End < end)
+                    .OrderByDescending(a => a.Id)
+                    .Select(p => new PlayerAuctionsCommand.AuctionResult(p))
+                    .Take(100)
+                    .ToList()
                     .OrderByDescending(a => a.End)
                     .Take(30)
-                    .Select(p=>new PlayerAuctionsCommand.AuctionResult(p))
-                    .ToList()
-                    .Select(a=>{
-                        if(a.ItemName == null)
+                    .Select(a =>
+                    {
+                        if (a.ItemName == null)
                         {
                             a.ItemName = ItemDetails.TagToName(a.Tag);
                         }

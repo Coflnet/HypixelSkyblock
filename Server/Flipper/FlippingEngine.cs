@@ -17,7 +17,7 @@ namespace hypixel.Flipper
         public static FlipperEngine Instance { get; }
 
         private const string FoundFlippsKey = "foundFlipps";
-        private static int MIN_PRICE_POINT = 800000;
+        private static int MIN_PRICE_POINT = 1000000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
@@ -191,7 +191,6 @@ namespace hypixel.Flipper
                     continue;
                 }
 
-
                 PotetialFlipps.Enqueue(auction);
             }
 
@@ -230,11 +229,14 @@ namespace hypixel.Flipper
             }
         }
 
+        private uint _auctionCounter = 0;
         private bool GetAuctionToCheckFlipability(out SaveAuction auction)
         {
-            if (!PotetialFlipps.TryDequeue(out auction))
-                return LowPriceQueue.TryDequeue(out auction);
-            return true;
+            // mix in lowerPrice
+            if (_auctionCounter++ % 3 != 0)
+                if (PotetialFlipps.TryDequeue(out auction))
+                    return true;
+            return LowPriceQueue.TryDequeue(out auction);
         }
 
         private async Task TryLoadFromCache()
@@ -340,7 +342,7 @@ namespace hypixel.Flipper
                 relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                 .ToListAsync();
 
-                if (relevantAuctions.Count < 50)
+                if (relevantAuctions.Count < 50 && PotetialFlipps.Count < 2000)
                 {
                     // to few auctions in a day, query a week
                     oldest = DateTime.Now - TimeSpan.FromDays(8);
@@ -350,7 +352,7 @@ namespace hypixel.Flipper
             }
 
 
-            if (relevantAuctions.Count < 3 && PotetialFlipps.Count < 200)
+            if (relevantAuctions.Count < 3 && PotetialFlipps.Count < 100)
             {
                 oldest = DateTime.Now - TimeSpan.FromDays(25);
                 relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)

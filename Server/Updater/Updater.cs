@@ -334,7 +334,8 @@ namespace hypixel
             var started = processed.Where(a => a.Start > lastUpdate).ToList();
 
             // do not slow down the update
-            Flipper.FlipperEngine.Instance.NewAuctions(started);
+            var min = DateTime.Now - TimeSpan.FromMinutes(15);
+            Flipper.FlipperEngine.Instance.NewAuctions(started.Where(a=>a.Start > min));
             foreach (var auction in started)
             {
                 SubscribeEngine.Instance.NewAuction(auction);

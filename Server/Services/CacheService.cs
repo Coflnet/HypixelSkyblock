@@ -192,7 +192,7 @@ namespace hypixel
                 Expires = expires;
                 Reduced = responses.Select(CreateItem)
                             .ToList();
-                Created = DateTime.Now;
+                Created = DateTime.Now - TimeSpan.FromSeconds(20);
             }
 
             public CacheElement()

@@ -12,7 +12,7 @@ namespace hypixel
 
         public override void Execute(MessageData data)
         {
-            Regex rgx = new Regex("[^a-zA-Z0-9_ ]");
+            Regex rgx = new Regex("[^a-zA-Z0-9_\\. ]");
             var search = rgx.Replace(data.Data, "").ToLower();
             var task = SearchService.Instance.Search(search);
             task.Wait();
