@@ -83,7 +83,7 @@ namespace hypixel.Flipper
         private void OnUpdateEnd()
         {
             var cancleToken = TempWorkersStopSource.Token;
-            var workerCount = 3;
+            var workerCount = 4;
             Console.WriteLine($"Starting {workerCount} temp flip workers");
             for (int i = 0; i < workerCount; i++)
             {
@@ -267,6 +267,8 @@ namespace hypixel.Flipper
                     Console.WriteLine("not yet migrated skiping flip");
                 return;
             }
+            if (Environment.ProcessorCount > 9 && auction.UId % 25 != 0)
+                return; // don't run on full cap on my dev machine :D
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
@@ -275,17 +277,23 @@ namespace hypixel.Flipper
 
             var (relevantAuctions, oldest) = await GetRelevantAuctions(auction, context);
 
+            long medianPrice = 0;
             if (relevantAuctions.Count < 2)
             {
                 Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
-                return;
+                var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
+                medianPrice = (long)(await ItemPrices.GetLookupForToday(itemId)).Prices.Average(p=>p.Avg*0.8+p.Min*0.2);
+            }
+            else
+            {
+                medianPrice = relevantAuctions
+                                .OrderByDescending(a => a.HighestBidAmount)
+                                .Select(a => a.HighestBidAmount / a.Count)
+                                .Skip(relevantAuctions.Count / 2)
+                                .FirstOrDefault();
             }
 
-            var medianPrice = relevantAuctions
-                .OrderByDescending(a => a.HighestBidAmount)
-                .Select(a => a.HighestBidAmount / a.Count)
-                .Skip(relevantAuctions.Count / 2)
-                .FirstOrDefault();
+
 
 
             var recomendedBuyUnder = medianPrice * 0.8;
@@ -351,13 +359,13 @@ namespace hypixel.Flipper
                 }
             }
 
-
+            /* got replaced with average overall lookup
             if (relevantAuctions.Count < 3 && PotetialFlipps.Count < 100)
             {
                 oldest = DateTime.Now - TimeSpan.FromDays(25);
                 relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                         .ToListAsync();
-            }
+            } */
 
 
             return (relevantAuctions, oldest);

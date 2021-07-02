@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
 
@@ -9,6 +10,7 @@ namespace hypixel
 {
     public class FullSearchCommand : Command
     {
+        private const string Type = "searchResponse";
 
         public override void Execute(MessageData data)
         {
@@ -18,16 +20,56 @@ namespace hypixel
             task.Wait();
             var result = task.Result;
 
+            var tasks = new List<Task>();
+            foreach (var r in result)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    PreviewService.Preview preview = null;
+                    if (r.Type == "player")
+                        preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("pPrev", r.Id);
+                    else if (r.Type == "item")
+                        preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id);
+
+                    if (preview == null)
+                        return;
+                    r.Image = preview.Image;
+                    r.IconUrl = preview.ImageUrl;
+                }));
+            }
             var maxAge = A_DAY / 2;
             if (result.Count <= 3)
-            {
                 // looks like a specific search, very unlikely to change 
-                maxAge = A_WEEK;
-            }
+                maxAge = A_DAY;
 
-            data.SendBack(data.Create("searchResponse", result, maxAge));
 
+            if (Task.WaitAll(tasks.ToArray(), 100))
+                System.Console.WriteLine("could await all");
+            else
+                maxAge = A_HOUR /2;
+
+
+            data.SendBack(data.Create(Type, result, maxAge));
         }
+    }
 
+    public class PlayerPreviewCommand : Command
+    {
+        public override void Execute(MessageData data)
+        {
+            data.SendBack(data.Create("preview",
+                        PreviewService.Instance.GetPlayerPreview(data.GetAs<string>()),
+                        10));
+        }
+    }
+
+    public class ItemPreviewCommand : Command
+    {
+        public override void Execute(MessageData data)
+        {
+            data.SendBack(data.Create("preview",
+                        PreviewService.Instance.GetItemPreview(data.GetAs<string>()),
+                        10));
+        }
     }
 }

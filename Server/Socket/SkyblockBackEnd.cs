@@ -58,6 +58,8 @@ namespace hypixel
             Commands.Add("getEnchantments", new GetEnchantmentsCommand());
             Commands.Add("getReforges", new GetReforgesCommand());
             Commands.Add("fullSearch", new FullSearchCommand());
+            Commands.Add("pPrev", new PlayerPreviewCommand());
+            Commands.Add("iPrev", new ItemPreviewCommand());
             Commands.Add("trackSearch", new TrackSearchCommand());
             Commands.Add("playerName", new PlayerNameCommand());
             //Commands.Add("subscribe", new SubscribeCommand());

@@ -168,7 +168,7 @@ namespace hypixel
                 Console.WriteLine($"{DateTime.Now} sent {result.Type} {result.Data.Truncate(20)}");
                 socket.Send(MessagePackSerializer.ToJson(result));
             }
-            if (!socket.Ping())
+            if (SendQueue.Count > 1 && !socket.Ping())
                 Console.WriteLine("did not receive pong");
         }
 

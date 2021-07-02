@@ -91,7 +91,7 @@ namespace hypixel
             throw new CoflnetException("404", "there was no data found for this item. retry in a miniute");
         }
 
-        private static async Task<ItemLookup> GetLookupForToday(int itemId)
+        public static async Task<ItemLookup> GetLookupForToday(int itemId)
         {
             var key = GetIntradayKey(itemId);
             var res = await CacheService.Instance.GetFromRedis<ItemLookup>(key);
@@ -334,7 +334,7 @@ namespace hypixel
 
         private static async Task FillLastHour()
         {
-            var end = DateTime.Now;
+            var end = DateTime.Now.RoundDown(TimeSpan.FromHours(1));
             var start = end - TimeSpan.FromMinutes(60);
             var removeBefore = start - TimeSpan.FromDays(1);
             using (var context = new HypixelContext())

@@ -252,8 +252,13 @@ namespace hypixel
             public string Type;
             [Key("iconUrl")]
             public string IconUrl;
-            //[IgnoreMember]
-            [Key("hits")]
+            /// <summary>
+            /// Low resolution preview icon
+            /// </summary>
+            [Key("img")]
+            public string Image;
+            [IgnoreMember]
+            //[Key("hits")]
             public int HitCount;
 
             public SearchResultItem() { }

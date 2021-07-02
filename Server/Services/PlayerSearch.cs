@@ -104,12 +104,13 @@ namespace hypixel
                 return new PlayerResult[0];
 
             List<PlayerResult> result;
+            search = search.Replace("_", "\\_");
 
             using(var context = new HypixelContext())
             {
-
+                var direct = context.Players.Where(p => p.Name == search).FirstOrDefaultAsync();
                 result = await context.Players
-                    .Where(e => EF.Functions.Like(e.Name, $"{search.Replace("_","\\_")}%"))
+                    .Where(e => EF.Functions.Like(e.Name, $"{search}%"))
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)

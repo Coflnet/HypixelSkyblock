@@ -83,7 +83,7 @@ namespace hypixel
             await SaveInRedis(key, val, timeout);
         }
 
-        public async void Save(MessageData request, MessageData response, int index)
+        public async void Save(MessageData request, MessageData response, int index = 0)
         {
             if (response.MaxAge == 0)
                 return;
