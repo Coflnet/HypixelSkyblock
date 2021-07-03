@@ -286,9 +286,15 @@ namespace hypixel
                 context.SetContentType("text/javascript");
             }
             if (relativePath == "files/index.html")
+            {
+
+                context.AddHeader("cache-control", "no-store");
                 context.SetStatusCode(404);
-            else
-                context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
+                await context.WriteAsync("/* This file was not found. Retry in a few miniutes :) */");
+                return;
+            }
+
+            context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
 
             context.WriteAsync(contents);
         }
