@@ -287,8 +287,7 @@ namespace hypixel
             }
             if (relativePath == "files/index.html")
             {
-
-                context.AddHeader("cache-control", "no-store");
+                context.AddHeader("cache-control", "private");
                 context.SetStatusCode(404);
                 await context.WriteAsync("/* This file was not found. Retry in a few miniutes :) */");
                 return;
