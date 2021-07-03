@@ -522,10 +522,10 @@ namespace hypixel
             // determine status
             res.SetStatusCode(200);
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0, 5, 0));
-            if (data.LastIndexFinish < maxTime
+            if (!Program.LightClient && (data.LastIndexFinish < maxTime
                 || data.LastBazaarUpdate < maxTime
                 || data.LastNameUpdate < maxTime
-                || data.LastAuctionPull < maxTime)
+                || data.LastAuctionPull < maxTime))
             {
                 res.SetStatusCode(500);
             }
