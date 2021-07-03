@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
@@ -21,7 +22,7 @@ namespace hypixel
                     throw new CoflnetException("auction_unkown", "not found");
                 if(Flipper.FlipperEngine.Instance.relevantAuctionIds.TryGetValue(auction.UId,out List<long> ids))
                 {
-                    data.SendBack(data.Create("basedOnResp", context.Auctions.Where(a => ids.Contains(a.UId)).Select(a => new
+                    data.SendBack(data.Create("basedOnResp", context.Auctions.Where(a => ids.Contains(a.UId)).Select(a => new Response()
                     {
                         uuid = a.Uuid,
                         highestBid = a.HighestBidAmount,
@@ -35,12 +36,19 @@ namespace hypixel
                 var result = Flipper.FlipperEngine.Instance.GetRelevantAuctions(auction, context);
                 result.Wait();
                 data.SendBack(data.Create("basedOnResp", result.Result.Item1
-                            .Select(a => new { 
+                            .Select(a => new Response(){ 
                                 uuid = a.Uuid, 
                                 highestBid = a.HighestBidAmount, 
                                 end = a.End }), 
                             A_HOUR));
             }
+        }
+        [DataContract]
+        public class Response 
+        {
+            public string uuid;
+            public long highestBid;
+            public System.DateTime end;
         }
     }
 }
