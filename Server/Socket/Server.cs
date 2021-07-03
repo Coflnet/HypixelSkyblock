@@ -264,7 +264,7 @@ namespace hypixel
             context.SetContentType("text/html");
             //context.ContentEncoding = Encoding.UTF8;
 
-            if (relativePath == "files/index.html")
+            if (relativePath == "files/index.html" && !path.EndsWith(".js") && !path.EndsWith(".css"))
             {
                 Console.Write("i+");
                 await HtmlModifier.ModifyContent(path, contents, context);
@@ -285,7 +285,10 @@ namespace hypixel
             {
                 context.SetContentType("text/javascript");
             }
-            context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
+            if (relativePath == "files/index.html")
+                context.SetStatusCode(404);
+            else
+                context.AddHeader("cache-control", "public,max-age=" + (3600 * 24 * 30));
 
             context.WriteAsync(contents);
         }
