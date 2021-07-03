@@ -97,6 +97,15 @@ namespace hypixel
             }
         }
 
+        public async Task<PlayerResult> FindDirect(string search)
+        {
+            using (var context = new HypixelContext())
+            {
+                return await context.Players.Where(p => p.Name == search)
+                    .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount + 10000000))
+                    .FirstOrDefaultAsync();
+            }
+        }
 
         public async Task<IEnumerable<PlayerResult>> Search(string search, int count, bool forceResolution = true)
         {
@@ -108,7 +117,6 @@ namespace hypixel
 
             using(var context = new HypixelContext())
             {
-                var direct = context.Players.Where(p => p.Name == search).FirstOrDefaultAsync();
                 result = await context.Players
                     .Where(e => EF.Functions.Like(e.Name, $"{search}%"))
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search ? 10000000 : 0))

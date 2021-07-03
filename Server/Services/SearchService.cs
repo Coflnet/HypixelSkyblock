@@ -88,7 +88,7 @@ namespace hypixel
             foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
             {
                 var sample = await context.Auctions
-                                .Where(a=>a.ItemId == itemId)
+                                .Where(a => a.ItemId == itemId)
                                 .OrderByDescending(a => a.Id)
                                 .Take(20)
                                 .Select(a => a.ItemName)
@@ -98,7 +98,7 @@ namespace hypixel
                 foreach (var item in names)
                 {
                     var occured = sample.Count(s => s == item.Name);
-                    if(occured == 0)
+                    if (occured == 0)
                         continue;
                     item.OccuredTimes += occured;
                     context.Update(item);
@@ -212,14 +212,26 @@ namespace hypixel
         {
             var result = new List<SearchResultItem>();
 
-            var items = await ItemDetails.Instance.Search(search, 20);
-            var players = await PlayerSearch.Instance.Search(search, targetAmount, false);
+            var singlePlayer = PlayerSearch.Instance.FindDirect(search);
+            var itemTask = ItemDetails.Instance.Search(search, 20);
+            var playersTask = PlayerSearch.Instance.Search(search, targetAmount, false);
 
-            if (items.Count() == 0 && players.Count() == 0)
-                items = await ItemDetails.Instance.FindClosest(search);
 
-            result.AddRange(items.Select(item => new SearchResultItem(item)));
-            result.AddRange(players.Select(player => new SearchResultItem(player)));
+            if (itemTask.Wait(TimeSpan.FromMilliseconds(200)))
+            {
+                var items = itemTask.Result;
+
+                if (items.Count() == 0 && singlePlayer.Result == null)
+                    items = await ItemDetails.Instance.FindClosest(search);
+                result.AddRange(itemTask.Result.Select(item => new SearchResultItem(item)));
+            }
+            if (singlePlayer.Result != null)
+                result.Add(new SearchResultItem(singlePlayer.Result));
+            if (playersTask.Wait(TimeSpan.FromMilliseconds(100)))
+            {
+                var players = playersTask.Result;
+                result.AddRange(players.Where(p => p.UUid != singlePlayer.Result?.UUid).Select(player => new SearchResultItem(player)));
+            }
 
             return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0))
                 .Take(targetAmount).ToList();

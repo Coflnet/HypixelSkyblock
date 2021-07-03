@@ -110,8 +110,6 @@ namespace hypixel
                 response = GetProxied(uri);
             }
 
-            Console.WriteLine(response.Content);
-
             return new Preview()
             {
                 Id = tag,
@@ -126,7 +124,6 @@ namespace hypixel
             var proxyRequest = new RestRequest("/x32/"+uri.ToString())
                         .AddUrlSegment("size", 32);
             var response = proxyClient.Execute(proxyRequest);
-            Console.WriteLine(proxyClient.BuildUri(proxyRequest));
             return response;
         }
 

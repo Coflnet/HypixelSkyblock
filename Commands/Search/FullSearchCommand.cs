@@ -42,34 +42,16 @@ namespace hypixel
                 // looks like a specific search, very unlikely to change 
                 maxAge = A_DAY;
 
-
-            if (Task.WaitAll(tasks.ToArray(), 100))
+            if (Task.WaitAll(tasks.ToArray(), 50))
                 System.Console.WriteLine("could await all");
             else
                 maxAge = A_HOUR /2;
+            
 
+            if(result.Count == 0)
+                maxAge = A_MINUTE;
 
             data.SendBack(data.Create(Type, result, maxAge));
-        }
-    }
-
-    public class PlayerPreviewCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            data.SendBack(data.Create("preview",
-                        PreviewService.Instance.GetPlayerPreview(data.GetAs<string>()),
-                        10));
-        }
-    }
-
-    public class ItemPreviewCommand : Command
-    {
-        public override void Execute(MessageData data)
-        {
-            data.SendBack(data.Create("preview",
-                        PreviewService.Instance.GetItemPreview(data.GetAs<string>()),
-                        10));
         }
     }
 }
