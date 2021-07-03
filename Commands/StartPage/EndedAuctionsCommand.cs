@@ -9,7 +9,10 @@ namespace hypixel
         {
             if(BinUpdater.SoldLastMin.Count > 0)
             {
-                var recentSold = BinUpdater.SoldLastMin.Take(40).Select(a => new PlayerAuctionsCommand.AuctionResult(a)).ToList();
+                var recentSold = BinUpdater.SoldLastMin.Take(40)
+                    .Select(a => new PlayerAuctionsCommand.AuctionResult(a))
+                    .Select(AuctionService.Instance.GuessMissingProperties)
+                    .ToList();
 
                 data.SendBack(data.Create("endedAuctions",recentSold , A_MINUTE));
                 return;
@@ -33,14 +36,8 @@ namespace hypixel
                     .ToList()
                     .OrderByDescending(a => a.End)
                     .Take(30)
-                    .Select(a =>
-                    {
-                        if (a.ItemName == null)
-                        {
-                            a.ItemName = ItemDetails.TagToName(a.Tag);
-                        }
-                        return a;
-                    }).ToList();
+                    .Select(AuctionService.Instance.GuessMissingProperties)
+                    .ToList();
                 data.SendBack(data.Create("endedAuctions", pages, A_MINUTE));
             }
         }

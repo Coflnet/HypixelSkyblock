@@ -20,7 +20,17 @@ namespace hypixel
         /// <returns></returns>
         private static ConcurrentDictionary<uint, short> PulledAlready = new ConcurrentDictionary<uint, short>();
 
-        public static List<SaveAuction> SoldLastMin = new List<SaveAuction>();
+        public static List<SaveAuction> SoldLastMin 
+        {
+            get 
+            {
+                return CacheService.Instance.GetFromRedis<List<SaveAuction>>("endedAuctions").Result;
+            }
+            set 
+            {
+                CacheService.Instance.SaveInRedis("endedAuctions", value).Wait(5000);
+            }
+        }
 
         public BinUpdater(IEnumerable<string> apiKeys)
         {

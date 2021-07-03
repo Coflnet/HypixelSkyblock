@@ -42,5 +42,20 @@ namespace hypixel
                 id = 1; // allow uId == 0 to be false if not calculated
             return id;
         }
+
+        /// <summary>
+        /// This will modify the passed auction and fill in any guessable things such as item name (from tag)
+        /// </summary>
+        /// <param name="auction"></param>
+        /// <returns>The modified original auction</returns>
+        public PlayerAuctionsCommand.AuctionResult GuessMissingProperties(PlayerAuctionsCommand.AuctionResult auction)
+        {
+            if(String.IsNullOrEmpty(auction.ItemName))
+                auction.ItemName = ItemDetails.TagToName(auction.Tag);
+            if(auction.StartingBid == 0 && auction.Bin)
+                auction.StartingBid = auction.HighestBid;
+
+            return auction;
+        }
     }
 }

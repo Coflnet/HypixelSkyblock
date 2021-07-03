@@ -8,7 +8,7 @@ namespace hypixel
     public class ReferalService
     {
         public static ReferalService Instance { get; }
-        Hashids hashids = new Hashids("simple salt");
+        Hashids hashids = new Hashids("simple salt",6);
         static ReferalService()
         {
             Instance = new ReferalService();
