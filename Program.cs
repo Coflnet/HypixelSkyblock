@@ -21,6 +21,7 @@ namespace hypixel
         public static string StripeKey;
         public static string StripeSigningSecret;
 
+        public static string InstanceId { get; }
 
         public static bool displayMode = false;
 
@@ -43,6 +44,12 @@ namespace hypixel
         public static event Action onStop;
 
         public static Server server;
+
+        static Program()
+        {
+            
+            InstanceId = DateTime.Now.Ticks.ToString() + version;
+        }
 
         static void Main(string[] args)
         {
