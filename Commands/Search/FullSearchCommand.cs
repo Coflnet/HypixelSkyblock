@@ -45,14 +45,15 @@ namespace hypixel
             if (Task.WaitAll(tasks.ToArray(), 50))
                 System.Console.WriteLine("could await all");
             else
-                maxAge = A_HOUR /2;
-            
+                maxAge = A_HOUR / 2;
 
-            if(result.Count == 0)
+
+            if (result.Count == 0)
                 maxAge = A_MINUTE;
 
             data.SendBack(data.Create(Type, result, maxAge));
-            TrackingService.Instance.TrackSearch(data,search,result.Count);
+            if (!(data is Server.ProxyMessageData<string, object>))
+                TrackingService.Instance.TrackSearch(data, search, result.Count);
         }
     }
 }
