@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Prometheus;
 
 namespace dev
 {
@@ -39,6 +40,7 @@ namespace dev
                     //await hypixel.Program.server.AnswerGetRequest();
                     await context.Response.WriteAsync("Hello World!");
                 });
+                endpoints.MapMetrics();
             });
         }
     }

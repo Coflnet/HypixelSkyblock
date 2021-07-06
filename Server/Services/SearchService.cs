@@ -17,9 +17,7 @@ namespace hypixel
     public class SearchService
     {
         const int targetAmount = 5;
-
-
-
+        private const string VALID_MINECRAFT_NAME_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_";
         ConcurrentDictionary<string, CacheItem> cache = new ConcurrentDictionary<string, CacheItem>();
         ConcurrentQueue<PopularSite> popularSite = new ConcurrentQueue<PopularSite>();
 
@@ -62,7 +60,7 @@ namespace hypixel
             CacheItem result;
             var response = await CreateResponse(search);
             result = new CacheItem(response);
-            cache.AddOrUpdate(search, result, (key, old) => result);
+            //cache.AddOrUpdate(search, result, (key, old) => result);
             return result;
         }
 
@@ -113,8 +111,8 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                if (updateCount % 12 == 5)
-                    PartialUpdateCache(context);
+                //if (updateCount % 12 == 5)
+                //    PartialUpdateCache(context);
                 ItemDetails.Instance.SaveHits(context);
                 PlayerSearch.Instance.SaveHits(context);
                 await context.SaveChangesAsync();
@@ -170,13 +168,14 @@ namespace hypixel
         {
             Task.Run(async () =>
             {
-                PopulateCache();
+                //PopulateCache();
                 while (true)
                 {
                     await Task.Delay(10000);
                     try
                     {
                         await Work();
+                        await PrefetchCache();
                     }
                     catch (Exception e)
                     {
@@ -189,7 +188,7 @@ namespace hypixel
 
         private async void PopulateCache()
         {
-            var letters = "abcdefghijklmnopqrstuvwxyz1234567890_";
+            var letters = VALID_MINECRAFT_NAME_CHARS;
 
             foreach (var letter in letters)
             {
@@ -208,11 +207,30 @@ namespace hypixel
             Console.WriteLine("populated Cache");
         }
 
+        private static int prefetchIndex = VALID_MINECRAFT_NAME_CHARS.Length * VALID_MINECRAFT_NAME_CHARS.Length;//new Random().Next(1000);
+        private async Task PrefetchCache()
+        {
+            var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
+            var combinations = charCount * charCount + charCount;
+            var index = prefetchIndex++ % combinations;
+            var requestString = "";
+            if (index < charCount)
+            {
+                requestString = VALID_MINECRAFT_NAME_CHARS[index].ToString();
+            }
+            else
+            {
+                index = index - charCount;
+                requestString = VALID_MINECRAFT_NAME_CHARS[index/charCount].ToString() + VALID_MINECRAFT_NAME_CHARS[index%charCount];
+            }
+            await Server.ExecuteCommandWithCache<string,object>("fullSearch",requestString);
+        }
+
         private static async Task<List<SearchResultItem>> CreateResponse(string search)
         {
             var result = new List<SearchResultItem>();
 
-            var singlePlayer = PlayerSearch.Instance.FindDirect(search);
+            //var singlePlayer = PlayerSearch.Instance.FindDirect(search);
             var itemTask = ItemDetails.Instance.Search(search, 20);
             var playersTask = PlayerSearch.Instance.Search(search, targetAmount, false);
 
@@ -221,16 +239,16 @@ namespace hypixel
             {
                 var items = itemTask.Result;
 
-                if (items.Count() == 0 && singlePlayer.Result == null)
+                if (items.Count() == 0)// && singlePlayer.Result == null)
                     items = await ItemDetails.Instance.FindClosest(search);
                 result.AddRange(itemTask.Result.Select(item => new SearchResultItem(item)));
             }
-            if (singlePlayer.Result != null)
-                result.Add(new SearchResultItem(singlePlayer.Result));
+            //if (singlePlayer.Result != null)
+            //    result.Add(new SearchResultItem(singlePlayer.Result));
             if (playersTask.Wait(TimeSpan.FromMilliseconds(100)))
             {
                 var players = playersTask.Result;
-                result.AddRange(players.Where(p => p.UUid != singlePlayer.Result?.UUid).Select(player => new SearchResultItem(player)));
+                result.AddRange(players.Select(player => new SearchResultItem(player)));
             }
 
             return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0))

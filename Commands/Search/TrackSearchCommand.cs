@@ -14,6 +14,8 @@ namespace hypixel
 
             SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
             data.Ok();
+            
+            TrackingService.Instance.TrackPage($"{hit.Type}/{hit.Id}",$"{hit.Type}/{hit.Id}",null);
         }
         [MessagePackObject]
         public class Request

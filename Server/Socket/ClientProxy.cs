@@ -292,6 +292,8 @@ namespace hypixel
                 }
                 count = context.Prices.Count();
             }
+            if(count > 200_000 && Environment.ProcessorCount > 9)
+                return; // break early on my dev machine
             data.SendBack(data.Create("pricesSync", ReceivedCount));
         }
 

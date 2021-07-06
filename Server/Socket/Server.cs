@@ -19,6 +19,7 @@ using RateLimiter;
 using Microsoft.EntityFrameworkCore;
 using MessagePack;
 using System.Collections.Generic;
+using Prometheus;
 
 namespace hypixel
 {
@@ -57,9 +58,12 @@ namespace hypixel
                 e.Response.AppendHeader("access-control-allow-origin", "*");
                 e.Response.AppendHeader("Access-Control-Allow-Headers", "*");
             };
+            var getRequests = Metrics
+                    .CreateCounter("total_get_requests", "Number of processed http GET requests");
             server.OnGet += async (sender, e) =>
             {
-                var getEvent = e;
+                getRequests.Inc();
+                var getEvent = e as HttpRequestEventArgs;
                 e.Response.AppendHeader("Allow", "OPTIONS, GET");
                 e.Response.AppendHeader("access-control-allow-origin", "*");
                 e.Response.AppendHeader("Access-Control-Allow-Headers", "*");
@@ -76,6 +80,7 @@ namespace hypixel
                         getEvent.Response.WriteContent(Encoding.UTF8.GetBytes(ex.Message));
                         return;
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -122,7 +127,7 @@ namespace hypixel
 
         public class WebsocketRequestContext : RequestContext
         {
-            HttpRequestEventArgs original;
+            public HttpRequestEventArgs original;
 
             public WebsocketRequestContext(HttpRequestEventArgs original)
             {
@@ -268,6 +273,9 @@ namespace hypixel
             {
                 Console.Write("i+");
                 await HtmlModifier.ModifyContent(path, contents, context);
+
+                if (context is WebsocketRequestContext httpContext)
+                    TrackingService.Instance.TrackPage(httpContext.original.Request.Url.ToString(), "", httpContext.original.Request.UrlReferrer.ToString());
                 return;
             }
 

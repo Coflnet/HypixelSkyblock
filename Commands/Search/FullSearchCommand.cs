@@ -52,6 +52,7 @@ namespace hypixel
                 maxAge = A_MINUTE;
 
             data.SendBack(data.Create(Type, result, maxAge));
+            TrackingService.Instance.TrackSearch(data,search,result.Count);
         }
     }
 }
