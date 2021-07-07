@@ -15,7 +15,7 @@ namespace hypixel
             SearchService.Instance.AddPopularSite(hit.Type,hit.Id);
             data.Ok();
             
-            TrackingService.Instance.TrackPage($"{hit.Type}/{hit.Id}",$"{hit.Type}/{hit.Id}",null);
+            TrackingService.Instance.TrackPage($"http://sky.coflnet.com/{hit.Type}/{hit.Id}",$"{hit.Type}/{hit.Id}",data);
         }
         [MessagePackObject]
         public class Request

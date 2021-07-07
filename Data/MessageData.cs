@@ -129,7 +129,7 @@ namespace hypixel
 
     public class HttpMessageData : MessageData
     {
-        private Server.RequestContext context;
+        public Server.RequestContext context { get; private set; }
 
         TaskCompletionSource<bool> source = new TaskCompletionSource<bool>();
 

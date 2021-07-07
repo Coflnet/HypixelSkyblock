@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using MessagePack;
 using System.Collections.Generic;
 using Prometheus;
+using System.Diagnostics;
 
 namespace hypixel
 {
@@ -118,6 +119,7 @@ namespace hypixel
             public abstract void AddHeader(string name, string value);
             public abstract void Redirect(string uri);
             public abstract IDictionary<string, string> QueryString { get; }
+            public abstract string UserAgent { get; }
 
             internal virtual void ForceSend()
             {
@@ -140,6 +142,8 @@ namespace hypixel
             public override IDictionary<string, string> QueryString => (IDictionary<string, string>)original.Request.QueryString;
 
             public override string path => original.Request.RawUrl;
+
+            public override string UserAgent => original.Request?.UserAgent;
 
             public override void AddHeader(string name, string value)
             {
@@ -272,10 +276,15 @@ namespace hypixel
             if (relativePath == "files/index.html" && !path.EndsWith(".js") && !path.EndsWith(".css"))
             {
                 Console.Write("i+");
+                var watch = Stopwatch.StartNew();
                 await HtmlModifier.ModifyContent(path, contents, context);
 
                 if (context is WebsocketRequestContext httpContext)
-                    TrackingService.Instance.TrackPage(httpContext.original.Request.Url.ToString(), "", httpContext.original.Request.UrlReferrer.ToString());
+                    TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(), 
+                            "", 
+                            httpContext.original.Request?.UrlReferrer?.ToString(),
+                            httpContext.original.Request?.UserAgent,
+                            watch.Elapsed);
                 return;
             }
 

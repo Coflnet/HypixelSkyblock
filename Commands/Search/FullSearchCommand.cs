@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace hypixel
 
         public override void Execute(MessageData data)
         {
+            var watch = Stopwatch.StartNew();
             Regex rgx = new Regex("[^a-zA-Z0-9_\\. ]");
             var search = rgx.Replace(data.Data, "").ToLower();
             var task = SearchService.Instance.Search(search);
@@ -53,7 +55,7 @@ namespace hypixel
 
             data.SendBack(data.Create(Type, result, maxAge));
             if (!(data is Server.ProxyMessageData<string, object>))
-                TrackingService.Instance.TrackSearch(data, search, result.Count);
+                TrackingService.Instance.TrackSearch(data, search, result.Count,watch.Elapsed);
         }
     }
 }

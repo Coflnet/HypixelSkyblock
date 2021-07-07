@@ -207,7 +207,7 @@ namespace hypixel
             Console.WriteLine("populated Cache");
         }
 
-        private static int prefetchIndex = VALID_MINECRAFT_NAME_CHARS.Length * VALID_MINECRAFT_NAME_CHARS.Length;//new Random().Next(1000);
+        private static int prefetchIndex = new Random().Next(1000);
         private async Task PrefetchCache()
         {
             var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
