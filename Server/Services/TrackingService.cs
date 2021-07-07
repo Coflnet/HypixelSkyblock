@@ -61,7 +61,17 @@ namespace hypixel
             }
             if(genTime != default(TimeSpan))
                 request.AddQueryParameter("gt_ms", genTime.TotalMilliseconds.ToString());
-            //request.AddQueryParameter("cid", visitorId);
+            trackClient.Execute(request);
+        }
+
+        /// <summary>
+        /// Tracks errors
+        /// </summary>
+        /// <param name="type"></param>
+        internal void CommandError(string type)
+        {
+            var request = new RestRequest("/matomo.php?idsite=2&rec=1")
+                    .AddQueryParameter("action_name","error/"+ type);
             trackClient.Execute(request);
         }
     }

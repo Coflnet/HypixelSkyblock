@@ -27,7 +27,7 @@ namespace hypixel
                         uuid = a.Uuid,
                         highestBid = a.HighestBidAmount,
                         end = a.End
-                    }),120));
+                    }).ToList(),120));
                     System.Console.WriteLine("sending based on id list " + uuid);
                     return;
                 }
