@@ -224,8 +224,8 @@ namespace hypixel
                 {
                     if (existing.ContainsKey(player.UuId))
                     {
-                        var existingPlayer =   existingPlayers.Where(p => p.UuId == player.UuId).FirstOrDefault();
-                        if(existingPlayer.Name == null)
+                        var existingPlayer = existingPlayers.Where(p => p.UuId == player.UuId).FirstOrDefault();
+                        if (existingPlayer.Name == null)
                         {
                             existingPlayer.Name = player.Name;
                             context.Update(existingPlayer);
@@ -237,10 +237,11 @@ namespace hypixel
                     if (count % 1000 == 0)
                         await context.SaveChangesAsync();
                 }
-                try 
+                try
                 {
                     await context.SaveChangesAsync();
-                } catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     dev.Logger.Instance.Error(e, "playerSync");
                 }
@@ -266,6 +267,9 @@ namespace hypixel
                 }
                 var affected = context.SaveChanges();
                 Console.WriteLine($"Synced items {affected}");
+
+                if (context.Players.Count() > 20_000)
+                    Program.Migrated = true;
             }
         }
     }
@@ -292,7 +296,7 @@ namespace hypixel
                 }
                 count = context.Prices.Count();
             }
-            if(count > 200_000 && Environment.ProcessorCount > 9)
+            if (count > 200_000 && Environment.ProcessorCount > 9)
                 return; // break early on my dev machine
             data.SendBack(data.Create("pricesSync", ReceivedCount));
         }

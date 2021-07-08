@@ -228,12 +228,13 @@ namespace hypixel
             }
         }
 
-        private IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0)
+        private IQueryable<SaveAuction> CreateSelect(ItemSearchQuery details, HypixelContext context, int itemId, int limit = 0, IQueryable<SaveAuction> select = null)
         {
             var min = DateTime.Now - TimeSpan.FromDays(35);
             if (details.Filter != null && details.Start < min)
                 throw new CoflnetException("filter_to_large", $"You are only allowed to filter for the last month, please set 'start' to a value greater than {min.AddHours(1).ToUnix()}");
-            var select = AuctionSelect(details.Start, details.End, context, itemId);
+            if (select == null)
+                select = AuctionSelect(details.Start, details.End, context, itemId);
 
             if (details.Filter != null && details.Filter.Count > 0)
             {
@@ -639,15 +640,63 @@ namespace hypixel
                     Console.WriteLine($"{e.Message} {e.StackTrace}");
                 }
 
-                IQueryable<SaveAuction> select = CreateSelect(query, context, itemId, amount * 2);
-                return select.OrderByDescending(a => a.End).Take(amount).AsParallel().Select(a => new AuctionPreview()
+                var result = CreateSelect(query, context, itemId, amount)
+                            .OrderByDescending(a => a.End).Take(amount).Select(a => new
+                            {
+                                a.End,
+                                Price = a.HighestBidAmount,
+                                a.AuctioneerId,
+                                a.Uuid
+                            }).ToList();
+                return result.Select(async a => new AuctionPreview()
                 {
                     End = a.End,
-                    Price = a.HighestBidAmount,
+                    Price = a.Price,
                     Seller = a.AuctioneerId,
                     Uuid = a.Uuid,
-                    PlayerName = PlayerSearch.Instance.GetNameWithCache(a.AuctioneerId)
-                }).ToList();
+                    PlayerName = await PlayerSearch.Instance.GetNameWithCacheAsync(a.AuctioneerId)
+                }).Select(a=> a.Result).ToList();
+            }
+        }
+
+
+        internal List<AuctionPreview> GetActiveAuctions(GetActiveAuctionsCommand.ActiveItemSearchQuery query, int amount = 24)
+        {
+            query.Start = DateTime.Now.Subtract(TimeSpan.FromDays(14)).RoundDown(TimeSpan.FromDays(1));
+            using (var context = new HypixelContext())
+            {
+                var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
+                var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now);
+
+                var select = CreateSelect(query, context, itemId, amount, dbselect)
+                            .Select(a => new
+                            {
+                                a.End,
+                                Price = a.HighestBidAmount == 0 ? a.StartingBid : a.HighestBidAmount,
+                                a.AuctioneerId,
+                                a.Uuid
+                            });
+                switch (query.Order)
+                {
+                    case GetActiveAuctionsCommand.SortOrder.ENDING_SOON:
+                        select = select.OrderBy(a => a.End);
+                        break;
+                    case GetActiveAuctionsCommand.SortOrder.LOWEST_PRICE:
+                        select = select.OrderBy(a => a.Price);
+                        break;
+                    default:
+                        select = select.OrderByDescending(a => a.Price);
+                        break;
+                }
+                Console.WriteLine(select.ToSql());
+                return select.Take(amount).ToList().Select(async a => new AuctionPreview()
+                {
+                    End = a.End,
+                    Price = a.Price,
+                    Seller = a.AuctioneerId,
+                    Uuid = a.Uuid,
+                    PlayerName = await PlayerSearch.Instance.GetNameWithCacheAsync(a.AuctioneerId)
+                }).Select(a=>a.Result).ToList();
             }
         }
 

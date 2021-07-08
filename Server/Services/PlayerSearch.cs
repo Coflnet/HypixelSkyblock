@@ -51,9 +51,14 @@ namespace hypixel
         /// <returns></returns>
         public string GetNameWithCache(string uuid)
         {
-            var task = Server.ExecuteCommandWithCache<string,string>("playerName",uuid);
+            var task = GetNameWithCacheAsync(uuid);
             task.Wait();
             return task.Result;
+        }
+
+        public Task<string> GetNameWithCacheAsync(string uuid)
+        {
+            return Server.ExecuteCommandWithCache<string,string>("playerName",uuid);
         }
 
 

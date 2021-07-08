@@ -191,6 +191,12 @@ namespace hypixel
         [JsonIgnore]
         public long UId { get; set; }
 
+        public SaveAuction(string uuid)
+        {
+            this.Uuid = uuid;
+            UId = AuctionService.Instance.GetId(uuid);
+            this.End = DateTime.Now;
+        }
 
         public SaveAuction(Hypixel.NET.SkyblockApi.Auction auction)
         {

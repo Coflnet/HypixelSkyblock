@@ -119,7 +119,7 @@ namespace hypixel
             if (auction.SellerId == 0)
                 // his player has not yet received his number
                 return;
-
+                
             if (auction.ItemId == 0)
             {
                 var id = ItemDetails.Instance.GetOrCreateItemIdForAuction(auction, context);
@@ -168,6 +168,8 @@ namespace hypixel
 
         private static int GetOrCreatePlayerId(HypixelContext context, string uuid)
         {
+            if(uuid == null)
+                return -1;
             var id = context.Players.Where(p => p.UuId == uuid).Select(p => p.Id).FirstOrDefault();
             if (id == 0)
             {

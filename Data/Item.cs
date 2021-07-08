@@ -214,7 +214,6 @@ namespace hypixel
             if (tag != null && TagLookup.TryGetValue(tag, out int value))
                 return value;
 
-
             Console.WriteLine($"Creating item {clearedName} ({auction.ItemName},{auction.Tag})");
             // doesn't exist yet, create it
             var itemByTag = context.Items.Where(item => item.Tag == auction.Tag).FirstOrDefault();

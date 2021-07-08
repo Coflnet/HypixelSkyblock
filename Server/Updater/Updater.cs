@@ -30,7 +30,7 @@ namespace hypixel
 
         private static ConcurrentDictionary<string, BinInfo> LastUpdateBins = new ConcurrentDictionary<string, BinInfo>();
 
-        private static ConcurrentDictionary<string, bool> AlreadyChecked = new ConcurrentDictionary<string, bool>();
+        private static ConcurrentDictionary<string, bool> ActiveAuctions = new ConcurrentDictionary<string, bool>();
 
         ConcurrentDictionary<string, int> AuctionCount;
         public static ConcurrentDictionary<string, int> LastAuctionCount;
@@ -131,7 +131,7 @@ namespace hypixel
             var cancelToken = new CancellationToken();
             AuctionCount = new ConcurrentDictionary<string, int>();
 
-
+            var activeUuids = new ConcurrentDictionary<string, bool>();
             for (int i = 0; i < max; i++)
             {
                 var index = i;
@@ -153,9 +153,7 @@ namespace hypixel
                             Console.WriteLine($"Updating difference {lastUpdate} {res.LastUpdated}\n");
                         }
 
-                        // spread out the saving load burst
-                        //await Task.Delay(index * 150);
-                        var val = await Save(res, lastUpdate);
+                        var val = await Save(res, lastUpdate, activeUuids);
                         lock (sumloc)
                         {
                             sum += val;
@@ -169,7 +167,7 @@ namespace hypixel
                         try // again
                         {
                             var res = await hypixel?.GetAuctionPageAsync(index);
-                            var val = await Save(res, lastUpdate);
+                            var val = await Save(res, lastUpdate, activeUuids);
                         }
                         catch (System.Exception ex)
                         {
@@ -201,6 +199,24 @@ namespace hypixel
                 LastAuctionCount = AuctionCount;
 
             //BinUpdateSold(currentUpdateBins);
+            var lastUuids = ActiveAuctions;
+            ActiveAuctions = activeUuids;
+            var canceledTask = Task.Run(() =>
+            {
+                foreach (var item in ActiveAuctions.Keys)
+                {
+                    lastUuids.TryRemove(item, out bool val);
+                }
+
+                foreach (var item in BinUpdater.SoldLastMin)
+                {
+                    lastUuids.TryRemove(item.Uuid, out bool val);
+                }
+                Console.WriteLine($"canceled last min: {lastUuids.Count} {lastUuids.FirstOrDefault().Key}");
+                Indexer.AddToQueue(lastUuids.Select(id => new SaveAuction(id.Key)));
+            });
+
+
 
             if (sum > 10)
                 LastPull = DateTime.Now;
@@ -283,13 +299,13 @@ namespace hypixel
 
         // builds the index for all auctions in the last hour
 
-        async Task<int> Save(GetAuctionPage res, DateTime lastUpdate)
+        async Task<int> Save(GetAuctionPage res, DateTime lastUpdate, ConcurrentDictionary<string, bool> activeUuids)
         {
             int count = 0;
 
-
             var processed = res.Auctions.Where(item =>
                 {
+                    activeUuids[item.Uuid] = true;
                     // nothing changed if the last bid is older than the last update
                     return !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
                         item.Bids.Count == 0 && item.Start < lastUpdate);
@@ -335,7 +351,7 @@ namespace hypixel
 
             // do not slow down the update
             var min = DateTime.Now - TimeSpan.FromMinutes(15);
-            Flipper.FlipperEngine.Instance.NewAuctions(started.Where(a=>a.Start > min));
+            Flipper.FlipperEngine.Instance.NewAuctions(started.Where(a => a.Start > min));
             foreach (var auction in started)
             {
                 SubscribeEngine.Instance.NewAuction(auction);

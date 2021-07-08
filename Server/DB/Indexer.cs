@@ -220,6 +220,11 @@ namespace hypixel
                 }
                 else
                 {
+                    if(auction.AuctioneerId == null)
+                    {
+                        Logger.Instance.Error($"auction removed bevore in db " + auction.Uuid);
+                        return;
+                    }
                     context.Auctions.Add(auction);
                     try
                     {
@@ -253,6 +258,13 @@ namespace hypixel
 
         private static void UpdateAuction(HypixelContext context, BidComparer comparer, SaveAuction auction, SaveAuction dbauction)
         {
+            if(auction.AuctioneerId == null)
+            {
+                // an ended auction
+                dbauction.End = auction.End;
+                context.Auctions.Update(dbauction);
+                return;
+            }
             SubscribeEngine.Instance.NewBids(auction);
             foreach (var bid in auction.Bids)
             {
@@ -284,8 +296,8 @@ namespace hypixel
         private static async Task<Dictionary<string, SaveAuction>> GetExistingAuctions(List<SaveAuction> auctions, HypixelContext context)
         {
             // preload
-            return (await context.Auctions.Where(a => auctions.Select(oa => oa.Uuid)
-                .Contains(a.Uuid)).Include(a => a.Bids).ToListAsync())
+            return (await context.Auctions.Where(a => auctions.Select(oa => oa.UId)
+                .Contains(a.UId)).Include(a => a.Bids).ToListAsync())
                 .ToDictionary(a => a.Uuid);
         }
 
