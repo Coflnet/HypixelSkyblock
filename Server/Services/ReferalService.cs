@@ -49,6 +49,7 @@ namespace hypixel
                     RefId = hashids.Encode(user.Id),
                     BougthPremium = upgraded,
                     ReceivedTime = receivedTime,
+                    ReceivedHours = (int)receivedTime.TotalHours,
                     ReferCount = referedUsers.Count
                 };
             }
@@ -63,6 +64,8 @@ namespace hypixel
             public int ReferCount;
             [DataMember(Name = "receivedTime")]
             public TimeSpan ReceivedTime;
+            [DataMember(Name = "receivedHours")]
+            public int ReceivedHours;
             [DataMember(Name = "bougthPremium")]
             public int BougthPremium;
         }
