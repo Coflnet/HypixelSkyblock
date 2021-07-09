@@ -20,8 +20,15 @@ namespace hypixel
             trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("search", value)
                     .AddQueryParameter("search_count", resultCount.ToString())
-                    .AddQueryParameter("ua",GetUserAgent(data))
-                    .AddQueryParameter("gt_ms",time.TotalMilliseconds.ToString()));
+                    .AddQueryParameter("ua", GetUserAgent(data))
+                    .AddQueryParameter("gt_ms", ((int)time.TotalMilliseconds).ToString()));
+            trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
+                    .AddQueryParameter("ua", "search")
+                    .AddQueryParameter("action_name", "search/" + value)
+                    .AddQueryParameter("url", "http://s/search/" + value)
+                    .AddQueryParameter("cid","1234567890abcdef")
+                    .AddQueryParameter("gt_ms", ((int)time.TotalMilliseconds).ToString()));
+            Console.WriteLine($"took {((int)time.TotalMilliseconds)}");
         }
 
         public void TrackPage(string url, string title, MessageData data)
@@ -40,7 +47,7 @@ namespace hypixel
                     userAgent = context.UserAgent;
                 }
             }
-            if(data is SocketMessageData socketData)
+            if (data is SocketMessageData socketData)
             {
                 userAgent = socketData.Connection.Context.Headers["User-Agent"];
             }
@@ -55,12 +62,13 @@ namespace hypixel
                     .AddQueryParameter("action_name", title)
                     .AddQueryParameter("url", url)
                     .AddQueryParameter("urlref", referer)
-                    .AddQueryParameter("ua",userAgend);
-            if(referer != null && url.Substring(0,10) != referer.Substring(0,10)){
+                    .AddQueryParameter("ua", userAgend);
+            if (referer != null && url.Substring(0, 10) != referer.Substring(0, 10))
+            {
                 request.AddQueryParameter("new_visit", "1");
             }
-            if(genTime != default(TimeSpan))
-                request.AddQueryParameter("gt_ms", genTime.TotalMilliseconds.ToString());
+            if (genTime != default(TimeSpan))
+                request.AddQueryParameter("gt_ms", ((int)genTime.TotalMilliseconds).ToString());
             trackClient.Execute(request);
         }
 
@@ -71,7 +79,7 @@ namespace hypixel
         internal void CommandError(string type)
         {
             var request = new RestRequest("/matomo.php?idsite=2&rec=1")
-                    .AddQueryParameter("action_name","error/"+ type);
+                    .AddQueryParameter("action_name", "error/" + type);
             trackClient.Execute(request);
         }
     }

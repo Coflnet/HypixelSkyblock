@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Coflnet;
 using dev;
 using Hypixel.NET;
@@ -43,25 +45,12 @@ namespace hypixel
             return popularSite;
         }
 
-        internal async Task<List<SearchResultItem>> Search(string search)
+        internal Task<ConcurrentQueue<SearchResultItem>> Search(string search, CancellationToken token)
         {
             if (search.Length > 40)
-                return null;
-            if (!cache.TryGetValue(search, out CacheItem result))
-            {
-                result = await CreateAndCache(search);
-            }
-            result.hitCount++;
-            return result.response;
-        }
+                return Task.FromResult(new ConcurrentQueue<SearchResultItem>());
+            return CreateResponse(search,token);
 
-        private async Task<CacheItem> CreateAndCache(string search)
-        {
-            CacheItem result;
-            var response = await CreateResponse(search);
-            result = new CacheItem(response);
-            //cache.AddOrUpdate(search, result, (key, old) => result);
-            return result;
         }
 
         static SearchService()
@@ -120,32 +109,6 @@ namespace hypixel
             updateCount++;
         }
 
-        private void PartialUpdateCache(HypixelContext context, int maxUpdateCount = 10)
-        {
-            var maxAge = DateTime.Now - TimeSpan.FromHours(1);
-            var toDelete = cache.Where(item => item.Value.hitCount < 2 &&
-                    item.Key.Length > 2 &&
-                    item.Value.created < maxAge)
-                .Select(item => item.Key).ToList();
-
-            foreach (var item in toDelete)
-            {
-                cache.TryRemove(item, out CacheItem element);
-            }
-            var update = cache.Where(el => el.Value.hitCount > 1)
-                .OrderBy(el => el.Value.created)
-                .OrderByDescending(el => el.Value.hitCount)
-                .Select(el => el.Key)
-                .Take(maxUpdateCount)
-                .ToList();
-            foreach (var item in update)
-            {
-                CreateAndCache(item);
-            }
-            if (update.Any())
-                Console.WriteLine($"cached search for {update.First()} ");
-        }
-
         private void ShrinkHits(HypixelContext context)
         {
             Console.WriteLine("shrinking hits !!");
@@ -186,30 +149,11 @@ namespace hypixel
             });
         }
 
-        private async void PopulateCache()
-        {
-            var letters = VALID_MINECRAFT_NAME_CHARS;
-
-            foreach (var letter in letters)
-            {
-                try
-                {
-
-                    await CreateAndCache(letter.ToString());
-                    await Task.Delay(100);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Search service cache {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace}");
-                }
-            }
-            //await CreateAndCache("");
-            Console.WriteLine("populated Cache");
-        }
 
         private static int prefetchIndex = new Random().Next(1000);
         private async Task PrefetchCache()
         {
+            return;
             var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
             var combinations = charCount * charCount + charCount;
             var index = prefetchIndex++ % combinations;
@@ -221,38 +165,75 @@ namespace hypixel
             else
             {
                 index = index - charCount;
-                requestString = VALID_MINECRAFT_NAME_CHARS[index/charCount].ToString() + VALID_MINECRAFT_NAME_CHARS[index%charCount];
+                requestString = VALID_MINECRAFT_NAME_CHARS[index / charCount].ToString() + VALID_MINECRAFT_NAME_CHARS[index % charCount];
             }
-            await Server.ExecuteCommandWithCache<string,object>("fullSearch",requestString);
+            await Server.ExecuteCommandWithCache<string, object>("fullSearch", requestString);
         }
 
-        private static async Task<List<SearchResultItem>> CreateResponse(string search)
+        private static async Task<ConcurrentQueue<SearchResultItem>> CreateResponse(string search, CancellationToken token)
         {
+            Console.WriteLine("beginsearch");
             var result = new List<SearchResultItem>();
 
             //var singlePlayer = PlayerSearch.Instance.FindDirect(search);
-            var itemTask = ItemDetails.Instance.Search(search, 20);
+            var itemTask = ItemDetails.Instance.Search(search, 12);
             var playersTask = PlayerSearch.Instance.Search(search, targetAmount, false);
 
+            var Results = new ConcurrentQueue<SearchResultItem>();
+            var searchTasks = new Task[3];
+            Console.WriteLine("searching");
 
-            if (itemTask.Wait(TimeSpan.FromMilliseconds(200)))
+            searchTasks[0] = Task.Run(async () =>
             {
-                var items = itemTask.Result;
-
+                Console.WriteLine("scheduled item wait");
+                var items = await itemTask;
+                Console.WriteLine("awaited item wait");
                 if (items.Count() == 0)// && singlePlayer.Result == null)
                     items = await ItemDetails.Instance.FindClosest(search);
-                result.AddRange(itemTask.Result.Select(item => new SearchResultItem(item)));
-            }
-            //if (singlePlayer.Result != null)
-            //    result.Add(new SearchResultItem(singlePlayer.Result));
-            if (playersTask.Wait(TimeSpan.FromMilliseconds(100)))
+
+                foreach (var item in items.Select(item => new SearchResultItem(item)))
+                {
+                    Results.Enqueue(item);
+                }
+                Console.WriteLine("done item wait");
+            },token);
+
+            searchTasks[1] = Task.Run(async () =>
             {
-                var players = playersTask.Result;
-                result.AddRange(players.Select(player => new SearchResultItem(player)));
+                Console.WriteLine("scheduled player wait");
+                foreach (var item in (await playersTask).Select(player => new SearchResultItem(player)))
+                    Results.Enqueue(item);
+                Console.WriteLine("done player wait");
+            },token);
+
+            searchTasks[2] = Task.Run(async () =>
+            {
+                if (search.Length <= 2)
+                    return;
+                await Task.Delay(30);
+                Console.WriteLine("scheduled last cache wait");
+                foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
+                    Results.Enqueue(item);
+            },token);
+
+            foreach (var item in searchTasks)
+            {
+                item.ConfigureAwait(false);
             }
 
-            return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0))
-                .Take(targetAmount).ToList();
+            var timeout = DateTime.Now + TimeSpan.FromSeconds(2);
+            while (DateTime.Now < timeout)
+            {
+                Console.WriteLine(DateTime.Now);
+                if(Results.Count >= 5)
+                    return Results;
+                await Task.Delay(10);
+            }
+            Console.WriteLine("=> past timeout");
+
+            Task.WaitAll(searchTasks);
+            return Results;
+            // return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)).Take(targetAmount).ToList();
         }
 
         class CacheItem
@@ -298,10 +279,14 @@ namespace hypixel
                 this.Name = item.Name;
                 this.Id = item.Tag;
                 this.Type = "item";
-                if (!item.Tag.StartsWith("POTION") && IsPet(item) && !item.Tag.StartsWith("RUNE"))
+                var isPet = IsPet(item);
+                if (!item.Tag.StartsWith("POTION") && !isPet && !item.Tag.StartsWith("RUNE"))
                     IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                 else
                     this.IconUrl = item.IconUrl;
+                if(isPet && !Name.Contains("Pet"))
+                    this.Name += " Pet";
+
                 this.HitCount = item.HitCount + ITEM_EXTRA_IMPORTANCE;
                 if (ItemReferences.RemoveReforgesAndLevel(Name) != Name)
                     this.HitCount -= NOT_NORMALIZED_PENILTY;
@@ -309,7 +294,19 @@ namespace hypixel
 
             private static bool IsPet(ItemDetails.ItemSearchResult item)
             {
-                return (!item.Tag.StartsWith("PET") || item.Tag.StartsWith("PET_SKIN"));
+                return (item.Tag.StartsWith("PET") && !item.Tag.StartsWith("PET_SKIN"));
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is SearchResultItem item &&
+                       Id == item.Id &&
+                       Type == item.Type;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Id, Type);
             }
 
             public SearchResultItem(PlayerResult player)
@@ -320,8 +317,18 @@ namespace hypixel
                 this.Type = "player";
                 this.HitCount = player.HitCount;
             }
+        }
+        public class SearchResultComparer : IEqualityComparer<SearchResultItem>
+        {
+            public bool Equals([AllowNull] SearchResultItem x, [AllowNull] SearchResultItem y)
+            {
+                return x != null && y != null && x.Equals(y);
+            }
 
-
+            public int GetHashCode([DisallowNull] SearchResultItem obj)
+            {
+                return obj.GetHashCode();
+            }
         }
 
         public static string PlayerHeadUrl(string playerUuid)

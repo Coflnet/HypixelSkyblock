@@ -131,27 +131,30 @@ namespace hypixel
 
                 if (result.Count() == 0)
                 {
-                    var client = new RestClient("https://mc-heads.net/");
-                    var request = new RestRequest($"/minecraft/profile/{search}", Method.GET);
-                    var response = await client.ExecuteAsync(request);
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                        if (forceResolution)
-                            throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
-                        else
-                        { // nothing to do 
-                        }
-                    else
-                    {
-                        var value = JsonConvert.DeserializeObject<SearchCommand.MinecraftProfile>(response.Content);
-                        NameUpdater.UpdateUUid(value.Id, value.Name);
-                        result.Add(new PlayerResult(value.Name, value.Id));
-                    }
-
+                    await LoadPlayerName(search, forceResolution, result);
                 }
 
             }
             return result;
         }
 
+        private static async Task LoadPlayerName(string search, bool forceResolution, List<PlayerResult> result)
+        {
+            var client = new RestClient("https://mc-heads.net/");
+            var request = new RestRequest($"/minecraft/profile/{search}", Method.GET);
+            var response = await client.ExecuteAsync(request);
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                if (forceResolution)
+                    throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
+                else
+                { // nothing to do 
+                }
+            else
+            {
+                var value = JsonConvert.DeserializeObject<SearchCommand.MinecraftProfile>(response.Content);
+                NameUpdater.UpdateUUid(value.Id, value.Name);
+                result.Add(new PlayerResult(value.Name, value.Id));
+            }
+        }
     }
 }
