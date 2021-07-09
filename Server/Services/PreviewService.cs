@@ -22,7 +22,7 @@ namespace hypixel
             var request = new RestRequest("/avatars/{uuid}").AddUrlSegment("uuid",id).AddQueryParameter("overlay","");
 
             var uri = crafatarClient.BuildUri(request.AddParameter("size",64));
-            var response = crafatarClient.DownloadData(request.AddParameter("size", 16));
+            var response = crafatarClient.DownloadData(request.AddParameter("size", 8));
 
             return new Preview()
             {

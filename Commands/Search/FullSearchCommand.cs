@@ -21,53 +21,39 @@ namespace hypixel
             Regex rgx = new Regex("[^a-zA-Z0-9_\\. ]");
             var search = rgx.Replace(data.Data, "").ToLower();
             var cancelationSource = new CancellationTokenSource();
-            var results = SearchService.Instance.Search(search,cancelationSource.Token);
+            var results = SearchService.Instance.Search(search, cancelationSource.Token);
 
             var result = new ConcurrentBag<SearchService.SearchResultItem>();
             var pullTask = Task.Run(async () =>
             {
                 Console.WriteLine($"Started task " + watch.Elapsed);
-                while(results.Result.TryDequeue(out SearchService.SearchResultItem r))
+                while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
                 {
                     Console.WriteLine($"got partial search result {r.Name} {watch.Elapsed}");
                     result.Add(r);
                     if (result.Count >= 15)
                         return; // return early
 
-                    await Task.Run(async () =>
-                    {
-                        PreviewService.Preview preview = null;
-                        if (r.Type == "player")
-                            preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("pPrev", r.Id);
-                        else if (r.Type == "item")
-                            preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id);
-
-                        if (preview == null)
-                            return;
-
-                        Console.WriteLine($"Loaded image {r.Name} " + watch.Elapsed);
-                        r.Image = preview.Image;
-                        r.IconUrl = preview.ImageUrl;
-                    }).ConfigureAwait(false);
+                    await Task.Run(()=>LoadPreview(watch, r)).ConfigureAwait(false);
                 }
             }, cancelationSource.Token);
 
             Console.WriteLine($"Waiting half a second " + watch.Elapsed);
             pullTask.Wait(350);
-            while(results.Result.TryDequeue(out SearchService.SearchResultItem r))
+            while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
                 result.Add(r);
             Console.WriteLine($"Waited half a second " + watch.Elapsed);
 
             var maxAge = A_DAY / 2;
 
             if (result.Count == 0)
-                maxAge = A_MINUTE;*/
-            cancelationSource.Cancel();
+                maxAge = A_MINUTE; 
+             cancelationSource.Cancel();
             Console.WriteLine($"Started sorting " + watch.Elapsed);
             var orderedResult = result.OrderBy(r => r.Name?.Length / 2 - r.HitCount
                             - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)
                             - (!String.IsNullOrEmpty(r.Name) && r.Name.Length > search.Length && r.Name.ToLower().Truncate(search.Length) == search.ToLower() ? 50 : 0)
-                            + Fastenshtein.Levenshtein.Distance(r.Name,search))
+                            + Fastenshtein.Levenshtein.Distance(r.Name, search))
             .Distinct(new SearchService.SearchResultComparer()).Take(5).ToList();
             Console.WriteLine($"making response " + watch.Elapsed);
 
@@ -78,6 +64,24 @@ namespace hypixel
                 if (!(data is Server.ProxyMessageData<string, object>))
                     TrackingService.Instance.TrackSearch(data, search, orderedResult.Count, watch.Elapsed);
             });
-        }      
+        }
+
+        private async Task LoadPreview(Stopwatch watch, SearchService.SearchResultItem r)
+        {
+
+            PreviewService.Preview preview = null;
+            if (r.Type == "player")
+                preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("pPrev", r.Id);
+            else if (r.Type == "item")
+                preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id);
+
+            if (preview == null)
+                return;
+
+            Console.WriteLine($"Loaded image {r.Name} " + watch.Elapsed);
+            r.Image = preview.Image;
+            r.IconUrl = preview.ImageUrl;
+
+        }
     }
 }
