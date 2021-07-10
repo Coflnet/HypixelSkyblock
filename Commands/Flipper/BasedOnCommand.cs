@@ -46,8 +46,11 @@ namespace hypixel
         [DataContract]
         public class Response 
         {
+            [DataMember(Name = "uuid")]
             public string uuid;
+            [DataMember(Name = "highestBid")]
             public long highestBid;
+            [DataMember(Name = "end")]
             public System.DateTime end;
         }
     }
