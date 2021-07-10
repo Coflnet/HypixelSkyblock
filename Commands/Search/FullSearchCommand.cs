@@ -15,7 +15,7 @@ namespace hypixel
     {
         private const string Type = "searchResponse";
 
-        public override async void Execute(MessageData data)
+        public override void Execute(MessageData data)
         {
             var watch = Stopwatch.StartNew();
             Regex rgx = new Regex("[^a-zA-Z0-9_\\. ]");
@@ -34,7 +34,7 @@ namespace hypixel
                     if (result.Count >= 15)
                         return; // return early
 
-                    await Task.Run(()=>LoadPreview(watch, r)).ConfigureAwait(false);
+                    await Task.Run(() => LoadPreview(watch, r)).ConfigureAwait(false);
                 }
             }, cancelationSource.Token);
 
@@ -47,8 +47,8 @@ namespace hypixel
             var maxAge = A_DAY / 2;
 
             if (result.Count == 0)
-                maxAge = A_MINUTE; 
-             cancelationSource.Cancel();
+                maxAge = A_MINUTE;
+            cancelationSource.Cancel();
             Console.WriteLine($"Started sorting " + watch.Elapsed);
             var orderedResult = result.OrderBy(r => r.Name?.Length / 2 - r.HitCount
                             - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)
@@ -68,19 +68,25 @@ namespace hypixel
 
         private async Task LoadPreview(Stopwatch watch, SearchService.SearchResultItem r)
         {
+            try
+            {
+                PreviewService.Preview preview = null;
+                if (r.Type == "player")
+                    preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("pPrev", r.Id);
+                else if (r.Type == "item")
+                    preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id);
 
-            PreviewService.Preview preview = null;
-            if (r.Type == "player")
-                preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("pPrev", r.Id);
-            else if (r.Type == "item")
-                preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id);
+                if (preview == null)
+                    return;
 
-            if (preview == null)
-                return;
+                Console.WriteLine($"Loaded image {r.Name} " + watch.Elapsed);
+                r.Image = preview.Image;
+                r.IconUrl = preview.ImageUrl;
+            } catch(Exception e)
+            {
+                dev.Logger.Instance.Error(e, "Failed to load preview for " + r.Id);
+            }
 
-            Console.WriteLine($"Loaded image {r.Name} " + watch.Elapsed);
-            r.Image = preview.Image;
-            r.IconUrl = preview.ImageUrl;
 
         }
     }
