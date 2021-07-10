@@ -267,7 +267,7 @@ namespace hypixel.Flipper
                     Console.WriteLine("not yet migrated skiping flip");
                 return;
             }
-            if (Environment.ProcessorCount > 9 && auction.UId % 25 != 0)
+            if (Environment.ProcessorCount > 9 && auction.UId % 5 != 0)
                 return; // don't run on full cap on my dev machine :D
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
@@ -282,7 +282,7 @@ namespace hypixel.Flipper
             {
                 Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
                 var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
-                medianPrice = (long)(await ItemPrices.GetLookupForToday(itemId)).Prices.Average(p=>p.Avg*0.8+p.Min*0.2);
+                medianPrice = (long)(await ItemPrices.GetLookupForToday(itemId)).Prices.Average(p => p.Avg * 0.8 + p.Min * 0.2);
             }
             else
             {
@@ -414,7 +414,18 @@ namespace hypixel.Flipper
                         .Where(e => (e.Level > 5 && highLvlEnchantList.Contains(e.Type)
                                     || e.Type == ultiType && e.Level == ultiLevel)).Count() >= matchingCount);
             else if (auction.Enchantments?.Count == 1)
-                select = select.Where(a => a.Enchantments != null && a.Enchantments.Any() && a.Enchantments.First().Type == auction.Enchantments.First().Type && a.Enchantments.First().Level == auction.Enchantments.First().Level);
+                select = select.Where(a => a.Enchantments != null && a.Enchantments.Any()
+                        && a.Enchantments.First().Type == auction.Enchantments.First().Type
+                        && a.Enchantments.First().Level == auction.Enchantments.First().Level);
+            else if (auction.Enchantments?.Count == 2)
+            {
+                Console.WriteLine("selecting with two enchants " +auction.Uuid );
+                select = select.Where(a => a.Enchantments != null && a.Enchantments.Count() == 2
+                        && a.Enchantments.Where(e =>
+                            e.Type == auction.Enchantments[0].Type && e.Level == auction.Enchantments[0].Level
+                            || e.Type == auction.Enchantments[1].Type && e.Level == auction.Enchantments[1].Level).Count() == 2);
+            }
+
             // make sure we exclude special enchants to get a reasonable price
             else if (auction.Enchantments.Any())
                 select = select.Where(a => !a.Enchantments.Where(e => ultiList.Contains(e.Type) || e.Level > 5).Any());
