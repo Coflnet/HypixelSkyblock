@@ -22,14 +22,12 @@ namespace hypixel
                     .AddQueryParameter("search", value)
                     .AddQueryParameter("search_count", resultCount.ToString())
                     .AddQueryParameter("ua", GetUserAgent(data))
-                    .AddQueryParameter("gt_ms", genMs)
                     .AddQueryParameter("pf_srv", genMs));
             trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("ua", "search")
                     .AddQueryParameter("action_name", "search/" + value)
                     .AddQueryParameter("url", "http://s/search/" + value)
                     .AddQueryParameter("cid","1234567890abcdef")
-                    .AddQueryParameter("gt_ms", genMs)
                     .AddQueryParameter("pf_srv", genMs));
 
                     

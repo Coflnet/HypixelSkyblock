@@ -162,10 +162,10 @@ namespace hypixel.Flipper
             {
                 foreach (var item in toSendFlips)
                 {
-                    await Task.Delay(5000);
                     var data = CreateDataFromFlip(item);
                     data.mId = id;
                     con.SendBack(data);
+                    await Task.Delay(5000);
                 }
             });
         }
@@ -475,6 +475,7 @@ namespace hypixel.Flipper
             var message = new MessageData("sold", auction.Uuid);
             NotifyAll(message, Subs);
             SoldAuctions[auction.UId] = auction.End;
+            NotifyAll(message, SlowSubs);
         }
 
         private static void NotifyAll(MessageData message, ConcurrentDictionary<long, int> subscribers)
