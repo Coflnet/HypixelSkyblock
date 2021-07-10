@@ -50,7 +50,7 @@ namespace hypixel
             {
                 await Task.Delay(TimeSpan.FromMinutes(1));
                 await RunForever();
-            });
+            }).ConfigureAwait(false);
         }
 
         internal static void UpdateUUid(string id,string name = null)

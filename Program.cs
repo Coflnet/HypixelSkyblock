@@ -440,7 +440,7 @@ namespace hypixel
                     }
                     await Task.Delay(2000);
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         private static void WaitForDatabaseCreation()

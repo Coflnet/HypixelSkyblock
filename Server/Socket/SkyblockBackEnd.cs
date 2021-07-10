@@ -92,6 +92,7 @@ namespace hypixel
 
             Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());
             Commands.Add("subFlip", new SubFlipperCommand());
+            Commands.Add("unsubFlip", new UnsubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
             Commands.Add("flipBased", new BasedOnCommand());
             

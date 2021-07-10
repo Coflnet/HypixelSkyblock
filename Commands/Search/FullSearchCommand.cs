@@ -34,17 +34,17 @@ namespace hypixel
                     if (result.Count >= 15)
                         return; // return early
 
-                    await Task.Run(() => LoadPreview(watch, r)).ConfigureAwait(false);
+                    Task.Run(() => LoadPreview(watch, r),cancelationSource.Token).ConfigureAwait(false);
                 }
             }, cancelationSource.Token);
 
             Console.WriteLine($"Waiting half a second " + watch.Elapsed);
-            pullTask.Wait(350);
+            pullTask.Wait(320);
             while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
                 result.Add(r);
             Console.WriteLine($"Waited half a second " + watch.Elapsed);
 
-            var maxAge = A_DAY / 2;
+            var maxAge = 60;//A_DAY / 2;
 
             if (result.Count == 0)
                 maxAge = A_MINUTE;
@@ -58,12 +58,11 @@ namespace hypixel
             Console.WriteLine($"making response " + watch.Elapsed);
 
             data.SendBack(data.Create(Type, orderedResult, maxAge));
-
             Task.Run(() =>
             {
                 if (!(data is Server.ProxyMessageData<string, object>))
                     TrackingService.Instance.TrackSearch(data, search, orderedResult.Count, watch.Elapsed);
-            });
+            }).ConfigureAwait(false);
         }
 
         private async Task LoadPreview(Stopwatch watch, SearchService.SearchResultItem r)

@@ -5,6 +5,7 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             ReferalService.Instance.WasReferedBy(data.User, data.GetAs<string>());
+            data.Ok();
         }
     }
 }

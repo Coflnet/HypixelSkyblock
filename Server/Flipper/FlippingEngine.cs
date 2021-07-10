@@ -150,6 +150,11 @@ namespace hypixel.Flipper
             SendFlipHistory(con, id, toSendFlips);
         }
 
+        public void RemoveNonConnection(SkyblockBackEnd con)
+        {
+            SlowSubs.TryRemove(con.Id, out int value);
+        }
+
 
         private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips)
         {
@@ -419,7 +424,6 @@ namespace hypixel.Flipper
                         && a.Enchantments.First().Level == auction.Enchantments.First().Level);
             else if (auction.Enchantments?.Count == 2)
             {
-                Console.WriteLine("selecting with two enchants " +auction.Uuid );
                 select = select.Where(a => a.Enchantments != null && a.Enchantments.Count() == 2
                         && a.Enchantments.Where(e =>
                             e.Type == auction.Enchantments[0].Type && e.Level == auction.Enchantments[0].Level

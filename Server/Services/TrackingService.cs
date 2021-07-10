@@ -17,17 +17,22 @@ namespace hypixel
 
         public void TrackSearch(MessageData data, string value, int resultCount, TimeSpan time)
         {
+            var genMs = ((int)time.TotalMilliseconds).ToString();
             trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("search", value)
                     .AddQueryParameter("search_count", resultCount.ToString())
                     .AddQueryParameter("ua", GetUserAgent(data))
-                    .AddQueryParameter("gt_ms", ((int)time.TotalMilliseconds).ToString()));
+                    .AddQueryParameter("gt_ms", genMs)
+                    .AddQueryParameter("pf_srv", genMs));
             trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("ua", "search")
                     .AddQueryParameter("action_name", "search/" + value)
                     .AddQueryParameter("url", "http://s/search/" + value)
                     .AddQueryParameter("cid","1234567890abcdef")
-                    .AddQueryParameter("gt_ms", ((int)time.TotalMilliseconds).ToString()));
+                    .AddQueryParameter("gt_ms", genMs)
+                    .AddQueryParameter("pf_srv", genMs));
+
+                    
             Console.WriteLine($"took {((int)time.TotalMilliseconds)}");
         }
 
@@ -68,7 +73,7 @@ namespace hypixel
                 request.AddQueryParameter("new_visit", "1");
             }
             if (genTime != default(TimeSpan))
-                request.AddQueryParameter("gt_ms", ((int)genTime.TotalMilliseconds).ToString());
+                request.AddQueryParameter("pf_srv", ((int)genTime.TotalMilliseconds).ToString());
             trackClient.Execute(request);
         }
 

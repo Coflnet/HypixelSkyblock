@@ -146,7 +146,7 @@ namespace hypixel
                     }
 
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
 
@@ -210,9 +210,14 @@ namespace hypixel
             {
                 if (search.Length <= 2)
                     return;
-                await Task.Delay(30);
+                await Task.Delay(1);
                 Console.WriteLine("scheduled last cache wait");
                 foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
+                    Results.Enqueue(item);
+                var parts = search.Split(' ');
+                if(parts.Count() == 1)
+                    return;
+                foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", parts[1]))
                     Results.Enqueue(item);
             },token);
 

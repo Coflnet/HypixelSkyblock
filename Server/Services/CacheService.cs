@@ -149,7 +149,7 @@ namespace hypixel
                 {
                     dev.Logger.Instance.Error(e, "cache refresh failed");
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         public void ClearStale()
@@ -244,7 +244,7 @@ namespace hypixel
                     await Task.Delay(tenMin);
                     ClearStale();
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
