@@ -19,6 +19,7 @@ namespace hypixel.Flipper
         private const string FoundFlippsKey = "foundFlipps";
         private static int MIN_PRICE_POINT = 1000000;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
+        private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
         private ConcurrentDictionary<long, int> Subs = new ConcurrentDictionary<long, int>();
@@ -28,7 +29,6 @@ namespace hypixel.Flipper
 
         private ConcurrentQueue<SaveAuction> PotetialFlipps = new ConcurrentQueue<SaveAuction>();
         private ConcurrentQueue<SaveAuction> LowPriceQueue = new ConcurrentQueue<SaveAuction>();
-        private Queue<Task> TempFlipWorkers = new Queue<Task>();
         CancellationTokenSource TempWorkersStopSource = new CancellationTokenSource();
 
         public int QueueSize => PotetialFlipps.Count + LowPriceQueue.Count * 10000;
@@ -53,17 +53,44 @@ namespace hypixel.Flipper
                 Console.WriteLine("booting flipper");
                 Program.updater.OnNewUpdateStart += Instance.OnUpdateStart;
                 Program.updater.OnNewUpdateEnd += Instance.OnUpdateEnd;
-            });
+                while (true)
+                    await Instance.ProcessSlowQueue();
+            }).ConfigureAwait(false);
+        }
+
+        private async Task ProcessSlowQueue()
+        {
+            try
+            {
+                if (SlowFlips.TryDequeue(out FlipInstance flip))
+                {
+                    if (SoldAuctions.ContainsKey(flip.UId))
+                        flip.Sold = true;
+                    var message = CreateDataFromFlip(flip);
+                    NotifyAll(message, SlowSubs);
+                }
+
+                await Task.Delay(DelayTimeFor(SlowFlips.Count));
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "slow queue processor");
+            }
+        }
+
+        public static int DelayTimeFor(int queueSize)
+        {
+            return (int)Math.Min((TimeSpan.FromMinutes(5) / (Math.Max(queueSize,1))).TotalMilliseconds,10000);
         }
 
         private void OnUpdateStart()
         {
             TempWorkersStopSource.Cancel();
             TempWorkersStopSource = new CancellationTokenSource();
-            var skippCount = Instance.LowPriceQueue.Count * 4 / 5 - 50;
+            var skippCount = Instance.LowPriceQueue.Count * 4 / 5 - 100;
             if (skippCount <= 0)
             {
-                Console.WriteLine("got through all auctions :)");
+                Console.WriteLine("got through all/most auctions :)");
                 return;
             }
             Console.WriteLine($"flipper skipping {skippCount} auctions");
@@ -74,7 +101,7 @@ namespace hypixel.Flipper
                 {
                     Instance.LowPriceQueue.TryDequeue(out SaveAuction removed);
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -91,7 +118,7 @@ namespace hypixel.Flipper
                 {
                     await DoFlipWork(cancleToken);
 
-                }, cancleToken);
+                }, cancleToken).ConfigureAwait(false);
             }
             ClearSoldBuffer();
         }
@@ -167,7 +194,7 @@ namespace hypixel.Flipper
                     con.SendBack(data);
                     await Task.Delay(5000);
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         public void Test()
@@ -442,20 +469,11 @@ namespace hypixel.Flipper
         {
             MessageData message = CreateDataFromFlip(flip);
             NotifyAll(message, Subs);
-            Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromMinutes(3));
-                if (SoldAuctions.ContainsKey(flip.UId))
-                {
-                    flip.Sold = true;
-                    message = CreateDataFromFlip(flip);
-                }
-                NotifyAll(message, SlowSubs);
-            });
+            SlowFlips.Enqueue(flip);
 
             Flipps.Enqueue(flip);
             FlipIdLookup[flip.UId] = true;
-            if (Flipps.Count > 800)
+            if (Flipps.Count > 1200)
             {
                 if (Flipps.TryDequeue(out FlipInstance result))
                 {

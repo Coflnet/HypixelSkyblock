@@ -199,8 +199,8 @@ namespace hypixel
             Indexer.MiniumOutput();
 
             server = new Server();
-            Task.Run(() => server.Start());
-            Task.Run(() => CreateHost(new string[0]));
+            Task.Run(() => server.Start()).ConfigureAwait(false);
+            Task.Run(() => CreateHost(new string[0])).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
             LightClient = mode == "light";
@@ -241,7 +241,7 @@ namespace hypixel
             {
                 await Task.Delay(TimeSpan.FromMinutes(3));
                 await ItemPrices.Instance.BackfillPrices();
-            });
+            }).ConfigureAwait(false);;
 
 
             onStop += () =>
@@ -276,7 +276,7 @@ namespace hypixel
                 {
                     Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
                 }
-            }, fillRedisCacheTokenSource.Token);
+            }, fillRedisCacheTokenSource.Token).ConfigureAwait(false);;
         }
 
         public static async Task MakeSureRedisIsInitialized()

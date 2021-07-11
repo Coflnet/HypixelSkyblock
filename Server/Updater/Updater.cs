@@ -214,7 +214,7 @@ namespace hypixel
                 }
                 Console.WriteLine($"canceled last min: {lastUuids.Count} {lastUuids.FirstOrDefault().Key}");
                 Indexer.AddToQueue(lastUuids.Select(id => new SaveAuction(id.Key)));
-            });
+            }).ConfigureAwait(false);
 
 
 
@@ -245,7 +245,7 @@ namespace hypixel
                     source = new CancellationTokenSource();
                     StartNewUpdater(source.Token);
                 }
-            });
+            }).ConfigureAwait(false);
             StartNewUpdater(source.Token);
         }
 
@@ -275,7 +275,7 @@ namespace hypixel
                     }
 
                 }
-            }, token);
+            }, token).ConfigureAwait(false);
         }
 
         private static async Task WaitForServerCacheRefresh(DateTime hypixelCacheTime)

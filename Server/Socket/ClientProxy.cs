@@ -121,7 +121,7 @@ namespace hypixel
                 {
                     dev.Logger.Instance.Error($"Could not execute client command {ex.Message} \n {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         static ClientProxy()

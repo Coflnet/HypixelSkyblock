@@ -42,7 +42,7 @@ namespace hypixel
                 {
                     await Task.Delay(TimeSpan.FromMinutes(1));
                     Instance = new CacheService();
-                });
+                }).ConfigureAwait(false);
             }
         }
 

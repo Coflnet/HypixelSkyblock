@@ -199,7 +199,7 @@ namespace hypixel
                     dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
                     data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         private static void SendCoflnetException(SocketMessageData data, CoflnetException ex)
@@ -277,7 +277,7 @@ namespace hypixel
                 var heavyUsage = new CountByIntervalAwaitableConstraint(40, TimeSpan.FromSeconds(20));
 
                 limiter = TimeLimiter.Compose(constraint2, heavyUsage);
-            });
+            }).ConfigureAwait(false);
         }
 
         private long GetSessionId(string stringId)

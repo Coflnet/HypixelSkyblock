@@ -164,38 +164,38 @@ namespace hypixel
         internal void Sold(SubscribeItem sub, SaveAuction auction)
         {
             var text = $"{auction.ItemName} was sold to {PlayerSearch.Instance.GetNameWithCache(auction.Bids.FirstOrDefault().Bidder)} for {auction.HighestBidAmount}";
-            Task.Run(() => Send(sub.UserId, "Item Sold", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction)));
+            Task.Run(() => Send(sub.UserId, "Item Sold", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction))).ConfigureAwait(false);
         }
 
         public void Outbid(SubscribeItem sub, SaveAuction auction, SaveBids bid)
         {
             var outBidBy = auction.HighestBidAmount - bid.Amount;
             var text = $"You were outbid on {auction.ItemName} by {PlayerSearch.Instance.GetNameWithCache(auction.Bids.FirstOrDefault().Bidder)} by {outBidBy}";
-            Task.Run(() => Send(sub.UserId, "Outbid", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction)));
+            Task.Run(() => Send(sub.UserId, "Outbid", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction))).ConfigureAwait(false);
         }
 
         public void NewBid(SubscribeItem sub, SaveAuction auction, SaveBids bid)
         {
             var text = $"New bid on {auction.ItemName} by {PlayerSearch.Instance.GetNameWithCache(auction.Bids.FirstOrDefault().Bidder)} for {auction.HighestBidAmount}";
-            Task.Run(() => Send(sub.UserId, "New bid", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), auction));
+            Task.Run(() => Send(sub.UserId, "New bid", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), auction)).ConfigureAwait(false);
         }
 
         internal void AuctionOver(SubscribeItem sub, SaveAuction auction)
         {
             var text = $"Highest bid is {auction.HighestBidAmount}";
-            Task.Run(() => Send(sub.UserId, $"Auction for {auction.ItemName} ended", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction)));
+            Task.Run(() => Send(sub.UserId, $"Auction for {auction.ItemName} ended", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction))).ConfigureAwait(false);
         }
 
         internal void PriceAlert(SubscribeItem sub, string productId, double value)
         {
             var text = $"{ItemDetails.TagToName(productId)} reached {value.ToString("0.00")}";
-            Task.Run(() => Send(sub.UserId, $"Price Alert", text, $"{BaseUrl}/item/{productId}", ItemIconUrl(productId)));
+            Task.Run(() => Send(sub.UserId, $"Price Alert", text, $"{BaseUrl}/item/{productId}", ItemIconUrl(productId))).ConfigureAwait(false);
         }
 
         internal void AuctionPriceAlert(SubscribeItem sub, SaveAuction auction)
         {
             var text = $"New Auction for {auction.ItemName} for {auction.StartingBid}";
-            Task.Run(() => Send(sub.UserId, $"Price Alert", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction)));
+            Task.Run(() => Send(sub.UserId, $"Price Alert", text, AuctionUrl(auction), ItemIconUrl(auction.Tag), FormatAuction(auction))).ConfigureAwait(false);
         }
 
         private object FormatAuction(SaveAuction auction)

@@ -208,7 +208,7 @@ namespace dev
                     }
                 }
                 Console.WriteLine("Stopped Bazaar :/");
-            });
+            }).ConfigureAwait(false);;
         }
 
         internal void Stop()

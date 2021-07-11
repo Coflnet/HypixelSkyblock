@@ -226,7 +226,7 @@ namespace hypixel
                     AddItemToDB(newItem);
                 else
                     await UpdateItem(existingItem, newItem);
-            });
+            }).ConfigureAwait(false);;
         }
 
         private async Task UpdateItem(DBItem existingItem, DBItem newItem)
