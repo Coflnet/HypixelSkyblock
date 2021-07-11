@@ -54,14 +54,7 @@ namespace hypixel
                     throw new CoflnetException("purchase_expired", "This purchase is older than a week and thus expired");
 
                 var days = int.Parse(args.ProductId.Split('_')[1]);
-                using (var context = new HypixelContext())
-                {
-                    var user = context.Users.Where(u => u.Id == data.UserId).First();
-                    Server.AddPremiumTime(days, user);
-                    context.Update(user);
-                    await context.SaveChangesAsync();
-
-                }
+                UserService.Instance.SavePurchase(data.User, days, purchaseState.OrderId);
 
             }
             catch (Exception e)

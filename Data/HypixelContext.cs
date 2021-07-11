@@ -53,6 +53,7 @@ namespace hypixel
         public DbSet<NBTLookup> NBTLookups { get; set; }
         public DbSet<NBTKey> NBTKeys { get; set; }
         public DbSet<NBTValue> NBTValues { get; set; }
+        public DbSet<Bonus> Boni { get; set; }
 
         public static string DbContextId = SimplerConfig.Config.Instance["DBConnection"];
 
@@ -159,6 +160,12 @@ namespace hypixel
             modelBuilder.Entity<NBTKey>(entity =>
             {
                 entity.HasIndex(e => e.Slug);
+            });
+
+            modelBuilder.Entity<Bonus>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.UserId);
             });
         }
     }

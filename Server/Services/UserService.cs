@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using RestSharp.Extensions;
 
@@ -60,6 +62,60 @@ namespace hypixel
                     throw new UserNotFoundException(id);
                 return user;
             }
+        }
+
+        public Task<List<Bonus>> GetBoni(int userId)
+        {
+            using(var context = new HypixelContext())
+            {
+                return context.Boni.Where(b => b.UserId == userId).ToListAsync();
+            }
+        }
+
+        public void SavePurchase(GoogleUser user, int days, string transactionId)
+        {
+            using (var context = new HypixelContext())
+            {
+                Server.AddPremiumTime(days, user);
+                context.Add(new Bonus()
+                {
+                    BonusTime = TimeSpan.FromDays(days),
+                    ReferenceData = transactionId,
+                    Type = Bonus.BonusType.PURCHASE,
+                    UserId = user.Id
+                });
+                if (user.ReferedBy != 0)
+                    context.Add(new Bonus()
+                    {
+                        BonusTime = TimeSpan.FromDays(days) / 10,
+                        ReferenceData = transactionId,
+                        Type = Bonus.BonusType.REFERED_UPGRADE,
+                        UserId = user.ReferedBy
+                    });
+                context.Update(user); context.SaveChanges();
+            }
+        }
+    }
+
+    public class Bonus
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public BonusType Type { get; set; }
+        public TimeSpan BonusTime { get; set; }
+        public DateTime TimeStamp { get; set; } = DateTime.Now;
+        public string ReferenceData { get; set; }
+
+        public enum BonusType
+        {
+            REFERAL,
+            BEING_REFERED,
+            FEEDBACK,
+            /// <summary>
+            /// A refered user upgraded to a premium plan
+            /// </summary>
+            REFERED_UPGRADE,
+            PURCHASE
         }
     }
 }

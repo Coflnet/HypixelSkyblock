@@ -65,9 +65,8 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var user = await context.Users.Where(u => u.Id == googleId).FirstAsync();
-                Server.AddPremiumTime(days, user);
-                //user.Email = email;
-                context.Update(user);
+                
+                UserService.Instance.SavePurchase(user, days, session.Id);
                 await context.SaveChangesAsync();
                 Console.WriteLine("order completed");
             }
