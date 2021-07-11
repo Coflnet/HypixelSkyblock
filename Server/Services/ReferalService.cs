@@ -62,7 +62,9 @@ namespace hypixel
                 var referedUsers = context.Users.Where(u => u.ReferedBy == user.Id).ToList();
                 var minDate = new DateTime(2020, 2, 2);
                 var upgraded = context.Boni.Where(b => b.UserId == user.Id && b.Type == Bonus.BonusType.REFERED_UPGRADE).ToList();
-                var receivedTime = TimeSpan.FromDays(referedUsers.Count) + upgraded.Select(b=>b.BonusTime).Aggregate((a,b)=>a+b);
+                var receivedTime = TimeSpan.FromDays(referedUsers.Count);
+                if(upgraded.Count > 0) 
+                    receivedTime += upgraded.Select(b=>b.BonusTime).Aggregate((a,b)=>a+b);
                 return new ReeralInfo()
                 {
                     RefId = hashids.Encode(user.Id),
