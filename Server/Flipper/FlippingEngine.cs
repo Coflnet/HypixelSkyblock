@@ -37,14 +37,23 @@ namespace hypixel.Flipper
         /// Wherether or not a given <see cref="SaveAuction.UId"/> was a flip or not
         /// </summary>
         private ConcurrentDictionary<long, bool> FlipIdLookup = new ConcurrentDictionary<long, bool>();
+        static private List<Enchantment.EnchantmentType> UltiEnchantList = new List<Enchantment.EnchantmentType>();
+
+        /// <summary>
+        /// Special load burst queue that will send out 5 flips at load
+        /// </summary>
+        private Queue<FlipInstance> LoadBurst = new Queue<FlipInstance>();
 
         static FlipperEngine()
         {
             Instance = new FlipperEngine();
-            foreach (var item in Enum.GetValues(typeof(Enchantment.EnchantmentType)))
+            foreach (var item in Enum.GetValues(typeof(Enchantment.EnchantmentType)).Cast<Enchantment.EnchantmentType>())
             {
                 if (item.ToString().StartsWith("ultimate_", true, null))
-                    UltimateEnchants.TryAdd((Enchantment.EnchantmentType)item, true);
+                {
+                    UltimateEnchants.TryAdd(item, true);
+                    UltiEnchantList.Add(item);
+                }
             }
             Task.Run(async () =>
             {
@@ -68,6 +77,9 @@ namespace hypixel.Flipper
                         flip.Sold = true;
                     var message = CreateDataFromFlip(flip);
                     NotifyAll(message, SlowSubs);
+                    LoadBurst.Enqueue(flip);
+                    if(LoadBurst.Count > 5)
+                        LoadBurst.Dequeue();
                 }
 
                 await Task.Delay(DelayTimeFor(SlowFlips.Count));
@@ -80,7 +92,7 @@ namespace hypixel.Flipper
 
         public static int DelayTimeFor(int queueSize)
         {
-            return (int)Math.Min((TimeSpan.FromMinutes(5) / (Math.Max(queueSize,1))).TotalMilliseconds,10000);
+            return (int)Math.Min((TimeSpan.FromMinutes(5) / (Math.Max(queueSize, 1))).TotalMilliseconds, 10000);
         }
 
         private void OnUpdateStart()
@@ -167,6 +179,7 @@ namespace hypixel.Flipper
         {
             Subs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
             var toSendFlips = Flipps.Reverse().Take(3);
+            SendFlipHistory(con,id,LoadBurst,0);
             SendFlipHistory(con, id, toSendFlips);
         }
 
@@ -183,7 +196,7 @@ namespace hypixel.Flipper
         }
 
 
-        private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips)
+        private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
         {
             Task.Run(async () =>
             {
@@ -192,7 +205,7 @@ namespace hypixel.Flipper
                     var data = CreateDataFromFlip(item);
                     data.mId = id;
                     con.SendBack(data);
-                    await Task.Delay(5000);
+                    await Task.Delay(delay);
                 }
             }).ConfigureAwait(false);
         }
@@ -366,11 +379,10 @@ namespace hypixel.Flipper
             var relevantEnchants = auction.Enchantments?.Where(e => UltimateEnchants.ContainsKey(e.Type) || e.Level >= 6).ToList();
             var matchingCount = relevantEnchants.Count > 2 ? relevantEnchants.Count / 2 : relevantEnchants.Count;
             var ulti = relevantEnchants.Where(e => UltimateEnchants.ContainsKey(e.Type)).FirstOrDefault();
-            var ultiList = UltimateEnchants.Select(u => u.Key).ToList();
             var highLvlEnchantList = relevantEnchants.Where(e => !UltimateEnchants.ContainsKey(e.Type)).Select(a => a.Type).ToList();
             var oldest = DateTime.Now - TimeSpan.FromHours(1);
 
-            IQueryable<SaveAuction> select = GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 10);
+            IQueryable<SaveAuction> select = GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge, 10);
 
             var relevantAuctions = await select
                 .ToListAsync();
@@ -379,14 +391,15 @@ namespace hypixel.Flipper
             {
                 // to few auctions in last hour, try a whole day
                 oldest = DateTime.Now - TimeSpan.FromDays(1);
-                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
+                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge)
                 .ToListAsync();
 
                 if (relevantAuctions.Count < 50 && PotetialFlipps.Count < 2000)
                 {
                     // to few auctions in a day, query a week
                     oldest = DateTime.Now - TimeSpan.FromDays(8);
-                    relevantAuctions = await GetSelect(auction, context, clearedName.Replace("✪", ""), itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest, 120)
+                    clearedName = clearedName.Replace("✪", "").Trim();
+                    relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge, 120)
                     .ToListAsync();
                 }
             }
@@ -403,7 +416,25 @@ namespace hypixel.Flipper
             return (relevantAuctions, oldest);
         }
 
-        private static IQueryable<SaveAuction> GetSelect(SaveAuction auction, HypixelContext context, string clearedName, int itemId, DateTime youngest, int matchingCount, Enchantment ulti, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, DateTime oldest, int limit = 60)
+        private readonly static HashSet<ItemReferences.Reforge> relevantReforges = new HashSet<ItemReferences.Reforge>()
+        {
+            ItemReferences.Reforge.ancient,
+            ItemReferences.Reforge.Necrotic,
+            ItemReferences.Reforge.Giant
+        };
+
+        private static IQueryable<SaveAuction> GetSelect(
+            SaveAuction auction,
+            HypixelContext context,
+            string clearedName,
+            int itemId,
+            DateTime youngest,
+            int matchingCount,
+            Enchantment ulti,
+            List<Enchantment.EnchantmentType> highLvlEnchantList,
+            DateTime oldest,
+            ItemReferences.Reforge reforge,
+            int limit = 60)
         {
             var select = context.Auctions
                 .Where(a => a.ItemId == itemId)
@@ -419,6 +450,9 @@ namespace hypixel.Flipper
                 ultiType = ulti.Type;
             }
 
+            if (relevantReforges.Contains(reforge))
+                select = select.Where(a => a.Reforge == reforge);
+
 
             if (auction.ItemName != clearedName && clearedName != null)
                 select = select.Where(a => EF.Functions.Like(a.ItemName, "%" + clearedName));
@@ -432,14 +466,17 @@ namespace hypixel.Flipper
                 select = select.Where(a => EF.Functions.Like(a.ItemName, sb.ToString()));
             }
 
-            select = AddEnchantmentSubselect(auction, matchingCount, ultiList, highLvlEnchantList, select, ultiLevel, ultiType);
+            select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
+            if (limit == 0)
+                return select;
+
             return select
                 //.OrderByDescending(a=>a.Id)
-                .Include(a => a.NbtData)
+                //.Include(a => a.NbtData)
                 .Take(limit);
         }
 
-        private static IQueryable<SaveAuction> AddEnchantmentSubselect(SaveAuction auction, int matchingCount, List<Enchantment.EnchantmentType> ultiList, List<Enchantment.EnchantmentType> highLvlEnchantList, IQueryable<SaveAuction> select, byte ultiLevel, Enchantment.EnchantmentType ultiType)
+        private static IQueryable<SaveAuction> AddEnchantmentSubselect(SaveAuction auction, int matchingCount, List<Enchantment.EnchantmentType> highLvlEnchantList, IQueryable<SaveAuction> select, byte ultiLevel, Enchantment.EnchantmentType ultiType)
         {
             if (matchingCount > 0)
                 select = select.Where(a => a.Enchantments
@@ -459,8 +496,8 @@ namespace hypixel.Flipper
 
             // make sure we exclude special enchants to get a reasonable price
             else if (auction.Enchantments.Any())
-                select = select.Where(a => !a.Enchantments.Where(e => ultiList.Contains(e.Type) || e.Level > 5).Any());
-            else if (auction.Category == Category.WEAPON || auction.Category == Category.ARMOR || auction.Tag == "ENCHANTED_BOOK")
+                select = select.Where(a => !a.Enchantments.Where(e => UltiEnchantList.Contains(e.Type) || e.Level > 5).Any());
+            else if (auction.Category == Category.WEAPON || auction.Category == Category.ARMOR) // || auction.Tag == "ENCHANTED_BOOK")
                 select = select.Where(a => !a.Enchantments.Any());
             return select;
         }
