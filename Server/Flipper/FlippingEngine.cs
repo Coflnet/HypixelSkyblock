@@ -82,7 +82,7 @@ namespace hypixel.Flipper
                         LoadBurst.Dequeue();
                 }
 
-                await Task.Delay(DelayTimeFor(SlowFlips.Count));
+                await Task.Delay(DelayTimeFor(SlowFlips.Count)*4/5);
             }
             catch (Exception e)
             {
