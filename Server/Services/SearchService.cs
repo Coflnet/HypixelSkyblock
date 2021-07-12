@@ -215,10 +215,13 @@ namespace hypixel
                 foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
                     Results.Enqueue(item);
                 var parts = search.Split(' ');
-                if(parts.Count() == 1)
+                if(parts.Count() == 1 || String.IsNullOrWhiteSpace(parts.Last()))
                     return;
                 foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", parts[1]))
+                {
+                    item.HitCount -= 20; // no exact match
                     Results.Enqueue(item);
+                }
             },token);
 
             foreach (var item in searchTasks)
@@ -229,14 +232,12 @@ namespace hypixel
             var timeout = DateTime.Now + TimeSpan.FromSeconds(2);
             while (DateTime.Now < timeout)
             {
-                Console.WriteLine(DateTime.Now);
                 if(Results.Count >= 5)
                     return Results;
                 await Task.Delay(10);
             }
             Console.WriteLine("=> past timeout");
 
-            Task.WaitAll(searchTasks);
             return Results;
             // return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)).Take(targetAmount).ToList();
         }

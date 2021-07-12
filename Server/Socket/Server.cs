@@ -275,16 +275,22 @@ namespace hypixel
 
             if (relativePath == "files/index.html" && !path.EndsWith(".js") && !path.EndsWith(".css"))
             {
-                Console.Write("i+");
                 var watch = Stopwatch.StartNew();
                 await HtmlModifier.ModifyContent(path, contents, context);
 
                 if (context is WebsocketRequestContext httpContext)
-                    TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(), 
-                            "", 
-                            httpContext.original.Request?.UrlReferrer?.ToString(),
-                            httpContext.original.Request?.UserAgent,
-                            watch.Elapsed);
+                    if (path.StartsWith("/static"))
+                        TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(),
+                                                    "",
+                                                    null,
+                                                    null,
+                                                    watch.Elapsed);
+                    else
+                        TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(),
+                                "",
+                                httpContext.original.Request?.UrlReferrer?.ToString(),
+                                httpContext.original.Request?.UserAgent,
+                                watch.Elapsed);
                 return;
             }
 

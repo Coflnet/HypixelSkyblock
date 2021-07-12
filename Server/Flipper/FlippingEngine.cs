@@ -78,11 +78,11 @@ namespace hypixel.Flipper
                     var message = CreateDataFromFlip(flip);
                     NotifyAll(message, SlowSubs);
                     LoadBurst.Enqueue(flip);
-                    if(LoadBurst.Count > 5)
+                    if (LoadBurst.Count > 5)
                         LoadBurst.Dequeue();
                 }
 
-                await Task.Delay(DelayTimeFor(SlowFlips.Count)*4/5);
+                await Task.Delay(DelayTimeFor(SlowFlips.Count) * 4 / 5);
             }
             catch (Exception e)
             {
@@ -178,16 +178,14 @@ namespace hypixel.Flipper
         public void AddConnection(SkyblockBackEnd con, int id = 0)
         {
             Subs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
-            var toSendFlips = Flipps.Reverse().Take(3);
-            SendFlipHistory(con,id,LoadBurst,0);
+            var toSendFlips = Flipps.Reverse().Take(5);
             SendFlipHistory(con, id, toSendFlips);
         }
 
         public void AddNonConnection(SkyblockBackEnd con, int id = 0)
         {
             SlowSubs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
-            var toSendFlips = Flipps.Take(23);
-            SendFlipHistory(con, id, toSendFlips);
+            SendFlipHistory(con, id, LoadBurst, 0);
         }
 
         public void RemoveNonConnection(SkyblockBackEnd con)
@@ -390,7 +388,7 @@ namespace hypixel.Flipper
             if (relevantAuctions.Count < 9)
             {
                 // to few auctions in last hour, try a whole day
-                oldest = DateTime.Now - TimeSpan.FromDays(1);
+                oldest = DateTime.Now - TimeSpan.FromDays(1.5);
                 relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge)
                 .ToListAsync();
 
@@ -398,9 +396,14 @@ namespace hypixel.Flipper
                 {
                     // to few auctions in a day, query a week
                     oldest = DateTime.Now - TimeSpan.FromDays(8);
-                    clearedName = clearedName.Replace("✪", "").Trim();
                     relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge, 120)
                     .ToListAsync();
+                    if (relevantAuctions.Count < 10 && clearedName.Contains("✪"))
+                    {
+                        clearedName = clearedName.Replace("✪", "").Trim();
+                        relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge, 120)
+                        .ToListAsync();
+                    }
                 }
             }
 
@@ -438,7 +441,6 @@ namespace hypixel.Flipper
         {
             var select = context.Auctions
                 .Where(a => a.ItemId == itemId)
-                .Where(a => a.End > oldest && a.End < youngest)
                 .Where(a => a.HighestBidAmount > 0)
                 .Where(a => a.Tier == auction.Tier);
 
@@ -465,12 +467,24 @@ namespace hypixel.Flipper
                     sb[6] = '_';
                 select = select.Where(a => EF.Functions.Like(a.ItemName, sb.ToString()));
             }
+            if(auction.Tag == "MIDAS_STAFF" || auction.Tag == "MIDAS_SWORD")
+            {
+                try
+                {
+                    var val = (long)auction.NbtData.Data["winning_bid"];
+                    var keyId = NBT.GetLookupKey(auction.Tag);
+                    select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
+                    oldest -= TimeSpan.FromDays(10);
+                } catch
+                {}
+            }
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
             if (limit == 0)
                 return select;
 
             return select
+                .Where(a => a.End > oldest && a.End < youngest)
                 //.OrderByDescending(a=>a.Id)
                 //.Include(a => a.NbtData)
                 .Take(limit);
