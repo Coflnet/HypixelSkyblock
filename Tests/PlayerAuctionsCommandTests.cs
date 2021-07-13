@@ -39,4 +39,13 @@ namespace Tests
             Assert.AreEqual(600, FlipperEngine.DelayTimeFor(500));
         }
     }
+
+    public class RomanNumberTests
+    {
+        [Test]
+        public void Two()
+        {
+            Assert.AreEqual(2, Roman.From("II"));
+        }
+    }
 }

@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -49,7 +51,7 @@ namespace hypixel
         {
             if (search.Length > 40)
                 return Task.FromResult(new ConcurrentQueue<SearchResultItem>());
-            return CreateResponse(search,token);
+            return CreateResponse(search, token);
 
         }
 
@@ -169,6 +171,7 @@ namespace hypixel
             await Server.ExecuteCommandWithCache<string, object>("fullSearch", requestString);
         }
 
+        private static Regex RomanNumber = new Regex("^[IVX]+$");
         private static async Task<ConcurrentQueue<SearchResultItem>> CreateResponse(string search, CancellationToken token)
         {
             Console.WriteLine("beginsearch");
@@ -181,6 +184,7 @@ namespace hypixel
             var Results = new ConcurrentQueue<SearchResultItem>();
             var searchTasks = new Task[3];
             Console.WriteLine("searching");
+            var searchWords = search.Split(' ');
 
             searchTasks[0] = Task.Run(async () =>
             {
@@ -195,7 +199,7 @@ namespace hypixel
                     Results.Enqueue(item);
                 }
                 Console.WriteLine("done item wait");
-            },token);
+            }, token);
 
             searchTasks[1] = Task.Run(async () =>
             {
@@ -203,7 +207,7 @@ namespace hypixel
                 foreach (var item in (await playersTask).Select(player => new SearchResultItem(player)))
                     Results.Enqueue(item);
                 Console.WriteLine("done player wait");
-            },token);
+            }, token);
 
             searchTasks[2] = Task.Run(async () =>
             {
@@ -213,15 +217,15 @@ namespace hypixel
                 Console.WriteLine("scheduled last cache wait");
                 foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
                     Results.Enqueue(item);
-                var parts = search.Split(' ');
-                if(parts.Count() == 1 || String.IsNullOrWhiteSpace(parts.Last()))
+                if (searchWords.Count() == 1 || String.IsNullOrWhiteSpace(searchWords.Last()))
                     return;
-                foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", parts[1]))
+                foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", searchWords[1]))
                 {
                     item.HitCount -= 20; // no exact match
                     Results.Enqueue(item);
                 }
-            },token);
+            }, token);
+            ComputeEnchantments(search, Results, searchWords);
 
             foreach (var item in searchTasks)
             {
@@ -231,7 +235,7 @@ namespace hypixel
             var timeout = DateTime.Now + TimeSpan.FromSeconds(2);
             while (DateTime.Now < timeout)
             {
-                if(Results.Count >= 5)
+                if (Results.Count >= 5)
                     return Results;
                 await Task.Delay(10);
             }
@@ -239,6 +243,48 @@ namespace hypixel
 
             return Results;
             // return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)).Take(targetAmount).ToList();
+        }
+
+        private static void ComputeEnchantments(string search, ConcurrentQueue<SearchResultItem> Results, string[] searchWords)
+        {
+            var lastSpace = search.LastIndexOf(' ');
+            var matchingEnchants = Enum.GetNames(typeof(Enchantment.EnchantmentType))
+                        .Select(e => e.Replace('_', ' '))
+                        .Where(name => name.StartsWith(lastSpace > 1 ? search.Substring(0, lastSpace) : search));
+            foreach (var item in matchingEnchants)
+            {
+                int lvl = 0;
+                if (searchWords.Length > 1)
+                    if (!int.TryParse(searchWords.Last(), out lvl))
+                    {
+                        var possibleLvl = searchWords.Last().Trim().ToUpper();
+                        Console.WriteLine(possibleLvl);
+                        if (RomanNumber.IsMatch(possibleLvl))
+                            lvl = Roman.From(possibleLvl);
+                    }
+
+                var filter = new Dictionary<string, string>();
+                filter["Enchantment"] = item.Replace(' ', '_');
+                filter["EnchantLvl"] = "1";
+
+                var formatted = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(item.ToLower());
+
+                var resultText = formatted + " Enchantment";
+                if (lvl != 0)
+                {
+                    resultText = formatted + $" {lvl} Enchantment";
+                    filter["EnchantLvl"] = lvl.ToString();
+                }
+
+                Results.Enqueue(new SearchResultItem
+                {
+                    HitCount = 10, // account for "Enchantment" suffix
+                    Name = resultText,
+                    Type = "item",
+                    IconUrl = "https://sky.lea.moe/item/ENCHANTED_BOOK",
+                    Id = "ENCHANTED_BOOK?itemFilter=" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JSON.Stringify(filter)))
+                });
+            }
         }
 
         class CacheItem
@@ -289,7 +335,7 @@ namespace hypixel
                     IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                 else
                     this.IconUrl = item.IconUrl;
-                if(isPet && !Name.Contains("Pet"))
+                if (isPet && !Name.Contains("Pet"))
                     this.Name += " Pet";
 
                 this.HitCount = item.HitCount + ITEM_EXTRA_IMPORTANCE;

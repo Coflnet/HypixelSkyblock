@@ -95,7 +95,7 @@ namespace hypixel
                 if (r.Type == "player")
                     preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("pPrev", r.Id);
                 else if (r.Type == "item")
-                    preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id);
+                    preview = await Server.ExecuteCommandWithCache<string, PreviewService.Preview>("iPrev", r.Id.Split('?').First());
 
                 if (preview == null)
                     return;
