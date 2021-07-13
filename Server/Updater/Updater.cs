@@ -214,9 +214,11 @@ namespace hypixel
                 }
                 Console.WriteLine($"canceled last min: {lastUuids.Count} {lastUuids.FirstOrDefault().Key}");
                 Indexer.AddToQueue(lastUuids.Select(id => new SaveAuction(id.Key)));
+                foreach (var item in lastUuids)
+                {
+                    Flipper.FlipperEngine.Instance.AuctionInactive(item.Key);
+                }
             }).ConfigureAwait(false);
-
-
 
             if (sum > 10)
                 LastPull = DateTime.Now;

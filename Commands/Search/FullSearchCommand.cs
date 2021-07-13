@@ -18,7 +18,7 @@ namespace hypixel
         public override void Execute(MessageData data)
         {
             var watch = Stopwatch.StartNew();
-            Regex rgx = new Regex("[^-a-zA-Z0-9_\\. ]");
+            Regex rgx = new Regex("[^-a-zA-Z0-9_\\.' ]");
             var search = rgx.Replace(data.Data, "").ToLower();
             var cancelationSource = new CancellationTokenSource();
             var results = SearchService.Instance.Search(search, cancelationSource.Token);
@@ -44,7 +44,6 @@ namespace hypixel
             Console.WriteLine($"Waited half a second " + watch.Elapsed);
 
             var maxAge = A_DAY / 2;
-
 
             cancelationSource.Cancel();
             Console.WriteLine($"Started sorting {search} " + watch.Elapsed);
@@ -82,7 +81,7 @@ namespace hypixel
             Task.Run(() =>
             {
                 if (!(data is Server.ProxyMessageData<string, object>))
-                    TrackingService.Instance.TrackSearch(data, search, orderedResult.Count, watch.Elapsed);
+                    TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, watch.Elapsed);
             }).ConfigureAwait(false);
         }
 

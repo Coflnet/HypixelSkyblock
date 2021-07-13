@@ -153,7 +153,6 @@ namespace hypixel
         private static int prefetchIndex = new Random().Next(1000);
         private async Task PrefetchCache()
         {
-            return;
             var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
             var combinations = charCount * charCount + charCount;
             var index = prefetchIndex++ % combinations;

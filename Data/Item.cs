@@ -61,6 +61,7 @@ namespace hypixel
         internal async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
         {
             search = search.TrimStart();
+            var tagified = search.ToUpper().Replace(' ', '_');
             using (var context = new HypixelContext())
             {
                 var items = await context.Items
@@ -69,6 +70,7 @@ namespace hypixel
                         item.Names
                         .Where(name => EF.Functions.Like(name.Name, search + '%') 
                         || EF.Functions.Like(name.Name, "Enchanted " + search + '%')).Any()
+                        || EF.Functions.Like(item.Tag,tagified + '%')
                     ).OrderBy(item => item.Name.Length/2 - item.HitCount - (item.Name == search ? 10000000 : 0))
                     .Take(count)
                     .ToListAsync();

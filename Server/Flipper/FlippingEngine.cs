@@ -541,10 +541,27 @@ namespace hypixel.Flipper
         {
             if (!FlipIdLookup.ContainsKey(auction.UId))
                 return;
-            var message = new MessageData("sold", auction.Uuid);
-            NotifyAll(message, Subs);
             SoldAuctions[auction.UId] = auction.End;
+            var auctionUUid = auction.Uuid;
+            NotifySubsInactiveAuction(auctionUUid);
+        }
+
+        private void NotifySubsInactiveAuction(string auctionUUid)
+        {
+            var message = new MessageData("sold", auctionUUid);
+            NotifyAll(message, Subs);
             NotifyAll(message, SlowSubs);
+        }
+
+        /// <summary>
+        /// Auction is no longer active for some reason
+        /// </summary>
+        /// <param name="uuid"></param>
+        public void AuctionInactive(string uuid)
+        {
+            NotifySubsInactiveAuction(uuid);
+            var uid = AuctionService.Instance.GetId(uuid);
+            SoldAuctions[uid] = DateTime.Now;
         }
 
         private static void NotifyAll(MessageData message, ConcurrentDictionary<long, int> subscribers)

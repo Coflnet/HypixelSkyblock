@@ -17,6 +17,8 @@ namespace hypixel
 
         public void TrackSearch(MessageData data, string value, int resultCount, TimeSpan time)
         {
+            if(value.Length <= 2)
+                return; 
             var genMs = ((int)time.TotalMilliseconds).ToString();
             trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("search", value)
