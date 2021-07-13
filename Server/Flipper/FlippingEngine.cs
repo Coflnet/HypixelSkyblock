@@ -458,15 +458,15 @@ namespace hypixel.Flipper
 
             if (auction.ItemName != clearedName && clearedName != null)
                 select = select.Where(a => EF.Functions.Like(a.ItemName, "%" + clearedName));
-            if (auction.Tag.StartsWith("PET"))
+            else if (auction.Tag.StartsWith("PET"))
             {
-                var sb = new StringBuilder(auction.ItemName);
-                if (sb[6] == ']')
-                    sb[5] = '_';
-                else
-                    sb[6] = '_';
-                select = select.Where(a => EF.Functions.Like(a.ItemName, sb.ToString()));
+                select = AddPetLvlSelect(auction, select);
             }
+            else 
+            {
+                select = select.Where(a => a.ItemName == clearedName);
+            }
+            
             if(auction.Tag == "MIDAS_STAFF" || auction.Tag == "MIDAS_SWORD")
             {
                 try
@@ -488,6 +488,17 @@ namespace hypixel.Flipper
                 //.OrderByDescending(a=>a.Id)
                 //.Include(a => a.NbtData)
                 .Take(limit);
+        }
+
+        private static IQueryable<SaveAuction> AddPetLvlSelect(SaveAuction auction, IQueryable<SaveAuction> select)
+        {
+            var sb = new StringBuilder(auction.ItemName);
+            if (sb[6] == ']')
+                sb[5] = '_';
+            else
+                sb[6] = '_';
+            select = select.Where(a => EF.Functions.Like(a.ItemName, sb.ToString()));
+            return select;
         }
 
         private static IQueryable<SaveAuction> AddEnchantmentSubselect(SaveAuction auction, int matchingCount, List<Enchantment.EnchantmentType> highLvlEnchantList, IQueryable<SaveAuction> select, byte ultiLevel, Enchantment.EnchantmentType ultiType)
