@@ -280,7 +280,7 @@ namespace hypixel
                 {
                     HitCount = 10, // account for "Enchantment" suffix
                     Name = resultText,
-                    Type = "item",
+                    Type = "filter",
                     IconUrl = "https://sky.lea.moe/item/ENCHANTED_BOOK",
                     Id = "ENCHANTED_BOOK?itemFilter=" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JSON.Stringify(filter)))
                 });
