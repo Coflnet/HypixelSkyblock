@@ -503,10 +503,12 @@ namespace hypixel.Flipper
 
         private static IQueryable<SaveAuction> AddEnchantmentSubselect(SaveAuction auction, int matchingCount, List<Enchantment.EnchantmentType> highLvlEnchantList, IQueryable<SaveAuction> select, byte ultiLevel, Enchantment.EnchantmentType ultiType)
         {
+            var maxImportantEnchants = highLvlEnchantList.Count() + 1 + (ultiType == Enchantment.EnchantmentType.unknown ? 0 : 1);
             if (matchingCount > 0)
                 select = select.Where(a => a.Enchantments
                         .Where(e => (e.Level > 5 && highLvlEnchantList.Contains(e.Type)
-                                    || e.Type == ultiType && e.Level == ultiLevel)).Count() >= matchingCount);
+                                    || e.Type == ultiType && e.Level == ultiLevel)).Count() >= matchingCount
+                                    && a.Enchantments.Where(e => UltiEnchantList.Contains(e.Type) || e.Level > 5).Count() <= maxImportantEnchants);
             else if (auction.Enchantments?.Count == 1)
                 select = select.Where(a => a.Enchantments != null && a.Enchantments.Any()
                         && a.Enchantments.First().Type == auction.Enchantments.First().Type
