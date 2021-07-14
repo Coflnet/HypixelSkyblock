@@ -245,12 +245,21 @@ namespace hypixel
             // return result.OrderBy(r => r.Name?.Length / 2 - r.HitCount - (r.Name?.ToLower() == search.ToLower() ? 10000000 : 0)).Take(targetAmount).ToList();
         }
 
+        private static ConcurrentDictionary<string, Enchantment.EnchantmentType> Enchantments = new ConcurrentDictionary<string, Enchantment.EnchantmentType>();
+
         private static void ComputeEnchantments(string search, ConcurrentQueue<SearchResultItem> Results, string[] searchWords)
         {
             var lastSpace = search.LastIndexOf(' ');
-            var matchingEnchants = Enum.GetNames(typeof(Enchantment.EnchantmentType))
-                        .Select(e => e.Replace('_', ' '))
-                        .Where(name => name.StartsWith(lastSpace > 1 ? search.Substring(0, lastSpace) : search));
+            if(Enchantments.Count == 0)
+            {
+                foreach (var item in Enum.GetValues(typeof(Enchantment.EnchantmentType)).Cast<Enchantment.EnchantmentType>())
+                {
+                    var name = item.ToString().Replace('_', ' ').Replace("ultimate ", "");
+                    var formattedName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name.ToLower());
+                    Enchantments[formattedName] = item;
+                }
+            }
+            var matchingEnchants = Enchantments.Keys.Where(name => name.ToLower().StartsWith(lastSpace > 1 ? search.Substring(0, lastSpace) : search));
             foreach (var item in matchingEnchants)
             {
                 int lvl = 0;
@@ -264,15 +273,13 @@ namespace hypixel
                     }
 
                 var filter = new Dictionary<string, string>();
-                filter["Enchantment"] = item.Replace(' ', '_');
+                filter["Enchantment"] = Enchantments[item].ToString();
                 filter["EnchantLvl"] = "1";
 
-                var formatted = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(item.ToLower());
-
-                var resultText = formatted + " Enchantment";
+                var resultText = item + " Enchantment";
                 if (lvl != 0)
                 {
-                    resultText = formatted + $" {lvl} Enchantment";
+                    resultText = item + $" {lvl} Enchantment";
                     filter["EnchantLvl"] = lvl.ToString();
                 }
 
