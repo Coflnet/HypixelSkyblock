@@ -1,11 +1,12 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
     public class EndedAuctionsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             if(BinUpdater.SoldLastMin.Count > 0)
             {
@@ -14,8 +15,7 @@ namespace hypixel
                     .Select(AuctionService.Instance.GuessMissingProperties)
                     .ToList();
 
-                data.SendBack(data.Create("endedAuctions",recentSold , A_MINUTE));
-                return;
+                return data.SendBack(data.Create("endedAuctions",recentSold , A_MINUTE));
             }
 
             using (var context = new HypixelContext())
@@ -38,7 +38,7 @@ namespace hypixel
                     .Take(30)
                     .Select(AuctionService.Instance.GuessMissingProperties)
                     .ToList();
-                data.SendBack(data.Create("endedAuctions", pages, A_MINUTE));
+                return data.SendBack(data.Create("endedAuctions", pages, A_MINUTE));
             }
         }
     }

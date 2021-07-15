@@ -1,10 +1,11 @@
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class RecentFlipsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var flipps = Flipper.FlipperEngine.Instance.Flipps.Take(50);
             try {
@@ -16,7 +17,7 @@ namespace hypixel
             {
                 // no premium, continue
             }
-            data.SendBack(data.Create("flips",flipps,A_MINUTE));
+            return data.SendBack(data.Create("flips",flipps,A_MINUTE));
         }
     }
 }

@@ -1,10 +1,11 @@
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class SendTestNotificationCommand : Command
     {
-        public async override void Execute(MessageData data)
+        public async override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {

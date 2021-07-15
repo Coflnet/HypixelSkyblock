@@ -1,11 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using static hypixel.ItemReferences;
 
 namespace hypixel
 {
     public class PricerDicerCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             ItemSearchQuery details = ItemPricesCommand.GetQuery(data);
             // temporary map none (0) to any
@@ -15,8 +16,7 @@ namespace hypixel
 
             if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
             {
-                ClientProxy.Instance.Proxy(data);
-                return;
+                return ClientProxy.Instance.Proxy(data);
             }
 
             var thread = ItemPrices.Instance.GetPriceFor(details);
@@ -29,7 +29,7 @@ namespace hypixel
             }
             Console.WriteLine("made response");
 
-            data.SendBack(data.Create("itemResponse", res, maxAge));
+            return data.SendBack(data.Create("itemResponse", res, maxAge));
         }
 
         private static bool IsDayRange(ItemSearchQuery details)

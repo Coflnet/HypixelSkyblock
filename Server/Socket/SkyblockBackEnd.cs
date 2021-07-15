@@ -56,8 +56,8 @@ namespace hypixel
             Commands.Add("bazaarPrices", new BazaarPricesCommand());
             Commands.Add("getAllEnchantments", new GetAllEnchantmentsCommand());
             Commands.Add("getEnchantments", new GetEnchantmentsCommand());
-            Commands.Add("getReforges", new GetReforgesCommand());
             Commands.Add("fullSearch", new FullSearchCommand());
+            Commands.Add("itemSearch", new ItemSearchCommand());
             Commands.Add("pPrev", new PlayerPreviewCommand());
             Commands.Add("iPrev", new ItemPreviewCommand());
             Commands.Add("trackSearch", new TrackSearchCommand());
@@ -181,11 +181,11 @@ namespace hypixel
                 System.Threading.Interlocked.Decrement(ref waiting);
                 try
                 {
-                    Commands[data.Type].Execute(data);
+                    await Commands[data.Type].Execute(data);
                 }
                 catch (CoflnetException ex)
                 {
-                    SendCoflnetException(data, ex);
+                    await SendCoflnetException(data, ex);
                 }
                 catch (Exception ex)
                 {
@@ -193,18 +193,18 @@ namespace hypixel
                     if(cofl != null)
                     {
                         // wrapped exception (eg. Theaded)
-                        SendCoflnetException(data, cofl);
+                        await SendCoflnetException(data, cofl);
                         return;
                     }
                     dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace} \n{ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
-                    data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
+                    await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "unknown", Message = "An unexpected error occured, make sure the format of Data is correct" })) { mId = data.mId });
                 }
             }).ConfigureAwait(false);
         }
 
-        private static void SendCoflnetException(SocketMessageData data, CoflnetException ex)
+        private static Task SendCoflnetException(SocketMessageData data, CoflnetException ex)
         {
-            data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = data.mId });
+            return data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { ex.Slug, ex.Message })) { mId = data.mId });
         }
 
         private static SocketMessageData ParseData(string body)

@@ -67,7 +67,7 @@ namespace hypixel
         }
 
 
-        public virtual void SendBack(MessageData data, bool cache = true)
+        public virtual Task SendBack(MessageData data, bool cache = true)
         {
             throw new Exception("Can't send back with default connection");
 
@@ -88,9 +88,9 @@ namespace hypixel
         /// <summary>
         /// Sends back an empty ok message
         /// </summary>
-        public void Ok()
+        public Task Ok()
         {
-            SendBack(Create("ok", ""));
+            return SendBack(Create("ok", ""));
         }
     }
 
@@ -113,7 +113,7 @@ namespace hypixel
         {
         }
 
-        public override void SendBack(MessageData data, bool cache = true)
+        public override Task SendBack(MessageData data, bool cache = true)
         {
             data.mId = mId;
             if (cache)
@@ -124,6 +124,7 @@ namespace hypixel
                 // wow this took waaay to long
                 Console.WriteLine($"slow response/long time ({DateTime.Now - data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
             }
+            return Task.CompletedTask;
         }
     }
 
@@ -171,7 +172,7 @@ namespace hypixel
 
         }
 
-        public override void SendBack(MessageData data, bool cache = true)
+        public override Task SendBack(MessageData data, bool cache = true)
         {
             var json = data.Data;
             context.SetStatusCode(200);
@@ -185,6 +186,8 @@ namespace hypixel
 
             if (cache)
                 CacheService.Instance.Save(this, data, 0);
+            
+            return Task.CompletedTask;
         }
     }
 }

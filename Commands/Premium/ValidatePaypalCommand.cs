@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Coflnet;
 using PayPalCheckoutSdk.Core;
 using PayPalCheckoutSdk.Orders;
@@ -13,7 +14,7 @@ namespace hypixel
 
         private ConcurrentCollections.ConcurrentHashSet<string> UsedIds = new ConcurrentCollections.ConcurrentHashSet<string>();
 
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var args = data.GetAs<Params>();
             OrdersGetRequest request = new OrdersGetRequest(args.OrderId);
@@ -57,7 +58,7 @@ namespace hypixel
 
             UsedIds.Add(args.OrderId);
             FileController.AppendLineAs("purchases", JSON.Stringify(result));
-            data.Ok();
+            return data.Ok();
         }
 
         [DataContract]

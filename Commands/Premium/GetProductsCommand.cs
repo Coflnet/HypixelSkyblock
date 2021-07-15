@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Stripe;
 
@@ -5,7 +6,7 @@ namespace hypixel
 {
     public class GetProductsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var options = new ProductListOptions
             {
@@ -16,7 +17,7 @@ namespace hypixel
               options
             );
 
-            data.SendBack(new MessageData("productsResponse", JsonConvert.SerializeObject(products), A_HOUR));
+            return data.SendBack(new MessageData("productsResponse", JsonConvert.SerializeObject(products), A_HOUR));
         }
     }
 

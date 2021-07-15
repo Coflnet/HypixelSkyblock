@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace hypixel
 {
     public class GetAllEnchantmentsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var values = Enum.GetValues(typeof(Enchantment.EnchantmentType))
                     .Cast<Enchantment.EnchantmentType>()
@@ -14,7 +15,7 @@ namespace hypixel
                     .Select(ench => ench.ToString())
                     .ToList();
 
-            data.SendBack(new MessageData("getAllEnchantmentsResponse",
+            return data.SendBack(new MessageData("getAllEnchantmentsResponse",
                 JsonConvert.SerializeObject(values),
                 A_DAY
             ));

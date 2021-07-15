@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 using WebSocketSharp;
 
@@ -7,7 +8,7 @@ namespace hypixel
 {
     public class PlayerSyncCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -18,7 +19,7 @@ namespace hypixel
                 
                 var response = new PlayerSyncData(context.Players.Skip(offset).Take(batchAmount).ToList(),offset+batchAmount);
                 
-                data.SendBack(new MessageData("playerSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
+                return data.SendBack(new MessageData("playerSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
             
             }
         }

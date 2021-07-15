@@ -1,12 +1,13 @@
 using System;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Coflnet;
 
 namespace hypixel
 {
     public class ClearCacheCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var token = data.GetAs<string>();
             if(!FileController.Exists("authToken"))
@@ -18,7 +19,7 @@ namespace hypixel
                     var generatedToken = new byte[12];
                     csp.GetBytes(generatedToken);
                     FileController.SaveAs("authToken",Convert.ToBase64String(generatedToken));
-                    return;
+                    return Task.CompletedTask;
                 }
                 throw new CoflnetException("error","There is no file called `authToken` in the data folder, please create one");
             }
@@ -29,6 +30,7 @@ namespace hypixel
             }
             StorageManager.ClearCache();
             ItemDetails.Instance.Items = null;
+            return Task.CompletedTask;
         }
     }
 }

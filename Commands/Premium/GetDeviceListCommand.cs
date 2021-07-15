@@ -1,12 +1,13 @@
+using System.Threading.Tasks;
+
 namespace hypixel
 {
     public class GetDeviceListCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
-
             var devices = data.User.Devices;
-            data.SendBack(data.Create("devices", devices));
+            return data.SendBack(data.Create("devices", devices));
 
         }
     }

@@ -1,10 +1,11 @@
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class DeleteDeviceCommand : Command
     {
-        public async override void Execute(MessageData data)
+        public async override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -14,7 +15,7 @@ namespace hypixel
                 if (device != null)
                     context.Remove(device);
                 await context.SaveChangesAsync();
-                data.Ok();
+                await data.Ok();
             }
         }
     }

@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
@@ -15,11 +14,10 @@ namespace hypixel
     {
         private const string Type = "searchResponse";
 
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var watch = Stopwatch.StartNew();
-            Regex rgx = new Regex("[^-a-zA-Z0-9_\\.' ]");
-            var search = rgx.Replace(data.Data, "").ToLower();
+            var search = ItemSearchCommand.RemoveInvalidChars(data.Data);
             var cancelationSource = new CancellationTokenSource();
             var results = SearchService.Instance.Search(search, cancelationSource.Token);
 
@@ -77,12 +75,12 @@ namespace hypixel
             if (orderedResult.Count() == 0)
                 maxAge = A_MINUTE;
 
-            data.SendBack(data.Create(Type, orderedResult, maxAge));
-            Task.Run(() =>
+            return data.SendBack(data.Create(Type, orderedResult, maxAge));
+            return Task.Run(() =>
             {
                 if (!(data is Server.ProxyMessageData<string, object>))
                     TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, watch.Elapsed);
-            }).ConfigureAwait(false);
+            });
         }
 
 

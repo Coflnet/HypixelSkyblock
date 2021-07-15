@@ -1,10 +1,12 @@
+using System.Threading.Tasks;
+
 namespace hypixel
 {
     public class PlayerPreviewCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
-            data.SendBack(data.Create("preview",
+            return data.SendBack(data.Create("preview",
                         PreviewService.Instance.GetPlayerPreview(data.GetAs<string>()),
                         A_WEEK/2));
         }

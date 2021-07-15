@@ -1,11 +1,12 @@
 using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 
 namespace hypixel
 {
     public class DeleteSubscriptionCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -14,7 +15,7 @@ namespace hypixel
                 
                 var affected = SubscribeEngine.Instance.Unsubscribe(userId, args.Topic,args.Type).Result;
 
-                data.SendBack(data.Create("unsubscribed", affected));
+                return data.SendBack(data.Create("unsubscribed", affected));
             }
         }
 

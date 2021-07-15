@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class AuctionSyncCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var auctions = data.GetAs<List<AuctionSync>>();
             using (var context = new HypixelContext())
@@ -22,6 +23,7 @@ namespace hypixel
                     incomplete.Add(auction.Id);
                 }
             }
+            return Task.CompletedTask;
         }
     }
 }

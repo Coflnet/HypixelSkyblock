@@ -37,9 +37,10 @@ namespace hypixel
                 return MessagePackSerializer.Deserialize<T>(data);
             }
 
-            public override void SendBack(MessageData data, bool cache = true)
+            public override Task SendBack(MessageData data, bool cache = true)
             {
                 ClientProxy.Instance.Send(data);
+            return Task.CompletedTask;
             }
 
             public override MessageData Create<T>(string type, T data, int maxAge = 0)
@@ -48,13 +49,14 @@ namespace hypixel
             }
         }
 
-        public void Proxy(MessageData data)
+        public Task Proxy(MessageData data)
         {
             data.mId = System.Threading.Interlocked.Increment(ref lastMessageId);
             data.Data = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data.Data));
             Console.WriteLine($"Proxying {data.Type} {data.mId} {MessagePackSerializer.ToJson(data)}");
             WaitingResponse[data.mId] = data;
             Send(data);
+            return Task.Delay(10_000);
         }
 
         private void Reconect(string backendAdress)
@@ -208,7 +210,7 @@ namespace hypixel
 
     public class PlayerSyncResponse : Command
     {
-        public override async void Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var response = data.GetAs<PlayerSyncCommand.PlayerSyncData>();
             var players = response.Players;
@@ -247,13 +249,13 @@ namespace hypixel
                 }
                 count = context.Players.Count();
             }
-            data.SendBack(data.Create("playerSync", response.Offset));
+            await data.SendBack(data.Create("playerSync", response.Offset));
         }
     }
 
     public class ItemsSyncResponse : Command
     {
-        public override void Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             //data.Data = CacheService.Unzip(data.GetAs<byte[]>());
             var items = data.GetAs<List<DBItem>>();
@@ -265,7 +267,7 @@ namespace hypixel
                         continue;
                     context.Items.Add(item);
                 }
-                var affected = context.SaveChanges();
+                var affected = await context.SaveChangesAsync();
                 Console.WriteLine($"Synced items {affected}");
 
                 if (context.Players.Count() > 20_000)
@@ -277,7 +279,7 @@ namespace hypixel
     public class PricesSyncResponse : Command
     {
         static int ReceivedCount = 0;
-        public override async void Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var items = data.GetAs<List<PricesSyncCommand.AveragePriceSync>>()
                 .ConvertAll(p => p.GetBack())
@@ -298,7 +300,7 @@ namespace hypixel
             }
             if (count > 200_000 && Environment.ProcessorCount > 9)
                 return; // break early on my dev machine
-            data.SendBack(data.Create("pricesSync", ReceivedCount));
+            await data.SendBack(data.Create("pricesSync", ReceivedCount));
         }
 
         private static async Task<int> DoBatch(IEnumerable<AveragePrice> items, int count, HypixelContext context)

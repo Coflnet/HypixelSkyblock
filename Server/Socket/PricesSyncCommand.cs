@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using WebSocketSharp;
@@ -7,7 +8,7 @@ namespace hypixel
 {
     public class PricesSyncCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -15,8 +16,8 @@ namespace hypixel
                 var offset = data.GetAs<int>();
                 var response = context.Prices.Skip(offset).Take(batchAmount).Select(p=>new AveragePriceSync(p)).ToList();
                 if (response.Count == 0)
-                    return;
-                data.SendBack(new MessageData("pricesSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
+                    return Task.CompletedTask;
+                return data.SendBack(new MessageData("pricesSyncResponse", System.Convert.ToBase64String(MessagePack.MessagePackSerializer.Serialize(response))));
 
             }
         }

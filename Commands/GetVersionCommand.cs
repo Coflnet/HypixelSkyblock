@@ -1,10 +1,12 @@
+using System.Threading.Tasks;
+
 namespace hypixel
 {
     public class GetVersionCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
-            data.SendBack(data.Create("version",Program.Version,A_DAY));
+            return data.SendBack(data.Create("version",Program.Version,A_DAY));
         }
     }
 }

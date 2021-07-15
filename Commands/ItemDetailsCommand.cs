@@ -1,13 +1,14 @@
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace hypixel
 {
     public class ItemDetailsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
-            data.SendBack(CreateResponse(data));
+            return data.SendBack(CreateResponse(data));
         }
 
         public static MessageData CreateResponse(MessageData data)

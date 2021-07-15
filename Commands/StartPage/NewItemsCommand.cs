@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class NewItemsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -16,7 +17,7 @@ namespace hypixel
                     .ToList()
                     .Select(i=>new Response(){IconUrl = i.IconUrl,Name = i.Name.Name,Tag= i.Tag})
                     .ToList();
-                data.SendBack(data.Create("newItemsResponse", items, A_HOUR));
+                return data.SendBack(data.Create("newItemsResponse", items, A_HOUR));
             }
         }
 
