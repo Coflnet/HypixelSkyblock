@@ -112,6 +112,7 @@ namespace hypixel
             delicate,
             mana_steal,
             smarty_pants,
+            pristine,
             
             Any = 126
         }

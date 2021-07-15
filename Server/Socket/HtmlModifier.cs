@@ -89,8 +89,6 @@ namespace hypixel
 
                 await WriteStart(res, headerStart);
                 keyword = PlayerSearch.Instance.GetNameWithCache(parameter);
-                if (urlParts.Length <= 3)
-                    path += $"/{keyword}";
                 title = $"{keyword} Auctions and bids";
                 description = $"Auctions and bids for {keyword} in hypixel skyblock.";
 
@@ -228,7 +226,7 @@ namespace hypixel
 
         private static string CreateCanoicalPath(string[] urlParts, DBItem i)
         {
-            return $"/item/{i.Tag}" + (urlParts.Length > 3 ? $"/{ItemReferences.RemoveReforgesAndLevel(HttpUtility.UrlDecode(urlParts[3])) }" : "");
+            return $"/item/{i.Tag}";
         }
 
         private static async Task<string> GetBids(string parameter, string name)

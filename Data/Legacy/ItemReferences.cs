@@ -116,7 +116,7 @@ namespace hypixel
             bulky,
             lucky,
             bountiful,
-
+            heated,
 
 
             Unknown = 125,

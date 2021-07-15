@@ -10,7 +10,7 @@ namespace hypixel.Filter
         public override FilterType FilterType => FilterType.Equal;
         public override Func<DBItem, bool> IsApplicable =>
                 EnchantLvlFilter.IsEnchantable();
-        public override IEnumerable<object> Options => Enum.GetNames(typeof(Enchantment.EnchantmentType));
+        public override IEnumerable<object> Options => Enum.GetNames(typeof(Enchantment.EnchantmentType)).OrderBy(e=>e);
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {
             return query;
