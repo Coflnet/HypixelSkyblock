@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class NewPlayersCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             using (var context = new HypixelContext())
             {
@@ -15,7 +16,7 @@ namespace hypixel
                     .Take(50)
                     .ToList()
                     .Select(p=>new Response(){Name = p.Name, UpdatedAt = p.UpdatedAt, UuId = p.UuId});
-                data.SendBack(data.Create("newPlayersResponse", players, A_MINUTE ));
+                return data.SendBack(data.Create("newPlayersResponse", players, A_MINUTE ));
             }
         }
 

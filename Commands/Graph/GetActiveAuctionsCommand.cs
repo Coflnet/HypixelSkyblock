@@ -1,18 +1,18 @@
 using static hypixel.ItemReferences;
 using System;
 using MessagePack;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class GetActiveAuctionsCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var details = data.GetAs<ActiveItemSearchQuery>();
             if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
             {
-                ClientProxy.Instance.Proxy(data);
-                return;
+                return ClientProxy.Instance.Proxy(data);
             }
             // temporary map none (0) to any
             if (details.Reforge == Reforge.None)
@@ -20,7 +20,7 @@ namespace hypixel
 
             var res = ItemPrices.Instance.GetActiveAuctions(details);
 
-            data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 2));
+            return data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 2));
         }
 
         public enum SortOrder

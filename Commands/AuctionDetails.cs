@@ -3,10 +3,11 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Threading.Tasks;
 
 namespace hypixel {
     class AuctionDetails : Command {
-        public override void Execute (MessageData data) {
+        public override Task Execute (MessageData data) {
             Regex rgx = new Regex ("[^a-f0-9]");
             var search = rgx.Replace (data.Data, "");
             using (var context = new HypixelContext ()) {
@@ -18,7 +19,7 @@ namespace hypixel {
                 if (result == null) {
                     if(Program.LightClient){
                         ClientProxy.Instance.Proxy(data);
-                        return;
+                        return Task.Delay(10000);
                     }
                     throw new CoflnetException ("error", $"The Auction `{search}` wasn't found");
                 }
@@ -28,7 +29,7 @@ namespace hypixel {
                     // won't change anymore
                     maxAge = A_WEEK;
 
-                data.SendBack (new MessageData ("auctionDetailsResponse", resultJson,maxAge));
+                return data.SendBack (new MessageData ("auctionDetailsResponse", resultJson,maxAge));
             }
 
         }

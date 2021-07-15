@@ -309,10 +309,10 @@ namespace hypixel
                 this.Data = data;
             }
 
-            public override void SendBack(MessageData data, bool cache = true)
+            public override Task SendBack(MessageData data, bool cache = true)
             {
                 CacheService.Instance.Save(this, data);
-                Console.WriteLine("X-X-X\nwrote into cache");
+                return Task.CompletedTask;
             }
         }
     }

@@ -9,7 +9,7 @@ namespace hypixel
 {
     public class CreatePaymentCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
 
             string productId;
@@ -72,7 +72,7 @@ namespace hypixel
                 context.SaveChanges();
             }
 
-            data.SendBack(data.Create("checkoutSession", session.Id), false);
+            return data.SendBack(data.Create("checkoutSession", session.Id), false);
             //return Json(new { id = session.Id });
         }
 

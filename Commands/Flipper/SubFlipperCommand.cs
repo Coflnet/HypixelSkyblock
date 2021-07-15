@@ -1,8 +1,10 @@
+using System.Threading.Tasks;
+
 namespace hypixel
 {
     public class SubFlipperCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var con = (data as SocketMessageData).Connection;
             try
@@ -20,7 +22,7 @@ namespace hypixel
             {
                 Flipper.FlipperEngine.Instance.AddNonConnection(con, (int)data.mId);
             }
-            data.Ok();
+            return data.Ok();
         }
     }
 }

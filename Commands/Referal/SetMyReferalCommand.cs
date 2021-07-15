@@ -1,11 +1,13 @@
+using System.Threading.Tasks;
+
 namespace hypixel
 {
     public class SetMyReferalCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             ReferalService.Instance.WasReferedBy(data.User, data.GetAs<string>());
-            data.Ok();
+            return data.Ok();
         }
     }
 }

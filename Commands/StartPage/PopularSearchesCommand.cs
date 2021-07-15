@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class PopularSearchesCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var r = new System.Random();
             using (var context = new HypixelContext())
@@ -24,7 +25,7 @@ namespace hypixel
                     .ToList()
                     .Select(p => new Result() { title = p.Name, url = "/player/" + p.UuId, img = SearchService.PlayerHeadUrl(p.UuId) }));
 
-                data.SendBack(data.Create("popularSearches", pages
+                return data.SendBack(data.Create("popularSearches", pages
                     .OrderBy(s => r.Next()).Take(50).ToList(), A_MINUTE * 5));
             }
         }

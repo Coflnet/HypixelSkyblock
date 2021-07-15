@@ -8,12 +8,13 @@ using System;
 using MessagePack;
 using dev;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace hypixel
 {
     public class GooglePurchaseCommand : Command
     {
-        public override async void Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var args = data.GetAs<Arguments>();
             string serviceAccountEmail = "verification-admin@skyblock-300817.iam.gserviceaccount.com";
@@ -65,7 +66,7 @@ namespace hypixel
 
 
 
-            data.SendBack(data.Create("accepted", "payment was accepted enjoy your premium", A_WEEK));
+            await data.SendBack(data.Create("accepted", "payment was accepted enjoy your premium", A_WEEK));
         }
 
         [MessagePackObject]

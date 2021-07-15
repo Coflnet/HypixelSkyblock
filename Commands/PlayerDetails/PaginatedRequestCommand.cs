@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 
 namespace hypixel
 {
     public abstract class PaginatedRequestCommand<T> : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var request = data.GetAs<Request>();
 
             if(Program.LightClient && request.Offset > 0)
             {
                 ClientProxy.Instance.Proxy(data);
-                return;
+                return Task.CompletedTask;
             }
             
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
@@ -23,9 +24,9 @@ namespace hypixel
             if(Program.LightClient && result.Count == 0)
             {
                 ClientProxy.Instance.Proxy(data);
-                return;
+                return Task.CompletedTask;
             }
-            data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE));
+            return data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE));
         }
 
         private List<T> GetResult(string uuid, int amount, int offset)

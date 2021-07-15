@@ -403,7 +403,7 @@ namespace hypixel
             catch (Exception ex)
             {
                 context.SetStatusCode(500);
-                data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
+                await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
                 TrackingService.Instance.CommandError(data.Type);
                 dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}\n {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
             }
@@ -470,7 +470,7 @@ namespace hypixel
             }
 
 
-            public override void SendBack(MessageData data, bool cache = true)
+            public override Task SendBack(MessageData data, bool cache = true)
             {
                 try
                 {
@@ -486,6 +486,7 @@ namespace hypixel
 
                 if (cache)
                     CacheService.Instance.Save(this, data, 0);
+                return Task.CompletedTask;
             }
         }
 

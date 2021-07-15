@@ -1,13 +1,15 @@
+using System.Threading.Tasks;
 using MessagePack;
 
 namespace hypixel
 {
     public class RegisterPushTokenCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var args = data.GetAs<Arguments>();
             NotificationService.Instance.AddToken(data.UserId, args.deviceName, args.token);
+            return Task.CompletedTask;
         }
 
         [MessagePackObject]

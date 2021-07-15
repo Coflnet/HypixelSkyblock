@@ -15,7 +15,7 @@ namespace hypixel
             public List<Result> Results { get; set; }
         }
 
-        public override void Execute(MessageData data)
+        public override System.Threading.Tasks.Task Execute(MessageData data)
         {
             ItemSearchQuery details = GetQuery(data);
 
@@ -45,7 +45,7 @@ namespace hypixel
                 maxAge = A_DAY;
             }
 
-            data.SendBack(data.Create("itemResponse", response, maxAge));
+            return data.SendBack(data.Create("itemResponse", response, maxAge));
         }
 
         public static ItemSearchQuery GetQuery(MessageData data)

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 
 namespace hypixel
@@ -21,7 +22,7 @@ namespace hypixel
 
     public class PushSubscribeCommand : Command
     {
-        public override void Execute(MessageData data)
+        public override Task Execute(MessageData data)
         {
             var args = data.GetAs<Arguments>();
 
@@ -43,7 +44,7 @@ namespace hypixel
                     UserId = user.Id
                 });
             }
-            data.Ok();
+            return data.Ok();
         }
 
         [MessagePackObject]

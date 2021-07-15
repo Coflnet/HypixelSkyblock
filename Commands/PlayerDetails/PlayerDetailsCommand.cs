@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,7 +52,7 @@ namespace hypixel {
             public AuctionResult () { }
         }
 
-        public override void Execute (MessageData data) {
+        public override Task Execute (MessageData data) {
             Result result = new Result ();
 
             Regex rgx = new Regex ("[^a-f0-9]");
@@ -60,7 +61,7 @@ namespace hypixel {
             result.Bids.Add (new BidResult () { ItemName = "Loading ..." });
             result.Bids.Add (new BidResult () { ItemName = "This takes a minute :/" });
             result.Auctions.Add (new AuctionResult () { ItemName = "Loading the latest data" });
-            data.SendBack (data.Create ("playerResponse", result,A_HOUR));
+            return data.SendBack (data.Create ("playerResponse", result,A_HOUR));
 
             using (var context = new HypixelContext ()) {
                 var playerQuery = context.Players.Where (p => p.UuId == search);
@@ -75,7 +76,7 @@ namespace hypixel {
                     .ToList ();
 
                 // just the auctions for now
-                data.SendBack (data.Create ("playerResponse", result,A_HOUR));
+                return data.SendBack (data.Create ("playerResponse", result,A_HOUR));
 
 
                 var playerBids = context.Bids.Where(b=>b.Bidder == search)
@@ -117,7 +118,7 @@ namespace hypixel {
                 //var auctionsForBids = context.Auctions.Where(a=>result.Bids.Any(b=>b.==a.Id))
             }
 
-            data.SendBack (data.Create ("playerResponse", result,A_HOUR));
+            return data.SendBack (data.Create ("playerResponse", result,A_HOUR));
         }
 
         private static SaveBids FindHighestOwnBid (Player databaseResult, SaveAuction a) {
