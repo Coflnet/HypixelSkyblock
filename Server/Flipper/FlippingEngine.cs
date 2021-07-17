@@ -18,6 +18,7 @@ namespace hypixel.Flipper
 
         private const string FoundFlippsKey = "foundFlipps";
         private static int MIN_PRICE_POINT = 1000000;
+        public static bool diabled;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
@@ -157,7 +158,7 @@ namespace hypixel.Flipper
         {
             try
             {
-                while (LowPriceQueue.Count > 100)
+                while (LowPriceQueue.Count > 10)
                 {
 
                     await ProcessPotentialFlipps(cancleToken);
@@ -215,6 +216,8 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
+            if(diabled)
+                return;
             foreach (var auction in auctions)
             {
                 // determine flippability
@@ -239,9 +242,9 @@ namespace hypixel.Flipper
 
         }
 
-        public async Task ProcessPotentialFlipps()
+        public Task ProcessPotentialFlipps()
         {
-            ProcessPotentialFlipps(CancellationToken.None);
+            return ProcessPotentialFlipps(CancellationToken.None);
         }
 
         public async Task ProcessPotentialFlipps(CancellationToken cancleToken)

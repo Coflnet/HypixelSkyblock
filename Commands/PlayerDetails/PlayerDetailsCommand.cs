@@ -61,7 +61,7 @@ namespace hypixel {
             result.Bids.Add (new BidResult () { ItemName = "Loading ..." });
             result.Bids.Add (new BidResult () { ItemName = "This takes a minute :/" });
             result.Auctions.Add (new AuctionResult () { ItemName = "Loading the latest data" });
-            return data.SendBack (data.Create ("playerResponse", result,A_HOUR));
+            data.SendBack (data.Create ("playerResponse", result,A_HOUR));
 
             using (var context = new HypixelContext ()) {
                 var playerQuery = context.Players.Where (p => p.UuId == search);
@@ -76,7 +76,7 @@ namespace hypixel {
                     .ToList ();
 
                 // just the auctions for now
-                return data.SendBack (data.Create ("playerResponse", result,A_HOUR));
+                data.SendBack (data.Create ("playerResponse", result,A_HOUR));
 
 
                 var playerBids = context.Bids.Where(b=>b.Bidder == search)

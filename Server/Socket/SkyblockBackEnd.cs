@@ -72,7 +72,8 @@ namespace hypixel
             Commands.Add("setConId", new SetConnectionIdCommand());
             Commands.Add("getRefInfo", new GetRefInfoCommand());
             Commands.Add("setRef", new SetMyReferalCommand());
-            
+            Commands.Add("conMc", new ConnectMCAccountCommand());
+
 
             Commands.Add("subscribe", new PushSubscribeCommand());
             Commands.Add("unsubscribe", new DeleteSubscriptionCommand());

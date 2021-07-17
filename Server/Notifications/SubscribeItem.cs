@@ -36,7 +36,8 @@ namespace hypixel
             SOLD = 8,
             BIN = 16,
             USE_SELL_NOT_BUY = 32,
-            AUCTION = 64
+            AUCTION = 64,
+            PLAYER = 128
         }
 
         [Key("type")]
@@ -47,5 +48,9 @@ namespace hypixel
         [IgnoreMember]
         public DateTime NotTriggerAgainBefore {get;set;}
 
+        public virtual void NotifyAuction(SaveAuction auction)
+        {
+            // may notify the user/other services
+        }
     }
 }

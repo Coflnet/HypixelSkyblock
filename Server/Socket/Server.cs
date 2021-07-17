@@ -53,11 +53,12 @@ namespace hypixel
             server.AddWebSocketService<SkyblockBackEnd>(urlPath);
             // do NOT timeout after 60 sec
             server.KeepClean = false;
-            server.OnOptions += async (sender, e) =>
+            server.OnOptions += (sender, e) =>
             {
                 e.Response.AppendHeader("Allow", "OPTIONS, GET, POST");
                 e.Response.AppendHeader("access-control-allow-origin", "*");
                 e.Response.AppendHeader("Access-Control-Allow-Headers", "*");
+                return Task.CompletedTask;
             };
             var getRequests = Metrics
                     .CreateCounter("total_get_requests", "Number of processed http GET requests");

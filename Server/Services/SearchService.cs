@@ -229,7 +229,7 @@ namespace hypixel
 
             foreach (var item in searchTasks)
             {
-                item.ConfigureAwait(false);
+                var unawaitedTask = item.ConfigureAwait(false);
             }
 
             var timeout = DateTime.Now + TimeSpan.FromSeconds(2);

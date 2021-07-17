@@ -169,7 +169,7 @@ namespace hypixel
                             var res = await hypixel?.GetAuctionPageAsync(index);
                             var val = await Save(res, lastUpdate, activeUuids);
                         }
-                        catch (System.Exception ex)
+                        catch (System.Exception)
                         {
                             Logger.Instance.Error($"Single page ({index}) could not be loaded twice because of {e.Message} {e.StackTrace} {e.InnerException?.Message}");
                         }
@@ -301,7 +301,7 @@ namespace hypixel
 
         // builds the index for all auctions in the last hour
 
-        async Task<int> Save(GetAuctionPage res, DateTime lastUpdate, ConcurrentDictionary<string, bool> activeUuids)
+        Task<int> Save(GetAuctionPage res, DateTime lastUpdate, ConcurrentDictionary<string, bool> activeUuids)
         {
             int count = 0;
 
@@ -359,11 +359,7 @@ namespace hypixel
                 SubscribeEngine.Instance.NewAuction(auction);
             }
 
-
-
-
-
-            return count;
+            return Task.FromResult(count);
         }
 
         private static int DetermineWorth(int c, SaveAuction auction)

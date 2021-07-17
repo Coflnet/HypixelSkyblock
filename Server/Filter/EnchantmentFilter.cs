@@ -47,6 +47,8 @@ namespace hypixel.Filter
 
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {
+            if(!args.Filters.ContainsKey("Enchantment"))
+                throw new CoflnetException("invalid_filter", "You need to select an enchantment and a lvl to filter for");
             var enchant = Enum.Parse<Enchantment.EnchantmentType>(args.Filters["Enchantment"]);
             var lvl = (short)args.GetAsLong(this);
             var itemid = int.Parse(args.Filters["ItemId"]);

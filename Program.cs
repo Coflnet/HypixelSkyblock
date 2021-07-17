@@ -47,7 +47,7 @@ namespace hypixel
 
         static Program()
         {
-            
+
             InstanceId = DateTime.Now.Ticks.ToString() + version;
         }
 
@@ -214,7 +214,7 @@ namespace hypixel
                 }, "saving hits failed");
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
-            
+
             updater = new Updater(apiKey);
             updater.UpdateForEver();
 
@@ -222,13 +222,15 @@ namespace hypixel
             GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
             SubscribeEngine.Instance.LoadFromDb();
-            MakeSureRedisIsInitialized();
+            var redisInit = MakeSureRedisIsInitialized();
 
             Console.WriteLine("booting db dependend stuff");
 
             var bazzar = new BazaarUpdater();
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
+
+            Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
             for (int i = 0; i < 3; i++)
             {
                 RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error");
@@ -241,7 +243,7 @@ namespace hypixel
             {
                 await Task.Delay(TimeSpan.FromMinutes(3));
                 await ItemPrices.Instance.BackfillPrices();
-            }).ConfigureAwait(false);;
+            }).ConfigureAwait(false); ;
 
 
             onStop += () =>
@@ -256,6 +258,8 @@ namespace hypixel
             {
                 Console.WriteLine($"Cleaning failed {e.Message}");
             }
+
+            redisInit.GetAwaiter().GetResult();
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 
@@ -276,7 +280,7 @@ namespace hypixel
                 {
                     Console.WriteLine($"Backfill failed :( \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
                 }
-            }, fillRedisCacheTokenSource.Token).ConfigureAwait(false);;
+            }, fillRedisCacheTokenSource.Token).ConfigureAwait(false); ;
         }
 
         public static async Task MakeSureRedisIsInitialized()

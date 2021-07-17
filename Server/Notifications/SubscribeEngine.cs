@@ -28,6 +28,7 @@ namespace hypixel
         /// All subscrptions to a specific auction
         /// </summary>
         private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> AuctionSub = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
+        private ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> UserAuction = new ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>>();
 
 
 
@@ -77,7 +78,6 @@ namespace hypixel
                     RemoveSubscriptionFromCache(userId, topic, type, AuctionSub);
 
                 return await context.SaveChangesAsync();
-
             }
         }
 
@@ -130,6 +130,10 @@ namespace hypixel
             {
                 AddSubscription(item, AuctionSub);
             }
+            else if (item.Type.HasFlag(SubscribeItem.SubType.PLAYER))
+            {
+                AddSubscription(item, UserAuction);
+            }
             else
                 Console.WriteLine("ERROR: unkown subscibe type " + item.Type);
         }
@@ -163,6 +167,13 @@ namespace hypixel
                         || auction.StartingBid > item.Price && item.Type.HasFlag(SubscribeItem.SubType.PRICE_HIGHER_THAN))
                         && (!item.Type.HasFlag(SubscribeItem.SubType.BIN) || auction.Bin))
                         NotificationService.Instance.AuctionPriceAlert(item, auction);
+                }
+            }
+            if (this.UserAuction.TryGetValue(auction.AuctioneerId, out subscribers))
+            {
+                foreach (var item in subscribers)
+                {
+                    item.NotifyAuction(auction);
                 }
             }
         }
@@ -203,18 +214,24 @@ namespace hypixel
         /// <param name="auction"></param>
         public void NewBids(SaveAuction auction)
         {
-            foreach (var bid in auction.Bids.OrderBy(b => b.Amount).Skip(1))
+            foreach (var bid in auction.Bids.OrderByDescending(b => b.Amount).Skip(1))
             {
                 NotifyIfExisting(this.outbid, bid.Bidder, sub =>
                 {
                     NotificationService.Instance.Outbid(sub, auction, bid);
                 });
-
             }
             NotifyIfExisting(this.AuctionSub, auction.Uuid, sub =>
             {
                 NotificationService.Instance.NewBid(sub, auction, auction.Bids.OrderBy(b => b.Amount).Last());
             });
+            foreach (var bid in auction.Bids)
+            {
+                NotifyIfExisting(UserAuction, bid.Bidder, sub =>
+                {
+                    sub.NotifyAuction(auction);
+                });
+            }
         }
 
 
@@ -329,7 +346,6 @@ namespace hypixel
                     }
                 }
             }
-
         }
 
         private static void RemoveFirstIfExpired(List<SubLookup> list)
