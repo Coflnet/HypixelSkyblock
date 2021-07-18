@@ -231,7 +231,7 @@ namespace hypixel
             RunIndexer();
 
             Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error");
             }

@@ -68,7 +68,7 @@ namespace hypixel
             luck_of_the_sea,
             true_protection,
             sugar_rush,
-            bane_of_arthropod,
+            o, // invalid enchant, may be reasigned
             replenish,
             rejuvenate,
             ultimate_bank,

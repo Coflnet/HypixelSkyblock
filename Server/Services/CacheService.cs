@@ -109,18 +109,21 @@ namespace hypixel
 
         public bool TryFromCache(MessageData request)
         {
-            return TryFromCacheAsync(request).GetAwaiter().GetResult();
+            return TryFromCacheAsync(request).GetAwaiter().GetResult().HasFlag(CacheStatus.VALID);
         }
 
-        public async Task<bool> TryFromCacheAsync(MessageData request)
+        public async Task<CacheStatus> TryFromCacheAsync(MessageData request)
         {
             var key = GetCacheKey(request);
             var responses = await GetFromRedis<CacheElement>(key);
             if (responses == null)
-                return false;
+                return CacheStatus.MISS;
 
             if (responses.Expires < DateTime.Now)
-                return false;
+            {
+                // stale
+                return CacheStatus.STALE;
+            }
 
             var maxAgeLeft = (int)(responses.Expires - DateTime.Now).TotalSeconds;
             foreach (var response in responses.Responses)
@@ -130,9 +133,12 @@ namespace hypixel
                 await request.SendBack(response, false);
             }
             if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
+            {
                 RefreshResponse(request);
+                return CacheStatus.REFRESH;
+            }
 
-            return true;
+            return CacheStatus.RECENT;
         }
 
         private static void RefreshResponse(MessageData request)
@@ -316,4 +322,14 @@ namespace hypixel
             }
         }
     }
+
+    public enum CacheStatus
+    {
+        MISS = 1,
+        STALE = 2,
+        REFRESH = 4,
+        RECENT = 8,
+        VALID = RECENT | REFRESH
+    }
+
 }

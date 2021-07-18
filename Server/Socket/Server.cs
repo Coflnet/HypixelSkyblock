@@ -251,6 +251,12 @@ namespace hypixel
                 GetSkin(relativePath);
             }
 
+            if (path.StartsWith("/static/icon"))
+            {
+                await IconResolver.Instance.Resolve(context, path);
+                return;
+            }
+
 
             if (!FileController.Exists(relativePath))
             {
@@ -352,7 +358,7 @@ namespace hypixel
                     return;
                 } */
 
-                if (await CacheService.Instance.TryFromCacheAsync(data))
+                if ((await CacheService.Instance.TryFromCacheAsync(data)).HasFlag(CacheStatus.VALID))
                     return;
 
                 /*  var ip = req.Headers["Cf-Connecting-Ip"];
@@ -439,7 +445,7 @@ namespace hypixel
         {
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-            if (!CacheService.Instance.TryFromCache(data))
+            if (!(await CacheService.Instance.TryFromCacheAsync(data)).HasFlag(CacheStatus.VALID))
                 await SkyblockBackEnd.Commands[command].Execute(data);
             return source.Task.Result;
         }
@@ -464,7 +470,7 @@ namespace hypixel
 
             public override MessageData Create<T>(string type, T a, int maxAge = 0)
             {
-                source.SetResult((TRes)(object)a);
+                source.TrySetResult((TRes)(object)a);
                 var d = base.Create<T>(type, a, maxAge);
                 d.Data = MessagePackSerializer.ToJson(a);
                 return d;

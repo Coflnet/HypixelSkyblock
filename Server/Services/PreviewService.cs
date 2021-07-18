@@ -33,20 +33,20 @@ namespace hypixel
             };
         }
 
-        public Preview GetItemPreview(string tag)
+        public Preview GetItemPreview(string tag, int size = 32)
         {
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
 
             var uri = skyLeaClient.BuildUri(request);
             var detailsRequest = ItemDetails.Instance.GetDetailsWithCache(tag);
-            IRestResponse response = GetProxied(uri);
+            IRestResponse response = GetProxied(uri,size);
             detailsRequest.Wait();
             var details = detailsRequest.Result;
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 uri = skyClient.BuildUri(new RestRequest(details.IconUrl));
-                response = GetProxied(uri);
+                response = GetProxied(uri,size);
             }
 
             return new Preview()
@@ -54,14 +54,15 @@ namespace hypixel
                 Id = tag,
                 Image = Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
-                Name = details.Names.FirstOrDefault()
+                Name = details.Names.FirstOrDefault(),
+                MimeType = response.ContentType
             };
         }
 
-        private IRestResponse GetProxied(Uri uri)
+        private IRestResponse GetProxied(Uri uri, int size)
         {
-            var proxyRequest = new RestRequest("/x32/"+uri.ToString())
-                        .AddUrlSegment("size", 32);
+            var proxyRequest = new RestRequest($"/x{size}/"+uri.ToString())
+                        .AddUrlSegment("size", size);
             var response = proxyClient.Execute(proxyRequest);
             return response;
         }
@@ -77,6 +78,8 @@ namespace hypixel
             public string Name;
             [DataMember(Name ="imgUrl")]
             public string ImageUrl;
+            [DataMember(Name ="mime")]
+            public string MimeType;
         }
     }
 }
