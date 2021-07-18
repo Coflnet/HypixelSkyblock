@@ -117,7 +117,8 @@ namespace hypixel
             lucky,
             bountiful,
             heated,
-
+            jaded,
+            ambered,
 
             Unknown = 125,
             Any,

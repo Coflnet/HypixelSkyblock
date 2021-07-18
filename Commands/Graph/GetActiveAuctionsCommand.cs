@@ -7,20 +7,25 @@ namespace hypixel
 {
     public class GetActiveAuctionsCommand : Command
     {
-        public override Task Execute(MessageData data)
+        public override async Task Execute(MessageData data)
         {
             var details = data.GetAs<ActiveItemSearchQuery>();
             if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
             {
-                return ClientProxy.Instance.Proxy(data);
+                await ClientProxy.Instance.Proxy(data);
+                return;
             }
             // temporary map none (0) to any
             if (details.Reforge == Reforge.None)
                 details.Reforge = Reforge.Any;
 
-            var res = ItemPrices.Instance.GetActiveAuctions(details);
+            var count = 24;
+            if(details.Limit < count && details.Limit > 0)
+                count = details.Limit;
 
-            return data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 2));
+            var res = await ItemPrices.Instance.GetActiveAuctions(details);
+
+            await data.SendBack(data.Create("activeAuctions", res, A_MINUTE * 2));
         }
 
         public enum SortOrder
@@ -36,6 +41,8 @@ namespace hypixel
         {
             [Key("order")]
             public SortOrder Order;
+            [Key("limit")]
+            public int Limit;
         }
     }
 }

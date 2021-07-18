@@ -627,18 +627,6 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
-                try
-                {
-                    Console.WriteLine(JSON.Stringify(query));
-                    foreach (var filter in query.Filter?.Keys)
-                    {
-                        Console.WriteLine($"query has filter {filter} {query.Filter?[filter]}");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"{e.Message} {e.StackTrace}");
-                }
 
                 var result = CreateSelect(query, context, itemId, amount)
                             .OrderByDescending(a => a.End).Take(amount).Select(a => new
@@ -660,7 +648,7 @@ namespace hypixel
         }
 
 
-        internal List<AuctionPreview> GetActiveAuctions(GetActiveAuctionsCommand.ActiveItemSearchQuery query, int amount = 24)
+        internal async Task<List<AuctionPreview>> GetActiveAuctions(GetActiveAuctionsCommand.ActiveItemSearchQuery query, int amount = 24)
         {
             query.Start = DateTime.Now.Subtract(TimeSpan.FromDays(14)).RoundDown(TimeSpan.FromDays(1));
             using (var context = new HypixelContext())
@@ -688,8 +676,7 @@ namespace hypixel
                         select = select.OrderByDescending(a => a.Price);
                         break;
                 }
-                Console.WriteLine(select.ToSql());
-                return select.Take(amount).ToList().Select(async a => new AuctionPreview()
+                return (await select.Take(amount).ToListAsync()).Select(async a => new AuctionPreview()
                 {
                     End = a.End,
                     Price = a.Price,

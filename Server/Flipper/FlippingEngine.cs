@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using static hypixel.GetActiveAuctionsCommand;
 
 namespace hypixel.Flipper
 {
@@ -313,7 +314,7 @@ namespace hypixel.Flipper
                     Console.WriteLine("not yet migrated skiping flip");
                 return;
             }
-            if (Environment.ProcessorCount > 9 && auction.UId % 5 != 0)
+            if (diabled && auction.UId % 5 != 0)
                 return; // don't run on full cap on my dev machine :D
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
@@ -353,6 +354,14 @@ namespace hypixel.Flipper
             {
                 relevantAuctionIds.Clear();
             }
+            var query = new ActiveItemSearchQuery()
+            {
+                Order = SortOrder.LOWEST_PRICE,
+                Limit = 1,
+                Filter = new Dictionary<string, string>(){{"Bin","true"}},
+                name = auction.Tag
+            };
+            var lowestBin = Server.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
 
             var flip = new FlipInstance()
             {
@@ -363,7 +372,9 @@ namespace hypixel.Flipper
                 Volume = (float)(relevantAuctions.Count / (DateTime.Now - oldest).TotalDays),
                 Tag = auction.Tag,
                 Bin = auction.Bin,
-                UId = auction.UId
+                UId = auction.UId,
+                SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(auction.AuctioneerId),
+                LowestBin = (await lowestBin).FirstOrDefault()?.Price
             };
 
             FlippFound(flip);
@@ -626,6 +637,8 @@ namespace hypixel.Flipper
             public string Uuid;
             [DataMember(Name = "name")]
             public string Name;
+            [DataMember(Name = "sellerName")]
+            public string SellerName;
             [DataMember(Name = "volume")]
             public float Volume;
             [DataMember(Name = "tag")]
@@ -634,6 +647,8 @@ namespace hypixel.Flipper
             public bool Bin;
             [DataMember(Name = "sold")]
             public bool Sold { get; internal set; }
+            [DataMember(Name = "lowestBin")]
+            public long? LowestBin;
             [IgnoreDataMember]
             public long UId;
         }

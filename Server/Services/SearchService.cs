@@ -254,7 +254,9 @@ namespace hypixel
             {
                 foreach (var item in Enum.GetValues(typeof(Enchantment.EnchantmentType)).Cast<Enchantment.EnchantmentType>())
                 {
-                    var name = item.ToString().Replace('_', ' ').Replace("ultimate ", "");
+                    var name = item.ToString().Replace('_', ' ');
+                    if(item != Enchantment.EnchantmentType.ultimate_wise)
+                        name = name.Replace("ultimate ", "");
                     var formattedName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name.ToLower());
                     Enchantments[formattedName] = item;
                 }

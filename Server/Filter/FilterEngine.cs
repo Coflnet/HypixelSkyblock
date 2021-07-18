@@ -20,6 +20,7 @@ namespace hypixel.Filter
             Filters.Add<EndBeforeFilter>();
             Filters.Add<EndAfterFilter>();
             Filters.Add<ItemIdFilter>();
+            Filters.Add<BinFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)

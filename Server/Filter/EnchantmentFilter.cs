@@ -10,7 +10,7 @@ namespace hypixel.Filter
         public override FilterType FilterType => FilterType.Equal;
         public override Func<DBItem, bool> IsApplicable =>
                 EnchantLvlFilter.IsEnchantable();
-        public override IEnumerable<object> Options => Enum.GetNames(typeof(Enchantment.EnchantmentType)).OrderBy(e=>e);
+        public override IEnumerable<object> Options => Enum.GetNames(typeof(Enchantment.EnchantmentType)).OrderBy(e => e);
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {
             return query;
@@ -47,7 +47,7 @@ namespace hypixel.Filter
 
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {
-            if(!args.Filters.ContainsKey("Enchantment"))
+            if (!args.Filters.ContainsKey("Enchantment"))
                 throw new CoflnetException("invalid_filter", "You need to select an enchantment and a lvl to filter for");
             var enchant = Enum.Parse<Enchantment.EnchantmentType>(args.Filters["Enchantment"]);
             var lvl = (short)args.GetAsLong(this);

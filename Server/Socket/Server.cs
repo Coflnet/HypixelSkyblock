@@ -435,13 +435,13 @@ namespace hypixel
             }
         }
 
-        public static Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
+        public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
             if (!CacheService.Instance.TryFromCache(data))
-                SkyblockBackEnd.Commands[command].Execute(data);
-            return source.Task;
+                await SkyblockBackEnd.Commands[command].Execute(data);
+            return source.Task.Result;
         }
 
         public class ProxyMessageData<Treq, TRes> : MessageData

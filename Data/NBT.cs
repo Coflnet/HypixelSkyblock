@@ -115,7 +115,9 @@ namespace hypixel
             "new_year_cake_bag_data",
 
             "ability_scroll",
-            "mixins"
+            "mixins",
+            "UNIVERSAL_0",
+            "UNIVERSAL_0_gem"
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
