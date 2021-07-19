@@ -197,7 +197,7 @@ namespace hypixel
 
         private static async Task WriteHeader(string path, Server.RequestContext res, string description, string title, string imageUrl, string keyword, string header)
         {
-            title += " Hypixel SkyBlock Auction house history tracker";
+            title += " Hypixel SkyBlock AH history tracker";
             // shrink to fit
             while (title.Length > 65)
             {
@@ -312,8 +312,8 @@ namespace hypixel
             var recentSearches = SearchService.Instance.GetPopularSites().OrderBy(x => r.Next());
             var body = "<h2>Description</h2><p>View, search, browse, and filter by reforge or enchantment. "
                     + "You can find all current and historic prices for the auction house and bazaar on this web tracker. "
-                    + "We are tracking about 200 million auctions. "
-                    + "Saved more than 250 million bazaar prices in intervalls of 10 seconds. "
+                    + "We are tracking about 250 million auctions. "
+                    + "Saved more than 300 million bazaar prices in intervalls of 10 seconds. "
                     + "Furthermore there are over two million <a href=\"/players\"> skyblock players</a> that you can search by name and browse through the auctions they made over the past two years. "
                     + "The autocomplete search is ranked by popularity and allows you to find whatever <a href=\"/items\">item</a> you want faster. "
                     + "New Items are added automatically and available within two miniutes after the first auction is startet. "

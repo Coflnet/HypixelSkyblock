@@ -358,7 +358,7 @@ namespace hypixel
                     return;
                 } */
 
-                if ((await CacheService.Instance.TryFromCacheAsync(data)).HasFlag(CacheStatus.VALID))
+                if ((await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                     return;
 
                 /*  var ip = req.Headers["Cf-Connecting-Ip"];
@@ -445,7 +445,7 @@ namespace hypixel
         {
             var source = new TaskCompletionSource<TRes>();
             var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-            if (!(await CacheService.Instance.TryFromCacheAsync(data)).HasFlag(CacheStatus.VALID))
+            if (!(await CacheService.Instance.TryFromCacheAsync(data)).IsFlagSet(CacheStatus.VALID))
                 await SkyblockBackEnd.Commands[command].Execute(data);
             return source.Task.Result;
         }

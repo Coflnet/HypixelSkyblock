@@ -109,7 +109,7 @@ namespace hypixel
 
         public bool TryFromCache(MessageData request)
         {
-            return TryFromCacheAsync(request).GetAwaiter().GetResult().HasFlag(CacheStatus.VALID);
+            return TryFromCacheAsync(request).GetAwaiter().GetResult().IsFlagSet(CacheStatus.VALID);
         }
 
         public async Task<CacheStatus> TryFromCacheAsync(MessageData request)
@@ -321,8 +321,20 @@ namespace hypixel
                 return Task.CompletedTask;
             }
         }
-    }
 
+
+    }
+    public static class CacheExtentions
+    {
+        public static bool IsFlagSet<T>(this T value, T flag) where T : struct
+        {
+            if (!typeof(T).IsEnum)
+                throw new ArgumentException($"{typeof(T).FullName} is not an enum");
+            long lValue = Convert.ToInt64(value);
+            long lFlag = Convert.ToInt64(flag);
+            return (lValue & lFlag) != 0;
+        }
+    }
     public enum CacheStatus
     {
         MISS = 1,
