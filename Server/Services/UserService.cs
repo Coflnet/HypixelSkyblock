@@ -92,7 +92,8 @@ namespace hypixel
                         Type = Bonus.BonusType.REFERED_UPGRADE,
                         UserId = user.ReferedBy
                     });
-                context.Update(user); context.SaveChanges();
+                context.Update(user); 
+                context.SaveChanges();
             }
         }
     }

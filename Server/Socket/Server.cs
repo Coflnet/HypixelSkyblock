@@ -311,6 +311,10 @@ namespace hypixel
             {
                 context.SetContentType("text/css");
             }
+            else if (path.EndsWith(".svg"))
+            {
+                context.SetContentType("image/svg+xml");
+            }
             if (path.EndsWith(".js") || path.StartsWith("/static/js"))
             {
                 context.SetContentType("text/javascript");
