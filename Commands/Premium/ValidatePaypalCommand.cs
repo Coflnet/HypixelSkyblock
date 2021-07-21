@@ -36,25 +36,24 @@ namespace hypixel
             var result = response.Result<Order>();
             Console.WriteLine(JSON.Stringify(result));
             Console.WriteLine("Retrieved Order Status");
-            Console.WriteLine("Status: {0}", result.Status);
-            Console.WriteLine("Order Id: {0}", result.Id);
             AmountWithBreakdown amount = result.PurchaseUnits[0].AmountWithBreakdown;
             Console.WriteLine("Total Amount: {0} {1}", amount.CurrencyCode, amount.Value);
+            Console.WriteLine("user with id " + data.UserId);
             if (result.Status != "COMPLETED")
                 throw new CoflnetException("order_incomplete", "The order is not yet completed");
 
+            Console.WriteLine("Status: {0}", result.Status);
             if (UsedIds.Contains(args.OrderId))
                 throw new CoflnetException("payment_timeout", "the provied order id was already used");
 
+            Console.WriteLine("Order Id: {0}", result.Id);
             if (DateTime.Parse(result.PurchaseUnits[0].Payments.Captures[0].UpdateTime) < DateTime.Now.Subtract(TimeSpan.FromHours(1)))
                 throw new CoflnetException("payment_timeout", "the provied order id is too old, please contact support for manual review");
             var user = data.User;
             var days = args.Days;
             var transactionId = result.Id;
+            Console.WriteLine($"user {user.Id} purchased via PayPal {transactionId}");
             UserService.Instance.SavePurchase(user, days, transactionId);
-
-
-
 
             UsedIds.Add(args.OrderId);
             FileController.AppendLineAs("purchases", JSON.Stringify(result));
