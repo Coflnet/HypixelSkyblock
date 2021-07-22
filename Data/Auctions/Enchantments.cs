@@ -68,8 +68,8 @@ namespace hypixel
             luck_of_the_sea,
             true_protection,
             sugar_rush,
-            o, // invalid enchant, may be reasigned
-            replenish,
+             // invalid enchant, may be reasigned
+            replenish = 60,
             rejuvenate,
             ultimate_bank,
             ultimate_combo,

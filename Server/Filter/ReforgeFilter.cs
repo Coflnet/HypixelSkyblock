@@ -7,7 +7,7 @@ namespace hypixel.Filter
     public class ReforgeFilter : GeneralFilter
     {
         public override FilterType FilterType => FilterType.Equal ;
-        public override IEnumerable<object> Options => Enum.GetNames(typeof(ItemReferences.Reforge)).OrderBy(e=>e);
+        public override IEnumerable<object> Options => Enum.GetNames(typeof(ItemReferences.Reforge)).Where(e=>e != "Unkown").OrderBy(e=>e);
 
         public override Func<DBItem, bool> IsApplicable => item 
                 => item.Category == Category.ACCESSORIES 

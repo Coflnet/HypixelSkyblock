@@ -121,8 +121,7 @@ namespace hypixel
             ambered,
 
             Unknown = 125,
-            Any,
-            Migration = 200
+            Any
         }
 
 
