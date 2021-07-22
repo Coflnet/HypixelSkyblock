@@ -378,7 +378,13 @@ namespace hypixel
                 {
                     try
                     {
-                        ExecuteCommand(data, command);
+                        await command.Execute(data);
+
+                        // TODO make this work again
+                        if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
+                        {
+                            throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
+                        }
                         return;
                     }
                     catch (CoflnetException ex)
@@ -435,15 +441,6 @@ namespace hypixel
             }
         }
 
-        private static void ExecuteCommand(HttpMessageData data, Command command)
-        {
-            command.Execute(data);
-
-            if (!data.CompletionSource.Task.Wait(TimeSpan.FromSeconds(30)))
-            {
-                throw new CoflnetException("timeout", "could not generate a response, please report this and try again");
-            }
-        }
 
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
