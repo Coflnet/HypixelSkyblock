@@ -60,8 +60,8 @@ namespace hypixel
             {
                 if (typeof(T) == typeof(string))
                 {
-                    return (T)(object)Convert.ToBase64String(Encoding.UTF8.GetBytes(Data)) ;
-                }  
+                    return (T)(object)Convert.ToBase64String(Encoding.UTF8.GetBytes(Data));
+                }
                 throw;
             }
         }
@@ -176,6 +176,11 @@ namespace hypixel
         {
             var json = data.Data;
             context.SetStatusCode(200);
+
+            // important for proxied commands
+            if (data.Type == "error")
+                context.SetStatusCode(500);
+
             context.AddHeader("cache-control", "public,max-age=" + data.MaxAge.ToString());
             if (string.IsNullOrEmpty(json))
             {
@@ -186,7 +191,7 @@ namespace hypixel
 
             if (cache)
                 CacheService.Instance.Save(this, data, 0);
-            
+
             return Task.CompletedTask;
         }
     }

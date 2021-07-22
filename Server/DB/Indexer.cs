@@ -212,7 +212,6 @@ namespace hypixel
             try
             {
                 var id = auction.Uuid;
-                MigrateAuction(auction);
 
                 if (inDb.TryGetValue(id, out SaveAuction dbauction))
                 {
@@ -248,12 +247,6 @@ namespace hypixel
                 Logger.Instance.Error($"Error {e.Message} on {auction.ItemName} {auction.Uuid} from {auction.AuctioneerId}");
                 Logger.Instance.Error(e.StackTrace);
             }
-        }
-
-        private static void MigrateAuction(SaveAuction auction)
-        {
-            if (auction.Reforge == ItemReferences.Reforge.Migration)
-                auction.Reforge = ItemReferences.Reforge.Unknown;
         }
 
         private static void UpdateAuction(HypixelContext context, BidComparer comparer, SaveAuction auction, SaveAuction dbauction)
