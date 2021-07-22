@@ -373,6 +373,7 @@ namespace hypixel.Flipper
                 Tag = auction.Tag,
                 Bin = auction.Bin,
                 UId = auction.UId,
+                Rarity = auction.Tier,
                 SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(auction.AuctioneerId),
                 LowestBin = (await lowestBin).FirstOrDefault()?.Price
             };
@@ -647,6 +648,9 @@ namespace hypixel.Flipper
             public bool Bin;
             [DataMember(Name = "sold")]
             public bool Sold { get; internal set; }
+            [DataMember(Name = "tier")]
+            public Tier Rarity { get; internal set; }
+
             [DataMember(Name = "lowestBin")]
             public long? LowestBin;
             [IgnoreDataMember]

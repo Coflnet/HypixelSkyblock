@@ -117,7 +117,10 @@ namespace hypixel
             "ability_scroll",
             "mixins",
             "UNIVERSAL_0",
-            "UNIVERSAL_0_gem"
+            "UNIVERSAL_0_gem",
+            "JADE_0",
+            "TOPAZ_0",
+            "AMBER_0"
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
@@ -150,6 +153,8 @@ namespace hypixel
             "personal_deletor_5",
             "personal_deletor_6",
             "personal_deletor_7",
+            "personal_deletor_8",
+            "personal_deletor_9",
             "last_potion_ingredient",
             "skin"
         };
