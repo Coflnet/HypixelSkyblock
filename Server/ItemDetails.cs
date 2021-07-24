@@ -343,7 +343,7 @@ namespace hypixel
 
         private static int GetScoreFor(AlternativeName n)
         {
-            if (n == null || n.Name == null)
+            if (n == null || n.Name == null || n.Name == "Pet")
                 return 100;
             return n.Name.Length + (Regex.IsMatch(n.Name, "^[a-zA-Z0-9 ]*$") ? 0 : 40) - n.OccuredTimes;
         }

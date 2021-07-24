@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace hypixel.Filter

@@ -85,6 +85,8 @@ namespace hypixel
                                 .Select(a => a.ItemName)
                                 .ToListAsync();
 
+                sample = sample.Select(s => ItemReferences.RemoveReforgesAndLevel(s)).ToList();
+
                 var names = context.AltItemNames.Where(n => n.DBItemId == itemId);
                 foreach (var item in names)
                 {

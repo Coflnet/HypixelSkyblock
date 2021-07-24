@@ -123,7 +123,7 @@ namespace hypixel
 
         private Dictionary<string, IEnumerable<string>> FilterCache = new Dictionary<string, IEnumerable<string>>();
 
-        private IEnumerable<string> GetFiltersForItem(string itemTag)
+        public IEnumerable<string> GetFiltersForItem(string itemTag)
         {
             if (FilterCache.TryGetValue(itemTag, out IEnumerable<string> filters))
                 return filters;
