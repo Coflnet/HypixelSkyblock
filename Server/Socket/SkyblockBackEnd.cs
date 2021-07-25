@@ -86,6 +86,10 @@ namespace hypixel
 
 
             Commands.Add("setGoogle", new SetGoogleIdCommand());
+            Commands.Add("genToken", new GenerateTokenFor());
+            Commands.Add("loginExt", new LoginExternalCommand());
+            Commands.Add("accountInfo", new AccountInfoCommand());
+
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
