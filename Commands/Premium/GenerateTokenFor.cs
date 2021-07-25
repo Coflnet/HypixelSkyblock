@@ -9,7 +9,7 @@ namespace hypixel
             if(SimplerConfig.Config.Instance["MODE"] != null)
                 throw new CoflnetException("not_allowed", "sorry you can't access this, contact me directly");
 
-            return data.SendBack(data.Create("resp", LoginExternal.GenerateToken(data.GetAs<string>())));
+            return data.SendBack(data.Create("resp", LoginExternalCommand.GenerateToken(data.GetAs<string>())));
         }
     }
 }

@@ -31,12 +31,11 @@ namespace hypixel
             public string Email;
             [DataMember(Name = "token")]
             public string Token;
-
         }
 
         public static string GenerateToken(string email)
         {
-            var bytes = Encoding.UTF8.GetBytes(email + secret);
+            var bytes = Encoding.UTF8.GetBytes(email.ToLower() + secret);
             var hash = System.Security.Cryptography.SHA512.Create();
             return Convert.ToBase64String(hash.ComputeHash(bytes)).Truncate(20);
         }
