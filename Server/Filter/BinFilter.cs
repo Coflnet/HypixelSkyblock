@@ -11,7 +11,11 @@ namespace hypixel.Filter
 
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {
-            return query.Where(a => a.Bin);
+            if (args.Get(this) == "true")
+                return query.Where(a => a.Bin);
+            return query.Where(a => !a.Bin);
+
         }
     }
 }
+

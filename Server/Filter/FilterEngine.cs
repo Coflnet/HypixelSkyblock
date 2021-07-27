@@ -21,6 +21,9 @@ namespace hypixel.Filter
             Filters.Add<EndAfterFilter>();
             Filters.Add<ItemIdFilter>();
             Filters.Add<BinFilter>();
+            Filters.Add<StarsFilter>();
+            Filters.Add<RecombulatedFilter>();
+            Filters.Add<HotPotatoCountFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)

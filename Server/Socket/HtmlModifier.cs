@@ -51,7 +51,7 @@ namespace hypixel
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category }).FirstOrDefault();
+                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category,a.Bin }).FirstOrDefault();
                     if (result == null)
                     {
                         await WriteHeader("/error", res, "This site was not found", "Error", imageUrl, null, header);
@@ -62,8 +62,16 @@ namespace hypixel
 
                     var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
                     title = $"Auction for {result.ItemName} by {playerName}";
-                    description = $"{title} ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")} with {result.bidCount} bids, Category: {result.Category}, {result.Tier}.";
+                    if(result.End > DateTime.Now)
+                        description = $"{title} ends on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
+                    else
+                        description = $"{title} ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}"; 
 
+                    if(result.Bin)
+                        description += $" BIN,";
+                    else
+                        description += $" with {result.bidCount} bids";
+                    description += $"Category: {result.Category}, {result.Tier}.";
 
                     if (!string.IsNullOrEmpty(result.Tag))
                         imageUrl = "https://sky.lea.moe/item/" + result.Tag;
