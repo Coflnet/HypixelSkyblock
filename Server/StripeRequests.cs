@@ -50,7 +50,7 @@ namespace hypixel
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ran into an unknown error :/ {ex.Message} {ex.StackTrace}");
+                dev.Logger.Instance.Error(ex, "stripe checkout");
             }
         }
 
@@ -61,7 +61,7 @@ namespace hypixel
             var id = session.CustomerId;
             //var email = session.CustomerEmail;
             var days = Int32.Parse(session.Metadata["days"]);
-            Console.WriteLine("STRIPE");
+            Console.WriteLine("STRIPE " + days);
             using (var context = new HypixelContext())
             {
                 var user = await context.Users.Where(u => u.Id == googleId).FirstAsync();
