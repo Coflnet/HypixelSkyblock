@@ -20,7 +20,7 @@ namespace hypixel.Filter
             var stringVal = args.Get(this);
             if (int.TryParse(stringVal, out int val))
                 return query.Where(a => a.NBTLookup.Where(l => l.KeyId == key && l.Value == val).Any());
-            return query.Where(a => !a.NBTLookup.Where(l => l.KeyId == key && l.Value == val).Any());
+            return query.Where(a => !a.NBTLookup.Where(l => l.KeyId == key).Any());
         }
     }
 }

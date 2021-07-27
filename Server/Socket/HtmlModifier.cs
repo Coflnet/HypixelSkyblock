@@ -51,7 +51,7 @@ namespace hypixel
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new AuctionPreviewParams(a.Tag, a.AuctioneerId, a.ItemName, a.End, a.Bids.Count, a.Tier, a.Category, a.Bin, a.HighestBidAmount)).FirstOrDefault();
+                            .Select(a => new AuctionPreviewParams(a.Tag, a.AuctioneerId, a.ItemName, a.End, a.Bids.Count, a.Tier, a.Category, a.Bin, a.HighestBidAmount, a.UId)).FirstOrDefault();
                     if (result == null)
                     {
                         await WriteHeader("/error", res, "This site was not found", "Error", imageUrl, null, header);
@@ -62,7 +62,7 @@ namespace hypixel
 
                     var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
                     title = $"Auction for {result.ItemName} by {playerName}";
-                    description = GetAuctionDescription(result, title);
+                    description = await GetAuctionDescription(result, title);
 
                     if (!string.IsNullOrEmpty(result.Tag))
                         imageUrl = "https://sky.coflnet.com/static/icon/" + result.Tag;
@@ -168,23 +168,32 @@ namespace hypixel
             return newHtml;
         }
 
-        private static string GetAuctionDescription(AuctionPreviewParams result, string title)
+        private static async Task<string> GetAuctionDescription(AuctionPreviewParams result, string title)
         {
             var description = "";
             if (result.Bin)
-                description += $"BIN";
+                description += $"BIN ";
 
             description += title;
-            if (result.Bin)
-                description += $"| Highest Bid: {result.HighestBidAmount} with {result.BidCount} Bids";
+            if (!result.Bin)
+                description += $" | Highest Bid: {String.Format("{0:n0}", result.HighestBidAmount)} with {result.BidCount} Bids";
+            else if (result.HighestBidAmount > 0) // sold
+                using (var context = new HypixelContext())
+                {
+                    var buyer = await context.Auctions.Where(a => a.UId == result.UId).Select(a => a.Bids.First().Bidder).FirstOrDefaultAsync();
+                    //var buyer = auction.Bids.FirstOrDefault()?.Bidder;
+                    var name = await PlayerSearch.Instance.GetNameWithCacheAsync(buyer);
+                    description += $" | Bought by {name} for {String.Format("{0:n0}", result.HighestBidAmount)} coins";
+                }
+
 
             if (result.End > DateTime.Now)
-                description = $" | Ends on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
+                description += $" | Ends on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
             else
-                description = $" | Ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
+                description += $" | Ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
 
 
-            return description += $" | Category: {result.Category} | Rarity: {result.Tier}.";
+            return description += $" | Category: {result.Category} | Rarity: {result.Tier}";
         }
 
         private static async Task<float> GetAvgPrice(string tag)
@@ -359,8 +368,9 @@ namespace hypixel
         public Category Category { get; }
         public bool Bin { get; }
         public long HighestBidAmount { get; }
+        public long UId { get; }
 
-        public AuctionPreviewParams(string tag, string auctioneerId, string itemName, DateTime end, int bidCount, Tier tier, Category category, bool bin, long highestBidAmount)
+        public AuctionPreviewParams(string tag, string auctioneerId, string itemName, DateTime end, int bidCount, Tier tier, Category category, bool bin, long highestBidAmount, long uId)
         {
             Tag = tag;
             AuctioneerId = auctioneerId;
@@ -371,6 +381,7 @@ namespace hypixel
             Category = category;
             Bin = bin;
             HighestBidAmount = highestBidAmount;
+            UId = uId;
         }
 
         public override bool Equals(object obj)

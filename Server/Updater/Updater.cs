@@ -31,6 +31,7 @@ namespace hypixel
         private static ConcurrentDictionary<string, BinInfo> LastUpdateBins = new ConcurrentDictionary<string, BinInfo>();
 
         private static ConcurrentDictionary<string, bool> ActiveAuctions = new ConcurrentDictionary<string, bool>();
+        private static ConcurrentDictionary<string, DateTime> MissingSince = new ConcurrentDictionary<string, DateTime>();
 
         ConcurrentDictionary<string, int> AuctionCount;
         public static ConcurrentDictionary<string, int> LastAuctionCount;
@@ -203,21 +204,7 @@ namespace hypixel
             ActiveAuctions = activeUuids;
             var canceledTask = Task.Run(() =>
             {
-                foreach (var item in ActiveAuctions.Keys)
-                {
-                    lastUuids.TryRemove(item, out bool val);
-                }
-
-                foreach (var item in BinUpdater.SoldLastMin)
-                {
-                    lastUuids.TryRemove(item.Uuid, out bool val);
-                }
-                Console.WriteLine($"canceled last min: {lastUuids.Count} {lastUuids.FirstOrDefault().Key}");
-                Indexer.AddToQueue(lastUuids.Select(id => new SaveAuction(id.Key)));
-                foreach (var item in lastUuids)
-                {
-                    Flipper.FlipperEngine.Instance.AuctionInactive(item.Key);
-                }
+                RemoveCanceled(lastUuids);
             }).ConfigureAwait(false);
 
             if (sum > 10)
@@ -229,6 +216,45 @@ namespace hypixel
             OnNewUpdateEnd?.Invoke();
 
             return lastHypixelCache;
+        }
+
+        /// <summary>
+        /// Takes care of removing canceled auctions
+        /// Will check 5 updates to make sure there wasn't just a page missing
+        /// </summary>
+        /// <param name="lastUuids"></param>
+        private static void RemoveCanceled(ConcurrentDictionary<string, bool> lastUuids)
+        {
+            foreach (var item in ActiveAuctions.Keys)
+            {
+                lastUuids.TryRemove(item, out bool val);
+                MissingSince.TryRemove(item, out DateTime value);
+            }
+
+            foreach (var item in BinUpdater.SoldLastMin)
+            {
+                lastUuids.TryRemove(item.Uuid, out bool val);
+            }
+
+            foreach (var item in lastUuids)
+            {
+                MissingSince[item.Key] = DateTime.Now;
+                // its less important if items are removed from the flipper than globally
+                // the flipper should not display inactive auctions at all
+                Flipper.FlipperEngine.Instance.AuctionInactive(item.Key);
+            }
+            var removed = new HashSet<string>();
+            foreach (var item in MissingSince)
+            {
+                if (item.Value < DateTime.Now - TimeSpan.FromMinutes(5))
+                    removed.Add(item.Key);
+            }
+            Indexer.AddToQueue(removed.Select(id => new SaveAuction(id)));
+            foreach (var item in removed)
+            {
+                MissingSince.TryRemove(item, out DateTime since);
+            }
+            Console.WriteLine($"Canceled last min: {removed.Count} {removed.FirstOrDefault()}");
         }
 
         internal void UpdateForEver()
