@@ -120,7 +120,10 @@ namespace hypixel
             "UNIVERSAL_0_gem",
             "JADE_0",
             "TOPAZ_0",
-            "AMBER_0"
+            "AMBER_0",
+            "RUBY_0",
+            "AMETHYST_0",
+            "SAPPHIRE_0"
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
@@ -156,10 +159,11 @@ namespace hypixel
             "personal_deletor_8",
             "personal_deletor_9",
             "last_potion_ingredient",
+            "power_ability_scroll",
             "skin"
         };
 
-        public static List<NBTLookup> CreateLookup(NbtData nbtData)
+        public static List<NBTLookup> CreateLookup(NbtData nbtData, string itemTag)
         {
             Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
 
@@ -175,7 +179,6 @@ namespace hypixel
 
             try
             {
-
                 UnwrapList(data, "effects");
                 UnwrapList(data, "necromancer_souls");
                 UnwarpStringArray(data, "ability_scroll");
@@ -231,7 +234,10 @@ namespace hypixel
                     return new NBTLookup(keyId, GetValueId(keyId, attr.Value as string));
                 }
                 if (key == "color")
+                {
+                    ColorFiller.Add(itemTag, attr.Value as string);
                     return new NBTLookup(GetLookupKey(key), GetColor(attr));
+                }
                 Console.WriteLine(JSON.Stringify(attr));
                 // just save it as strings
 
@@ -269,8 +275,6 @@ namespace hypixel
                 }
                 data.Remove(name);
             }
-
-
         }
 
         private static void UnwrapJson(Dictionary<string, object> data, string key)
@@ -585,7 +589,8 @@ namespace hypixel
         public static NbtFile File(byte[] input, NbtCompression compression = NbtCompression.GZip)
         {
             var f = new NbtFile();
-            if (input != null){
+            if (input != null)
+            {
                 var stream = new MemoryStream(input);
                 f.LoadFromStream(stream, compression);
             }

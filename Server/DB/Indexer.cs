@@ -227,7 +227,7 @@ namespace hypixel
                     context.Auctions.Add(auction);
                     try
                     {
-                        auction.NBTLookup = NBT.CreateLookup(auction.NbtData);
+                        auction.NBTLookup = NBT.CreateLookup(auction.NbtData,auction.Tag);
                     }
                     catch (Exception e)
                     {

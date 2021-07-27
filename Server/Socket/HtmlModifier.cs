@@ -51,7 +51,7 @@ namespace hypixel
                 using (var context = new HypixelContext())
                 {
                     var result = context.Auctions.Where(a => a.Uuid == parameter)
-                            .Select(a => new { a.Tag, a.AuctioneerId, a.ItemName, a.End, bidCount = a.Bids.Count, a.Tier, a.Category,a.Bin }).FirstOrDefault();
+                            .Select(a => new AuctionPreviewParams(a.Tag, a.AuctioneerId, a.ItemName, a.End, a.Bids.Count, a.Tier, a.Category, a.Bin, a.HighestBidAmount)).FirstOrDefault();
                     if (result == null)
                     {
                         await WriteHeader("/error", res, "This site was not found", "Error", imageUrl, null, header);
@@ -62,19 +62,10 @@ namespace hypixel
 
                     var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
                     title = $"Auction for {result.ItemName} by {playerName}";
-                    if(result.End > DateTime.Now)
-                        description = $"{title} ends on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
-                    else
-                        description = $"{title} ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}"; 
-
-                    if(result.Bin)
-                        description += $" BIN,";
-                    else
-                        description += $" with {result.bidCount} bids";
-                    description += $"Category: {result.Category}, {result.Tier}.";
+                    description = GetAuctionDescription(result, title);
 
                     if (!string.IsNullOrEmpty(result.Tag))
-                        imageUrl = "https://sky.lea.moe/item/" + result.Tag;
+                        imageUrl = "https://sky.coflnet.com/static/icon/" + result.Tag;
                     else
                         imageUrl = SearchService.PlayerHeadUrl(result.AuctioneerId);
 
@@ -156,7 +147,7 @@ namespace hypixel
             }
             else
             {
-                if(path.Contains("/flipper"))
+                if (path.Contains("/flipper"))
                 {
                     title = "Skyblock AH history auction flipper";
                     description = "Free auction house item flipper for Hypixel Skyblock";
@@ -175,6 +166,25 @@ namespace hypixel
 
             await res.WriteEnd(newHtml);
             return newHtml;
+        }
+
+        private static string GetAuctionDescription(AuctionPreviewParams result, string title)
+        {
+            var description = "";
+            if (result.Bin)
+                description += $"BIN";
+
+            description += title;
+            if (result.Bin)
+                description += $"| Highest Bid: {result.HighestBidAmount} with {result.BidCount} Bids";
+
+            if (result.End > DateTime.Now)
+                description = $" | Ends on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
+            else
+                description = $" | Ended on {result.End.ToString("yyyy-MM-dd HH\\:mm\\:ss")}";
+
+
+            return description += $" | Category: {result.Category} | Rarity: {result.Tier}.";
         }
 
         private static async Task<float> GetAvgPrice(string tag)
@@ -335,6 +345,61 @@ namespace hypixel
                 .Select(p => $"<a href=\"https://sky.coflnet.com/{p.Url}\">{p.Title} </a>")
                 .Aggregate((a, b) => a + b);
             return body + "</noscript>";
+        }
+    }
+
+    internal class AuctionPreviewParams
+    {
+        public string Tag { get; }
+        public string AuctioneerId { get; }
+        public string ItemName { get; }
+        public DateTime End { get; }
+        public int BidCount { get; }
+        public Tier Tier { get; }
+        public Category Category { get; }
+        public bool Bin { get; }
+        public long HighestBidAmount { get; }
+
+        public AuctionPreviewParams(string tag, string auctioneerId, string itemName, DateTime end, int bidCount, Tier tier, Category category, bool bin, long highestBidAmount)
+        {
+            Tag = tag;
+            AuctioneerId = auctioneerId;
+            ItemName = itemName;
+            End = end;
+            BidCount = bidCount;
+            Tier = tier;
+            Category = category;
+            Bin = bin;
+            HighestBidAmount = highestBidAmount;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is AuctionPreviewParams other &&
+                   Tag == other.Tag &&
+                   AuctioneerId == other.AuctioneerId &&
+                   ItemName == other.ItemName &&
+                   End == other.End &&
+                   BidCount == other.BidCount &&
+                   Tier == other.Tier &&
+                   Category == other.Category &&
+                   Bin == other.Bin &&
+                   HighestBidAmount == other.HighestBidAmount;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(Tag);
+            hash.Add(AuctioneerId);
+            hash.Add(ItemName);
+            hash.Add(End);
+            hash.Add(BidCount);
+            hash.Add(Tier);
+            hash.Add(Category);
+            hash.Add(Bin);
+            hash.Add(HighestBidAmount);
+            return hash.ToHashCode();
         }
     }
 }

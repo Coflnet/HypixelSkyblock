@@ -148,7 +148,6 @@ namespace hypixel
             {
                 try
                 {
-                    Console.WriteLine("renewing cache for " + request.Type);
                     Server.ExecuteCommandHeadless(proxyReq);
                 }
                 catch (Exception e)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using WebSocketSharp;
@@ -14,7 +15,7 @@ namespace hypixel
 
         public static Dictionary<string, Command> ClientComands = new Dictionary<string, Command>();
 
-        private ConcurrentDictionary<long, MessageData> WaitingResponse = new ConcurrentDictionary<long, MessageData>();
+        private ConcurrentDictionary<long, TaskCompletionSource<MessageData>> WaitingResponse = new ConcurrentDictionary<long, TaskCompletionSource<MessageData>>();
         private long lastMessageId = 0;
 
         public static ClientProxy Instance { get; }
@@ -49,14 +50,16 @@ namespace hypixel
             }
         }
 
-        public Task Proxy(MessageData data)
+        public async Task Proxy(MessageData data)
         {
             data.mId = System.Threading.Interlocked.Increment(ref lastMessageId);
             data.Data = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data.Data));
             Console.WriteLine($"Proxying {data.Type} {data.mId} {MessagePackSerializer.ToJson(data)}");
-            WaitingResponse[data.mId] = data;
+            var task = new TaskCompletionSource<MessageData>();
+            WaitingResponse[data.mId] = task;
             Send(data);
-            return Task.Delay(10_000);
+            var result = await task.Task;
+            await data.SendBack(result);
         }
 
         private void Reconect(string backendAdress)
@@ -109,9 +112,9 @@ namespace hypixel
                     }
                     else
                     {
-                        if (WaitingResponse.TryRemove(data.mId, out MessageData original))
+                        if (WaitingResponse.TryRemove(data.mId, out TaskCompletionSource<MessageData> original))
                         {
-                            original.SendBack(data);
+                            original.TrySetResult(data);
                         }
                         else
                         {

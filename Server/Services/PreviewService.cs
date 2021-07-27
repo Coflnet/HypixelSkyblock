@@ -37,11 +37,18 @@ namespace hypixel
         {
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
 
-            var uri = skyLeaClient.BuildUri(request);
             var detailsRequest = ItemDetails.Instance.GetDetailsWithCache(tag);
-            IRestResponse response = GetProxied(uri,size);
             detailsRequest.Wait();
             var details = detailsRequest.Result;
+            if(details.MinecraftType.StartsWith("Leather "))
+                request = new RestRequest("/leather/{type}/{color}")
+                    .AddUrlSegment("type", details.MinecraftType.Replace("Leather ","").ToLower())
+                    .AddUrlSegment("color", details.color.Replace(":",","));
+
+            var uri = skyLeaClient.BuildUri(request);
+            IRestResponse response = GetProxied(uri,size);
+            
+
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {

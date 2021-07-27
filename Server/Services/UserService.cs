@@ -77,9 +77,10 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 Server.AddPremiumTime(days, user);
+                context.SaveChanges();
                 context.Add(new Bonus()
                 {
-                    BonusTime = TimeSpan.FromDays(days),
+                    BonusTime = TimeSpan.FromDays(days > 34 ? 34 : days),
                     ReferenceData = transactionId,
                     Type = Bonus.BonusType.PURCHASE,
                     UserId = user.Id
