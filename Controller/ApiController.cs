@@ -65,6 +65,35 @@ namespace Coflnet.Hypixel.Controller
             var result = await Server.ExecuteCommandWithCache<string, SaveAuction>("auctionDetails", auctionUuid);
             return Ok(result);
         }
+
+
+        [Route("player/{playerUuid}/bids")]
+        [HttpGet]
+        public async Task<ActionResult> GetPlayerBids(string playerUuid)
+        {
+            var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request, List<PlayerBidsCommand.BidResult>>(
+                "playerBids", new PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request()
+                {
+                    Amount = 10,
+                    Offset = 0,
+                    Uuid = playerUuid
+                });
+            return Ok(result);
+        }
+
+        [Route("player/{playerUuid}/auctions")]
+        [HttpGet]
+        public async Task<ActionResult> GetPlayerAuctions(string playerUuid)
+        {
+            var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request, List<PlayerAuctionsCommand.AuctionResult>>(
+                "playerAuctions", new PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request()
+                {
+                    Amount = 10,
+                    Offset = 0,
+                    Uuid = playerUuid
+                });
+            return Ok(result);
+        }
     }
 }
 
