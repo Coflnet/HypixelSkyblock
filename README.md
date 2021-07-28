@@ -2,6 +2,7 @@
 This is the back-end for https://sky.coflnet.com 
 You can get the same data and play around with it by using this project.
 
+Some endpoins are exposed via REST, see the swagger doc: https://sky.coflnet.com/api
 
 # Requests
 ### General

@@ -26,16 +26,18 @@ namespace Coflnet.Hypixel.Controller
         public async Task<ActionResult> GetLowestBin(string itemTag)
         {
             var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag);
-            return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0));
+            return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid));
         }
 
         public class BinResponse
         {
             public long Lowest;
+            public string Uuid;
 
-            public BinResponse(long lowest)
+            public BinResponse(long lowest, string uuid)
             {
                 Lowest = lowest;
+                Uuid = uuid;
             }
         }
 
@@ -53,6 +55,14 @@ namespace Coflnet.Hypixel.Controller
         public async Task<ActionResult<List<SearchService.SearchResultItem>>> FullSearch(string searchVal)
         {
             var result = await Server.ExecuteCommandWithCache<string, List<SearchService.SearchResultItem>>("fullSearch", searchVal);
+            return Ok(result);
+        }
+
+        [Route("auction/{auctionUuid}")]
+        [HttpGet]
+        public async Task<ActionResult> getAuctionDetails(string auctionUuid)
+        {
+            var result = await Server.ExecuteCommandWithCache<string, SaveAuction>("auctionDetails", auctionUuid);
             return Ok(result);
         }
     }
