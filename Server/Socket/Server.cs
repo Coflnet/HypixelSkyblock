@@ -248,6 +248,7 @@ namespace hypixel
                     path = "/api" + path; 
                 // proxy to asp.net core (its better for apis)
                 var result = await aspNet.ExecuteAsync(new RestRequest(path));
+                context.SetContentType(result.ContentType);
                 context.SetStatusCode((int)result.StatusCode);
                 context.WriteAsync(result.RawBytes);
                 return;
