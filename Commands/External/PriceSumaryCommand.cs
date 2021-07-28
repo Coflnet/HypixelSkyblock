@@ -17,7 +17,7 @@ namespace hypixel
             {
                 var id = ItemDetails.Instance.GetItemIdForName(data.GetAs<string>());
                 var minTime = DateTime.Now.Subtract(TimeSpan.FromDays(1));
-                var auctions = (await context.Auctions.Where(a => a.ItemId == id && a.End < DateTime.Now && a.Start > minTime && a.HighestBidAmount > 0)
+                var auctions = (await context.Auctions.Where(a => a.ItemId == id && a.End < DateTime.Now && a.End > minTime && a.HighestBidAmount > 0)
                                 .Select(a => a.HighestBidAmount).ToListAsync()).OrderByDescending(p => p).ToList();
 
                 var result = new Result()
