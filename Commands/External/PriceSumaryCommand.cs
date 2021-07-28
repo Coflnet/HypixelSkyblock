@@ -15,10 +15,10 @@ namespace hypixel
 
             using (var context = new HypixelContext())
             {
-                var id = await context.Items.Where(i => i.Tag == data.GetAs<string>()).Select(i => i.Id).FirstOrDefaultAsync();
-                var minTime = DateTime.Now.Subtract(TimeSpan.FromDays(3));
-                var auctions = await context.Auctions.Where(a => a.ItemId == id && a.End < DateTime.Now && a.Start > minTime && a.HighestBidAmount > 0)
-                                .Select(a => a.HighestBidAmount).OrderByDescending(p => p).ToListAsync();
+                var id = ItemDetails.Instance.GetItemIdForName(data.GetAs<string>());
+                var minTime = DateTime.Now.Subtract(TimeSpan.FromDays(1));
+                var auctions = (await context.Auctions.Where(a => a.ItemId == id && a.End < DateTime.Now && a.Start > minTime && a.HighestBidAmount > 0)
+                                .Select(a => a.HighestBidAmount).ToListAsync()).OrderByDescending(p => p).ToList();
 
                 var result = new Result()
                 {
@@ -27,11 +27,8 @@ namespace hypixel
                     Min = auctions.LastOrDefault(),
                     Volume = auctions.Count()
                 };
-                if(result.Volume == 0)
-                    throw new CoflnetException("aaa", "bb");
 
                 await data.SendBack(data.Create("pricesum", result,A_DAY));
-
             }
         }
 

@@ -138,7 +138,7 @@ namespace hypixel
             // may be a name
             var tag = GetIdForName(name);
             if (!TagLookup.TryGetValue(tag, out value) && forceGet)
-                throw new CoflnetException("item_not_found", $"could not find the item with the name `{name}`");
+                throw new CoflnetException("item_not_found", $"could not find the item with the tag `{name}`");
             return value;
         }
 
