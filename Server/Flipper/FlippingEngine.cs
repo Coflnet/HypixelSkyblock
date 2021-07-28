@@ -354,14 +354,8 @@ namespace hypixel.Flipper
             {
                 relevantAuctionIds.Clear();
             }
-            var query = new ActiveItemSearchQuery()
-            {
-                Order = SortOrder.LOWEST_PRICE,
-                Limit = 1,
-                Filter = new Dictionary<string, string>(){{"Bin","true"}},
-                name = auction.Tag
-            };
-            var lowestBin = Server.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
+            var itemTag = auction.Tag;
+            Task<List<ItemPrices.AuctionPreview>> lowestBin = GetLowestBin(itemTag);
 
             var flip = new FlipInstance()
             {
@@ -381,6 +375,19 @@ namespace hypixel.Flipper
             FlippFound(flip);
             if (auction.Uuid[0] == 'a') // reduce saves
                 await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
+        }
+
+        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag)
+        {
+            var query = new ActiveItemSearchQuery()
+            {
+                Order = SortOrder.LOWEST_PRICE,
+                Limit = 1,
+                Filter = new Dictionary<string, string>() { { "Bin", "true" } },
+                name = itemTag
+            };
+            var lowestBin = Server.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
+            return lowestBin;
         }
 
         public async Task<(List<SaveAuction>, DateTime)> GetRelevantAuctions(SaveAuction auction, HypixelContext context)

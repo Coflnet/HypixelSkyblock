@@ -10,16 +10,7 @@ namespace hypixel
         public override async Task Execute(MessageData data)
         {
             var details = data.GetAs<ActiveItemSearchQuery>();
-            if (Program.LightClient && details.Start < DateTime.Now - TimeSpan.FromDays(7))
-            {
-                await ClientProxy.Instance.Proxy(data);
-                return;
-            }
-            // temporary map none (0) to any
-            if (details.Reforge == Reforge.None)
-                details.Reforge = Reforge.Any;
-
-            var count = 24;
+            var count = 20;
             if(details.Limit < count && details.Limit > 0)
                 count = details.Limit;
 

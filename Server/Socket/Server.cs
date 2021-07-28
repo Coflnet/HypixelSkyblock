@@ -183,6 +183,8 @@ namespace hypixel
             }
         }
 
+        private static RestClient aspNet = new RestClient("http://localhost:80");
+
         public async Task AnswerGetRequest(RequestContext context)
         {
             var path = context.path.Split('?')[0];
@@ -238,6 +240,16 @@ namespace hypixel
             if (path == "/api/items/search")
             {
                 await SearchItems(context);
+                return;
+            }
+            if(path.StartsWith("/api") || path.StartsWith("/swagger"))
+            {
+                if(path.StartsWith("/swagger-"))
+                    path = "/api" + path; 
+                // proxy to asp.net core (its better for apis)
+                var result = await aspNet.ExecuteAsync(new RestRequest(path));
+                context.SetStatusCode((int)result.StatusCode);
+                context.WriteAsync(result.RawBytes);
                 return;
             }
 
@@ -333,7 +345,10 @@ namespace hypixel
         }
 
 
-
+        private Task HandleApiRequest(RequestContext context)
+        {
+            throw new NotImplementedException();
+        }
 
         private async Task HandleCommand(RequestContext context)
         {
