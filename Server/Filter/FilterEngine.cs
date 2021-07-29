@@ -14,16 +14,19 @@ namespace hypixel.Filter
             Filters.Add<RarityFilter>();
             Filters.Add<PetLevelFilter>();
             Filters.Add<PetItemFilter>();
-            Filters.Add<EnchantmentFilter>();
-            Filters.Add<EnchantLvlFilter>();
-            Filters.Add<UIdFilter>();
-            Filters.Add<EndBeforeFilter>();
-            Filters.Add<EndAfterFilter>();
-            Filters.Add<ItemIdFilter>();
+
             Filters.Add<BinFilter>();
             Filters.Add<StarsFilter>();
             Filters.Add<RecombulatedFilter>();
             Filters.Add<HotPotatoCountFilter>();
+            Filters.Add<EnchantmentFilter>();
+            Filters.Add<EnchantLvlFilter>();
+            Filters.Add<SecondEnchantmentFilter>();
+            Filters.Add<SecondEnchantLvlFilter>();
+            Filters.Add<UIdFilter>();
+            Filters.Add<EndBeforeFilter>();
+            Filters.Add<EndAfterFilter>();
+            Filters.Add<ItemIdFilter>();
         }
 
         public IQueryable<SaveAuction> AddFilters(IQueryable<SaveAuction> query, Dictionary<string, string> filters)

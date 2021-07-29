@@ -438,7 +438,7 @@ namespace hypixel
                 context.SetStatusCode(500);
                 await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
                 TrackingService.Instance.CommandError(data.Type);
-                dev.Logger.Instance.Error($"Fatal error on Command {JsonConvert.SerializeObject(data)} {ex.Message} {ex.StackTrace}\n {ex.InnerException?.Message} {ex.InnerException?.StackTrace}");
+                dev.Logger.Instance.Error(ex,"Fatal error on Command");
             }
         }
 

@@ -45,7 +45,7 @@ namespace hypixel
 
             cancelationSource.Cancel();
             Console.WriteLine($"Started sorting {search} " + watch.Elapsed);
-            var orderedResult = result
+            var orderedResult = result.Where(r=>r.Name != null)
                             .Select(r =>
                                 {
                                     var lower = r.Name.ToLower();
