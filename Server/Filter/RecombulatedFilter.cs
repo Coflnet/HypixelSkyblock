@@ -11,8 +11,8 @@ namespace hypixel.Filter
         public override IEnumerable<object> Options => new object[] { "yes", "no" };
 
         public override Func<DBItem, bool> IsApplicable => item
-            => (item?.Category.HasFlag(Category.WEAPON) ?? false)
-            || item.Category.HasFlag(Category.ARMOR);
+            => (item?.Category == Category.WEAPON)
+            || item.Category == Category.ARMOR;
 
         public override IQueryable<SaveAuction> AddQuery(IQueryable<SaveAuction> query, FilterArgs args)
         {

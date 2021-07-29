@@ -329,7 +329,7 @@ namespace hypixel.Flipper
             {
                 Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
                 var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
-                medianPrice = (long)(await ItemPrices.GetLookupForToday(itemId)).Prices.Average(p => p.Avg * 0.8 + p.Min * 0.2);
+                medianPrice = (long)((await ItemPrices.GetLookupForToday(itemId))?.Prices?.Average(p => p.Avg * 0.8 + p.Min * 0.2) ?? 0);
             }
             else
             {
@@ -494,7 +494,7 @@ namespace hypixel.Flipper
                 try
                 {
                     var val = (long)auction.NbtData.Data["winning_bid"];
-                    var keyId = NBT.GetLookupKey(auction.Tag);
+                    var keyId = NBT.GetLookupKey("winning_bid");
                     select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
                     oldest -= TimeSpan.FromDays(10);
                 } catch
