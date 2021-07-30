@@ -219,7 +219,7 @@ namespace hypixel
                 }
                 else
                 {
-                    if(auction.AuctioneerId == null)
+                    if (auction.AuctioneerId == null)
                     {
                         Logger.Instance.Error($"auction removed bevore in db " + auction.Uuid);
                         return;
@@ -227,7 +227,8 @@ namespace hypixel
                     context.Auctions.Add(auction);
                     try
                     {
-                        auction.NBTLookup = NBT.CreateLookup(auction.NbtData,auction.Tag);
+                        if (auction.NBTLookup == null || auction.NBTLookup.Count() == 0)
+                            auction.NBTLookup = NBT.CreateLookup(auction.NbtData, auction.Tag);
                     }
                     catch (Exception e)
                     {
@@ -251,7 +252,7 @@ namespace hypixel
 
         private static void UpdateAuction(HypixelContext context, BidComparer comparer, SaveAuction auction, SaveAuction dbauction)
         {
-            if(auction.AuctioneerId == null)
+            if (auction.AuctioneerId == null)
             {
                 // an ended auction
                 dbauction.End = auction.End;

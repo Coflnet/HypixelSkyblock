@@ -16,7 +16,7 @@ namespace hypixel
         static Regex rgx = new Regex("[^-a-zA-Z0-9_\\.' ]");
         public static string RemoveInvalidChars(string search)
         {
-            return rgx.Replace(search, "").ToLower();
+            return rgx.Replace(search, "").ToLower().Trim();
         }
     }
 }

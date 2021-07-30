@@ -60,7 +60,7 @@ namespace hypixel
 
         internal async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
         {
-            search = search.TrimStart();
+            search = ItemReferences.RemoveReforgesAndLevel(search).TrimStart().TrimEnd();
             var tagified = search.ToUpper().Replace(' ', '_');
             using (var context = new HypixelContext())
             {

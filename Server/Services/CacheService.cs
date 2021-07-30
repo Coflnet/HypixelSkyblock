@@ -141,7 +141,6 @@ namespace hypixel
             {
                 // adjust the cache time to when it expires on the server
                 response.MaxAge = maxAgeLeft;
-                Console.WriteLine(JSON.Stringify(response));
                 try
                 {
                     await request.SendBack(response, false);

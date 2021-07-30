@@ -22,7 +22,10 @@ namespace hypixel.Flipper
         public static bool diabled;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
-        private static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
+        /// <summary>
+        /// List of ultimate enchantments
+        /// </summary>
+        public static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
 
         private ConcurrentDictionary<long, int> Subs = new ConcurrentDictionary<long, int>();
         private ConcurrentDictionary<long, int> SlowSubs = new ConcurrentDictionary<long, int>();
@@ -217,7 +220,7 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            if(diabled)
+            if (diabled && auctions.)
                 return;
             foreach (var auction in auctions)
             {
@@ -319,8 +322,8 @@ namespace hypixel.Flipper
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
-            // if(auction.Enchantments.Count == 0 && auction.Reforge == ItemReferences.Reforge.None)
-            //    Console.WriteLine("easy item");
+            if (auction.NBTLookup == null || auction.NBTLookup.Count() == 0)
+                auction.NBTLookup = NBT.CreateLookup(auction.NbtData, auction.Tag);
 
             var (relevantAuctions, oldest) = await GetRelevantAuctions(auction, context);
 
@@ -368,6 +371,7 @@ namespace hypixel.Flipper
                 Bin = auction.Bin,
                 UId = auction.UId,
                 Rarity = auction.Tier,
+                Interesting = PropertiesSelector.GetProperties(auction).OrderByDescending(a=>a.Rating).Select(a=>a.Value).ToList(),
                 SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(auction.AuctioneerId),
                 LowestBin = (await lowestBin).FirstOrDefault()?.Price
             };
@@ -484,12 +488,12 @@ namespace hypixel.Flipper
             {
                 select = AddPetLvlSelect(auction, select);
             }
-            else 
+            else
             {
                 select = select.Where(a => a.ItemName == clearedName);
             }
-            
-            if(auction.Tag == "MIDAS_STAFF" || auction.Tag == "MIDAS_SWORD")
+
+            if (auction.Tag == "MIDAS_STAFF" || auction.Tag == "MIDAS_SWORD")
             {
                 try
                 {
@@ -497,8 +501,9 @@ namespace hypixel.Flipper
                     var keyId = NBT.GetLookupKey("winning_bid");
                     select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
                     oldest -= TimeSpan.FromDays(10);
-                } catch
-                {}
+                }
+                catch
+                { }
             }
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
@@ -657,6 +662,8 @@ namespace hypixel.Flipper
             public bool Sold { get; internal set; }
             [DataMember(Name = "tier")]
             public Tier Rarity { get; internal set; }
+            [DataMember(Name = "prop")]
+            public List<string> Interesting { get; internal set; }
 
             [DataMember(Name = "lowestBin")]
             public long? LowestBin;
@@ -664,5 +671,4 @@ namespace hypixel.Flipper
             public long UId;
         }
     }
-
 }
