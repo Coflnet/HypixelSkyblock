@@ -26,18 +26,20 @@ namespace Coflnet.Hypixel.Controller
         public async Task<ActionResult> GetLowestBin(string itemTag)
         {
             var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag);
-            return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid));
+            return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid,result.LastOrDefault()?.Price ?? 0));
         }
 
         public class BinResponse
         {
             public long Lowest;
             public string Uuid;
+            public long SecondLowest;
 
-            public BinResponse(long lowest, string uuid)
+            public BinResponse(long lowest, string uuid, long secondLowest)
             {
                 Lowest = lowest;
                 Uuid = uuid;
+                SecondLowest = secondLowest;
             }
         }
 

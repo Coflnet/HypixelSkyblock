@@ -382,7 +382,7 @@ namespace hypixel.Flipper
             var query = new ActiveItemSearchQuery()
             {
                 Order = SortOrder.LOWEST_PRICE,
-                Limit = 1,
+                Limit = 2,
                 Filter = new Dictionary<string, string>() { { "Bin", "true" } },
                 name = itemTag
             };
