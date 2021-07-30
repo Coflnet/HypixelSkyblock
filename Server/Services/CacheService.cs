@@ -57,10 +57,21 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error($"Redis error {e.Message} {e.StackTrace} \n on key {key}");
+                dev.Logger.Instance.Error(e,$"Redis error when getting key: {key}");
                 return default(T);
             }
+        }
 
+        public async Task DeleteInRedis(RedisKey key)
+        {
+            try
+            {
+                var value = await RedisConnection.GetDatabase().KeyDeleteAsync(key);
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e,$"error on deleting key: {key}");
+            }
         }
 
         public async Task SaveInRedis<T>(RedisKey key, T obj, TimeSpan timeout = default(TimeSpan))
@@ -130,7 +141,17 @@ namespace hypixel
             {
                 // adjust the cache time to when it expires on the server
                 response.MaxAge = maxAgeLeft;
-                await request.SendBack(response, false);
+                Console.WriteLine(JSON.Stringify(response));
+                try
+                {
+                    await request.SendBack(response, false);
+                }
+                catch(Exception e)
+                {
+                    await DeleteInRedis(key);
+                    dev.Logger.Instance.Error(e, "Try from cache return failed");
+                    return CacheStatus.MISS;
+                }
             }
             if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
             {
