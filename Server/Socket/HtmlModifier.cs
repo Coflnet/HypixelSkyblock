@@ -135,7 +135,7 @@ namespace hypixel
                 title = $"{keyword} price ";
                 float price = await GetAvgPrice(parameter);
                 description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. Visit for a nice chart and filter options";
-                imageUrl = "https://sky.lea.moe/item/" + parameter;
+                imageUrl = "https://sky.shiiyu.moe/item/" + parameter;
                 if (parameter.StartsWith("PET_") && !parameter.StartsWith("PET_ITEM") || parameter.StartsWith("POTION"))
                     imageUrl = i.IconUrl;
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);

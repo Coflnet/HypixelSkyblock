@@ -331,9 +331,6 @@ namespace hypixel
                     if (item.Names != null)
                         item.Names = item.Names.OrderBy(n => GetScoreFor(n)).ToList();
                     item.Name = fullName;
-                    // cooler icons 
-                    //if (!item.Tag.StartsWith("POTION") && !item.Tag.StartsWith("PET") && !item.Tag.StartsWith("RUNE"))
-                    //    item.IconUrl = "https://sky.lea.moe/item/" + item.Tag;
                     return item;
                 }
             }

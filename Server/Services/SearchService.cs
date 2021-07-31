@@ -293,7 +293,7 @@ namespace hypixel
                     HitCount = 10, // account for "Enchantment" suffix
                     Name = resultText,
                     Type = "filter",
-                    IconUrl = "https://sky.lea.moe/item/ENCHANTED_BOOK",
+                    IconUrl = "https://sky.shiiyu.moe/item/ENCHANTED_BOOK",
                     Id = "ENCHANTED_BOOK?itemFilter=" + Convert.ToBase64String(Encoding.UTF8.GetBytes(JSON.Stringify(filter)))
                 });
             }
@@ -344,7 +344,7 @@ namespace hypixel
                 this.Type = "item";
                 var isPet = IsPet(item);
                 if (!item.Tag.StartsWith("POTION") && !isPet && !item.Tag.StartsWith("RUNE"))
-                    IconUrl = "https://sky.lea.moe/item/" + item.Tag;
+                    IconUrl = "https://sky.shiiyu.moe/item/" + item.Tag;
                 else
                     this.IconUrl = item.IconUrl;
                 if (isPet && !Name.Contains("Pet"))

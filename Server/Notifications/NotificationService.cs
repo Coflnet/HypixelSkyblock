@@ -17,7 +17,7 @@ namespace hypixel
         public static NotificationService Instance { get; set; }
 
         public static string BaseUrl = "https://sky.coflnet.com";
-        public static string ItemIconsBase = "https://sky.lea.moe/item";
+        public static string ItemIconsBase = "https://sky.shiiyu.moe/item";
 
         static NotificationService()
         {

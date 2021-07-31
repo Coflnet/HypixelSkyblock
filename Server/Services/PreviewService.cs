@@ -9,7 +9,7 @@ namespace hypixel
     {
         public static PreviewService Instance;
         private RestClient crafatarClient = new RestClient("https://crafatar.com");
-        private RestClient skyLeaClient = new RestClient("https://sky.lea.moe");
+        private RestClient skyLeaClient = new RestClient("https://sky.shiiyu.moe");
         private RestClient skyClient = new RestClient("https://sky.coflnet.com");
         private RestClient proxyClient = new RestClient("http://imgproxy");
         static PreviewService()
@@ -40,10 +40,11 @@ namespace hypixel
             var detailsRequest = ItemDetails.Instance.GetDetailsWithCache(tag);
             detailsRequest.Wait();
             var details = detailsRequest.Result;
+            /* Most icons are currently available via the texture pack
             if(details.MinecraftType.StartsWith("Leather "))
                 request = new RestRequest("/leather/{type}/{color}")
                     .AddUrlSegment("type", details.MinecraftType.Replace("Leather ","").ToLower())
-                    .AddUrlSegment("color", details.color.Replace(":",","));
+                    .AddUrlSegment("color", details.color.Replace(":",",")); */
 
             var uri = skyLeaClient.BuildUri(request);
             IRestResponse response = GetProxied(uri,size);
