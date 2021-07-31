@@ -218,6 +218,7 @@ namespace hypixel
                 return;
             }
 
+            context.SetContentType("text/html");
             if (path == "/" || path.IsNullOrEmpty())
             {
                 path = "index.html";
@@ -225,13 +226,11 @@ namespace hypixel
 
             if (path == "/players")
             {
-                context.SetContentType("text/html");
                 await PrintPlayers(context);
                 return;
             }
             if (path == "/items")
             {
-                context.SetContentType("text/html");
                 await PrintItems(context);
                 return;
             }
