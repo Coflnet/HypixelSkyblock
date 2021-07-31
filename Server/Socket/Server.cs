@@ -184,6 +184,8 @@ namespace hypixel
         }
 
         private static RestClient aspNet = new RestClient("http://localhost:80");
+        private static string ProdFrontend = SimplerConfig.Config.Instance["FRONTEND_PROD"];
+        private static string StagingFrontend = SimplerConfig.Config.Instance["FRONTEND_STAGING"];
 
         public async Task AnswerGetRequest(RequestContext context)
         {
@@ -223,11 +225,13 @@ namespace hypixel
 
             if (path == "/players")
             {
+                context.SetContentType("text/html");
                 await PrintPlayers(context);
                 return;
             }
             if (path == "/items")
             {
+                context.SetContentType("text/html");
                 await PrintItems(context);
                 return;
             }
@@ -242,10 +246,10 @@ namespace hypixel
                 await SearchItems(context);
                 return;
             }
-            if(path.StartsWith("/api") || path.StartsWith("/swagger"))
+            if (path.StartsWith("/api") || path.StartsWith("/swagger"))
             {
-                if(path.StartsWith("/swagger-"))
-                    path = "/api" + path; 
+                if (path.StartsWith("/swagger-"))
+                    path = "/api" + path;
                 // proxy to asp.net core (its better for apis)
                 var result = await aspNet.ExecuteAsync(new RestRequest(path));
                 context.SetContentType(result.ContentType);
@@ -257,13 +261,6 @@ namespace hypixel
 
 
             byte[] contents;
-            var relativePath = $"files/{path}";
-
-            if (path.StartsWith("/static/skin"))
-            {
-                GetSkin(relativePath);
-            }
-
             if (path.StartsWith("/static/icon"))
             {
                 await IconResolver.Instance.Resolve(context, path);
@@ -271,29 +268,28 @@ namespace hypixel
             }
 
 
-            if (!FileController.Exists(relativePath))
-            {
-                //res.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                //return;
-                // vue.js will handle it internaly
-                relativePath = $"files/index.html";
-            }
-
+            var frontendUrl = ProdFrontend;
+            if (context.HostName.Contains("-"))
+                frontendUrl = StagingFrontend;
 
             try
             {
-                contents = FileController.ReadAllBytes(relativePath);
+                if (!path.Contains("."))
+                    path = "index.html";
+                contents = new System.Net.WebClient().DownloadData($"http://{frontendUrl}/{path}");
+
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                dev.Logger.Instance.Error(e, "loading frontend " + frontendUrl + path);
+                context.SetStatusCode(404);
                 await context.WriteAsync("File not found, maybe you fogot to upload the fronted");
                 return;
             }
 
-            context.SetContentType("text/html");
             //context.ContentEncoding = Encoding.UTF8;
 
-            if (relativePath == "files/index.html" && !path.EndsWith(".js") && !path.EndsWith(".css"))
+            if (path == "index.html" && !path.EndsWith(".js") && !path.EndsWith(".css"))
             {
                 var watch = Stopwatch.StartNew();
                 await HtmlModifier.ModifyContent(path, contents, context);
@@ -332,7 +328,7 @@ namespace hypixel
             {
                 context.SetContentType("text/javascript");
             }
-            if (relativePath == "files/index.html")
+            if (path == "index.html")
             {
                 context.AddHeader("cache-control", "private");
                 context.SetStatusCode(404);
@@ -438,7 +434,7 @@ namespace hypixel
                 context.SetStatusCode(500);
                 await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
                 TrackingService.Instance.CommandError(data.Type);
-                dev.Logger.Instance.Error(ex,"Fatal error on Command");
+                dev.Logger.Instance.Error(ex, "Fatal error on Command");
             }
         }
 
@@ -513,41 +509,6 @@ namespace hypixel
                 return Task.CompletedTask;
             }
         }
-
-
-
-        private static void GetSkin(string relativePath)
-        {
-            if (!FileController.Exists(relativePath))
-            {
-                // try to get it from mojang
-                var client = new RestClient("https://textures.minecraft.net/");
-                var request = new RestRequest("/texture/{id}");
-                request.AddUrlSegment("id", Path.GetFileName(relativePath));
-                Console.WriteLine(Path.GetFileName(relativePath));
-                var fullPath = FileController.GetAbsolutePath(relativePath);
-                FileController.CreatePath(fullPath);
-                var inStream = new MemoryStream(client.DownloadData(request));
-
-                //client.DownloadData(request).SaveAs(fullPath+ "f.png" );
-
-                // parse it to only show face
-                // using (var inStream = new FileStream(File.Open("fullPath",FileMode.Rea)))
-                using (var outputImage = new Image<Rgba32>(16, 16))
-                {
-                    var baseImage = SixLabors.ImageSharp.Image.Load(inStream);
-
-                    var lowerImage = baseImage.Clone(
-                                    i => i.Resize(256, 256)
-                                        .Crop(new Rectangle(32, 32, 32, 32)));
-
-                    lowerImage.Save(fullPath + ".png");
-
-                }
-                FileController.Move(relativePath + ".png", relativePath);
-            }
-        }
-
 
 
         public static void AddPremiumTime(int days, GoogleUser user)
