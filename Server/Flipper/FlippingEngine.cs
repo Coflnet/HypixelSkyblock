@@ -220,7 +220,7 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            if (diabled && auctions.)
+            if (diabled)
                 return;
             foreach (var auction in auctions)
             {

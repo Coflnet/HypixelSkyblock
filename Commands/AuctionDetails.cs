@@ -15,11 +15,11 @@ namespace hypixel {
                             .Include(a=>a.NbtData)
                             .Include(a=>a.Enchantments)
                             .Include(a=>a.Bids)
+                            .Include(a=>a.NBTLookup)
                             .Where (a => a.Uuid == search).FirstOrDefault ();
                 if (result == null) {
                     if(Program.LightClient){
-                        ClientProxy.Instance.Proxy(data);
-                        return Task.Delay(10000);
+                        return ClientProxy.Instance.Proxy(data);
                     }
                     throw new CoflnetException ("error", $"The Auction `{search}` wasn't found");
                 }

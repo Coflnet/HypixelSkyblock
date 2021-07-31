@@ -184,6 +184,19 @@ namespace hypixel
         [IgnoreMember]
         [JsonIgnore]
         public List<NBTLookup> NBTLookup { get; set; }
+        [IgnoreMember]
+        [JsonProperty("flatNbt")]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public Dictionary<string, string> FlatenedNBT
+        {
+            get
+            {
+                var data = NbtData.Data;
+                if(data == null || data.Count == 0)
+                    return new Dictionary<string, string>();
+                return NBT.FlattenNbtData(data).ToDictionary(d=>d.Key,d=>d.Value.ToString());
+            }
+        }
         /// <summary>
         /// The first part of a uuid converted to a long for faster lookups
         /// </summary>

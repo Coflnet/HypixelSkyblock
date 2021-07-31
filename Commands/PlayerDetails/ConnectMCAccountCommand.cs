@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace hypixel
@@ -10,19 +11,23 @@ namespace hypixel
         public override async Task Execute(MessageData data)
         {
             var uuid = data.GetAs<string>();
-            var amount = (new Random()).Next(20, 999);
-            var userId = 1;//data.UserId;
+            var userId = data.UserId;
+            var time = DateTime.Now;
+            int amount = GetAmount(userId, time);
+
             var player = await PlayerService.Instance.GetPlayer(uuid);
             if (player == default(Player))
                 throw new CoflnetException("unkown_player", "This player was not found");
 
             var sub = new VerifySub(a =>
             {
+                int amount = GetAmount(userId, time);
+                int lastAmount = GetAmount(userId, DateTime.Now.Subtract(TimeSpan.FromMinutes(5)));
                 var code = a.StartingBid;
-                if(a.AuctioneerId != uuid)
-                    code = a.Bids.Where(u => u.Bidder == uuid).Select(b => b.Amount).Where(b => b % 1000 == amount).FirstOrDefault();
+                if (a.AuctioneerId != uuid)
+                    code = a.Bids.Where(u => u.Bidder == uuid).Select(b => b.Amount).Where(b => b % 1000 == amount || b % 1000 == lastAmount).FirstOrDefault();
                 Console.WriteLine("vertifying " + code);
-                if (code % 1000 == amount)
+                if (code % 1000 == amount || code % 1000 == lastAmount)
                     using (var context = new HypixelContext())
                     {
                         var user = context.Users.Where(u => u.Id == userId).FirstOrDefault();
@@ -44,6 +49,13 @@ namespace hypixel
             };
 
             await data.SendBack(data.Create("connectMc", response));
+        }
+
+        private static int GetAmount(int userId, DateTime time)
+        {
+            var tokenString = LoginExternalCommand.GenerateToken(userId + time.RoundDown(TimeSpan.FromMinutes(10)).ToString());
+            var amount = BitConverter.ToInt32(Encoding.ASCII.GetBytes(tokenString.Truncate(3))) % 980 + 19;
+            return amount;
         }
 
         [DataContract]

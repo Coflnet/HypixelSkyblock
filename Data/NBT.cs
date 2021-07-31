@@ -165,37 +165,11 @@ namespace hypixel
 
         public static List<NBTLookup> CreateLookup(NbtData nbtData, string itemTag)
         {
-            Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
-
-            flatten = dict => dict.SelectMany(kv =>
-                                    kv.Value is Dictionary<string, object>
-                                        ? flatten((Dictionary<string, object>)kv.Value)
-                                        : new List<KeyValuePair<string, object>>() { kv }
-                                   );
-
             var data = nbtData.Data;
             if (data == null || data.Keys.Count == 0)
                 return new List<NBTLookup>();
 
-            try
-            {
-                UnwrapList(data, "effects");
-                UnwrapList(data, "necromancer_souls");
-                UnwarpStringArray(data, "ability_scroll");
-                UnwarpStringArray(data, "mixins");
-                UnwrapJson(data, "petInfo");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(JSON.Stringify(data));
-                Console.WriteLine(e.StackTrace);
-                throw e;
-            }
-
-            var flatList = flatten(data).ToList();
-
-
-
+            List<KeyValuePair<string, object>> flatList = FlattenNbtData(data);
 
             if (flatList.Count > 0 && flatList.FirstOrDefault().Key == "petInfo")
                 Console.WriteLine(JSON.Stringify(data));
@@ -244,6 +218,37 @@ namespace hypixel
                 var lookupKey = GetLookupKey(key);
                 return new NBTLookup(lookupKey, GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
             }).Where(a => a != null).ToList();
+        }
+
+        public static List<KeyValuePair<string, object>> FlattenNbtData(Dictionary<string, object> data)
+        {
+            Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
+
+            flatten = dict => dict.SelectMany(kv =>
+                                    kv.Value is Dictionary<string, object>
+                                        ? flatten((Dictionary<string, object>)kv.Value)
+                                        : new List<KeyValuePair<string, object>>() { kv }
+                                   );
+
+
+
+            try
+            {
+                UnwrapList(data, "effects");
+                UnwrapList(data, "necromancer_souls");
+                UnwarpStringArray(data, "ability_scroll");
+                UnwarpStringArray(data, "mixins");
+                UnwrapJson(data, "petInfo");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(JSON.Stringify(data));
+                Console.WriteLine(e.StackTrace);
+                throw e;
+            }
+
+            var flatList = flatten(data).ToList();
+            return flatList;
         }
 
         private static void UnwarpStringArray(Dictionary<string, object> data, string stringArrayKey)
