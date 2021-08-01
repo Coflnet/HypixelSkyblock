@@ -325,7 +325,7 @@ namespace hypixel.Flipper
             if (auction.NBTLookup == null || auction.NBTLookup.Count() == 0)
                 auction.NBTLookup = NBT.CreateLookup(auction.NbtData, auction.Tag);
 
-            var (relevantAuctions, oldest) = await GetRelevantAuctions(auction, context);
+            var (relevantAuctions, oldest) = await GetRelevantAuctionsCache(auction, context);
 
             long medianPrice = 0;
             if (relevantAuctions.Count < 2)
@@ -371,7 +371,7 @@ namespace hypixel.Flipper
                 Bin = auction.Bin,
                 UId = auction.UId,
                 Rarity = auction.Tier,
-                Interesting = PropertiesSelector.GetProperties(auction).OrderByDescending(a=>a.Rating).Select(a=>a.Value).ToList(),
+                Interesting = PropertiesSelector.GetProperties(auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
                 SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(auction.AuctioneerId),
                 LowestBin = (await lowestBin).FirstOrDefault()?.Price
             };
@@ -394,7 +394,37 @@ namespace hypixel.Flipper
             return lowestBin;
         }
 
-        public async Task<(List<SaveAuction>, DateTime)> GetRelevantAuctions(SaveAuction auction, HypixelContext context)
+        /// <summary>
+        /// Gets relevant items for an auction, checks cache first
+        /// </summary>
+        /// <param name="auction"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<(List<SaveAuction>, DateTime)> GetRelevantAuctionsCache(SaveAuction auction, HypixelContext context)
+        {
+            var key = $"{auction.ItemId}{auction.ItemName}{auction.Tier}{auction.Bin}{auction.Count}";
+            key += String.Concat(auction.Enchantments.Select(a => $"{a.Type}{a.Level}"));
+            key += String.Concat(auction.FlatenedNBT.Where(d => d.Key != "uid"));
+            try
+            {
+                var fromCache = await CacheService.Instance.GetFromRedis<(List<SaveAuction>, DateTime)>(key);
+                if (fromCache != default((List<SaveAuction>, DateTime)))
+                {
+                    //Console.WriteLine("flip cache hit");
+                    return fromCache;
+                }
+            } catch(Exception e)
+            {
+                dev.Logger.Instance.Error(e, "cache flip");
+            }
+
+            var referenceAuctions = await GetRelevantAuctions(auction, context);
+            // this could be shifted to another thread
+            await CacheService.Instance.SaveInRedis<(List<SaveAuction>, DateTime)>(key, referenceAuctions, TimeSpan.FromHours(1));
+            return referenceAuctions;
+        }
+
+        private async Task<(List<SaveAuction>, DateTime)> GetRelevantAuctions(SaveAuction auction, HypixelContext context)
         {
             var itemData = auction.NbtData.Data;
             var clearedName = auction.Reforge != ItemReferences.Reforge.None ? ItemReferences.RemoveReforge(auction.ItemName) : auction.ItemName;
