@@ -46,6 +46,7 @@ namespace hypixel
                 save = CacheService.Instance.SaveInRedis<PreviewService.Preview>(key,preview,cacheTime);
             }
             context.SetContentType(preview.MimeType);
+            context.AddHeader("cache-control", $"public,max-age={3600*24*365}");
             context.WriteAsync(Convert.FromBase64String(preview.Image));
             if(save != null)
                 await save;
