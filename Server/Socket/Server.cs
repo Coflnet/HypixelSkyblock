@@ -271,11 +271,12 @@ namespace hypixel
             if (context.HostName.Contains("-"))
                 frontendUrl = StagingFrontend;
 
+            var filePath = path;
             try
             {
                 if (!path.Contains("."))
-                    path = "index.html";
-                contents = new System.Net.WebClient().DownloadData($"http://{frontendUrl}/{path}");
+                    filePath = "index.html";
+                contents = new System.Net.WebClient().DownloadData($"http://{frontendUrl}/{filePath}");
 
             }
             catch (Exception e)
@@ -287,8 +288,7 @@ namespace hypixel
             }
 
             //context.ContentEncoding = Encoding.UTF8;
-
-            if (path == "index.html" && !path.EndsWith(".js") && !path.EndsWith(".css"))
+            if (filePath == "index.html" && !filePath.EndsWith(".js") && !filePath.EndsWith(".css"))
             {
                 var watch = Stopwatch.StartNew();
                 await HtmlModifier.ModifyContent(path, contents, context);

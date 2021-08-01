@@ -60,7 +60,7 @@ namespace hypixel
 
         internal async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
         {
-            search = ItemReferences.RemoveReforgesAndLevel(search).TrimStart().TrimEnd();
+            var clearedSearch = ItemReferences.RemoveReforgesAndLevel(search).TrimStart().TrimEnd();
             var tagified = search.ToUpper().Replace(' ', '_');
             using (var context = new HypixelContext())
             {
@@ -68,14 +68,15 @@ namespace hypixel
                     .Include(item => item.Names)
                     .Where(item =>
                         item.Names
-                        .Where(name => EF.Functions.Like(name.Name, search + '%') 
-                        || EF.Functions.Like(name.Name, "Enchanted " + search + '%')).Any()
+                        .Where(name => EF.Functions.Like(name.Name, clearedSearch + '%') 
+                        || EF.Functions.Like(name.Name, "Enchanted " + clearedSearch + '%')
+                        || EF.Functions.Like(name.Name, search + '%')).Any()
                         || EF.Functions.Like(item.Tag,tagified + '%')
-                    ).OrderBy(item => item.Name.Length/2 - item.HitCount - (item.Name == search ? 10000000 : 0))
+                    ).OrderBy(item => item.Name.Length/2 - item.HitCount - (item.Name == clearedSearch ? 10000000 : 0))
                     .Take(count)
                     .ToListAsync();
 
-                return ToSearchResult(items, search);
+                return ToSearchResult(items, clearedSearch);
             }
         }
 
