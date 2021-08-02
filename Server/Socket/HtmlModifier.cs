@@ -224,7 +224,7 @@ namespace hypixel
 
         private static async Task WriteHeader(string path, Server.RequestContext res, string description, string title, string imageUrl, string keyword, string header)
         {
-            title += " Hypixel SkyBlock AH history tracker";
+            title += " | Hypixel SkyBlock AH history tracker";
             // shrink to fit
             while (title.Length > 65)
             {

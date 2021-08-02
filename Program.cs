@@ -231,9 +231,9 @@ namespace hypixel
             RunIndexer();
 
             Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 3; i++)
             {
-                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error");
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 0);
             }
 
             NameUpdater.Run();
@@ -427,7 +427,7 @@ namespace hypixel
 
         }
 
-        private static void RunIsolatedForever(Func<Task> todo, string message)
+        private static void RunIsolatedForever(Func<Task> todo, string message, int backoff = 2000)
         {
             Task.Run(async () =>
             {
@@ -441,8 +441,9 @@ namespace hypixel
                     {
                         Console.WriteLine();
                         Console.WriteLine($"{message}: {e.Message} {e.StackTrace}\n {e.InnerException?.Message} {e.InnerException?.StackTrace} {e.InnerException?.InnerException?.Message} {e.InnerException?.InnerException?.StackTrace}");
+                        await Task.Delay(2000);
                     }
-                    await Task.Delay(2000);
+                    await Task.Delay(backoff);
                 }
             }).ConfigureAwait(false);
         }

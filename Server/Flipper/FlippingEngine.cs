@@ -127,7 +127,7 @@ namespace hypixel.Flipper
         private void OnUpdateEnd()
         {
             var cancleToken = TempWorkersStopSource.Token;
-            var workerCount = 4;
+            var workerCount = 3;
             Console.WriteLine($"Starting {workerCount} temp flip workers");
             for (int i = 0; i < workerCount; i++)
             {
@@ -164,14 +164,12 @@ namespace hypixel.Flipper
             {
                 while (LowPriceQueue.Count > 10)
                 {
-
                     await ProcessPotentialFlipps(cancleToken);
                     if (cancleToken.IsCancellationRequested)
                     {
                         Console.Write(" canceled temp worker :/ ");
                         return;
                     }
-                    await Task.Delay(TimeSpan.FromSeconds(1));
                 }
             }
             catch (Exception e)
@@ -270,6 +268,9 @@ namespace hypixel.Flipper
                         SaveAuction auction;
                         if (GetAuctionToCheckFlipability(out auction))
                             await NewAuction(auction, context);
+                        else
+                            // no auctions, sleep
+                            await Task.Delay(1500);
                     }
                 }
             }

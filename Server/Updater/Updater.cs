@@ -136,7 +136,7 @@ namespace hypixel
             for (int i = 0; i < max; i++)
             {
                 var index = i;
-                await Task.Delay(200);
+                await Task.Delay(100);
                 tasks.Add(taskFactory.StartNew(async () =>
                 {
                     try
@@ -347,6 +347,11 @@ namespace hypixel
                     return auction;
                 }).ToList();
 
+            // prioritise the flipper
+            var started = processed.Where(a => a.Start > lastUpdate).ToList();
+            var min = DateTime.Now - TimeSpan.FromMinutes(15);
+            Flipper.FlipperEngine.Instance.NewAuctions(started.Where(a => a.Start > min));
+
 
             if (DateTime.Now.Minute % 30 == 7)
                 foreach (var a in res.Auctions)
@@ -375,11 +380,8 @@ namespace hypixel
                 FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
 
 
-            var started = processed.Where(a => a.Start > lastUpdate).ToList();
 
             // do not slow down the update
-            var min = DateTime.Now - TimeSpan.FromMinutes(15);
-            Flipper.FlipperEngine.Instance.NewAuctions(started.Where(a => a.Start > min));
             foreach (var auction in started)
             {
                 SubscribeEngine.Instance.NewAuction(auction);
