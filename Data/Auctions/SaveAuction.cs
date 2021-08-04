@@ -192,9 +192,17 @@ namespace hypixel
             get
             {
                 var data = NbtData.Data;
-                if(data == null || data.Count == 0)
+                if (data == null || data.Count == 0)
                     return new Dictionary<string, string>();
-                return NBT.FlattenNbtData(data).ToDictionary(d=>d.Key,d=>d.Value.ToString());
+                try
+                {
+                    return NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d => d.Value.ToString());
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "getting flat NBT");
+                    return null;
+                }
             }
         }
         /// <summary>
