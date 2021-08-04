@@ -172,7 +172,7 @@ namespace hypixel
 
         }
 
-        public override Task SendBack(MessageData data, bool cache = true)
+        public override async Task SendBack(MessageData data, bool cache = true)
         {
             var json = data.Data;
             context.SetStatusCode(200);
@@ -186,13 +186,11 @@ namespace hypixel
             {
                 Console.WriteLine("returned empty response on " + JSON.Stringify(this));
             }
-            context.WriteAsync(json).Wait();
+            await context.WriteAsync(json);
             source.TrySetResult(true);
 
             if (cache)
                 CacheService.Instance.Save(this, data, 0);
-
-            return Task.CompletedTask;
         }
     }
 }

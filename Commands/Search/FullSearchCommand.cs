@@ -45,7 +45,7 @@ namespace hypixel
 
             cancelationSource.Cancel();
             Console.WriteLine($"Started sorting {search} " + watch.Elapsed);
-            var orderedResult = result.Where(r=>r.Name != null)
+            var orderedResult = result.Where(r => r.Name != null)
                             .Select(r =>
                                 {
                                     var lower = r.Name.ToLower();
@@ -71,16 +71,16 @@ namespace hypixel
                         .Distinct(new SearchService.SearchResultComparer())
                         .Take(5)
                         .ToList();
-            Console.WriteLine($"making response " + watch.Elapsed);
+            Console.WriteLine($"making response {watch.Elapsed} total: {System.DateTime.Now- data.Created}" );
             if (orderedResult.Count() == 0)
                 maxAge = A_MINUTE;
-
-            return data.SendBack(data.Create(Type, orderedResult, maxAge));
-            return Task.Run(() =>
+            var elapsed = watch.Elapsed;
+            Task.Run(() =>
             {
                 if (!(data is Server.ProxyMessageData<string, object>))
-                    TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, watch.Elapsed);
-            });
+                    TrackingService.Instance.TrackSearch(data, data.Data, orderedResult.Count, elapsed);
+            }).ConfigureAwait(false);
+            return data.SendBack(data.Create(Type, orderedResult, maxAge));
         }
 
 

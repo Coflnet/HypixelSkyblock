@@ -48,6 +48,8 @@ namespace hypixel
         {
             Task.Run(async () =>
             {
+                // set the start time to not return bad status
+                LastUpdate = DateTime.Now;
                 await Task.Delay(TimeSpan.FromMinutes(1));
                 await RunForever();
             }).ConfigureAwait(false);

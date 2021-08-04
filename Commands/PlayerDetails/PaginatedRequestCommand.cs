@@ -14,8 +14,7 @@ namespace hypixel
 
             if(Program.LightClient && request.Offset > 0)
             {
-                ClientProxy.Instance.Proxy(data);
-                return Task.CompletedTask;
+                return ClientProxy.Instance.Proxy(data);
             }
             
             //PlayerSearch.Instance.AddHitFor(request.Uuid);
@@ -23,8 +22,7 @@ namespace hypixel
             var result = GetResult(request.Uuid,request.Amount,request.Offset);
             if(Program.LightClient && result.Count == 0)
             {
-                ClientProxy.Instance.Proxy(data);
-                return Task.CompletedTask;
+                return ClientProxy.Instance.Proxy(data);
             }
             return data.SendBack(data.Create(ResponseCommandName,result,A_MINUTE));
         }

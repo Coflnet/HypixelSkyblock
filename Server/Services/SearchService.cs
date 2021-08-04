@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -185,7 +186,7 @@ namespace hypixel
             var playersTask = PlayerSearch.Instance.Search(search, targetAmount, false);
 
             var Results = new ConcurrentQueue<SearchResultItem>();
-            var searchTasks = new Task[3];
+            var searchTasks = new ConfiguredTaskAwaitable[3];
             Console.WriteLine("searching");
             var searchWords = search.Split(' ');
 
@@ -202,7 +203,7 @@ namespace hypixel
                     Results.Enqueue(item);
                 }
                 Console.WriteLine("done item wait");
-            }, token);
+            }, token).ConfigureAwait(false);
 
             searchTasks[1] = Task.Run(async () =>
             {
@@ -210,7 +211,7 @@ namespace hypixel
                 foreach (var item in (await playersTask).Select(player => new SearchResultItem(player)))
                     Results.Enqueue(item);
                 Console.WriteLine("done player wait");
-            }, token);
+            }, token).ConfigureAwait(false);
 
             searchTasks[2] = Task.Run(async () =>
             {
@@ -222,25 +223,24 @@ namespace hypixel
                     Results.Enqueue(item);
                 if (searchWords.Count() == 1 || String.IsNullOrWhiteSpace(searchWords.Last()))
                     return;
+                if(searchWords[1].Length < 2)
+                    return;
                 foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", searchWords[1]))
                 {
                     item.HitCount -= 20; // no exact match
                     Results.Enqueue(item);
                 }
-            }, token);
+            }, token).ConfigureAwait(false);
             ComputeEnchantments(search, Results, searchWords);
 
-            foreach (var item in searchTasks)
-            {
-                var unawaitedTask = item.ConfigureAwait(false);
-            }
+            
 
-            var timeout = DateTime.Now + TimeSpan.FromSeconds(2);
+            var timeout = DateTime.Now + TimeSpan.FromMilliseconds(400);
             while (DateTime.Now < timeout)
             {
                 if (Results.Count >= 5)
                     return Results;
-                await Task.Delay(10);
+                await Task.Delay(5);
             }
             Console.WriteLine("=> past timeout");
 

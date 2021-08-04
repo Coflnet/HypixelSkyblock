@@ -125,7 +125,7 @@ namespace hypixel
             public abstract IDictionary<string, string> QueryString { get; }
             public abstract string UserAgent { get; }
 
-            internal virtual void ForceSend()
+            internal virtual void ForceSend(bool close = false)
             {
                 // do nothing
             }
@@ -180,9 +180,11 @@ namespace hypixel
                 original.Response.WriteContent(data);
             }
 
-            internal override void ForceSend()
+            internal override void ForceSend(bool finish = false)
             {
                 original.Response.OutputStream.Flush();
+                if(finish)
+                    original.Response.Close();
             }
         }
 
