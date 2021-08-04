@@ -18,6 +18,7 @@ namespace hypixel
         private string apiKey;
         private bool abort;
         private static bool minimumOutput;
+        Prometheus.Counter auctionUpdateCount = Prometheus.Metrics.CreateCounter("auction_update", "How many auctions were updated");
 
         public event Action OnNewUpdateStart;
         /// <summary>
@@ -386,6 +387,7 @@ namespace hypixel
             {
                 SubscribeEngine.Instance.NewAuction(auction);
             }
+            auctionUpdateCount.Inc(count);
 
             return Task.FromResult(count);
         }

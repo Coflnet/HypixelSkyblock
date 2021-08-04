@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 using RestSharp.Extensions;
 
 namespace hypixel
@@ -11,6 +12,8 @@ namespace hypixel
     public class UserService
     {
         public static UserService Instance { get; }
+        Counter purchases = Metrics.CreateCounter("premiumPuchases", "How often a user purchased a premium plan");
+        Counter newRegister = Metrics.CreateCounter("newRegister", "How many users logged in for the first time");
         static UserService()
         {
             Instance = new UserService();
@@ -31,6 +34,7 @@ namespace hypixel
                     };
                     context.Users.Add(user);
                     context.SaveChanges();
+                    newRegister.Inc();
                 }
                 if(user.Email == null)
                 {
@@ -95,6 +99,7 @@ namespace hypixel
                     });
                 context.Update(user); 
                 context.SaveChanges();
+                purchases.Inc();
             }
         }
     }

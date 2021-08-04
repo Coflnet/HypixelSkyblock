@@ -49,6 +49,10 @@ namespace hypixel.Flipper
         /// </summary>
         private Queue<FlipInstance> LoadBurst = new Queue<FlipInstance>();
 
+
+        Prometheus.Counter foundFlipCount = Prometheus.Metrics
+                    .CreateCounter("flips_found", "Number of flips found");
+
         static FlipperEngine()
         {
             Instance = new FlipperEngine();
@@ -377,7 +381,7 @@ namespace hypixel.Flipper
                 LowestBin = (await lowestBin).FirstOrDefault()?.Price
             };
 
-            FlippFound(flip);
+            FlipFound(flip);
             if (auction.Uuid[0] == 'a') // reduce saves
                 await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
@@ -587,11 +591,13 @@ namespace hypixel.Flipper
             return select;
         }
 
-        private void FlippFound(FlipInstance flip)
+        private void FlipFound(FlipInstance flip)
         {
             MessageData message = CreateDataFromFlip(flip);
             NotifyAll(message, Subs);
             SlowFlips.Enqueue(flip);
+
+            foundFlipCount.Inc();
 
             Flipps.Enqueue(flip);
             FlipIdLookup[flip.UId] = true;
