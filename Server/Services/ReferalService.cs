@@ -9,6 +9,7 @@ namespace hypixel
     {
         public static ReferalService Instance { get; }
         Hashids hashids = new Hashids("simple salt", 6);
+        Prometheus.Counter refCount = Prometheus.Metrics.CreateCounter("refCount", "How many new people were invited");
         static ReferalService()
         {
             Instance = new ReferalService();
@@ -53,6 +54,7 @@ namespace hypixel
                 }
                 context.SaveChanges();
             }
+            refCount.Inc();
         }
 
         public ReeralInfo GetReferalInfo(GoogleUser user)

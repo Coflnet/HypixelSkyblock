@@ -40,6 +40,9 @@ namespace hypixel
         }
         HttpServer server;
 
+
+        Prometheus.Counter requestErrors = Prometheus.Metrics.CreateCounter("requestErrors", "How often an error occured");
+
         ConcurrentDictionary<string, int> ConnectionToUserId = new ConcurrentDictionary<string, int>();
         private IpRateLimiter Limiter;
 
@@ -194,7 +197,7 @@ namespace hypixel
 
             if (path == "/stats" || path.EndsWith("/status") || path.Contains("show-status"))
             {
-                PrintStatus(context);
+                await PrintStatus(context);
                 Console.WriteLine(DateTime.Now);
                 return;
             }
@@ -414,6 +417,7 @@ namespace hypixel
                         else
                         {
                             Console.WriteLine("holly shit");
+                            requestErrors.Inc();
                             data.CompletionSource.TrySetException(e);
                             dev.Logger.Instance.Error(e);
                             throw e;
@@ -430,6 +434,7 @@ namespace hypixel
             }
             catch (Exception ex)
             {
+                requestErrors.Inc();
                 context.SetStatusCode(500);
                 await data.SendBack(new MessageData("error", JsonConvert.SerializeObject(new { Slug = "error", Message = "An unexpected internal error occured, make sure the format of Data is correct" })));
                 TrackingService.Instance.CommandError(data.Type);
@@ -518,7 +523,7 @@ namespace hypixel
                 user.PremiumExpires = DateTime.Now + TimeSpan.FromDays(days);
         }
 
-        private static void PrintStatus(RequestContext res)
+        private static async Task PrintStatus(RequestContext res)
         {
             var data = new Stats()
             {
@@ -539,7 +544,8 @@ namespace hypixel
             // determine status
             res.SetStatusCode(200);
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0, 5, 0));
-            if (!Program.LightClient && (data.LastIndexFinish < maxTime
+            if (!Program.LightClient && (
+                data.LastIndexFinish < maxTime
                 || data.LastBazaarUpdate < maxTime
                 || data.LastNameUpdate < maxTime
                 || data.LastAuctionPull < maxTime))
@@ -549,7 +555,7 @@ namespace hypixel
 
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
-            res.WriteAsync(json).GetAwaiter().GetResult();
+            await res.WriteAsync(json);
         }
 
         private static async Task PrintBazaarItems(RequestContext context)
