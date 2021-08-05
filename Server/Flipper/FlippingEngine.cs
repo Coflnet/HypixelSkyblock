@@ -532,13 +532,15 @@ namespace hypixel.Flipper
             {
                 try
                 {
-                    var val = (long)auction.NbtData.Data["winning_bid"];
+                    var val = long.Parse(auction.FlatenedNBT["winning_bid"]);
                     var keyId = NBT.GetLookupKey("winning_bid");
                     select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
                     oldest -= TimeSpan.FromDays(10);
                 }
-                catch
-                { }
+                catch(Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "trying filter flip midas item");
+                }
             }
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);

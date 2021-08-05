@@ -238,7 +238,7 @@ namespace hypixel
             var timeout = DateTime.Now + TimeSpan.FromMilliseconds(400);
             while (DateTime.Now < timeout)
             {
-                if (Results.Count >= 5)
+                if (Results.Count >= 2)
                     return Results;
                 await Task.Delay(5);
             }
