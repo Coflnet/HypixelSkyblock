@@ -11,7 +11,7 @@ namespace hypixel
         public override async Task Execute(MessageData data)
         {
             var uuid = data.GetAs<string>();
-            var userId = 1;//data.UserId;
+            var userId = data.UserId;
             var time = DateTime.Now;
             int amount = GetAmount(userId, time);
 
