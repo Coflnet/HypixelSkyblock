@@ -418,7 +418,8 @@ namespace hypixel.Flipper
                     //Console.WriteLine("flip cache hit");
                     return fromCache;
                 }
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "cache flip");
             }
@@ -450,7 +451,7 @@ namespace hypixel.Flipper
             {
                 // to few auctions in last hour, try a whole day
                 oldest = DateTime.Now - TimeSpan.FromDays(1.5);
-                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge)
+                relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge, 90)
                 .ToListAsync();
 
                 if (relevantAuctions.Count < 50 && PotetialFlipps.Count < 2000)
@@ -537,7 +538,7 @@ namespace hypixel.Flipper
                     select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
                     oldest -= TimeSpan.FromDays(10);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     dev.Logger.Instance.Error(e, "trying filter flip midas item");
                 }

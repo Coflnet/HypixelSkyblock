@@ -88,7 +88,13 @@ namespace hypixel
             ItemLookup res = await GetLookupForToday(itemId);
             if (res != null)
                 return FromItemLookup(res, tag, (await GetHourlyLookup(itemId))?.CombineIntoOne(default(DateTime), DateTime.Now));
-            throw new CoflnetException("404", "there was no data found for this item. retry in a miniute");
+
+            return await QueryDB(new ItemSearchQuery()
+            {
+                End = DateTime.Now,
+                Start = DateTime.Now - TimeSpan.FromDays(1),
+                name = tag
+            });
         }
 
         public static async Task<ItemLookup> GetLookupForToday(int itemId)

@@ -11,7 +11,7 @@ namespace hypixel
         public override async Task Execute(MessageData data)
         {
             var uuid = data.GetAs<string>();
-            var userId = data.UserId;
+            var userId = 1;//data.UserId;
             var time = DateTime.Now;
             int amount = GetAmount(userId, time);
 
@@ -54,7 +54,7 @@ namespace hypixel
         private static int GetAmount(int userId, DateTime time)
         {
             var tokenString = LoginExternalCommand.GenerateToken(userId + time.RoundDown(TimeSpan.FromMinutes(10)).ToString());
-            var amount = BitConverter.ToInt32(Encoding.ASCII.GetBytes(tokenString.Truncate(3))) % 980 + 19;
+            var amount = BitConverter.ToInt32(Encoding.ASCII.GetBytes(tokenString.Truncate(4))) % 980 + 19;
             return amount;
         }
 

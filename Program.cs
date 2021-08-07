@@ -196,22 +196,18 @@ namespace hypixel
             Console.WriteLine($"\n - Starting FullServer {version} - \n");
             Console.Write("Key: " + apiKey);
             FullServerMode = true;
-            Indexer.MiniumOutput();
 
             server = new Server();
             Task.Run(() => server.Start()).ConfigureAwait(false);
             Task.Run(() => CreateHost(new string[0])).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
+            if (mode == null)
+                Indexer.MiniumOutput();
             LightClient = mode == "light";
             if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
-                RunIsolatedForever(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(1));
-                    await SearchService.Instance.SaveHits();
-                }, "saving hits failed");
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
 
@@ -231,10 +227,9 @@ namespace hypixel
             RunIndexer();
 
             Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
-            for (int i = 0; i < 3; i++)
-            {
-                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 0);
-            }
+            if (!Flipper.FlipperEngine.diabled)
+                for (int i = 0; i < 3; i++)
+                    RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 0);
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();
