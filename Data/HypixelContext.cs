@@ -72,12 +72,11 @@ namespace hypixel
 
             modelBuilder.Entity<SaveAuction>(entity =>
             {
-                entity.HasIndex(e => e.Uuid).IsUnique();
                 entity.HasIndex(e => e.End);
                 entity.HasIndex(e => e.SellerId);
                 entity.HasIndex(e => new { e.ItemId, e.End });
                 entity.HasMany(e=>e.NBTLookup).WithOne().HasForeignKey("AuctionId");
-                entity.HasIndex(e => e.UId);
+                entity.HasIndex(e => e.UId).IsUnique();
                 //entity.HasOne<NbtData>(d=>d.NbtData);
                 //entity.HasMany<Enchantment>(e=>e.Enchantments);
             });

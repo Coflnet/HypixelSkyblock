@@ -281,12 +281,12 @@ namespace hypixel
             {
                 if (!path.Contains("."))
                     filePath = "index.html";
-                contents = new System.Net.WebClient().DownloadData($"http://{frontendUrl}/{filePath}");
+                contents = new System.Net.WebClient().DownloadData($"http://{frontendUrl}/{filePath.TrimStart('/')}");
 
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "loading frontend " + frontendUrl + path);
+                dev.Logger.Instance.Error(e, "loading frontend " + $"http://{frontendUrl}/{filePath.TrimStart('/')}");
                 context.SetStatusCode(404);
                 await context.WriteAsync("File not found, maybe you fogot to upload the fronted");
                 return;

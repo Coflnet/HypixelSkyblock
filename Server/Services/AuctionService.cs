@@ -21,11 +21,6 @@ namespace hypixel
                 if(includeFunc != null)
                     select = includeFunc(select);
                 var auction = select.Where(a => a.UId == uId).FirstOrDefault();
-                if (auction == null)
-                {
-                    // fall through to old select
-                    auction = select.Where(a => a.Uuid == uuid).FirstOrDefault();
-                }
                 return auction;
             }
         }
@@ -56,6 +51,16 @@ namespace hypixel
                 auction.StartingBid = auction.HighestBid;
 
             return auction;
+        }
+
+        internal T GetAuctionWithSelect<T>(string uuid, Func<IQueryable<SaveAuction>, T> selectFunc)
+        {
+            var uId = GetId(uuid);
+            using(var context = new HypixelContext())
+            {
+                IQueryable<SaveAuction> select = context.Auctions;
+                return selectFunc(select);
+            }
         }
     }
 }
