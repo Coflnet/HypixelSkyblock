@@ -199,7 +199,14 @@ namespace hypixel
 
             server = new Server();
             Task.Run(() => server.Start()).ConfigureAwait(false);
-            Task.Run(() => CreateHost(new string[0])).ConfigureAwait(false);
+            Task.Run(() =>
+            {
+                try
+                {
+                    CreateHost(new string[0]);
+                }
+                catch (Exception e) { dev.Logger.Instance.Error(e, "asp.net"); }
+            }).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
             if (mode == null)

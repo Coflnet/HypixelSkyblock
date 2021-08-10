@@ -2,10 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
 using hypixel;
+using Jaeger;
+using Jaeger.Samplers;
+using Jaeger.Senders;
+using Jaeger.Senders.Thrift;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -13,7 +18,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using OpenTracing;
+using OpenTracing.Util;
 using Prometheus;
 using StackExchange.Redis;
 
@@ -46,13 +54,38 @@ namespace dev
 
             var redisOptions = ConfigurationOptions.Parse(redisCon);
             services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(redisOptions));
+            services.AddJaeger();
 
+            // Rate limiting 
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
             services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));
             services.AddRedisRateLimiting();
             services.AddSingleton<IIpPolicyStore, DistributedCacheIpPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, DistributedCacheRateLimitCounterStore>();
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        }
+
+        private static void AddJaeger(this IServiceCollection services)
+        {
+            services.AddSingleton<ITracer>(serviceProvider =>
+            {
+                ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+
+                Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
+                        .RegisterSenderFactory<ThriftSenderFactory>();
+
+                ISampler sampler = new ConstSampler(sample: true);
+                var config = Jaeger.Configuration.FromEnv(loggerFactory);
+
+                ITracer tracer = config.GetTracerBuilder()
+                    .WithSampler(sampler)
+                    .Build();
+
+                GlobalTracer.Register(tracer);
+
+                return tracer;
+            });
+            services.AddOpenTracing();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
