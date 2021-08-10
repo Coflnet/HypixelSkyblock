@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Coflnet.Hypixel.Controller
 {
@@ -13,6 +14,12 @@ namespace Coflnet.Hypixel.Controller
     [Route("api")]
     public class ApiController : ControllerBase
     {
+        AuctionService auctionService;
+        public ApiController(AuctionService auctionService)
+        {
+            this.auctionService = auctionService;
+        }
+        
         [Route("item/price/{itemTag}")]
         [HttpGet]
         public async Task<ActionResult<PriceSumaryCommand.Result>> GetSumary(string itemTag)
@@ -62,9 +69,15 @@ namespace Coflnet.Hypixel.Controller
 
         [Route("auction/{auctionUuid}")]
         [HttpGet]
+        [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<ActionResult> getAuctionDetails(string auctionUuid)
         {
-            var result = await Server.ExecuteCommandWithCache<string, SaveAuction>("auctionDetails", auctionUuid);
+            var result = await auctionService.GetAuctionAsync(auctionUuid, auction => auction
+                        .Include(a => a.Enchantments)
+                        .Include(a => a.NbtData)
+                        .Include(a => a.Bids));
+            Console.WriteLine("controller hit");
+            
             return Ok(result);
         }
 

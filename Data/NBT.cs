@@ -163,16 +163,13 @@ namespace hypixel
             "skin"
         };
 
-        public static List<NBTLookup> CreateLookup(NbtData nbtData, string itemTag)
+        public static List<NBTLookup> CreateLookup(SaveAuction auction)
         {
-            var data = nbtData.Data;
+            var data = auction.NbtData.Data;
             if (data == null || data.Keys.Count == 0)
                 return new List<NBTLookup>();
 
             List<KeyValuePair<string, object>> flatList = FlattenNbtData(data);
-
-            if (flatList.Count > 0 && flatList.FirstOrDefault().Key == "petInfo")
-                Console.WriteLine(JSON.Stringify(data));
 
             return flatList.Select(attr =>
             {
@@ -209,7 +206,7 @@ namespace hypixel
                 }
                 if (key == "color")
                 {
-                    ColorFiller.Add(itemTag, attr.Value as string);
+                    ColorFiller.Add(auction.Tag, attr.Value as string);
                     return new NBTLookup(GetLookupKey(key), GetColor(attr));
                 }
                 Console.WriteLine(JSON.Stringify(attr));

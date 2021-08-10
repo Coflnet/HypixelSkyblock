@@ -328,7 +328,7 @@ namespace hypixel.Flipper
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
             if (auction.NBTLookup == null || auction.NBTLookup.Count() == 0)
-                auction.NBTLookup = NBT.CreateLookup(auction.NbtData, auction.Tag);
+                auction.NBTLookup = NBT.CreateLookup(auction);
 
             var (relevantAuctions, oldest) = await GetRelevantAuctionsCache(auction, context);
 

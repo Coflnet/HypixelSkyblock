@@ -228,7 +228,7 @@ namespace hypixel
                     try
                     {
                         if (auction.NBTLookup == null || auction.NBTLookup.Count() == 0)
-                            auction.NBTLookup = NBT.CreateLookup(auction.NbtData, auction.Tag);
+                            auction.NBTLookup = NBT.CreateLookup(auction);
                     }
                     catch (Exception e)
                     {

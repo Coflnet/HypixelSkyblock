@@ -25,9 +25,9 @@ namespace hypixel
                     Max = auctions.FirstOrDefault(),
                     Med = auctions.Count > 0 ? auctions.Skip(auctions.Count() / 2).FirstOrDefault() : 0,
                     Min = auctions.LastOrDefault(),
-                    Mean = auctions.Average(),
-                    Mode = mode.Key,
-                    Volume = auctions.Count()
+                    Mean = auctions.Count > 0 ? auctions.Average() : 0,
+                    Mode = mode?.Key ?? 0,
+                    Volume = auctions.Count > 0 ? auctions.Count() : 0
                 };
 
                 await data.SendBack(data.Create("pricesum", result,A_DAY));

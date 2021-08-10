@@ -48,36 +48,33 @@ namespace hypixel
             {
                 await WriteStart(res, headerStart);
                 // is an auction
-                using (var context = new HypixelContext())
+
+                var result = AuctionService.Instance.GetAuctionWithSelect(parameter, auction => auction
+                         .Select(a => new AuctionPreviewParams(a.Tag, a.AuctioneerId, a.ItemName, a.End, a.Bids.Count, a.Tier, a.Category, a.Bin, a.HighestBidAmount, a.UId))
+                         .FirstOrDefault());
+                if (result == null)
                 {
-                    var result = AuctionService.Instance.GetAuctionWithSelect(parameter,auction=>auction
-                            .Select(a => new AuctionPreviewParams(a.Tag, a.AuctioneerId, a.ItemName, a.End, a.Bids.Count, a.Tier, a.Category, a.Bin, a.HighestBidAmount, a.UId))
-                            .FirstOrDefault());
-                    if (result == null)
-                    {
-                        await WriteHeader("/error", res, "This site was not found", "Error", imageUrl, null, header);
-                        await res.WriteEnd(html);
-                        return "";
-                    }
-
-
-                    var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
-                    title = $"Auction for {result.ItemName} by {playerName}";
-                    description = await GetAuctionDescription(result, title);
-
-                    if (!string.IsNullOrEmpty(result.Tag))
-                        imageUrl = "https://sky.coflnet.com/static/icon/" + result.Tag;
-                    else
-                        imageUrl = SearchService.PlayerHeadUrl(result.AuctioneerId);
-
-                    await WriteHeader(path, res, description, title, imageUrl, keyword, header);
-
-                    longDescription = description
-                        + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
-                        + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
-                    keyword = $"{result.ItemName},{playerName}";
-
+                    await WriteHeader("/error", res, "This site was not found", "Error", imageUrl, null, header);
+                    await res.WriteEnd(html);
+                    return "";
                 }
+
+                var playerName = PlayerSearch.Instance.GetNameWithCache(result.AuctioneerId);
+                title = $"Auction for {result.ItemName} by {playerName}";
+                description = await GetAuctionDescription(result, title);
+
+                if (!string.IsNullOrEmpty(result.Tag))
+                    imageUrl = "https://sky.coflnet.com/static/icon/" + result.Tag;
+                else
+                    imageUrl = SearchService.PlayerHeadUrl(result.AuctioneerId);
+
+                await WriteHeader(path, res, description, title, imageUrl, keyword, header);
+
+                longDescription = description
+                    + $"<ul><li> <a href=\"/player/{result.AuctioneerId}/{playerName}\"> other auctions by {playerName} </a></li>"
+                    + $" <li><a href=\"/item/{result.Tag}/{result.ItemName}\"> more auctions for {result.ItemName} </a></li></ul>";
+                keyword = $"{result.ItemName},{playerName}";
+
             }
             else if (path.Contains("player/"))
             {

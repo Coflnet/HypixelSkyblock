@@ -17,7 +17,7 @@ namespace hypixel
 
                 foreach (var auction in auctions)
                 {
-                    var a = context.Auctions.Where(p => p.Uuid == auction.Id).Select(a => new { a.Id, a.HighestBidAmount }).FirstOrDefault();
+                    var a = AuctionService.Instance.GetAuctionWithSelect(auction.Id,col=>col.Select(a => new { a.Id, a.HighestBidAmount }).FirstOrDefault());
                     if (a.HighestBidAmount == auction.HighestBid)
                         continue;
                     incomplete.Add(auction.Id);

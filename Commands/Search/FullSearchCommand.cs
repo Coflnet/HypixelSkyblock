@@ -37,31 +37,36 @@ namespace hypixel
 
             Console.WriteLine($"Waiting half a second " + watch.Elapsed);
             pullTask.Wait(320);
-            while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
-                result.Add(r);
+            DequeueResult(results, result);
+            if (result.Count == 0)
+            {
+                pullTask.Wait(600);
+                DequeueResult(results, result);
+            }
             Console.WriteLine($"Waited half a second " + watch.Elapsed);
 
             var maxAge = A_DAY / 2;
 
             cancelationSource.Cancel();
+            DequeueResult(results, result);
             Console.WriteLine($"Started sorting {search} " + watch.Elapsed);
             var orderedResult = result.Where(r => r.Name != null)
                             .Select(r =>
+                            {
+                                var lower = r.Name.ToLower();
+                                return new
                                 {
-                                    var lower = r.Name.ToLower();
-                                    return new
-                                    {
-                                        rating = String.IsNullOrEmpty(r.Name) ? 0 :
-                                    lower.Length / 2
-                                    - r.HitCount * 2
-                                    - (lower == search ? 10000000 : 0) // is exact match
-                                    - (lower.Length > search.Length && lower.Truncate(search.Length) == search ? 100 : 0) // matches search
-                                    - (Fastenshtein.Levenshtein.Distance(lower, search) <= 1 ? 40 : 0) // just one mutation off maybe a typo
-                                    + Fastenshtein.Levenshtein.Distance(lower.PadRight(search.Length), search) / 2 // distance to search
-                                    + Fastenshtein.Levenshtein.Distance(lower.Truncate(search.Length), search),
-                                        r
-                                    };
-                                }
+                                    rating = String.IsNullOrEmpty(r.Name) ? 0 :
+                                lower.Length / 2
+                                - r.HitCount * 2
+                                - (lower == search ? 10000000 : 0) // is exact match
+                                - (lower.Length > search.Length && lower.Truncate(search.Length) == search ? 100 : 0) // matches search
+                                - (Fastenshtein.Levenshtein.Distance(lower, search) <= 1 ? 40 : 0) // just one mutation off maybe a typo
+                                + Fastenshtein.Levenshtein.Distance(lower.PadRight(search.Length), search) / 2 // distance to search
+                                + Fastenshtein.Levenshtein.Distance(lower.Truncate(search.Length), search),
+                                    r
+                                };
+                            }
                             )
                             .OrderBy(r => r.rating)
                         .Where(r => { Console.WriteLine($"Ranked {r.r.Name} {r.rating} {Fastenshtein.Levenshtein.Distance(r.r.Name.PadRight(search.Length), search) / 10} {Fastenshtein.Levenshtein.Distance(r.r.Name.Truncate(search.Length), search)}"); return true; })
@@ -71,7 +76,7 @@ namespace hypixel
                         .Distinct(new SearchService.SearchResultComparer())
                         .Take(5)
                         .ToList();
-            Console.WriteLine($"making response {watch.Elapsed} total: {System.DateTime.Now- data.Created}" );
+            Console.WriteLine($"making response {watch.Elapsed} total: {System.DateTime.Now - data.Created}");
             if (orderedResult.Count() == 0)
                 maxAge = A_MINUTE;
             var elapsed = watch.Elapsed;
@@ -83,7 +88,11 @@ namespace hypixel
             return data.SendBack(data.Create(Type, orderedResult, maxAge));
         }
 
-
+        private static void DequeueResult(Task<ConcurrentQueue<SearchService.SearchResultItem>> results, ConcurrentBag<SearchService.SearchResultItem> result)
+        {
+            while (results.Result.TryDequeue(out SearchService.SearchResultItem r))
+                result.Add(r);
+        }
 
         private async Task LoadPreview(Stopwatch watch, SearchService.SearchResultItem r)
         {

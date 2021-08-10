@@ -32,7 +32,7 @@ namespace hypixel
                         continue;
                     try
                     {
-                        auction.NBTLookup = NBT.CreateLookup(auction.NbtData,auction.Tag);
+                        auction.NBTLookup = NBT.CreateLookup(auction);
                         context.Update(auction);
                     }
                     catch (Exception e)

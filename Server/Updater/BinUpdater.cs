@@ -79,7 +79,7 @@ namespace hypixel
                     Flipper.FlipperEngine.Instance.AuctionSold(item);
                 }
             }).ConfigureAwait(false);
-            Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.First().Uuid}");
+            Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.FirstOrDefault()?.Uuid}");
         }
     }
 }

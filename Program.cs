@@ -213,6 +213,7 @@ namespace hypixel
 
             updater = new Updater(apiKey);
             updater.UpdateForEver();
+            Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
 
             // bring the db up to date
             GetDBToDesiredState();
@@ -226,7 +227,6 @@ namespace hypixel
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
 
-            Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
             if (!Flipper.FlipperEngine.diabled)
                 for (int i = 0; i < 3; i++)
                     RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 0);
@@ -363,7 +363,7 @@ namespace hypixel
                     if (!context.Items.Any() || context.Players.Count() < 2_000_000)
                         isNew = true;
                 }
-                if (isNew)
+                if (isNew && !Flipper.FlipperEngine.diabled)
                 {
                     Console.WriteLine("detected that this is a new instance, starting syncing");
                     ClientProxy.Instance.InitialSync();

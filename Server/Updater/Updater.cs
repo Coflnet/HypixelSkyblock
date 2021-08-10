@@ -18,6 +18,8 @@ namespace hypixel
         private string apiKey;
         private bool abort;
         private static bool minimumOutput;
+
+        private static bool doFullUpdate = false;
         Prometheus.Counter auctionUpdateCount = Prometheus.Metrics.CreateCounter("auction_update", "How many auctions were updated");
 
         public event Action OnNewUpdateStart;
@@ -54,8 +56,9 @@ namespace hypixel
         /// <summary>
         /// Downloads all auctions and save the ones that changed since the last update
         /// </summary>
-        public async Task<DateTime> Update()
+        public async Task<DateTime> Update(bool updateAll = false)
         {
+            doFullUpdate = updateAll;
             if (!minimumOutput)
                 Console.WriteLine($"Usage bevore update {System.GC.GetTotalMemory(false)}");
             var updateStartTime = DateTime.UtcNow.ToLocalTime();
@@ -214,6 +217,7 @@ namespace hypixel
             Console.WriteLine($"Updated {sum} auctions {doneCont} pages");
             UpdateSize = sum;
 
+            doFullUpdate = false;
             OnNewUpdateEnd?.Invoke();
 
             return lastHypixelCache;
@@ -283,12 +287,15 @@ namespace hypixel
             Task.Run(async () =>
             {
                 minimumOutput = true;
+                var updaterStart = DateTime.Now.RoundDown(TimeSpan.FromMinutes(1));
                 while (true)
                 {
                     try
                     {
                         var start = DateTime.Now;
-                        var lastCache = await Update();
+                        // do a full update 6 min after start
+                        var shouldDoFullUpdate = DateTime.Now.Subtract(TimeSpan.FromMinutes(6)).RoundDown(TimeSpan.FromMinutes(1)) == updaterStart;
+                        var lastCache = await Update(shouldDoFullUpdate);
                         if (abort || token.IsCancellationRequested)
                         {
                             Console.WriteLine("Stopped updater");
@@ -337,7 +344,7 @@ namespace hypixel
                     activeUuids[item.Uuid] = true;
                     // nothing changed if the last bid is older than the last update
                     return !(item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp < lastUpdate ||
-                        item.Bids.Count == 0 && item.Start < lastUpdate);
+                        item.Bids.Count == 0 && item.Start < lastUpdate) || doFullUpdate;
                 })
                 .Select(a =>
                 {
