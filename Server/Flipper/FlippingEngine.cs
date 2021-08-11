@@ -409,7 +409,7 @@ namespace hypixel.Flipper
         {
             var key = $"{auction.ItemId}{auction.ItemName}{auction.Tier}{auction.Bin}{auction.Count}";
             key += String.Concat(auction.Enchantments.Select(a => $"{a.Type}{a.Level}"));
-            key += String.Concat(auction.FlatenedNBT.Where(d => d.Key != "uid"));
+            key += String.Concat(auction.FlatenedNBT.Where(d => !new string[]{"uid","spawnedFor","bossId"}.Contains(d.Key)));
             try
             {
                 var fromCache = await CacheService.Instance.GetFromRedis<(List<SaveAuction>, DateTime)>(key);

@@ -48,7 +48,7 @@ namespace hypixel.Flipper
             
             properties.AddRange(auction.Enchantments.Where(e => FlipperEngine.UltimateEnchants.ContainsKey(e.Type) || e.Level > 5).Select(e => new Property()
             {
-                Value = $"{e.Type.ToString()}: {e.Level}",
+                Value = $"{ItemDetails.TagToName(e.Type.ToString())}: {e.Level}",
                 Rating = 2 + e.Level
             }));
 
