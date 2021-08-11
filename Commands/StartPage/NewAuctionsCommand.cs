@@ -10,7 +10,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var pages = context.Auctions.OrderByDescending(a => a.Id)
-                    .Take(30)
+                    .Take(50)
                     .Select(p=>new PlayerAuctionsCommand.AuctionResult(p))
                     .ToList()
                     .Select(AuctionService.Instance.GuessMissingProperties)

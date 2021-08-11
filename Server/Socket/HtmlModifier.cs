@@ -228,7 +228,7 @@ namespace hypixel
             {
                 title = title.Substring(0, title.LastIndexOf(' '));
             }
-            if (path == "/index.html")
+            if (path.EndsWith("index.html"))
             {
                 path = "";
             }

@@ -10,7 +10,7 @@ namespace hypixel
         {
             if(BinUpdater.SoldLastMin.Count > 0)
             {
-                var recentSold = BinUpdater.SoldLastMin.Take(40)
+                var recentSold = BinUpdater.SoldLastMin.Take(50)
                     .Select(a => new PlayerAuctionsCommand.AuctionResult(a))
                     .Select(AuctionService.Instance.GuessMissingProperties)
                     .ToList();

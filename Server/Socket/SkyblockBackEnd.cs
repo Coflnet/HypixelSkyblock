@@ -91,20 +91,20 @@ namespace hypixel
             Commands.Add("accountInfo", new AccountInfoCommand());
             Commands.Add("priceSum", new PriceSumaryCommand());
 
-            
+
 
             Commands.Add("getProducts", new GetProductsCommand());
             Commands.Add("getPrices", new GetPricesCommand());
             Commands.Add("gPurchase", new GooglePurchaseCommand());
             Commands.Add("paypalPurchase", new ValidatePaypalCommand());
 
-            Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());       
+            Commands.Add("getFilter", new Filter.GetFilterOptionsCommand());
             Commands.Add("filterFor", new Filter.GetFilterForCommand());
             Commands.Add("subFlip", new SubFlipperCommand());
             Commands.Add("unsubFlip", new UnsubFlipperCommand());
             Commands.Add("getFlips", new RecentFlipsCommand());
             Commands.Add("flipBased", new BasedOnCommand());
-            
+
             // sync commands
             Commands.Add("playerSync", new PlayerSyncCommand());
             Commands.Add("itemSync", new ItemSyncCommand());
@@ -119,7 +119,7 @@ namespace hypixel
             Commands.Add("newAuctions", new NewAuctionsCommand());
 
 
-        
+
         }
 
         public SkyblockBackEnd()
@@ -156,13 +156,11 @@ namespace hypixel
                 if (CacheService.Instance.TryFromCache(data))
                     return;
 
-                if (waiting > 30)
+                if (waiting > 20)
                 {
                     dev.Logger.Instance.Error("triggered rate limit");
                     throw new CoflnetException("stop_it", "You are sending to many requests. Don't use a script to get this data. You can purchase the raw data from me (@Ekwav) for 50$ per month of data");
                 }
-                if (data.Type != "playerName")
-                    Console.WriteLine($"r {data.Type} {data.Data.Truncate(20)}");
 
                 ExecuteCommand(data);
             }
@@ -185,12 +183,21 @@ namespace hypixel
             Task.Run(async () =>
             {
                 System.Threading.Interlocked.Increment(ref waiting);
-                if (data.Type != "playerName")
-                    await limiter;
+                await limiter;
                 System.Threading.Interlocked.Decrement(ref waiting);
                 try
                 {
-                    await Commands[data.Type].Execute(data);
+                    var tracer = OpenTracing.Util.GlobalTracer.Instance;
+                    var builder = tracer.BuildSpan(data.Type)
+                            .WithTag("type","websocket")
+                            .WithTag("body",data.Data.Truncate(20));
+                    
+                    using (var scope = builder.StartActive(true))
+                    {
+                        var span = scope.Span;
+                        data.Span = span;
+                        await Commands[data.Type].Execute(data);
+                    }
                 }
                 catch (CoflnetException ex)
                 {
@@ -199,7 +206,7 @@ namespace hypixel
                 catch (Exception ex)
                 {
                     var cofl = ex.InnerException as CoflnetException;
-                    if(cofl != null)
+                    if (cofl != null)
                     {
                         // wrapped exception (eg. Theaded)
                         await SendCoflnetException(data, cofl);
@@ -219,7 +226,7 @@ namespace hypixel
         private static SocketMessageData ParseData(string body)
         {
             var data = MessagePackSerializer.Deserialize<SocketMessageData>(MessagePackSerializer.FromJson(body));
-            if(data.Data != null)
+            if (data.Data != null)
                 data.Data = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(data.Data));
             return data;
         }

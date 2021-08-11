@@ -20,12 +20,12 @@ namespace hypixel
             if(value.Length <= 2)
                 return; 
             var genMs = ((int)time.TotalMilliseconds).ToString();
-            trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
+            trackClient.ExecuteAsync(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("search", value)
                     .AddQueryParameter("search_count", resultCount.ToString())
                     .AddQueryParameter("ua", GetUserAgent(data))
                     .AddQueryParameter("pf_srv", genMs));
-            trackClient.Execute(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
+            trackClient.ExecuteAsync(new RestRequest("/matomo.php?idsite=2&rec=1&action_name=search")
                     .AddQueryParameter("ua", "search")
                     .AddQueryParameter("action_name", "search/" + value)
                     .AddQueryParameter("url", "http://s/search/" + value)
@@ -74,7 +74,7 @@ namespace hypixel
             }
             if (genTime != default(TimeSpan))
                 request.AddQueryParameter("pf_srv", ((int)genTime.TotalMilliseconds).ToString());
-            trackClient.Execute(request);
+            trackClient.ExecuteAsync(request);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace hypixel
         {
             var request = new RestRequest("/matomo.php?idsite=2&rec=1")
                     .AddQueryParameter("action_name", "error/" + type);
-            trackClient.Execute(request);
+            trackClient.ExecuteAsync(request);
         }
     }
 }

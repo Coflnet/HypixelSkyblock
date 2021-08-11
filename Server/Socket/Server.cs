@@ -76,7 +76,14 @@ namespace hypixel
                 {
                     try
                     {
-                        await AnswerGetRequest(new WebsocketRequestContext(e));
+                        var tracer = OpenTracing.Util.GlobalTracer.Instance;
+                        var builder = tracer.BuildSpan(e.Request.RawUrl);
+                        using (var scope = builder.StartActive(true))
+                        {
+                            var span = scope.Span;
+                            await AnswerGetRequest(new WebsocketRequestContext(e, span));
+                        }
+
                     }
                     catch (CoflnetException ex)
                     {
@@ -124,6 +131,7 @@ namespace hypixel
             public abstract void Redirect(string uri);
             public abstract IDictionary<string, string> QueryString { get; }
             public abstract string UserAgent { get; }
+            public OpenTracing.ISpan Span;
 
             internal virtual void ForceSend(bool close = false)
             {
@@ -135,10 +143,11 @@ namespace hypixel
         {
             public HttpRequestEventArgs original;
 
-            public WebsocketRequestContext(HttpRequestEventArgs original)
+            public WebsocketRequestContext(HttpRequestEventArgs original, OpenTracing.ISpan span)
             {
                 this.original = original;
                 this.original.Response.SendChunked = true;
+                this.Span = span;
             }
 
             public override string HostName => original.Request.UserHostName;
@@ -183,7 +192,7 @@ namespace hypixel
             internal override void ForceSend(bool finish = false)
             {
                 original.Response.OutputStream.Flush();
-                if(finish)
+                if (finish)
                     original.Response.Close();
             }
         }
@@ -298,19 +307,10 @@ namespace hypixel
                 var watch = Stopwatch.StartNew();
                 await HtmlModifier.ModifyContent(path, contents, context);
 
+
+
                 if (context is WebsocketRequestContext httpContext)
-                    if (path.StartsWith("/static"))
-                        TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(),
-                                                    "",
-                                                    null,
-                                                    null,
-                                                    watch.Elapsed);
-                    else
-                        TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(),
-                                "",
-                                httpContext.original.Request?.UrlReferrer?.ToString(),
-                                httpContext.original.Request?.UserAgent,
-                                watch.Elapsed);
+                    TrackGeneration(path, watch, httpContext);
                 return;
             }
 
@@ -345,6 +345,21 @@ namespace hypixel
             context.WriteAsync(contents);
         }
 
+        private static void TrackGeneration(string path, Stopwatch watch, WebsocketRequestContext httpContext)
+        {
+            if (path.StartsWith("/static"))
+                TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(),
+                                            "",
+                                            null,
+                                            null,
+                                            watch.Elapsed);
+            else
+                TrackingService.Instance.TrackPage(httpContext.original.Request?.Url?.ToString(),
+                        "",
+                        httpContext.original.Request?.UrlReferrer?.ToString(),
+                        httpContext.original.Request?.UserAgent,
+                        watch.Elapsed);
+        }
 
         private Task HandleApiRequest(RequestContext context)
         {

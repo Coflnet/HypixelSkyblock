@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using MessagePack;
+using OpenTracing;
 using WebSocketSharp;
 using WebSocketSharp.Net;
 
@@ -37,6 +38,37 @@ namespace hypixel
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
         public DateTime Created = DateTime.Now;
+
+        [IgnoreMember]
+        [Newtonsoft.Json.JsonIgnore]
+        public ISpan Span { get; internal set; }
+
+        public void Log(string message)
+        {
+            if(Span != null)
+                Span.Log(message);
+            else
+                dev.Logger.Instance.Log(message);
+        }
+
+        public void LogError(Exception e, string message)
+        {
+            if(Span != null)
+            {
+                Span.Log(message);
+                LogException(e);
+            }
+            else
+                dev.Logger.Instance.Error(e,message);
+        }
+
+        private void LogException(Exception e, int index = 0)
+        {
+            Span.SetTag("errorMessage"+index, e.Message);
+            Span.SetTag("errorTrace"+index, e.StackTrace);
+            if(e.InnerException != null)
+                LogException(e.InnerException,index+1);
+        }
 
         public MessageData(string type, string data, int maxAge = 0)
         {
@@ -108,7 +140,6 @@ namespace hypixel
             set => Connection.UserId = value;
         }
 
-
         public SocketMessageData()
         {
         }
@@ -119,11 +150,7 @@ namespace hypixel
             if (cache)
                 CacheService.Instance.Save(this, data, responseCounter++);
             Connection.SendBack(data);
-            if (this.Created < DateTime.Now - TimeSpan.FromSeconds(1))
-            {
-                // wow this took waaay to long
-                Console.WriteLine($"slow response/long time ({DateTime.Now - data.Created} at {DateTime.Now}, cache: {cache}): {Newtonsoft.Json.JsonConvert.SerializeObject(this)} ");
-            }
+            Span.SetTag("result", data.Type);
             return Task.CompletedTask;
         }
     }
@@ -150,6 +177,7 @@ namespace hypixel
         public HttpMessageData(Server.RequestContext context)
         {
             Type = context.path.Split('/')[2];
+            this.Span = context.Span;
             this.context = context;
             // default status code
             context.SetStatusCode(201);
@@ -188,6 +216,8 @@ namespace hypixel
             }
             await context.WriteAsync(json);
             source.TrySetResult(true);
+
+            Span.SetTag("result", data.Type);
 
             if (cache)
                 CacheService.Instance.Save(this, data, 0);

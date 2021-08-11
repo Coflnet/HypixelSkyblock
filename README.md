@@ -2,10 +2,12 @@
 This is the back-end for https://sky.coflnet.com 
 You can get the same data and play around with it by using this project.
 
-Some endpoins are exposed via REST, see the swagger doc: https://sky.coflnet.com/api
+Some endpoins are exposed via REST, see the open-api docs: https://sky.coflnet.com/api
 
 # Requests
 ### General
+> **Deprecatation WARNING** The command endpoints are getting deprecated please use the REST-endpoints (/api)
+
 The backend uses a concept called `commands`.
 All commands are based on the format `type` `data` as `JSON` or `MessagePack`. The content of `data` depends on the `type` and usually is another escaped and `base64` encoded `json` object.
 Example:
