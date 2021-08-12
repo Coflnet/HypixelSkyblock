@@ -77,7 +77,7 @@ namespace hypixel
                     try
                     {
                         var tracer = OpenTracing.Util.GlobalTracer.Instance;
-                        var builder = tracer.BuildSpan("GET:"+e.Request.RawUrl.Trim('/').Split("/").FirstOrDefault())
+                        var builder = tracer.BuildSpan("GET:"+e.Request.RawUrl.Trim('/').Split('/','?').FirstOrDefault())
                                     .WithTag("route",e.Request.RawUrl);
                         using (var scope = builder.StartActive(true))
                         {

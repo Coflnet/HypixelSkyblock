@@ -189,14 +189,21 @@ namespace hypixel
                 {
                     var tracer = OpenTracing.Util.GlobalTracer.Instance;
                     var builder = tracer.BuildSpan(data.Type)
-                            .WithTag("type","websocket")
-                            .WithTag("body",data.Data.Truncate(20));
-                    
+                            .WithTag("type", "websocket")
+                            .WithTag("body", data.Data.Truncate(20));
+
                     using (var scope = builder.StartActive(true))
                     {
-                        var span = scope.Span;
-                        data.Span = span;
-                        await Commands[data.Type].Execute(data);
+                            var span = scope.Span;
+                            data.Span = span;
+                        try
+                        {
+                            await Commands[data.Type].Execute(data);
+                        } catch(Exception e)
+                        {
+                            data.LogError(e, "");
+                            throw;
+                        }
                     }
                 }
                 catch (CoflnetException ex)

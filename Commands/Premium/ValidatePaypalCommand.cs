@@ -21,6 +21,7 @@ namespace hypixel
             if (string.IsNullOrEmpty(clientId))
                 throw new CoflnetException("unavailable", "checkout via paypal has not yet been enabled, please contact an admin");
             var client = new PayPalHttpClient(new LiveEnvironment(clientId, clientSecret));
+            data.Log($"User: {data.UserId}");
             //3. Call PayPal to get the transaction
             PayPalHttp.HttpResponse response;
             try
@@ -29,7 +30,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "payPalPayment");
+                data.LogError(e, "payPalPayment");
                 throw new CoflnetException("payment_failed", "The provided orderId has not vaid payment asociated");
             }
             //4. Save the transaction in your database. Implement logic to save transaction to your database for future reference.
