@@ -35,7 +35,7 @@ namespace hypixel.Flipper
             var properties = new List<Property>();
 
 
-            var data = auction.NbtData.Data;
+            var data = auction.FlatenedNBT;
 
             if(data.ContainsKey("winning_bid"))
             {
@@ -45,7 +45,11 @@ namespace hypixel.Flipper
                 properties.Add(new Property("HPB: " + data["hpc"], 12));
             if(data.ContainsKey("rarity_upgrades"))
                 properties.Add(new Property("Recombulated ", 12));
-            
+            if(data.ContainsKey("heldItem"))
+                properties.Add(new Property($"Holds {ItemDetails.TagToName(data["heldItem"])}", 12));
+            if(data.ContainsKey("candyUsed"))
+                properties.Add(new Property($"Candy Used {data["candyUsed"]}", 11));
+
             properties.AddRange(auction.Enchantments.Where(e => FlipperEngine.UltimateEnchants.ContainsKey(e.Type) || e.Level > 5).Select(e => new Property()
             {
                 Value = $"{ItemDetails.TagToName(e.Type.ToString())}: {e.Level}",
