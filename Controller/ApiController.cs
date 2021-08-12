@@ -30,9 +30,10 @@ namespace Coflnet.Hypixel.Controller
 
         [Route("item/price/{itemTag}/bin")]
         [HttpGet]
-        public async Task<ActionResult> GetLowestBin(string itemTag)
+        public async Task<ActionResult> GetLowestBin(string itemTag, [FromQuery] Tier? tier)
         {
-            var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag);
+            Console.WriteLine(tier);
+            var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag, tier ?? Tier.UNCOMMON);
             return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid,result.LastOrDefault()?.Price ?? 0));
         }
 

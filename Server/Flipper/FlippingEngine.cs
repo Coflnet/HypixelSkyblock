@@ -363,7 +363,7 @@ namespace hypixel.Flipper
                 relevantAuctionIds.Clear();
             }
             var itemTag = auction.Tag;
-            Task<List<ItemPrices.AuctionPreview>> lowestBin = GetLowestBin(itemTag);
+            Task<List<ItemPrices.AuctionPreview>> lowestBin = GetLowestBin(itemTag,auction.Tier);
 
             var flip = new FlipInstance()
             {
@@ -386,13 +386,17 @@ namespace hypixel.Flipper
                 await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
 
-        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag)
+        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
         {
+            var filter = new Dictionary<string, string>() { { "Bin", "true" } };
+            if(tier != Tier.UNCOMMON)
+                filter["Rarity"] = tier.ToString();
+
             var query = new ActiveItemSearchQuery()
             {
                 Order = SortOrder.LOWEST_PRICE,
                 Limit = 2,
-                Filter = new Dictionary<string, string>() { { "Bin", "true" } },
+                Filter = filter,
                 name = itemTag
             };
             var lowestBin = Server.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);

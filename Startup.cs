@@ -31,6 +31,7 @@ namespace dev
             var redisCon = SimplerConfig.Config.Instance["redisCon"];
             services.AddControllers().AddNewtonsoftJson();
             services.AddSwaggerGen();
+            services.AddSwaggerGenNewtonsoftSupport();
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = redisCon;
