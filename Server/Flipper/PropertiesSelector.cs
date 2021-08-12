@@ -39,7 +39,7 @@ namespace hypixel.Flipper
 
             if (data.ContainsKey("winning_bid"))
             {
-                properties.Add(new Property("Top Bid: " + string.Format("{0:#,0}", long.Parse(data["winning_bid"])), 20));
+                properties.Add(new Property("Top Bid: " + string.Format("{0:n0}", long.Parse(data["winning_bid"])), 20));
             }
             if (data.ContainsKey("hpc"))
                 properties.Add(new Property("HPB: " + data["hpc"], 12));
