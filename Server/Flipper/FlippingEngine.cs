@@ -596,7 +596,7 @@ namespace hypixel.Flipper
             // make sure we exclude special enchants to get a reasonable price
             else if (auction.Enchantments.Any())
                 select = select.Where(a => !a.Enchantments.Where(e => UltiEnchantList.Contains(e.Type) || e.Level > 5).Any());
-            else if (auction.Category == Category.WEAPON || auction.Category == Category.ARMOR) // || auction.Tag == "ENCHANTED_BOOK")
+            else
                 select = select.Where(a => !a.Enchantments.Any());
             return select;
         }
