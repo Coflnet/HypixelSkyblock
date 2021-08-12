@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Coflnet.Hypixel.Controller
 {
+    /// <summary>
+    /// abc
+    /// </summary>
     [ApiController]
     [Route("api")]
     public class ApiController : ControllerBase
@@ -20,6 +23,11 @@ namespace Coflnet.Hypixel.Controller
             this.auctionService = auctionService;
         }
         
+        /// <summary>
+        /// Aggregated sumary of item prices for the last day
+        /// </summary>
+        /// <param name="itemTag">The item tag you want prices for</param>
+        /// <returns></returns>
         [Route("item/price/{itemTag}")]
         [HttpGet]
         public async Task<ActionResult<PriceSumaryCommand.Result>> GetSumary(string itemTag)
@@ -28,9 +36,15 @@ namespace Coflnet.Hypixel.Controller
             return Ok(result);
         }
 
+        /// <summary>
+        /// Gets the lowest bin by item type
+        /// </summary>
+        /// <param name="itemTag">The tag of the item to search for bin</param>
+        /// <param name="tier">The tier aka rarity of the item. Allows to filter pets and recomulated items</param>
+        /// <returns></returns>
         [Route("item/price/{itemTag}/bin")]
         [HttpGet]
-        public async Task<ActionResult> GetLowestBin(string itemTag, [FromQuery] Tier? tier)
+        public async Task<ActionResult<BinResponse>> GetLowestBin(string itemTag, [FromQuery] Tier? tier)
         {
             Console.WriteLine(tier);
             var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag, tier ?? Tier.UNCOMMON);
@@ -51,15 +65,24 @@ namespace Coflnet.Hypixel.Controller
             }
         }
 
-
+        /// <summary>
+        /// Searches through all items
+        /// </summary>
+        /// <param name="searchVal">The search term to search for</param>
+        /// <returns>An array of search results matching the searchValue</returns>
         [Route("item/search/{searchVal}")]
         [HttpGet]
-        public async Task<ActionResult> SearchItem(string searchVal)
+        public async Task<ActionResult<List<SearchService.SearchResultItem>>> SearchItem(string searchVal)
         {
             var result = await Server.ExecuteCommandWithCache<string, List<SearchService.SearchResultItem>>("itemSearch", searchVal);
             return Ok(result);
         }
 
+        /// <summary>
+        /// Full search, includes items, players and enchantments
+        /// </summary>
+        /// <param name="searchVal">The search term to search for</param>
+        /// <returns></returns>
         [Route("search/{searchVal}")]
         [HttpGet]
         public async Task<ActionResult<List<SearchService.SearchResultItem>>> FullSearch(string searchVal)
@@ -68,10 +91,15 @@ namespace Coflnet.Hypixel.Controller
             return Ok(result);
         }
 
+        /// <summary>
+        /// Retrieve details of a specific auction
+        /// </summary>
+        /// <param name="auctionUuid">The uuid of the auction you want the details for</param>
+        /// <returns></returns>
         [Route("auction/{auctionUuid}")]
         [HttpGet]
         [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<ActionResult> getAuctionDetails(string auctionUuid)
+        public async Task<ActionResult<SaveAuction>> getAuctionDetails(string auctionUuid)
         {
             var result = await auctionService.GetAuctionAsync(auctionUuid, auction => auction
                         .Include(a => a.Enchantments)
@@ -85,7 +113,7 @@ namespace Coflnet.Hypixel.Controller
 
         [Route("player/{playerUuid}/bids")]
         [HttpGet]
-        public async Task<ActionResult> GetPlayerBids(string playerUuid)
+        public async Task<ActionResult<List<PlayerBidsCommand.BidResult>>> GetPlayerBids(string playerUuid)
         {
             var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request, List<PlayerBidsCommand.BidResult>>(
                 "playerBids", new PaginatedRequestCommand<PlayerBidsCommand.BidResult>.Request()
@@ -99,7 +127,7 @@ namespace Coflnet.Hypixel.Controller
 
         [Route("player/{playerUuid}/auctions")]
         [HttpGet]
-        public async Task<ActionResult> GetPlayerAuctions(string playerUuid)
+        public async Task<ActionResult<List<PlayerAuctionsCommand.AuctionResult>>> GetPlayerAuctions(string playerUuid)
         {
             var result = await Server.ExecuteCommandWithCache<PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request, List<PlayerAuctionsCommand.AuctionResult>>(
                 "playerAuctions", new PaginatedRequestCommand<PlayerAuctionsCommand.AuctionResult>.Request()

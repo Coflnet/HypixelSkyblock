@@ -7,6 +7,7 @@ namespace hypixel
     [MessagePack.MessagePackObject]
     public class Enchantment
     {
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
         public enum EnchantmentType
         {
             unknown,

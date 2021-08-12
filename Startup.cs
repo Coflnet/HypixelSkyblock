@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Net;
+using System.Reflection;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
 using hypixel;
@@ -10,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Prometheus;
 using StackExchange.Redis;
@@ -30,7 +33,31 @@ namespace dev
             services.AddOptions();
             var redisCon = SimplerConfig.Config.Instance["redisCon"];
             services.AddControllers().AddNewtonsoftJson();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Skyblock AH history API",
+                    Description = "Consume data we collected easily",
+                    TermsOfService = new Uri("https://coflnet.com/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Äkwav",
+                        Url = new Uri("https://twitter.com/ekwav"),
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "Use under AGPLv3",
+                        Url = new Uri("https://github.com/Coflnet/HypixelSkyblock/blob/master/LICENSE"),
+                    }
+                });
+
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+            });
             services.AddSwaggerGenNewtonsoftSupport();
             services.AddStackExchangeRedisCache(options =>
             {

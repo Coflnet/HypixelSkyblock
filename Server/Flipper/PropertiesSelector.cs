@@ -21,7 +21,7 @@ namespace hypixel.Flipper
             public int Rating;
 
             public Property()
-            {}
+            { }
             public Property(string value, int rating)
             {
                 Value = value;
@@ -37,23 +37,25 @@ namespace hypixel.Flipper
 
             var data = auction.FlatenedNBT;
 
-            if(data.ContainsKey("winning_bid"))
+            if (data.ContainsKey("winning_bid"))
             {
-                properties.Add(new Property("Top Bid: " + data["winning_bid"], 20));
+                properties.Add(new Property("Top Bid: " + string.Format("{0:#,0}", long.Parse(data["winning_bid"])), 20));
             }
-            if(data.ContainsKey("hpc"))
+            if (data.ContainsKey("hpc"))
                 properties.Add(new Property("HPB: " + data["hpc"], 12));
-            if(data.ContainsKey("rarity_upgrades"))
+            if (data.ContainsKey("rarity_upgrades"))
                 properties.Add(new Property("Recombulated ", 12));
-            if(data.ContainsKey("heldItem"))
+            if (data.ContainsKey("heldItem"))
                 properties.Add(new Property($"Holds {ItemDetails.TagToName(data["heldItem"])}", 12));
-            if(data.ContainsKey("candyUsed"))
+            if (data.ContainsKey("candyUsed"))
                 properties.Add(new Property($"Candy Used {data["candyUsed"]}", 11));
 
-            properties.AddRange(auction.Enchantments.Where(e => FlipperEngine.UltimateEnchants.ContainsKey(e.Type) || e.Level > 5).Select(e => new Property()
+            var isBook = auction.Tag == "ENCHANTED_BOOK";
+
+            properties.AddRange(auction.Enchantments.Where(e => isBook || FlipperEngine.UltimateEnchants.ContainsKey(e.Type) || e.Level > 5).Select(e => new Property()
             {
                 Value = $"{ItemDetails.TagToName(e.Type.ToString())}: {e.Level}",
-                Rating = 2 + e.Level
+                Rating = 2 + e.Level + (FlipperEngine.UltimateEnchants.ContainsKey(e.Type) ? 5 : 0)
             }));
 
             return properties;

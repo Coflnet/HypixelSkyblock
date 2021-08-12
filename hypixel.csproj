@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <!--GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute-->
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
       <ItemGroup>
          <ProjectReference Include="../websocket-sharp/websocket-sharp/websocket-sharp.csproj" />
