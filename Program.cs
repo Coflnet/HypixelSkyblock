@@ -235,8 +235,8 @@ namespace hypixel
             RunIndexer();
 
             if (!Flipper.FlipperEngine.diabled)
-                for (int i = 0; i < 3; i++)
-                    RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 0);
+                for (int i = 0; i < 2; i++)
+                    RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
 
             NameUpdater.Run();
             SearchService.Instance.RunForEver();

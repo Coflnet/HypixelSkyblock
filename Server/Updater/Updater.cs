@@ -49,7 +49,7 @@ namespace hypixel
         {
             this.apiKey = apiKey;
 
-            var scheduler = new LimitedConcurrencyLevelTaskScheduler(3);
+            var scheduler = new LimitedConcurrencyLevelTaskScheduler(2);
             taskFactory = new TaskFactory(scheduler);
         }
 
