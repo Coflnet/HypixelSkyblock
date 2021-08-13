@@ -191,11 +191,11 @@ namespace hypixel
         {
             get
             {
-                var data = NbtData.Data;
-                if (data == null || data.Count == 0)
-                    return new Dictionary<string, string>();
                 try
                 {
+                    var data = NbtData.Data;
+                    if (data == null || data.Count == 0)
+                        return new Dictionary<string, string>();
                     return NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d => d.Value.ToString());
                 }
                 catch (Exception e)
