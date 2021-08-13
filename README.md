@@ -442,6 +442,14 @@ Subscribes to the fliper. This will push the command `flip` with the same format
 }
 ```
 
+## UnSubFlip
+Unsubscibes from the flipper. should be called when the flipper is no longer visible
+```
+{
+    type:"unsubFlip"
+}
+```
+
 ## getFlips
 Returns a list of recent flips
 ```
