@@ -367,7 +367,7 @@ namespace hypixel.Flipper
                 relevantAuctionIds.Clear();
             }
             var itemTag = auction.Tag;
-            Task<List<ItemPrices.AuctionPreview>> lowestBin = GetLowestBin(itemTag,auction.Tier);
+            List<ItemPrices.AuctionPreview> lowestBin = await GetLowestBin(itemTag,auction.Tier);
 
             var flip = new FlipInstance()
             {
@@ -382,7 +382,8 @@ namespace hypixel.Flipper
                 Rarity = auction.Tier,
                 Interesting = PropertiesSelector.GetProperties(auction).OrderByDescending(a => a.Rating).Select(a => a.Value).ToList(),
                 SellerName = await PlayerSearch.Instance.GetNameWithCacheAsync(auction.AuctioneerId),
-                LowestBin = (await lowestBin).FirstOrDefault()?.Price
+                LowestBin = lowestBin.FirstOrDefault()?.Price,
+                SecondLowestBin = lowestBin.Count >= 2 ? lowestBin[1].Price : 0L
             };
 
             FlipFound(flip,auction);
@@ -715,6 +716,8 @@ namespace hypixel.Flipper
             public Tier Rarity { get; internal set; }
             [DataMember(Name = "prop")]
             public List<string> Interesting { get; internal set; }
+            [DataMember(Name = "secondLowestBin")]
+            public long? SecondLowestBin { get; internal set; }
 
             [DataMember(Name = "lowestBin")]
             public long? LowestBin;
