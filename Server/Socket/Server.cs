@@ -306,7 +306,7 @@ namespace hypixel
             if (filePath == "index.html" && !filePath.EndsWith(".js") && !filePath.EndsWith(".css"))
             {
                 var watch = Stopwatch.StartNew();
-                await HtmlModifier.ModifyContent(path, contents, context);
+                await HtmlModifier.ModifyContent(context.path, contents, context);
 
 
 

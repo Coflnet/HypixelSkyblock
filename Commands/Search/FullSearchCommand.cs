@@ -35,7 +35,7 @@ namespace hypixel
                 }
             }, cancelationSource.Token);
 
-            Console.WriteLine($"Waiting half a second " + watch.Elapsed);
+            data.Log($"Waiting half a second " + watch.Elapsed);
             pullTask.Wait(320);
             DequeueResult(results, result);
             if (result.Count == 0)
@@ -43,13 +43,13 @@ namespace hypixel
                 pullTask.Wait(600);
                 DequeueResult(results, result);
             }
-            Console.WriteLine($"Waited half a second " + watch.Elapsed);
+            data.Log($"Waited half a second " + watch.Elapsed);
 
             var maxAge = A_DAY / 2;
 
             cancelationSource.Cancel();
             DequeueResult(results, result);
-            Console.WriteLine($"Started sorting {search} " + watch.Elapsed);
+            data.Log($"Started sorting {search} " + watch.Elapsed);
             var orderedResult = result.Where(r => r.Name != null)
                             .Select(r =>
                             {
@@ -69,14 +69,14 @@ namespace hypixel
                             }
                             )
                             .OrderBy(r => r.rating)
-                        .Where(r => { Console.WriteLine($"Ranked {r.r.Name} {r.rating} {Fastenshtein.Levenshtein.Distance(r.r.Name.PadRight(search.Length), search) / 10} {Fastenshtein.Levenshtein.Distance(r.r.Name.Truncate(search.Length), search)}"); return true; })
+                        .Where(r => { data.Log($"Ranked {r.r.Name} {r.rating} {Fastenshtein.Levenshtein.Distance(r.r.Name.PadRight(search.Length), search) / 10} {Fastenshtein.Levenshtein.Distance(r.r.Name.Truncate(search.Length), search)}"); return true; })
                         .Where(r => r.rating < 10)
                         .ToList()
                         .Select(r => r.r)
                         .Distinct(new SearchService.SearchResultComparer())
                         .Take(5)
                         .ToList();
-            Console.WriteLine($"making response {watch.Elapsed} total: {System.DateTime.Now - data.Created}");
+            data.Log($"making response {watch.Elapsed} total: {System.DateTime.Now - data.Created}");
             if (orderedResult.Count() == 0)
                 maxAge = A_MINUTE;
             var elapsed = watch.Elapsed;

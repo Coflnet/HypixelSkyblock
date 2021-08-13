@@ -201,6 +201,7 @@ namespace hypixel.Flipper
         public void RemoveNonConnection(SkyblockBackEnd con)
         {
             SlowSubs.TryRemove(con.Id, out int value);
+            Subs.TryRemove(con.Id, out value);
         }
 
 

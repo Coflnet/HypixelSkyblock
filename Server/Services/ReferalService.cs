@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using HashidsNet;
 
 namespace hypixel
@@ -15,11 +16,19 @@ namespace hypixel
             Instance = new ReferalService();
         }
 
+        public async Task<string> GetUserName(string refId)
+        {
+            if(UserService.Instance.TryGetUserById(GetId(refId), out GoogleUser user))
+                if(user.MinecraftUuid != null)
+                    return await PlayerSearch.Instance.GetNameWithCacheAsync(user.MinecraftUuid);
+            return null;
+        }
+
         public void WasReferedBy(GoogleUser user, string referer)
         {
             if (user.ReferedBy != 0)
                 throw new CoflnetException("already_refered", "You already have used a referal Link. You can only be refered once.");
-            var id = hashids.Decode(referer)[0];
+            var id = GetId(referer);
             if (id == user.Id)
                 throw new CoflnetException("self_refered", "You cant refer yourself");
             using (var context = new HypixelContext())
@@ -55,6 +64,11 @@ namespace hypixel
                 context.SaveChanges();
             }
             refCount.Inc();
+        }
+
+        private int GetId(string referer)
+        {
+            return hashids.Decode(referer)[0];
         }
 
         public ReeralInfo GetReferalInfo(GoogleUser user)

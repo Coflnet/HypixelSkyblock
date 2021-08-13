@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using static hypixel.ItemPrices;
+using System.Collections.Specialized;
 
 namespace hypixel
 {
@@ -28,6 +29,10 @@ namespace hypixel
             string title = defaultTitle;
             string imageUrl = "https://sky.coflnet.com/logo192.png";
             string keyword = "";
+            System.Collections.Specialized.NameValueCollection args = HttpUtility.ParseQueryString(path.Split('?').LastOrDefault());
+            string refBy = null;
+            if (args["refId"] != null)
+                refBy = await ReferalService.Instance.GetUserName(args["refId"]);
 
             var start = Encoding.UTF8.GetString(contents).Split("<title>");
             var headerStart = start[0] + "<title>";
@@ -108,17 +113,7 @@ namespace hypixel
                     return res.RedirectSkyblock(parameter, "item", keyword);
                 if (!ItemDetails.Instance.TagLookup.ContainsKey(parameter))
                 {
-                    var upperCased = parameter.ToUpper();
-                    if (ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
-                        return res.RedirectSkyblock(upperCased, "item");
-                    // likely not a tag
-                    parameter = HttpUtility.UrlDecode(parameter);
-                    var thread = ItemDetails.Instance.Search(parameter, 1);
-                    thread.Wait();
-                    var item = thread.Result.FirstOrDefault();
-                    keyword = item?.Name;
-                    parameter = item?.Tag;
-                    return res.RedirectSkyblock(parameter, "item", keyword);
+                    return RedirectToItem(res, ref parameter, ref keyword);
                 }
                 await WriteStart(res, headerStart);
                 keyword = ItemDetails.TagToName(parameter);
@@ -131,8 +126,9 @@ namespace hypixel
                     keyword = name;
 
                 title = $"{keyword} price ";
-                float price = await GetAvgPrice(parameter);
-                description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. Visit for a nice chart and filter options";
+                Dictionary<string, string> filters = GetFiltersFromQuery(args);
+                description = await ComputeItemSiteDescription(parameter, description, keyword, refBy, filters);
+
                 imageUrl = "https://sky.shiiyu.moe/item/" + parameter;
                 if (parameter.StartsWith("PET_") && !parameter.StartsWith("PET_ITEM") || parameter.StartsWith("POTION"))
                     imageUrl = i.IconUrl;
@@ -151,6 +147,8 @@ namespace hypixel
                     description = "Free auction house item flipper for Hypixel Skyblock";
                     keyword = "flipper";
                 }
+                if (refBy != null)
+                    description += " | invited by " + refBy;
                 // unkown site, write the header
                 await WriteStart(res, headerStart);
                 await WriteHeader(path, res, description, title, imageUrl, keyword, header);
@@ -164,6 +162,41 @@ namespace hypixel
 
             await res.WriteEnd(newHtml);
             return newHtml;
+        }
+
+        private static string RedirectToItem(Server.RequestContext res, ref string parameter, ref string keyword)
+        {
+            var upperCased = parameter.ToUpper();
+            if (ItemDetails.Instance.TagLookup.ContainsKey(upperCased))
+                return res.RedirectSkyblock(upperCased, "item");
+            // likely not a tag
+            parameter = HttpUtility.UrlDecode(parameter);
+            var thread = ItemDetails.Instance.Search(parameter, 1);
+            thread.Wait();
+            var item = thread.Result.FirstOrDefault();
+            keyword = item?.Name;
+            parameter = item?.Tag;
+            return res.RedirectSkyblock(parameter, "item", keyword);
+        }
+
+        private static Dictionary<string, string> GetFiltersFromQuery(NameValueCollection args)
+        {
+            Dictionary<string, string> filters = null;
+
+            if (args["itemFilter"] != null)
+                filters = JsonConvert.DeserializeObject<Dictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(args["itemFilter"])));
+            return filters;
+        }
+
+        private static async Task<string> ComputeItemSiteDescription(string parameter, string description, string keyword, string refBy, Dictionary<string, string> filters)
+        {
+            float price = await GetAvgPrice(parameter, filters);
+            description = $"Price for item {keyword} in hypixel SkyBlock is {price.ToString("0,0.0")} on average. ";
+            if (filters != null)
+                description += "FILTERS ➡️ " + String.Join(", ", filters.Where(f => f.Key != "ItemId").Select(f => $"{f.Key}: {f.Value}"));
+            if (refBy != null)
+                description += " | invited by " + refBy;
+            return description;
         }
 
         private static async Task<string> GetAuctionDescription(AuctionPreviewParams result, string title)
@@ -194,11 +227,11 @@ namespace hypixel
             return description += $" | Category: {result.Category} | Rarity: {result.Tier}";
         }
 
-        private static async Task<float> GetAvgPrice(string tag)
+        private static async Task<float> GetAvgPrice(string tag, Dictionary<string, string> filter = null)
         {
             try
             {
-                var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = tag, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
+                var prices = (await ItemPrices.Instance.GetPriceFor(new ItemSearchQuery() { name = tag, Filter = filter, Start = DateTime.Now - TimeSpan.FromDays(1) })).Prices;
                 if (prices == null || prices.Count == 0)
                     return 0;
                 return prices.Average(a => a.Avg);

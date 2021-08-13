@@ -19,7 +19,7 @@ namespace hypixel
             Instance = new UserService();
         }
 
-        internal GoogleUser GetOrCreateUser(string googleId,string email = null)
+        internal GoogleUser GetOrCreateUser(string googleId, string email = null)
         {
             using (var context = new HypixelContext())
             {
@@ -36,7 +36,7 @@ namespace hypixel
                     context.SaveChanges();
                     newRegister.Inc();
                 }
-                if(user.Email == null)
+                if (user.Email == null)
                 {
                     user.Email = email;
                     context.SaveChanges();
@@ -48,12 +48,17 @@ namespace hypixel
 
         internal GoogleUser GetUserById(int userId)
         {
+            if(!TryGetUserById(userId,out GoogleUser user))
+                throw new UserNotFoundException(userId.ToString());
+            return user;
+        }
+
+        public bool TryGetUserById(int userId, out GoogleUser user)
+        {
             using (var context = new HypixelContext())
             {
-                var user = context.Users.Include(u=>u.Devices).Where(u=>u.Id == userId).FirstOrDefault();
-                if (user == null)
-                    throw new UserNotFoundException(userId.ToString());
-                return user;
+                user = context.Users.Include(u => u.Devices).Where(u => u.Id == userId).FirstOrDefault();
+                return user != null;
             }
         }
 
@@ -70,7 +75,7 @@ namespace hypixel
 
         public Task<List<Bonus>> GetBoni(int userId)
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 return context.Boni.Where(b => b.UserId == userId).ToListAsync();
             }
@@ -97,7 +102,7 @@ namespace hypixel
                         Type = Bonus.BonusType.REFERED_UPGRADE,
                         UserId = user.ReferedBy
                     });
-                context.Update(user); 
+                context.Update(user);
                 context.SaveChanges();
                 purchases.Inc();
             }
