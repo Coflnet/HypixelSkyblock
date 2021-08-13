@@ -117,6 +117,7 @@ namespace hypixel
             Commands.Add("popularSearches", new PopularSearchesCommand());
             Commands.Add("endedAuctions", new EndedAuctionsCommand());
             Commands.Add("newAuctions", new NewAuctionsCommand());
+            Commands.Add("p", new PingCommand());
 
 
 
