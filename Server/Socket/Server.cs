@@ -112,7 +112,9 @@ namespace hypixel
                 //    await HandleCommand(e.Request, e.Response);
 
             };
-
+            server.Log.Output = (a,b)=>{
+                Console.Write("socket error ");
+            };
             server.Start();
             Console.WriteLine("started http");
             //Console.ReadKey (true);

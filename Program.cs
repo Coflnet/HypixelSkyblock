@@ -184,8 +184,8 @@ namespace hypixel
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    Console.WriteLine("calling configure\n+#+#+#+#+#");
                     webBuilder.UseStartup<Startup>();
+                    Console.WriteLine("calling configure\n+#+#+#+#+#");
                 });
 
 
@@ -199,13 +199,17 @@ namespace hypixel
 
             server = new Server();
             Task.Run(() => server.Start()).ConfigureAwait(false);
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                try
+                while (true)
                 {
-                    CreateHost(new string[0]);
+                    try
+                    {
+                        CreateHost(new string[0]);
+                    }
+                    catch (Exception e) { dev.Logger.Instance.Error(e, "Exited asp.net"); }
+                    await Task.Delay(2000);
                 }
-                catch (Exception e) { dev.Logger.Instance.Error(e, "asp.net"); }
             }).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
