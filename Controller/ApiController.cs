@@ -1,70 +1,17 @@
-
-
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using hypixel;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Coflnet.Hypixel.Controller
 {
     /// <summary>
-    /// abc
+    /// Main API endpoints
     /// </summary>
     [ApiController]
     [Route("api")]
     public class ApiController : ControllerBase
     {
-        AuctionService auctionService;
-        public ApiController(AuctionService auctionService)
-        {
-            this.auctionService = auctionService;
-        }
-        
-        /// <summary>
-        /// Aggregated sumary of item prices for the last day
-        /// </summary>
-        /// <param name="itemTag">The item tag you want prices for</param>
-        /// <returns></returns>
-        [Route("item/price/{itemTag}")]
-        [HttpGet]
-        public async Task<ActionResult<PriceSumaryCommand.Result>> GetSumary(string itemTag)
-        {
-            var result = await Server.ExecuteCommandWithCache<string, PriceSumaryCommand.Result>("priceSum", itemTag);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Gets the lowest bin by item type
-        /// </summary>
-        /// <param name="itemTag">The tag of the item to search for bin</param>
-        /// <param name="tier">The tier aka rarity of the item. Allows to filter pets and recomulated items</param>
-        /// <returns></returns>
-        [Route("item/price/{itemTag}/bin")]
-        [HttpGet]
-        public async Task<ActionResult<BinResponse>> GetLowestBin(string itemTag, [FromQuery] Tier? tier)
-        {
-            Console.WriteLine(tier);
-            var result = await hypixel.Flipper.FlipperEngine.GetLowestBin(itemTag, tier ?? Tier.UNCOMMON);
-            return Ok(new BinResponse(result.FirstOrDefault()?.Price ?? 0, result.FirstOrDefault()?.Uuid,result.LastOrDefault()?.Price ?? 0));
-        }
-
-        public class BinResponse
-        {
-            public long Lowest;
-            public string Uuid;
-            public long SecondLowest;
-
-            public BinResponse(long lowest, string uuid, long secondLowest)
-            {
-                Lowest = lowest;
-                Uuid = uuid;
-                SecondLowest = secondLowest;
-            }
-        }
-
         /// <summary>
         /// Searches through all items
         /// </summary>
@@ -91,26 +38,12 @@ namespace Coflnet.Hypixel.Controller
             return Ok(result);
         }
 
+
         /// <summary>
-        /// Retrieve details of a specific auction
+        /// The last 10 auctions a player bid on
         /// </summary>
-        /// <param name="auctionUuid">The uuid of the auction you want the details for</param>
+        /// <param name="playerUuid">The uuid of the player</param>
         /// <returns></returns>
-        [Route("auction/{auctionUuid}")]
-        [HttpGet]
-        [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<ActionResult<SaveAuction>> getAuctionDetails(string auctionUuid)
-        {
-            var result = await auctionService.GetAuctionAsync(auctionUuid, auction => auction
-                        .Include(a => a.Enchantments)
-                        .Include(a => a.NbtData)
-                        .Include(a => a.Bids));
-            Console.WriteLine("controller hit");
-            
-            return Ok(result);
-        }
-
-
         [Route("player/{playerUuid}/bids")]
         [HttpGet]
         public async Task<ActionResult<List<PlayerBidsCommand.BidResult>>> GetPlayerBids(string playerUuid)
@@ -125,6 +58,11 @@ namespace Coflnet.Hypixel.Controller
             return Ok(result);
         }
 
+        /// <summary>
+        /// The last 10 auctions a player created
+        /// </summary>
+        /// <param name="playerUuid">The uuid of the player</param>
+        /// <returns></returns>
         [Route("player/{playerUuid}/auctions")]
         [HttpGet]
         public async Task<ActionResult<List<PlayerAuctionsCommand.AuctionResult>>> GetPlayerAuctions(string playerUuid)
