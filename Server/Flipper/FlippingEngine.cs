@@ -201,8 +201,15 @@ namespace hypixel.Flipper
         public void RemoveNonConnection(SkyblockBackEnd con)
         {
             SlowSubs.TryRemove(con.Id, out int value);
-            Subs.TryRemove(con.Id, out value);
         }
+
+        public void RemoveConnection(SkyblockBackEnd con)
+        {
+            Subs.TryRemove(con.Id, out int value);
+            RemoveNonConnection(con);
+        }
+
+
 
 
         private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)

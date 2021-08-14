@@ -8,6 +8,7 @@ namespace hypixel
         {
             var con = (data as SocketMessageData).Connection;
             Flipper.FlipperEngine.Instance.RemoveNonConnection(con);
+            Flipper.FlipperEngine.Instance.RemoveConnection(con);
             return data.Ok();
         }
     }
