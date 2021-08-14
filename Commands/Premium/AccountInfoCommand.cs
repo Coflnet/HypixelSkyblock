@@ -27,6 +27,10 @@ namespace hypixel
             [DataMember(Name = "mcName")]
             public string MinecraftName;
 
+            public Response()
+            {
+            }
+
             public Response(string email, string token, string minecraftId, string mcName)
             {
                 Email = email;
@@ -34,6 +38,8 @@ namespace hypixel
                 MinecraftId = minecraftId;
                 MinecraftName = mcName;
             }
+
+            
         }
     }
 }

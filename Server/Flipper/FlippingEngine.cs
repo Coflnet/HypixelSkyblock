@@ -523,6 +523,7 @@ namespace hypixel.Flipper
                 .Where(a => a.Tier == auction.Tier);
 
             byte ultiLevel = 127;
+            var flatNbt = auction.FlatenedNBT ?? new Dictionary<string, string>();
             Enchantment.EnchantmentType ultiType = Enchantment.EnchantmentType.unknown;
             if (ulti != null)
             {
@@ -549,9 +550,8 @@ namespace hypixel.Flipper
             {
                 try
                 {
-                    var val = long.Parse(auction.FlatenedNBT["winning_bid"]);
-                    var keyId = NBT.GetLookupKey("winning_bid");
-                    select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
+                    var keyValue = "winning_bid";
+                    select = AddNBTSelect(select, flatNbt, keyValue);
                     oldest -= TimeSpan.FromDays(10);
                 }
                 catch (Exception e)
@@ -559,6 +559,8 @@ namespace hypixel.Flipper
                     dev.Logger.Instance.Error(e, "trying filter flip midas item");
                 }
             }
+            if(flatNbt.ContainsKey("farming_for_dummies_count"))
+                select = AddNBTSelect(select, flatNbt, "farming_for_dummies_count");
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
             if (limit == 0)
@@ -569,6 +571,14 @@ namespace hypixel.Flipper
                 //.OrderByDescending(a=>a.Id)
                 //.Include(a => a.NbtData)
                 .Take(limit);
+        }
+
+        private static IQueryable<SaveAuction> AddNBTSelect(IQueryable<SaveAuction> select, Dictionary<string, string> flatNbt, string keyValue)
+        {
+            var val = long.Parse(flatNbt[keyValue]);
+            var keyId = NBT.GetLookupKey(keyValue);
+            select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value > val - 2_000_000 && n.Value < val + 2_000_000).Any());
+            return select;
         }
 
         private static IQueryable<SaveAuction> AddPetLvlSelect(SaveAuction auction, IQueryable<SaveAuction> select)

@@ -49,7 +49,10 @@ namespace hypixel.Flipper
                 properties.Add(new Property($"Holds {ItemDetails.TagToName(data["heldItem"])}", 12));
             if (data.ContainsKey("candyUsed"))
                 properties.Add(new Property($"Candy Used {data["candyUsed"]}", 11));
+            if (data.ContainsKey("farming_for_dummies_count"))
+                properties.Add(new Property($"Farming for dummies {data["farming_for_dummies_count"]}", 11));
 
+                
             var isBook = auction.Tag == "ENCHANTED_BOOK";
 
             properties.AddRange(auction.Enchantments.Where(e => isBook || FlipperEngine.UltimateEnchants.ContainsKey(e.Type) || e.Level > 5).Select(e => new Property()

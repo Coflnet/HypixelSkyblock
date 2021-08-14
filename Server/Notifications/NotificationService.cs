@@ -18,6 +18,8 @@ namespace hypixel
 
         public static string BaseUrl = "https://sky.coflnet.com";
         public static string ItemIconsBase = "https://sky.shiiyu.moe/item";
+        static string firebaseKey = SimplerConfig.Config.Instance["firebaseKey"];
+        static string firebaseSenderId = SimplerConfig.Config.Instance["firebaseSenderId"];
 
         static NotificationService()
         {
@@ -101,10 +103,10 @@ namespace hypixel
             try
             {
                 // Get the server key from FCM console
-                var serverKey = string.Format("key={0}", SimplerConfig.Config.Instance["firebaseKey"]);
+                var serverKey = string.Format("key={0}", firebaseKey);
 
                 // Get the sender id from FCM console
-                var senderId = string.Format("id={0}", SimplerConfig.Config.Instance["firebaseSenderId"]);
+                var senderId = string.Format("id={0}", firebaseSenderId);
 
                 //var icon = "https://sky.coflnet.com/logo192.png";
                 var data = notification.data;
@@ -147,7 +149,7 @@ namespace hypixel
 
                 dynamic res = JsonConvert.DeserializeObject(response.Content);
                 var success = res.success == 1;
-                if(!success)
+                if (!success)
                     dev.Logger.Instance.Error(response.Content);
 
                 return success;

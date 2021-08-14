@@ -31,7 +31,7 @@ namespace dev
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
-            var redisCon = SimplerConfig.Config.Instance["redisCon"];
+            var redisCon = Configuration["redisCon"];
             services.AddControllers().AddNewtonsoftJson();
             services.AddSwaggerGen(c =>
             {

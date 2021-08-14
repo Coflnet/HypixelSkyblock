@@ -184,6 +184,7 @@ namespace hypixel
         [IgnoreMember]
         [JsonIgnore]
         public List<NBTLookup> NBTLookup { get; set; }
+        private Dictionary<string,string> _flatenedNBT;
         [IgnoreMember]
         [JsonProperty("flatNbt")]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
@@ -191,12 +192,15 @@ namespace hypixel
         {
             get
             {
+                if(_flatenedNBT != null)
+                    return _flatenedNBT;
                 try
                 {
                     var data = NbtData.Data;
                     if (data == null || data.Count == 0)
                         return new Dictionary<string, string>();
-                    return NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d => d.Value.ToString());
+                    _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d => d.Value.ToString());
+                    return _flatenedNBT;
                 }
                 catch (Exception e)
                 {
