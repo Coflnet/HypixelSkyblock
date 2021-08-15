@@ -11,6 +11,7 @@ using RestSharp;
 using Stripe;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace hypixel
 {
@@ -185,7 +186,12 @@ namespace hypixel
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    Console.WriteLine("calling configure\n+#+#+#+#+#");
+                }).ConfigureAppConfiguration((context, config) =>
+                {
+                    Console.WriteLine("called configure\n+#+#+#+#+#");
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+                    config.AddJsonFile("custom.conf.json", optional: true, reloadOnChange: false);
+                    config.AddEnvironmentVariables();
                 });
 
 
