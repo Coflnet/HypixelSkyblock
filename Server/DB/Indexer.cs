@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet;
+using Confluent.Kafka;
 using dev;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -31,16 +33,6 @@ namespace hypixel
 
             if (QueueCount > MAX_QUEUE_SIZE)
                 PersistQueueBatch();
-        }
-
-        public static void AddToQueue(IEnumerable<SaveAuction> auctionsToAdd)
-        {
-            //Console.WriteLine($"Adding {auctionsToAdd.Count()} todoauctions");
-            foreach (var item in auctionsToAdd)
-            {
-                AddToQueue(item);
-            }
-            //SubscribeEngine.Instance.PushOrIgnore(auctionsToAdd);
         }
 
         private static void PersistQueueBatch()
@@ -105,30 +97,123 @@ namespace hypixel
 
         public static async Task ProcessQueue()
         {
-            var chuckCount = 1000;
-            for (int i = 0; i < auctionsQueue.Count / 1000 + 1; i++)
+            var chuckCount = 500;
+
+            var batch = new Queue<ConsumeResult<Ignore, SaveAuction>>();
+
+            var conf = new ConsumerConfig
             {
-                List<SaveAuction> batch = TakeBatch(chuckCount);
+                GroupId = "test-consumer-group",
+                BootstrapServers = "kafka:9092",
+                // Note: The AutoOffsetReset property determines the start offset in the event
+                // there are not yet any committed offsets for the consumer group for the
+                // topic/partitions of interest. By default, offsets are committed
+                // automatically, so in this example, consumption will only start from the
+                // earliest message in the topic 'my-topic' the first time you run the program.
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+
+            using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(Deserializer.Instance).Build())
+            {
+                c.Subscribe("sky-indexer");
                 try
                 {
-                    await ToDb(batch);
+                    while (true)
+                    {
+                        try
+                        {
+                            while (batch.Count < chuckCount)
+                            {
+                                var cr = c.Consume(1500);
+                                if (cr == null)
+                                {
+                                    if (batch.Count > 0)
+                                        Console.WriteLine($"only found {batch.Count} indexing those");
+                                    break;
+                                }
+                                batch.Enqueue(cr);
+                                if (cr.TopicPartitionOffset.Offset % 200 == 0)
+                                    Console.WriteLine($"Consumed message '{cr.Message.Value.Uuid}' at: '{cr.TopicPartitionOffset}'.");
+
+                            }
+                            // store the batch
+                            await ToDb(batch.Select(a => a.Message.Value));
+                            // tell kafka that we stored the batch
+                            c.Commit(batch.Select(b => b.TopicPartitionOffset));
+                            batch.Clear();
+                            LastFinish = DateTime.Now;
+                        }
+                        catch (ConsumeException e)
+                        {
+                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        }
+                    }
                 }
-                catch (Exception e)
+                catch (OperationCanceledException)
                 {
-                    AddToQueue(batch);
-                    throw e;
+                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                    c.Close();
                 }
             }
-            LastFinish = DateTime.Now;
+        }
+
+        private class Deserializer : IDeserializer<SaveAuction>
+        {
+            public static Deserializer Instance = new Deserializer();
+            public SaveAuction Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
+            {
+                return MessagePack.MessagePackSerializer.Deserialize<SaveAuction>(data.ToArray());
+            }
         }
 
         private static List<SaveAuction> TakeBatch(int chuckCount)
         {
             var batch = new List<SaveAuction>();
-            for (int index = 0; index < chuckCount; index++)
+
+            var conf = new ConsumerConfig
             {
-                if (auctionsQueue.TryDequeue(out SaveAuction a))
-                    batch.Add(a);
+                GroupId = "test-consumer-group",
+                BootstrapServers = "kafka:9092",
+                // Note: The AutoOffsetReset property determines the start offset in the event
+                // there are not yet any committed offsets for the consumer group for the
+                // topic/partitions of interest. By default, offsets are committed
+                // automatically, so in this example, consumption will only start from the
+                // earliest message in the topic 'my-topic' the first time you run the program.
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+
+            using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(Deserializer.Instance).Build())
+            {
+                c.Subscribe("sky-indexer");
+
+                CancellationTokenSource cts = new CancellationTokenSource();
+                Console.CancelKeyPress += (_, e) =>
+                {
+                    e.Cancel = true; // prevent the process from terminating.
+                    cts.Cancel();
+                };
+
+                try
+                {
+                    while (batch.Count < 50)
+                        try
+                        {
+                            var cr = c.Consume(cts.Token);
+                            batch.Add(cr.Message.Value);
+                            Console.WriteLine($"Consumed message '{cr.Message.Value.Uuid}' at: '{cr.TopicPartitionOffset}'.");
+                            c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
+                        }
+                        catch (ConsumeException e)
+                        {
+                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        }
+
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                    c.Close();
+                }
             }
 
             return batch;
@@ -178,7 +263,7 @@ namespace hypixel
 
         public static int highestPlayerId = 1;
 
-        private static async Task ToDb(List<SaveAuction> auctions)
+        private static async Task ToDb(IEnumerable<SaveAuction> auctions)
         {
 
             auctions = auctions.Distinct(new AuctionComparer()).ToList();
@@ -287,7 +372,7 @@ namespace hypixel
             context.Auctions.Update(dbauction);
         }
 
-        private static async Task<Dictionary<string, SaveAuction>> GetExistingAuctions(List<SaveAuction> auctions, HypixelContext context)
+        private static async Task<Dictionary<string, SaveAuction>> GetExistingAuctions(IEnumerable<SaveAuction> auctions, HypixelContext context)
         {
             // preload
             return (await context.Auctions.Where(a => auctions.Select(oa => oa.UId)

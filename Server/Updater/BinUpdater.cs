@@ -69,7 +69,7 @@ namespace hypixel
                 return a;
             }).ToList();
             SoldLastMin = auctions;
-            Indexer.AddToQueue(auctions);
+            Updater.AddToIndexerQueue(auctions);
 
             Task.Run(() =>
             {

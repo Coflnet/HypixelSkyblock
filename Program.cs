@@ -213,43 +213,52 @@ namespace hypixel
             }).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
+            var modes = SimplerConfig.Config.Instance["MODES"]?.Split();
+            if (modes == null)
+                modes = new string[] { "indexer", "updater", "flipper" };
+
             if (mode == null)
                 Indexer.MiniumOutput();
-            LightClient = mode == "light";
+            LightClient = modes.Contains("light");
             if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
 
-            updater = new Updater(apiKey);
-            updater.UpdateForEver();
-            Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
+            if (modes.Contains("updater"))
+            {
 
-            // bring the db up to date
-            GetDBToDesiredState();
-            ItemDetails.Instance.LoadFromDB();
-            SubscribeEngine.Instance.LoadFromDb();
-            var redisInit = MakeSureRedisIsInitialized();
-
-            Console.WriteLine("booting db dependend stuff");
-
-            var bazzar = new BazaarUpdater();
-            bazzar.UpdateForEver(apiKey);
-            RunIndexer();
-
+                updater = new Updater(apiKey);
+                updater.UpdateForEver();
+            }
+            Flipper.FlipperEngine.diabled = !modes.Contains("flipper");
             if (!Flipper.FlipperEngine.diabled)
                 for (int i = 0; i < 2; i++)
                     RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
 
-            NameUpdater.Run();
-            SearchService.Instance.RunForEver();
-            CacheService.Instance.RunForEver();
-            Task.Run(async () =>
+
+            var bazzar = new BazaarUpdater();
+            Task redisInit = null;
+            // bring the db up to date
+            if (modes.Contains("indexer"))
             {
-                await Task.Delay(TimeSpan.FromMinutes(3));
-                await ItemPrices.Instance.BackfillPrices();
-            }).ConfigureAwait(false); ;
+                GetDBToDesiredState();
+                ItemDetails.Instance.LoadFromDB();
+                SubscribeEngine.Instance.LoadFromDb();
+                redisInit = MakeSureRedisIsInitialized();
+
+                Console.WriteLine("booting db dependend stuff");
+                bazzar.UpdateForEver(apiKey);
+                RunIndexer();
+                NameUpdater.Run();
+                SearchService.Instance.RunForEver();
+                Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(3));
+                    await ItemPrices.Instance.BackfillPrices();
+                }).ConfigureAwait(false); ;
+            }
 
 
             onStop += () =>
@@ -265,7 +274,7 @@ namespace hypixel
                 Console.WriteLine($"Cleaning failed {e.Message}");
             }
 
-            redisInit.GetAwaiter().GetResult();
+            redisInit?.GetAwaiter().GetResult();
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 
@@ -315,10 +324,10 @@ namespace hypixel
         private static void StopServices(Updater updater, Server server, BazaarUpdater bazzar)
         {
             Console.WriteLine("Stopping");
-            server.Stop();
+            server?.Stop();
             Indexer.Stop();
-            updater.Stop();
-            bazzar.Stop();
+            updater?.Stop();
+            bazzar?.Stop();
             System.Threading.Thread.Sleep(500);
             Console.WriteLine("done");
         }

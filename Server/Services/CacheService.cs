@@ -177,15 +177,6 @@ namespace hypixel
             }).ConfigureAwait(false);
         }
 
-        public void ClearStale()
-        {/*
-            var toRemove = cache.Where(item => item.Value.Expires < DateTime.Now)
-                            .Select(item => item.Key).ToList();
-            foreach (var item in toRemove)
-            {
-                cache.TryRemove(item, out CacheElement value);
-            }*/
-        }
 
         private static string GetCacheKey(MessageData request)
         {
@@ -257,19 +248,6 @@ namespace hypixel
             }
 
 
-        }
-
-        internal void RunForEver()
-        {
-            var tenMin = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Task.Delay(tenMin);
-                    ClearStale();
-                }
-            }).ConfigureAwait(false);
         }
 
         /// <summary>

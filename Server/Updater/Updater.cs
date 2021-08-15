@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Coflnet;
+using Confluent.Kafka;
 using dev;
 using Hypixel.NET;
 using Hypixel.NET.SkyblockApi;
@@ -95,10 +96,9 @@ namespace hypixel
 
         async Task<DateTime> RunUpdate(DateTime updateStartTime)
         {
-            /* Task.Run(()
-                  => BinUpdater.GrabAuctions(hypixel)
-             );*/
-            BinUpdater.GrabAuctions(hypixel);
+            var binupdate = Task.Run(()
+                => BinUpdater.GrabAuctions(hypixel)).ConfigureAwait(false);
+
             long max = 1;
             var lastUpdate = lastUpdateDone; // new DateTime (1970, 1, 1);
             //if (FileController.Exists ("lastUpdate"))
@@ -254,7 +254,7 @@ namespace hypixel
                 if (item.Value < DateTime.Now - TimeSpan.FromMinutes(5))
                     removed.Add(item.Key);
             }
-            Indexer.AddToQueue(removed.Select(id => new SaveAuction(id)));
+            AddToIndexerQueue(removed.Select(id => new SaveAuction(id)));
             foreach (var item in removed)
             {
                 MissingSince.TryRemove(item, out DateTime since);
@@ -358,7 +358,7 @@ namespace hypixel
             // prioritise the flipper
             var started = processed.Where(a => a.Start > lastUpdate).ToList();
             var min = DateTime.Now - TimeSpan.FromMinutes(15);
-            Flipper.FlipperEngine.Instance.NewAuctions(started.Where(a => a.Start > min));
+            AddToFlipperCheckQueue(started.Where(a => a.Start > min));
 
 
             if (DateTime.Now.Minute % 30 == 7)
@@ -381,13 +381,7 @@ namespace hypixel
                  await ItemPrices.Instance.AddEndedAuctions(ended);
              });*/
 
-
-            if (Program.FullServerMode)
-                Indexer.AddToQueue(processed);
-            else
-                FileController.SaveAs($"apull/{DateTime.Now.Ticks}", processed);
-
-
+            AddToIndexerQueue(processed);
 
             // do not slow down the update
             foreach (var auction in started)
@@ -397,6 +391,53 @@ namespace hypixel
             auctionUpdateCount.Inc(count);
 
             return Task.FromResult(count);
+        }
+
+        private class Serializer : ISerializer<SaveAuction>
+        {
+            public static Serializer Instance = new Serializer();
+            public byte[] Serialize(SaveAuction data, SerializationContext context)
+            {
+                return MessagePack.MessagePackSerializer.Serialize(data);
+            }
+        }
+
+        private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
+
+        static Action<DeliveryReport<Null, SaveAuction>> handler = r =>
+            {
+                if (r.Error.IsError || r.TopicPartitionOffset.Offset % 200 == 0)
+                    Console.WriteLine(!r.Error.IsError
+                        ? $"Delivered {r.Topic} {r.Offset} "
+                        : $"\nDelivery Error {r.Topic}: {r.Error.Reason}");
+            };
+
+        public static void AddToIndexerQueue(IEnumerable<SaveAuction> auctionsToAdd)
+        {
+            using (var p = new ProducerBuilder<Null, SaveAuction>(producerConfig).SetValueSerializer(Serializer.Instance).Build())
+            {
+                foreach (var item in auctionsToAdd)
+                {
+                    p.Produce("sky-indexer", new Message<Null, SaveAuction> { Value = item }, handler);
+                }
+
+                // wait for up to 10 seconds for any inflight messages to be delivered.
+                p.Flush(TimeSpan.FromSeconds(10));
+            }
+        }
+
+        public static void AddToFlipperCheckQueue(IEnumerable<SaveAuction> auctionsToAdd)
+        {
+            using (var p = new ProducerBuilder<Null, SaveAuction>(producerConfig).SetValueSerializer(Serializer.Instance).Build())
+            {
+                foreach (var item in auctionsToAdd)
+                {
+                    p.Produce("sky-flipper", new Message<Null, SaveAuction> { Value = item }, handler);
+                }
+
+                // wait for up to 10 seconds for any inflight messages to be delivered.
+                p.Flush(TimeSpan.FromSeconds(10));
+            }
         }
 
         private static int DetermineWorth(int c, SaveAuction auction)
