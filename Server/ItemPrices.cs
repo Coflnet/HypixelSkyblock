@@ -500,6 +500,7 @@ namespace hypixel
                             var result = await AvgFromAuctions(itemId, select);
                             await context.Prices.AddRangeAsync(result);
                             await context.SaveChangesAsync();
+                            await Task.Delay(300);
                         }
                     }
                     // wait for tomorrow (only when no exception)
