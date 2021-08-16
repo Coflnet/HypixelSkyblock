@@ -69,7 +69,7 @@ namespace hypixel
                     await AddOccurences(context);
                 if (updateCount % 10000 == 9999)
                     ShrinkHits(context);
-                if(updateCount % 2 == 0)
+                if(updateCount % 2000 == 0)
                     await PrefetchCache();
             }
             await SaveHits();

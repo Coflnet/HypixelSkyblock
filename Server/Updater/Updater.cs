@@ -9,7 +9,6 @@ using Confluent.Kafka;
 using dev;
 using Hypixel.NET;
 using Hypixel.NET.SkyblockApi;
-using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
 {
@@ -19,6 +18,12 @@ namespace hypixel
         private string apiKey;
         private bool abort;
         private static bool minimumOutput;
+
+        private static string MissingAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:MISSING_AUCTION"];
+        private static string SoldAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:SOLD_AUCTION"];
+        private static string NewAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:NEW_AUCTION"];
+        private static string AuctionEndedTopic = SimplerConfig.Config.Instance["TOPICS:AUCTION_ENDED"];
+        private static string NewBidsTopic = SimplerConfig.Config.Instance["TOPICS:NEW_BID"];
 
         private static bool doFullUpdate = false;
         Prometheus.Counter auctionUpdateCount = Prometheus.Metrics.CreateCounter("auction_update", "How many auctions were updated");
@@ -254,7 +259,7 @@ namespace hypixel
                 if (item.Value < DateTime.Now - TimeSpan.FromMinutes(5))
                     removed.Add(item.Key);
             }
-            AddToIndexerQueue(removed.Select(id => new SaveAuction(id)));
+            ProduceIntoTopic(removed.Select(id => new SaveAuction(id)), MissingAuctionsTopic);
             foreach (var item in removed)
             {
                 MissingSince.TryRemove(item, out DateTime since);
@@ -358,7 +363,10 @@ namespace hypixel
             // prioritise the flipper
             var started = processed.Where(a => a.Start > lastUpdate).ToList();
             var min = DateTime.Now - TimeSpan.FromMinutes(15);
-            AddToFlipperCheckQueue(started.Where(a => a.Start > min));
+            //AddToFlipperCheckQueue(started.Where(a => a.Start > min));
+
+            ProduceIntoTopic(processed.Where(a=>a.Start > lastUpdate), NewAuctionsTopic);
+            ProduceIntoTopic(processed.Where(item=>item.Bids.Count > 0 && item.Bids[item.Bids.Count - 1].Timestamp > lastUpdate), NewBidsTopic);
 
 
             if (DateTime.Now.Minute % 30 == 7)
@@ -375,19 +383,8 @@ namespace hypixel
                 }
 
             var ended = res.Auctions.Where(a => a.End < DateTime.Now).Select(a => new SaveAuction(a));
-            /* var variableHereToRemoveWarning = taskFactory.StartNew(async () =>
-             {
-                 await Task.Delay(TimeSpan.FromSeconds(20));
-                 await ItemPrices.Instance.AddEndedAuctions(ended);
-             });*/
+            ProduceIntoTopic(ended, AuctionEndedTopic);
 
-            AddToIndexerQueue(processed);
-
-            // do not slow down the update
-            foreach (var auction in started)
-            {
-                SubscribeEngine.Instance.NewAuction(auction);
-            }
             auctionUpdateCount.Inc(count);
 
             return Task.FromResult(count);
@@ -404,21 +401,26 @@ namespace hypixel
 
         private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
 
-        static Action<DeliveryReport<Null, SaveAuction>> handler = r =>
+        static Action<DeliveryReport<string, SaveAuction>> handler = r =>
             {
-                if (r.Error.IsError || r.TopicPartitionOffset.Offset % 200 == 0)
+                if (r.Error.IsError || r.TopicPartitionOffset.Offset % 1000 == 10)
                     Console.WriteLine(!r.Error.IsError
                         ? $"Delivered {r.Topic} {r.Offset} "
                         : $"\nDelivery Error {r.Topic}: {r.Error.Reason}");
             };
 
-        public static void AddToIndexerQueue(IEnumerable<SaveAuction> auctionsToAdd)
+        public static void AddSoldAuctions(IEnumerable<SaveAuction> auctionsToAdd)
         {
-            using (var p = new ProducerBuilder<Null, SaveAuction>(producerConfig).SetValueSerializer(Serializer.Instance).Build())
+            ProduceIntoTopic(auctionsToAdd, SoldAuctionsTopic);
+        }
+
+        private static void ProduceIntoTopic(IEnumerable<SaveAuction> auctionsToAdd, string targetTopic)
+        {
+            using (var p = new ProducerBuilder<string, SaveAuction>(producerConfig).SetValueSerializer(Serializer.Instance).Build())
             {
                 foreach (var item in auctionsToAdd)
                 {
-                    p.Produce("sky-indexer", new Message<Null, SaveAuction> { Value = item }, handler);
+                    p.Produce(targetTopic, new Message<string, SaveAuction> { Value = item, Key = $"{item.UId.ToString()}{item.Bids.Count}{item.End}" }, handler);
                 }
 
                 // wait for up to 10 seconds for any inflight messages to be delivered.
@@ -428,16 +430,7 @@ namespace hypixel
 
         public static void AddToFlipperCheckQueue(IEnumerable<SaveAuction> auctionsToAdd)
         {
-            using (var p = new ProducerBuilder<Null, SaveAuction>(producerConfig).SetValueSerializer(Serializer.Instance).Build())
-            {
-                foreach (var item in auctionsToAdd)
-                {
-                    p.Produce("sky-flipper", new Message<Null, SaveAuction> { Value = item }, handler);
-                }
-
-                // wait for up to 10 seconds for any inflight messages to be delivered.
-                p.Flush(TimeSpan.FromSeconds(10));
-            }
+            ProduceIntoTopic(auctionsToAdd,"sky-flipper");
         }
 
         private static int DetermineWorth(int c, SaveAuction auction)

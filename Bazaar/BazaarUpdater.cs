@@ -5,29 +5,15 @@ using System.Threading;
 using Coflnet;
 using hypixel;
 using Hypixel.NET;
-using Hypixel.NET.SkyblockApi.Bazaar;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
+using Confluent.Kafka;
 
 namespace dev
 {
-
-    public class BazaarPull
-    {
-        public BazaarPull() { }
-        public BazaarPull(GetBazaarProducts result)
-        {
-            this.Timestamp = result.LastUpdated;
-            this.Products = result.Products.Select(p => new ProductInfo(p.Value, this)).ToList();
-        }
-
-        public int Id { get; set; }
-        public List<ProductInfo> Products { get; set; }
-
-        public DateTime Timestamp { get; set; }
-    }
     public class BazaarUpdater
     {
         private bool abort;
@@ -36,27 +22,19 @@ namespace dev
 
         public static Dictionary<string, QuickStatus> LastStats = new Dictionary<string, QuickStatus>();
 
-        public static async Task NewUpdate(string apiKey)
-        {
-            Console.WriteLine($"Started at {DateTime.Now}");
+        public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:BAZAAR_CONSUME"];
+        public static readonly string ProduceTopic = SimplerConfig.Config.Instance["TOPICS:BAZAAR"];
 
-            var api = new HypixelApi(apiKey, 2);
-
-            for (int i = 0; i < 1; i++)
-            {
-                var start = DateTime.Now;
-                await PullAndSave(api, i);
-                await WaitForServerCacheRefresh(i, start);
-            }
-
-            Console.WriteLine($"done {DateTime.Now}");
-
-        }
 
         private static async Task PullAndSave(HypixelApi api, int i)
         {
             var result = await api.GetBazaarProductsAsync();
             var pull = new BazaarPull(result);
+            await ProduceIntoQueue(pull);
+        }
+
+        private static async Task IndexBazaar(int i, BazaarPull pull)
+        {
             await Program.MakeSureRedisIsInitialized();
             await ItemPrices.FillLastHourIfDue();
             using (var context = new HypixelContext())
@@ -83,18 +61,11 @@ namespace dev
                 Console.Write("\r" + i);
 
             }
-         /*   var saveTask = Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromMinutes(1));
-                await ItemPrices.Instance.AddBazaarData(pull);
-            });*/
             SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
             LastUpdate = DateTime.Now;
         }
-
-
 
         private static void UpdateItemBazaarState(BazaarPull pull, HypixelContext context)
         {
@@ -193,8 +164,8 @@ namespace dev
                 {
                     try
                     {
-                        if(api == null)
-                            api  = new HypixelApi(apiKey, 9);
+                        if (api == null)
+                            api = new HypixelApi(apiKey, 9);
                         var start = DateTime.Now;
                         await PullAndSave(api, i);
                         await WaitForServerCacheRefresh(i, start);
@@ -208,7 +179,65 @@ namespace dev
                     }
                 }
                 Console.WriteLine("Stopped Bazaar :/");
-            }).ConfigureAwait(false);;
+            }).ConfigureAwait(false); ;
+        }
+
+        private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
+
+        private static async Task ProduceIntoQueue(BazaarPull pull)
+        {
+            using (var p = new ProducerBuilder<string, BazaarPull>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<BazaarPull>()).Build())
+            {
+                var result = await p.ProduceAsync(ProduceTopic, new Message<string, BazaarPull> { Value = pull, Key = pull.Timestamp.ToString() });
+                Console.WriteLine("wrote bazaar log " + result.TopicPartitionOffset.Offset);
+            }
+        }
+
+        public async Task ProcessBazaarQueue()
+        {
+            var conf = new ConsumerConfig
+            {
+                GroupId = "sky-bazaar-indexer",
+                BootstrapServers = Program.KafkaHost,
+                // Note: The AutoOffsetReset property determines the start offset in the event
+                // there are not yet any committed offsets for the consumer group for the
+                // topic/partitions of interest. By default, offsets are committed
+                // automatically, so in this example, consumption will only start from the
+                // earliest message in the topic 'my-topic' the first time you run the program.
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+            };
+
+            using (var c = new ConsumerBuilder<Ignore, BazaarPull>(conf)
+                        .SetValueDeserializer(SerializerFactory.GetDeserializer<BazaarPull>())
+                        .Build())
+            {
+                c.Subscribe(ConsumeTopic);
+                try
+                {
+                    var index = 0;
+                    while (true)
+                    {
+                        try
+                        {
+                            var cr = c.Consume(5000);
+                            if (cr == null)
+                                continue;
+                            await IndexBazaar(index++, cr.Message.Value);
+                            // tell kafka that we stored the batch
+                            c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
+                        }
+                        catch (ConsumeException e)
+                        {
+                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                    c.Close();
+                }
+            }
         }
 
         internal void Stop()

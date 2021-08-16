@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 using dev;
 using Newtonsoft.Json;
 
@@ -35,19 +36,57 @@ namespace hypixel
         public static SubscribeEngine Instance { get; }
 
 
-        TaskFactory taskFactory;
 
         static SubscribeEngine()
         {
             Instance = new SubscribeEngine();
         }
-
-
-        public SubscribeEngine()
+        ConsumerConfig conf = new ConsumerConfig
         {
+            GroupId = "sky-sub-engine",
+            BootstrapServers = Program.KafkaHost,
+            AutoOffsetReset = AutoOffsetReset.Earliest
+        };
 
-            var scheduler = new LimitedConcurrencyLevelTaskScheduler(2);
-            taskFactory = new TaskFactory(scheduler);
+        public async Task ProcessQueues()
+        {
+            var topics = new string[] { Indexer.AuctionEndedTopic, Indexer.SoldAuctionTopic, Indexer.MissingAuctionsTopic };
+            ProcessSubscription<SaveAuction>(topics,BinSold);
+            ProcessSubscription<SaveAuction>(new string[]{Indexer.NewAuctionsTopic},NewAuction);
+            ProcessSubscription<BazaarPull>(new string[]{BazaarUpdater.ConsumeTopic},NewBazaar);
+            ProcessSubscription<SaveAuction>(new string[]{Indexer.NewBidTopic},NewBids);
+        }
+
+        private void ProcessSubscription<T>(string[] topics, Action<T> handler,int timeout = 50)
+        {
+            using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
+            {
+                c.Subscribe(topics);
+                try
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            var cr = c.Consume(timeout);
+                            if (cr == null)
+                                continue;
+                            handler(cr.Message.Value);
+                            // tell kafka that we stored the batch
+                            c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
+                        }
+                        catch (ConsumeException e)
+                        {
+                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                    c.Close();
+                }
+            }
         }
 
         public void AddNew(SubscribeItem subscription)
@@ -193,8 +232,6 @@ namespace hypixel
             {
                 NotificationService.Instance.AuctionOver(sub, auction);
             });
-
-
         }
 
         private void NotifyIfExisting(ConcurrentDictionary<string, ConcurrentBag<SubscribeItem>> target, string key, Action<SubscribeItem> todo)
@@ -293,28 +330,6 @@ namespace hypixel
                 }
         }
 
-        public void PushOrIgnore(SaveAuction auction)
-        {
-            NotifyChange(auction.Uuid, auction);
-            NotifyChange(auction.AuctioneerId, auction);
-            foreach (var bids in auction.Bids)
-            {
-                NotifyChange(bids.Bidder, auction);
-            }
-
-        }
-
-        public void PushOrIgnore(IEnumerable<SaveAuction> auctions)
-        {
-            taskFactory.StartNew(() =>
-            {
-                foreach (var auction in auctions)
-                {
-                    PushOrIgnore(auction);
-                }
-            });
-        }
-
         public void Subscribe(string topic, int userId)
         {
             if (userId == 0)
@@ -330,7 +345,7 @@ namespace hypixel
             });
         }
 
-        public void Unsubscribe(string topic, int  userId)
+        public void Unsubscribe(string topic, int userId)
         {
             ToUnsubscribe.Enqueue(new UnSub(topic, userId));
             // unsubscribe stale elements

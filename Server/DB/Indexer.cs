@@ -22,23 +22,18 @@ namespace hypixel
         public static int IndexedAmount => count;
         public static int QueueCount => auctionsQueue.Count;
 
+        public static readonly string MissingAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:MISSING_AUCTION_CONSUME"];
+        public static readonly string SoldAuctionTopic = SimplerConfig.Config.Instance["TOPICS:SOLD_AUCTION_CONSUME"];
+        public static readonly string NewAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:NEW_AUCTION_CONSUME"];
+        public static readonly string AuctionEndedTopic = SimplerConfig.Config.Instance["TOPICS:AUCTION_ENDED_CONSUME"];
+        public static readonly string NewBidTopic = SimplerConfig.Config.Instance["TOPICS:NEW_BID_CONSUME"];
+
         private static int count;
         public static DateTime LastFinish { get; internal set; }
 
         private static ConcurrentQueue<SaveAuction> auctionsQueue = new ConcurrentQueue<SaveAuction>();
 
-        private static void AddToQueue(SaveAuction auction)
-        {
-            auctionsQueue.Enqueue(auction);
 
-            if (QueueCount > MAX_QUEUE_SIZE)
-                PersistQueueBatch();
-        }
-
-        private static void PersistQueueBatch()
-        {
-            FileController.SaveAs($"apull/{DateTime.Now.Ticks + 1}", TakeBatch(AUCTION_CHUNK_SIZE));
-        }
 
         public static async Task LastHourIndex()
         {
@@ -103,8 +98,8 @@ namespace hypixel
 
             var conf = new ConsumerConfig
             {
-                GroupId = "test-consumer-group",
-                BootstrapServers = "kafka:9092",
+                GroupId = "sky-indexer",
+                BootstrapServers = Program.KafkaHost,
                 // Note: The AutoOffsetReset property determines the start offset in the event
                 // there are not yet any committed offsets for the consumer group for the
                 // topic/partitions of interest. By default, offsets are committed
@@ -113,9 +108,9 @@ namespace hypixel
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
 
-            using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(Deserializer.Instance).Build())
+            using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(AuctionDeserializer.Instance).Build())
             {
-                c.Subscribe("sky-indexer");
+                c.Subscribe(new string[] { NewBidTopic, AuctionEndedTopic, NewAuctionsTopic, SoldAuctionTopic, MissingAuctionsTopic });
                 try
                 {
                     while (true)
@@ -132,7 +127,7 @@ namespace hypixel
                                     break;
                                 }
                                 batch.Enqueue(cr);
-                                if (cr.TopicPartitionOffset.Offset % 200 == 0)
+                                if (cr.TopicPartitionOffset.Offset % 500 == 100)
                                     Console.WriteLine($"Consumed message '{cr.Message.Value.Uuid}' at: '{cr.TopicPartitionOffset}'.");
 
                             }
@@ -155,68 +150,6 @@ namespace hypixel
                     c.Close();
                 }
             }
-        }
-
-        private class Deserializer : IDeserializer<SaveAuction>
-        {
-            public static Deserializer Instance = new Deserializer();
-            public SaveAuction Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
-            {
-                return MessagePack.MessagePackSerializer.Deserialize<SaveAuction>(data.ToArray());
-            }
-        }
-
-        private static List<SaveAuction> TakeBatch(int chuckCount)
-        {
-            var batch = new List<SaveAuction>();
-
-            var conf = new ConsumerConfig
-            {
-                GroupId = "test-consumer-group",
-                BootstrapServers = "kafka:9092",
-                // Note: The AutoOffsetReset property determines the start offset in the event
-                // there are not yet any committed offsets for the consumer group for the
-                // topic/partitions of interest. By default, offsets are committed
-                // automatically, so in this example, consumption will only start from the
-                // earliest message in the topic 'my-topic' the first time you run the program.
-                AutoOffsetReset = AutoOffsetReset.Earliest
-            };
-
-            using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(Deserializer.Instance).Build())
-            {
-                c.Subscribe("sky-indexer");
-
-                CancellationTokenSource cts = new CancellationTokenSource();
-                Console.CancelKeyPress += (_, e) =>
-                {
-                    e.Cancel = true; // prevent the process from terminating.
-                    cts.Cancel();
-                };
-
-                try
-                {
-                    while (batch.Count < 50)
-                        try
-                        {
-                            var cr = c.Consume(cts.Token);
-                            batch.Add(cr.Message.Value);
-                            Console.WriteLine($"Consumed message '{cr.Message.Value.Uuid}' at: '{cr.TopicPartitionOffset}'.");
-                            c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
-                        }
-                        catch (ConsumeException e)
-                        {
-                            Console.WriteLine($"Error occured: {e.Error.Reason}");
-                        }
-
-                }
-                catch (OperationCanceledException)
-                {
-                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
-                    c.Close();
-                }
-            }
-
-            return batch;
         }
 
         private static void VariableSetup(out DateTime indexStart, out string targetTmp, out string pullPath)
@@ -344,7 +277,6 @@ namespace hypixel
                 context.Auctions.Update(dbauction);
                 return;
             }
-            SubscribeEngine.Instance.NewBids(auction);
             foreach (var bid in auction.Bids)
             {
                 bid.Auction = dbauction;
@@ -383,9 +315,7 @@ namespace hypixel
 
         internal static void Stop()
         {
-            abort = true;
-            while (QueueCount > 1)
-                PersistQueueBatch();
+           
         }
 
 
@@ -423,6 +353,15 @@ namespace hypixel
                 if (context.Players.Any())
                     highestPlayerId = context.Players.Max(p => p.Id) + 1;
             }
+        }
+    }
+
+    class AuctionDeserializer : IDeserializer<SaveAuction>
+    {
+        public static AuctionDeserializer Instance = new AuctionDeserializer();
+        public SaveAuction Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
+        {
+            return MessagePack.MessagePackSerializer.Deserialize<SaveAuction>(data.ToArray());
         }
     }
 }

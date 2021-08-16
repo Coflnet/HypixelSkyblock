@@ -27,6 +27,7 @@ namespace hypixel
 
         public static bool FullServerMode { get; private set; }
         public static bool LightClient { get; private set; }
+        public static string KafkaHost = SimplerConfig.Config.Instance["KAFKA_HOST"];
 
         public static int usersLoaded = 0;
 
@@ -127,10 +128,6 @@ namespace hypixel
                     //NotificationService.Instance.NotifyAsync("dPRj0dnG2NcY_kMTdNbpjz:APA91bHJINgv1SjuUlv-sGM21wLlHX5ISC5nYgl8DKP2r0fm273Cs0ujcESW6NR1RyGvFDtTBdQLK0SSq5TY_guLgc57VylKk8AAnH_xKq3zDIrdA1F6UhJNTu-Q0wNDKKIIQkYoVcyj","test","click me","https://sky.coflnet.com").Wait();
                     SetGoogleIdCommand.ValidateToken("eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1MmZjYjk3ZGY1YjZiNGY2ZDFhODg1ZjFlNjNkYzRhOWNkMjMwYzUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiNTcwMzAyODkwNzYwLW5sa2dkOTliNzFxNGQ2MWFtNGxwcWRoZW4xcGVuZGR0LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNTcwMzAyODkwNzYwLW5sa2dkOTliNzFxNGQ2MWFtNGxwcWRoZW4xcGVuZGR0LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTAxOTkzNTcwNzI0MDg4NDMyMjk4IiwiZW1haWwiOiJ0by5jb2ZsbmV0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYWdLN21RM2YySFZQclZNQ3l1UVVmdyIsIm5hbWUiOiJFa3dhdiBDb2ZsbmV0IiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9BT2gxNEdobEx6TjV5U1o3VDZWYnpYRnFhUlR4c3dNRXJLaW1VQk1uem41Nz1zOTYtYyIsImdpdmVuX25hbWUiOiJFa3dhdiIsImZhbWlseV9uYW1lIjoiQ29mbG5ldCIsImxvY2FsZSI6ImRlIiwiaWF0IjoxNjEwMjk4MTE5LCJleHAiOjE2MTAzMDE3MTksImp0aSI6ImIzMWYzODUwNDMwYjNhOWMxNTQ5YTRjMDFiNTFiNTBlZjBhZTkwYTAifQ.cvsqp0GaYca---qkBAm-nS3QI-x_ZTGkzZh7sk-SsYctubikHqJz9VpafY_ih88ouOFTg_CWHKPMvS9dTrR8T4W_iY65cYp2hxsc-iMignDBgxbP6KlUCm3MvpRTHTdLAtL3Eq4JeXAL6_BN21AetRMaOhsWMgvz6yprhTkirOgFSuDt386Q8NXr19csjDhAW6bb2bRwEYJp4ZlBXD77zfzP_kZaF2y671M_lZUXnrqKrDqF7sFL2Jx4r6htKV_e86IuKhx0N1ttNTuEOeqccIZHdRQasivVO9Nq0twjhFIWn-5-azkPyz0VstxzIuYc7mTi2LSVjF4QDl-aLiOlPQ");
                     break;
-                case 'b':
-                    //var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
-                    BazaarUpdater.NewUpdate(apiKey).Wait();
-                    break;
                 case 'f':
                     FullServer();
                     break;
@@ -226,19 +223,21 @@ namespace hypixel
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
 
+            var bazzar = new BazaarUpdater();
             if (modes.Contains("updater"))
             {
 
                 updater = new Updater(apiKey);
                 updater.UpdateForEver();
+                bazzar.UpdateForEver(apiKey);
             }
-            Flipper.FlipperEngine.diabled = !modes.Contains("flipper");
-            if (!Flipper.FlipperEngine.diabled)
+
+            Flipper.FlipperEngine.disabled = !modes.Contains("flipper");
+            if (!Flipper.FlipperEngine.disabled)
                 for (int i = 0; i < 2; i++)
                     RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
 
 
-            var bazzar = new BazaarUpdater();
             Task redisInit = null;
             // bring the db up to date
             if (modes.Contains("indexer"))
@@ -246,10 +245,11 @@ namespace hypixel
                 GetDBToDesiredState();
                 ItemDetails.Instance.LoadFromDB();
                 SubscribeEngine.Instance.LoadFromDb();
+                RunIsolatedForever(SubscribeEngine.Instance.ProcessQueues,"SubscribeEngine");
                 redisInit = MakeSureRedisIsInitialized();
 
                 Console.WriteLine("booting db dependend stuff");
-                bazzar.UpdateForEver(apiKey);
+                RunIsolatedForever(bazzar.ProcessBazaarQueue,"bazaar queue");
                 RunIndexer();
                 NameUpdater.Run();
                 SearchService.Instance.RunForEver();
@@ -383,7 +383,7 @@ namespace hypixel
                     if (!context.Items.Any() || context.Players.Count() < 2_000_000)
                         isNew = true;
                 }
-                if (isNew && !Flipper.FlipperEngine.diabled)
+                if (isNew && !Flipper.FlipperEngine.disabled)
                 {
                     Console.WriteLine("detected that this is a new instance, starting syncing");
                     ClientProxy.Instance.InitialSync();

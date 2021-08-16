@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace hypixel.Flipper
 
         private const string FoundFlippsKey = "foundFlipps";
         private static int MIN_PRICE_POINT = 1000000;
-        public static bool diabled;
+        public static bool disabled;
         public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
         private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         /// <summary>
@@ -74,6 +75,8 @@ namespace hypixel.Flipper
                 Console.WriteLine("booting flipper");
                 Program.updater.OnNewUpdateStart += Instance.OnUpdateStart;
                 Program.updater.OnNewUpdateEnd += Instance.OnUpdateEnd;
+
+                Task.Run(Instance.ListentoUnavailableTopics).ConfigureAwait(false);
                 while (true)
                     await Instance.ProcessSlowQueue();
             }).ConfigureAwait(false);
@@ -99,6 +102,50 @@ namespace hypixel.Flipper
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "slow queue processor");
+            }
+        }
+
+        private void ListentoUnavailableTopics()
+        {
+            var conf = new ConsumerConfig
+            {
+                GroupId = "sky-flipper",
+                BootstrapServers = Program.KafkaHost,
+                // Note: The AutoOffsetReset property determines the start offset in the event
+                // there are not yet any committed offsets for the consumer group for the
+                // topic/partitions of interest. By default, offsets are committed
+                // automatically, so in this example, consumption will only start from the
+                // earliest message in the topic 'my-topic' the first time you run the program.
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+
+            using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(AuctionDeserializer.Instance).Build())
+            {
+                c.Subscribe(new string[] { Indexer.AuctionEndedTopic, Indexer.SoldAuctionTopic, Indexer.MissingAuctionsTopic });
+                try
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            var cr = c.Consume(500);
+                            if (cr == null)
+                                continue;
+                            AuctionSold(cr.Message.Value);
+                            // tell kafka that we stored the batch
+                            c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
+                        }
+                        catch (ConsumeException e)
+                        {
+                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                    c.Close();
+                }
             }
         }
 
@@ -233,7 +280,7 @@ namespace hypixel.Flipper
 
         public void NewAuctions(IEnumerable<SaveAuction> auctions)
         {
-            if (diabled)
+            if (disabled)
                 return;
             foreach (var auction in auctions)
             {
@@ -269,23 +316,53 @@ namespace hypixel.Flipper
             try
             {
                 await TryLoadFromCache();
-                using (var context = new HypixelContext())
+                var conf = new ConsumerConfig
                 {
-                    var batchSize = 5;
-                    if (PotetialFlipps.Count > 200)
-                        batchSize = 10;
-                    if (PotetialFlipps.Count > 400)
-                        batchSize = 20;
-                    for (int i = 0; i < batchSize; i++)
+                    GroupId = "flipper-processor",
+                    BootstrapServers = Program.KafkaHost,
+                    // Note: The AutoOffsetReset property determines the start offset in the event
+                    // there are not yet any committed offsets for the consumer group for the
+                    // topic/partitions of interest. By default, offsets are committed
+                    // automatically, so in this example, consumption will only start from the
+                    // earliest message in the topic 'my-topic' the first time you run the program.
+                    AutoOffsetReset = AutoOffsetReset.Earliest
+                };
+
+                using (var c = new ConsumerBuilder<Ignore, SaveAuction>(conf).SetValueDeserializer(AuctionDeserializer.Instance).Build())
+                {
+                    c.Subscribe(Indexer.NewAuctionsTopic);
+                    try
                     {
-                        if (cancleToken.IsCancellationRequested)
-                            return;
-                        SaveAuction auction;
-                        if (GetAuctionToCheckFlipability(out auction))
-                            await NewAuction(auction, context);
-                        else
-                            // no auctions, sleep
-                            await Task.Delay(1500);
+                        while (true)
+                        {
+                            try
+                            {
+                                var cr = c.Consume(500);
+                                if (cr == null)
+                                    continue;
+
+                                // store the batch
+                                using (var context = new HypixelContext())
+                                {
+
+                                    if (cancleToken.IsCancellationRequested)
+                                        return;
+
+                                    Console.Write("pf");
+                                    await NewAuction(cr.Message.Value, context);
+                                }
+                                c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
+                            }
+                            catch (ConsumeException e)
+                            {
+                                Console.WriteLine($"Error occured: {e.Error.Reason}");
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                        c.Close();
                     }
                 }
             }
@@ -333,7 +410,7 @@ namespace hypixel.Flipper
                     Console.WriteLine("not yet migrated skiping flip");
                 return;
             }
-            if (diabled && auction.UId % 5 != 0)
+            if (disabled && auction.UId % 5 != 0)
                 return; // don't run on full cap on my dev machine :D
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
@@ -348,7 +425,9 @@ namespace hypixel.Flipper
             {
                 Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
                 var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
-                medianPrice = (long)((await ItemPrices.GetLookupForToday(itemId))?.Prices?.Average(p => p.Avg * 0.8 + p.Min * 0.2) ?? 0);
+                var lookupPrices = await ItemPrices.GetLookupForToday(itemId);
+                if (lookupPrices?.Prices.Count > 0)
+                    medianPrice = (long)(lookupPrices?.Prices?.Average(p => p.Avg * 0.8 + p.Min * 0.2) ?? 0);
             }
             else
             {
@@ -374,7 +453,7 @@ namespace hypixel.Flipper
                 relevantAuctionIds.Clear();
             }
             var itemTag = auction.Tag;
-            List<ItemPrices.AuctionPreview> lowestBin = await GetLowestBin(itemTag,auction.Tier);
+            List<ItemPrices.AuctionPreview> lowestBin = await GetLowestBin(itemTag, auction.Tier);
 
             var flip = new FlipInstance()
             {
@@ -393,7 +472,8 @@ namespace hypixel.Flipper
                 SecondLowestBin = lowestBin.Count >= 2 ? lowestBin[1].Price : 0L
             };
 
-            FlipFound(flip,auction);
+            Console.WriteLine("found flip");
+            FlipFound(flip, auction);
             if (auction.Uuid[0] == 'a') // reduce saves
                 await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
         }
@@ -401,7 +481,7 @@ namespace hypixel.Flipper
         public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
         {
             var filter = new Dictionary<string, string>() { { "Bin", "true" } };
-            if(tier != Tier.UNCOMMON)
+            if (tier != Tier.UNCOMMON)
                 filter["Rarity"] = tier.ToString();
 
             var query = new ActiveItemSearchQuery()
@@ -425,7 +505,7 @@ namespace hypixel.Flipper
         {
             var key = $"{auction.ItemId}{auction.ItemName}{auction.Tier}{auction.Bin}{auction.Count}";
             key += String.Concat(auction.Enchantments.Select(a => $"{a.Type}{a.Level}"));
-            key += String.Concat(auction.FlatenedNBT.Where(d => !new string[]{"uid","spawnedFor","bossId"}.Contains(d.Key)));
+            key += String.Concat(auction.FlatenedNBT.Where(d => !new string[] { "uid", "spawnedFor", "bossId" }.Contains(d.Key)));
             try
             {
                 var fromCache = await CacheService.Instance.GetFromRedis<(List<SaveAuction>, DateTime)>(key);
@@ -559,7 +639,7 @@ namespace hypixel.Flipper
                     dev.Logger.Instance.Error(e, "trying filter flip midas item");
                 }
             }
-            if(flatNbt.ContainsKey("farming_for_dummies_count"))
+            if (flatNbt.ContainsKey("farming_for_dummies_count"))
                 select = AddNBTSelect(select, flatNbt, "farming_for_dummies_count");
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
@@ -628,7 +708,7 @@ namespace hypixel.Flipper
 
             foundFlipCount.Inc();
             time.Observe((DateTime.Now - auction.Start).TotalSeconds);
-            if(flip.Sold)
+            if (flip.Sold)
                 alreadySold.Inc();
 
             Flipps.Enqueue(flip);

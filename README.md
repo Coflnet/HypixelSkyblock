@@ -4,6 +4,23 @@ You can get the same data and play around with it by using this project.
 
 Some endpoins are exposed via REST, see the open-api docs: https://sky.coflnet.com/api
 
+
+
+
+## Kafka topics
+This project uses a kafka server to distribute workloads.  
+Topics produced are:
+* `sky-newauction`
+* `sky-newbid`
+* `sky-soldauction`
+* `sky-canceledauction`
+* `sky-endedauction`
+* `sky-bazaarprice`
+* `sky-update-player`
+* `sky-updated-player`  
+All of them are consumed by different other services and produced by the updater(s)
+
+
 # Requests
 ### General
 > **Deprecatation WARNING** The command endpoints are getting deprecated please use the REST-endpoints (/api)
@@ -52,7 +69,7 @@ Respnse
 }
 ```
 
-# ItemDetails
+## ItemDetails
 Finds item Details and returns them
 ```
 "type":"itemDetails",
