@@ -335,6 +335,10 @@ namespace hypixel.Flipper
             }
             if (diabled && auction.UId % 5 != 0)
                 return; // don't run on full cap on my dev machine :D
+            
+            // blacklist
+            if(auction.ItemName == "null")
+                return;
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
 
