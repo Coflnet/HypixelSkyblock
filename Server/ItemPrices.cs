@@ -488,19 +488,26 @@ namespace hypixel
                         context.Database.SetCommandTimeout(3600);
                         var idOfLava = ItemDetails.Instance.GetItemIdForName("ENCHANTED_LAVA_BUCKET");
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
-                            await context.Prices.AddRangeAsync(await AvgBazzarHistory(start, end));
+                        {
+                            var interval = (end-start)/4;
+                            for (DateTime bstart = start; bstart < end; bstart+= interval)
+                            {
+                                await context.Prices.AddRangeAsync(await AvgBazzarHistory(bstart, bstart+interval));
+                                await Task.Delay(5000);
+                                await context.SaveChangesAsync();
+                            }
+                        }
 
-                        await context.SaveChangesAsync();
 
                         foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
                         {
+                            await Task.Delay(200);
                             if (context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == itemId).Any())
                                 continue;
                             var select = AuctionSelect(start, end, context, itemId);
                             var result = await AvgFromAuctions(itemId, select);
                             await context.Prices.AddRangeAsync(result);
                             await context.SaveChangesAsync();
-                            await Task.Delay(300);
                         }
                     }
                     // wait for tomorrow (only when no exception)
