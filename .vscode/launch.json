@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/hypixel.dll",
-            "args": ["/media/ekwav/Daten4/dev/hypixel/ah","p"],
+            "args": ["/tmp/skybock","f"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false

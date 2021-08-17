@@ -228,7 +228,7 @@ namespace dev
                         }
                         catch (ConsumeException e)
                         {
-                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                            Console.WriteLine($"Error occured-bazaar: {e.Error.Reason}");
                         }
                     }
                 }

@@ -89,6 +89,7 @@ namespace hypixel.Flipper
                     if (SoldAuctions.ContainsKey(flip.UId))
                         flip.Sold = true;
                     var message = CreateDataFromFlip(flip);
+                    Console.WriteLine("\nshouting slow flip");
                     NotifyAll(message, SlowSubs);
                     LoadBurst.Enqueue(flip);
                     if (LoadBurst.Count > 5)
@@ -144,7 +145,7 @@ namespace hypixel.Flipper
                         }
                         catch (ConsumeException e)
                         {
-                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                            dev.Logger.Instance.Error(e, "flipper consume batch " + topics[0]);
                         }
                         if (batch.Count > 10)
                         {
@@ -291,34 +292,6 @@ namespace hypixel.Flipper
 
         }
 
-        public void NewAuctions(IEnumerable<SaveAuction> auctions)
-        {
-            if (disabled)
-                return;
-            foreach (var auction in auctions)
-            {
-                // determine flippability
-                var price = auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1);
-
-                if (AlreadyChecked.ContainsKey(auction.Uuid.GetHashCode()))
-                    continue;
-
-                if (AlreadyChecked.Count > 10_000)
-                    AlreadyChecked.Clear();
-                AlreadyChecked.TryAdd(auction.Uuid.GetHashCode(), true);
-
-                if (price < MIN_PRICE_POINT || !auction.Bin)
-                {
-                    if (price > 10) // we only care about auctions worth more than the fee
-                        LowPriceQueue.Enqueue(auction);
-                    continue;
-                }
-
-                PotetialFlipps.Enqueue(auction);
-            }
-
-        }
-
         public Task ProcessPotentialFlipps()
         {
             return ProcessPotentialFlipps(CancellationToken.None);
@@ -345,7 +318,7 @@ namespace hypixel.Flipper
                 {
                     using (var p = new ProducerBuilder<string, FlipInstance>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<FlipInstance>()).Build())
                     {
-
+                        //var factory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(1));
                         c.Subscribe(Indexer.NewAuctionsTopic);
                         try
                         {
@@ -357,26 +330,16 @@ namespace hypixel.Flipper
                                     if (cr == null)
                                         continue;
 
-                                    // store the batch
-                                    using (var context = new HypixelContext())
-                                    {
+                                    if (cancleToken.IsCancellationRequested)
+                                        return;
 
-                                        if (cancleToken.IsCancellationRequested)
-                                            return;
-
-                                        var flip = await NewAuction(cr.Message.Value, context);
-                                        if (flip == null)
-                                            continue;
-
-                                        var result = await p.ProduceAsync(ProduceTopic, new Message<string, FlipInstance> { Value = flip, Key = flip.UId.ToString() });
-                                        Console.WriteLine($"flip {result.TopicPartitionOffset.Offset}");
-                                    }
+                                    await ProcessSingleFlip(p, cr);
 
                                     c.Commit(new TopicPartitionOffset[] { cr.TopicPartitionOffset });
                                 }
                                 catch (ConsumeException e)
                                 {
-                                    Console.WriteLine($"Error occured: {e.Error.Reason}");
+                                    dev.Logger.Instance.Error(e, "flipper process potential ");
                                 }
                             }
                         }
@@ -391,6 +354,20 @@ namespace hypixel.Flipper
             catch (Exception e)
             {
                 dev.Logger.Instance.Error($"Flipper threw an exception {e.Message} {e.StackTrace}");
+            }
+        }
+
+        private async Task ProcessSingleFlip(IProducer<string, FlipInstance> p, ConsumeResult<Ignore, SaveAuction> cr)
+        {
+            using (var context = new HypixelContext())
+            {
+                var flip = await NewAuction(cr.Message.Value, context);
+                if (flip != null)
+                {
+                    var result = await p.ProduceAsync(ProduceTopic, new Message<string, FlipInstance> { Value = flip, Key = flip.UId.ToString() });
+                    if (result.TopicPartitionOffset.Offset % 200 == 0)
+                        Console.WriteLine($"found flip {result.TopicPartitionOffset.Offset}");
+                }
             }
         }
 
@@ -426,16 +403,10 @@ namespace hypixel.Flipper
 
         public async System.Threading.Tasks.Task<FlipInstance> NewAuction(SaveAuction auction, HypixelContext context)
         {
-            if (!Program.Migrated)
-            {
-                if (auction.UId % 20 == 0) // don't spam the log
-                    Console.WriteLine("not yet migrated skiping flip");
-                return null;
-            }
-            if (disabled && auction.UId % 5 != 0)
-                return null; // don't run on full cap on my dev machine :D
-
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
+            if (price < 10) // only care about auctions worth more than the fee
+                return null;
+
 
             if (auction.NBTLookup == null || auction.NBTLookup.Count() == 0)
                 auction.NBTLookup = NBT.CreateLookup(auction);
@@ -734,6 +705,7 @@ namespace hypixel.Flipper
         private void DeliverFlip(FlipInstance flip)
         {
             MessageData message = CreateDataFromFlip(flip);
+            Console.Write("d flips");
             NotifyAll(message, Subs);
             SlowFlips.Enqueue(flip);
             Flipps.Enqueue(flip);

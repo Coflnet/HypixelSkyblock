@@ -51,13 +51,13 @@ namespace hypixel
         public async Task ProcessQueues()
         {
             var topics = new string[] { Indexer.AuctionEndedTopic, Indexer.SoldAuctionTopic, Indexer.MissingAuctionsTopic };
-            ProcessSubscription<SaveAuction>(topics,BinSold);
-            ProcessSubscription<SaveAuction>(new string[]{Indexer.NewAuctionsTopic},NewAuction);
-            ProcessSubscription<BazaarPull>(new string[]{BazaarUpdater.ConsumeTopic},NewBazaar);
-            ProcessSubscription<SaveAuction>(new string[]{Indexer.NewBidTopic},NewBids);
+            ProcessSubscription<SaveAuction>(topics, BinSold);
+            ProcessSubscription<SaveAuction>(new string[] { Indexer.NewAuctionsTopic }, NewAuction);
+            ProcessSubscription<BazaarPull>(new string[] { BazaarUpdater.ConsumeTopic }, NewBazaar);
+            ProcessSubscription<SaveAuction>(new string[] { Indexer.NewBidTopic }, NewBids);
         }
 
-        private void ProcessSubscription<T>(string[] topics, Action<T> handler,int timeout = 50)
+        private void ProcessSubscription<T>(string[] topics, Action<T> handler, int timeout = 50)
         {
             using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
             {
@@ -77,7 +77,7 @@ namespace hypixel
                         }
                         catch (ConsumeException e)
                         {
-                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                            dev.Logger.Instance.Error(e, "subscribe engine ");
                         }
                     }
                 }

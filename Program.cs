@@ -220,10 +220,10 @@ namespace hypixel
             if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
-                
-                RunIsolatedForever(Flipper.FlipperEngine.Instance.ListentoUnavailableTopics,"flip wait");
-                RunIsolatedForever(Flipper.FlipperEngine.Instance.ListenToNewFlips,"flip wait");
-                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessSlowQueue,"flip process slow");
+
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ListentoUnavailableTopics, "flip wait");
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ListenToNewFlips, "flip wait");
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessSlowQueue, "flip process slow", 10);
 
                 Console.WriteLine("running on " + System.Net.Dns.GetHostName());
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
@@ -232,7 +232,6 @@ namespace hypixel
             var bazzar = new BazaarUpdater();
             if (modes.Contains("updater"))
             {
-
                 updater = new Updater(apiKey);
                 updater.UpdateForEver();
                 bazzar.UpdateForEver(apiKey);
@@ -251,11 +250,11 @@ namespace hypixel
                 GetDBToDesiredState();
                 ItemDetails.Instance.LoadFromDB();
                 SubscribeEngine.Instance.LoadFromDb();
-                RunIsolatedForever(SubscribeEngine.Instance.ProcessQueues,"SubscribeEngine");
+                RunIsolatedForever(SubscribeEngine.Instance.ProcessQueues, "SubscribeEngine");
                 redisInit = MakeSureRedisIsInitialized();
 
                 Console.WriteLine("booting db dependend stuff");
-                RunIsolatedForever(bazzar.ProcessBazaarQueue,"bazaar queue");
+                RunIsolatedForever(bazzar.ProcessBazaarQueue, "bazaar queue");
                 RunIndexer();
                 NameUpdater.Run();
                 SearchService.Instance.RunForEver();
@@ -263,7 +262,16 @@ namespace hypixel
                 {
                     await Task.Delay(TimeSpan.FromMinutes(3));
                     await ItemPrices.Instance.BackfillPrices();
-                }).ConfigureAwait(false); ;
+                }).ConfigureAwait(false);
+
+                try
+                {
+                    CleanDB();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Cleaning failed {e.Message}");
+                }
             }
 
 
@@ -271,14 +279,7 @@ namespace hypixel
             {
                 StopServices(updater, server, bazzar);
             };
-            try
-            {
-                CleanDB();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Cleaning failed {e.Message}");
-            }
+
 
             redisInit?.GetAwaiter().GetResult();
 
@@ -468,13 +469,14 @@ namespace hypixel
                 }
             }).ConfigureAwait(false);
         }
-        
+
         private static void RunIsolatedForever(Action todo, string message, int backoff = 2000)
         {
-            RunIsolatedForever(()=>{
+            RunIsolatedForever(() =>
+            {
                 todo();
                 return Task.CompletedTask;
-            },message,backoff);
+            }, message, backoff);
         }
 
         private static void WaitForDatabaseCreation()

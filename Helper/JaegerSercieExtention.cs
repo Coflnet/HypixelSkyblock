@@ -1,6 +1,7 @@
 using Jaeger.Samplers;
 using Jaeger.Senders;
 using Jaeger.Senders.Thrift;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTracing;
@@ -15,14 +16,15 @@ namespace hypixel
             services.AddSingleton<ITracer>(serviceProvider =>
             {
                 ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+                IConfiguration iConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
 
                 Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
                         .RegisterSenderFactory<ThriftSenderFactory>();
 
                 var samplingRate = 0.20d;
-                var lowerBoundInSeconds = 10d;
+                var lowerBoundInSeconds = 30d;
                 ISampler sampler = new GuaranteedThroughputSampler(samplingRate,lowerBoundInSeconds);
-                var config = Jaeger.Configuration.FromEnv(loggerFactory);
+                var config = Jaeger.Configuration.FromIConfiguration(loggerFactory,iConfiguration);
 
                 ITracer tracer = config.GetTracerBuilder()
                     .WithSampler(sampler)
