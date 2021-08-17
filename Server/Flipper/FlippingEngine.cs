@@ -351,13 +351,14 @@ namespace hypixel.Flipper
             if (relevantAuctions.Count < 2)
             {
                 Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
+
+                // the overall median was deemed to inaccurate
+                return;
                 var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
                 medianPrice = (long)((await ItemPrices.GetLookupForToday(itemId))?.Prices?.Average(p => p.Avg * 0.8 + p.Min * 0.2) ?? 0);
             }
             else
             {
-                // the overall median was deemed to inaccurate
-                return;
                 medianPrice = relevantAuctions
                                 .OrderByDescending(a => a.HighestBidAmount)
                                 .Select(a => a.HighestBidAmount / a.Count)
