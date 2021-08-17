@@ -356,6 +356,8 @@ namespace hypixel.Flipper
             }
             else
             {
+                // the overall median was deemed to inaccurate
+                return;
                 medianPrice = relevantAuctions
                                 .OrderByDescending(a => a.HighestBidAmount)
                                 .Select(a => a.HighestBidAmount / a.Count)
@@ -555,7 +557,7 @@ namespace hypixel.Flipper
                 try
                 {
                     var keyValue = "winning_bid";
-                    select = AddNBTSelect(select, flatNbt, keyValue);
+                    select = AddMidasSelect(select, flatNbt, keyValue);
                     oldest -= TimeSpan.FromDays(10);
                 }
                 catch (Exception e)
@@ -563,8 +565,9 @@ namespace hypixel.Flipper
                     dev.Logger.Instance.Error(e, "trying filter flip midas item");
                 }
             }
-            if(flatNbt.ContainsKey("farming_for_dummies_count"))
+            if(auction.Tag.Contains("HOE") || flatNbt.ContainsKey("farming_for_dummies_count"))
                 select = AddNBTSelect(select, flatNbt, "farming_for_dummies_count");
+
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
             if (limit == 0)
@@ -578,6 +581,16 @@ namespace hypixel.Flipper
         }
 
         private static IQueryable<SaveAuction> AddNBTSelect(IQueryable<SaveAuction> select, Dictionary<string, string> flatNbt, string keyValue)
+        {
+            var keyId = NBT.GetLookupKey(keyValue);
+            if(!flatNbt.ContainsKey(keyValue))
+                return select.Where(a => !a.NBTLookup.Where(n => n.KeyId == keyId).Any());
+            var val = long.Parse(flatNbt[keyValue]);
+            select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value == val).Any());
+            return select;
+        }
+
+        private static IQueryable<SaveAuction> AddMidasSelect(IQueryable<SaveAuction> select, Dictionary<string, string> flatNbt, string keyValue)
         {
             var val = long.Parse(flatNbt[keyValue]);
             var keyId = NBT.GetLookupKey(keyValue);
