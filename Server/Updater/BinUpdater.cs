@@ -71,14 +71,6 @@ namespace hypixel
             SoldLastMin = auctions;
             Updater.AddSoldAuctions(auctions);
 
-            Task.Run(() =>
-            {
-                foreach (var item in auctions)
-                {
-                    SubscribeEngine.Instance.BinSold(item);
-                    Flipper.FlipperEngine.Instance.AuctionSold(item);
-                }
-            }).ConfigureAwait(false);
             Console.WriteLine($"Updated {expired.Auctions.Count} bin sells eg {expired.Auctions.FirstOrDefault()?.Uuid}");
         }
     }

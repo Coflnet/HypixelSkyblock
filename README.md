@@ -15,10 +15,16 @@ Topics produced are:
 * `sky-soldauction`
 * `sky-canceledauction`
 * `sky-endedauction`
-* `sky-bazaarprice`
-* `sky-update-player`
-* `sky-updated-player`  
-All of them are consumed by different other services and produced by the updater(s)
+* `sky-bazaarprice`  
+* `sky-update-player` (players whose names should be updated)
+* `sky-updated-player`  (players who got updated)
+* `sky-flips`  found flips, producer: flipper, consumer: light-clients
+
+You can modify them by changing appsettings.json or setting the enviroment variables.
+To get a full list check appsettings.json.  
+Note that to set them as enviroment variables you have to prefix them with `TOPICS__` because you can't add `:` in an env variable.  
+Example:  
+To set `"MISSING_AUCTION":"sky-canceledauction"` you have to set `TOPICS__MISSING_AUCTION=mycooltopic`
 
 
 # Requests

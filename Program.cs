@@ -210,7 +210,7 @@ namespace hypixel
             }).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
-            var modes = SimplerConfig.Config.Instance["MODES"]?.Split();
+            var modes = SimplerConfig.Config.Instance["MODES"]?.Split(",");
             if (modes == null)
                 modes = new string[] { "indexer", "updater", "flipper" };
 
@@ -220,6 +220,12 @@ namespace hypixel
             if (LightClient)
             {
                 ItemDetails.Instance.LoadLookup();
+                
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ListentoUnavailableTopics,"flip wait");
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ListenToNewFlips,"flip wait");
+                RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessSlowQueue,"flip process slow");
+
+                Console.WriteLine("running on " + System.Net.Dns.GetHostName());
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
 
@@ -461,6 +467,14 @@ namespace hypixel
                     await Task.Delay(backoff);
                 }
             }).ConfigureAwait(false);
+        }
+        
+        private static void RunIsolatedForever(Action todo, string message, int backoff = 2000)
+        {
+            RunIsolatedForever(()=>{
+                todo();
+                return Task.CompletedTask;
+            },message,backoff);
         }
 
         private static void WaitForDatabaseCreation()
