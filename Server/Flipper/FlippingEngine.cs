@@ -54,7 +54,8 @@ namespace hypixel.Flipper
                     .CreateCounter("flips_found", "Number of flips found");
         Prometheus.Counter alreadySold = Prometheus.Metrics
                     .CreateCounter("already_sold_flips", "Flips that were already sold for premium users for some reason");
-        Prometheus.Histogram time = Prometheus.Metrics.CreateHistogram("time_to_find_flip", "How long did it take to find a flip");
+        Prometheus.Histogram time = Prometheus.Metrics.CreateHistogram("time_to_find_flip", "How long did it take to find a flip",new Prometheus.HistogramConfiguration(){
+            Buckets = Prometheus.Histogram.LinearBuckets(start: 20, width: 15, count: 10)});
 
         static FlipperEngine()
         {
