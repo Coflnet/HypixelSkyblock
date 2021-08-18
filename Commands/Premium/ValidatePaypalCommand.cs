@@ -15,10 +15,10 @@ namespace hypixel
         private ConcurrentCollections.ConcurrentHashSet<string> UsedIds = new ConcurrentCollections.ConcurrentHashSet<string>();
 
         public override Task Execute(MessageData data)
-        {
-            var args = data.GetAs<Params>();
-
+        {        
             Console.WriteLine($"PayPal attempt {data.Data}");
+            var args = data.GetAs<Params>();
+    
             Console.WriteLine($" from {data.UserId}");
             OrdersGetRequest request = new OrdersGetRequest(args.OrderId);
             if (string.IsNullOrEmpty(clientId))

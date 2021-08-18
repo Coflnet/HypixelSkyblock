@@ -499,6 +499,8 @@ namespace hypixel.Flipper
                 relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                         .ToListAsync();
             } */
+            if(relevantAuctions.Count > 1)
+                relevantAuctions = relevantAuctions.GroupBy(a => a.SellerId).Select(a => a.First()).ToList();
 
 
             return (relevantAuctions, oldest);
