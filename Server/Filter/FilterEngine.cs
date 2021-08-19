@@ -13,6 +13,7 @@ namespace hypixel.Filter
             Filters.Add<ReforgeFilter>();
             Filters.Add<RarityFilter>();
             Filters.Add<PetLevelFilter>();
+            Filters.Add<PetSkinFilter>();
             Filters.Add<PetItemFilter>();
 
             Filters.Add<BinFilter>();
