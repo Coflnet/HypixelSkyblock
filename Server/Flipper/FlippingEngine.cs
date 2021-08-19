@@ -19,7 +19,6 @@ namespace hypixel.Flipper
         public static FlipperEngine Instance { get; }
 
         private const string FoundFlippsKey = "foundFlipps";
-        private static int MIN_PRICE_POINT = 1000000;
         public static bool disabled;
         public static readonly string ProduceTopic = SimplerConfig.Config.Instance["TOPICS:FLIP"];
         public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:FLIP_CONSUME"];
@@ -403,6 +402,11 @@ namespace hypixel.Flipper
 
         public async System.Threading.Tasks.Task<FlipInstance> NewAuction(SaveAuction auction, HypixelContext context)
         {
+            
+            // blacklist
+            if(auction.ItemName == "null")
+                return null;
+
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
             if (price < 10) // only care about auctions worth more than the fee
                 return null;
@@ -417,6 +421,9 @@ namespace hypixel.Flipper
             if (relevantAuctions.Count < 2)
             {
                 Console.WriteLine($"Could not find enough relevant auctions for {auction.ItemName} {auction.Uuid} ({auction.Enchantments.Count} {relevantAuctions.Count})");
+
+                // the overall median was deemed to inaccurate
+                return null;
                 var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
                 var lookupPrices = await ItemPrices.GetLookupForToday(itemId);
                 if (lookupPrices?.Prices.Count > 0)
@@ -567,6 +574,8 @@ namespace hypixel.Flipper
                 relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                         .ToListAsync();
             } */
+            if(relevantAuctions.Count > 1)
+                relevantAuctions = relevantAuctions.GroupBy(a => a.SellerId).Select(a => a.First()).ToList();
 
 
             return (relevantAuctions, oldest);
@@ -626,7 +635,7 @@ namespace hypixel.Flipper
                 try
                 {
                     var keyValue = "winning_bid";
-                    select = AddNBTSelect(select, flatNbt, keyValue);
+                    select = AddMidasSelect(select, flatNbt, keyValue);
                     oldest -= TimeSpan.FromDays(10);
                 }
                 catch (Exception e)
@@ -634,8 +643,10 @@ namespace hypixel.Flipper
                     dev.Logger.Instance.Error(e, "trying filter flip midas item");
                 }
             }
-            if (flatNbt.ContainsKey("farming_for_dummies_count"))
+
+            if(auction.Tag.Contains("HOE") || flatNbt.ContainsKey("farming_for_dummies_count"))
                 select = AddNBTSelect(select, flatNbt, "farming_for_dummies_count");
+
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
             if (limit == 0)
@@ -649,6 +660,16 @@ namespace hypixel.Flipper
         }
 
         private static IQueryable<SaveAuction> AddNBTSelect(IQueryable<SaveAuction> select, Dictionary<string, string> flatNbt, string keyValue)
+        {
+            var keyId = NBT.GetLookupKey(keyValue);
+            if(!flatNbt.ContainsKey(keyValue))
+                return select.Where(a => !a.NBTLookup.Where(n => n.KeyId == keyId).Any());
+            var val = long.Parse(flatNbt[keyValue]);
+            select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value == val).Any());
+            return select;
+        }
+
+        private static IQueryable<SaveAuction> AddMidasSelect(IQueryable<SaveAuction> select, Dictionary<string, string> flatNbt, string keyValue)
         {
             var val = long.Parse(flatNbt[keyValue]);
             var keyId = NBT.GetLookupKey(keyValue);

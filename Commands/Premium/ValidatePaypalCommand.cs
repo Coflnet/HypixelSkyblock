@@ -15,8 +15,11 @@ namespace hypixel
         private ConcurrentCollections.ConcurrentHashSet<string> UsedIds = new ConcurrentCollections.ConcurrentHashSet<string>();
 
         public override Task Execute(MessageData data)
-        {
+        {        
+            Console.WriteLine($"PayPal attempt {data.Data}");
             var args = data.GetAs<Params>();
+    
+            Console.WriteLine($" from {data.UserId}");
             OrdersGetRequest request = new OrdersGetRequest(args.OrderId);
             if (string.IsNullOrEmpty(clientId))
                 throw new CoflnetException("unavailable", "checkout via paypal has not yet been enabled, please contact an admin");
