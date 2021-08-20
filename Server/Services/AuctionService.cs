@@ -49,7 +49,7 @@ namespace hypixel
         /// </summary>
         /// <param name="auction"></param>
         /// <returns>The modified original auction</returns>
-        public PlayerAuctionsCommand.AuctionResult GuessMissingProperties(PlayerAuctionsCommand.AuctionResult auction)
+        public AuctionResult GuessMissingProperties(AuctionResult auction)
         {
             if (String.IsNullOrEmpty(auction.ItemName))
                 auction.ItemName = ItemDetails.TagToName(auction.Tag);
@@ -59,7 +59,7 @@ namespace hypixel
             return auction;
         }
 
-        internal T GetAuctionWithSelect<T>(string uuid, Func<IQueryable<SaveAuction>, T> selectFunc)
+        public T GetAuctionWithSelect<T>(string uuid, Func<IQueryable<SaveAuction>, T> selectFunc)
         {
             var uId = GetId(uuid);
             using (var context = new HypixelContext())

@@ -251,7 +251,8 @@ namespace hypixel
                 MissingSince[item.Key] = DateTime.Now;
                 // its less important if items are removed from the flipper than globally
                 // the flipper should not display inactive auctions at all
-                Flipper.FlipperEngine.Instance.AuctionInactive(item.Key);
+                // TODO update this
+                //Flipper.FlipperEngine.Instance.AuctionInactive(item.Key);
             }
             var removed = new HashSet<string>();
             foreach (var item in MissingSince)

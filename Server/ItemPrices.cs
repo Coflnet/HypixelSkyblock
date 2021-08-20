@@ -15,7 +15,10 @@ namespace hypixel
     {
         public static ItemPrices Instance;
 
-        public Filter.FilterEngine FilterEngine = new Filter.FilterEngine();
+        /// <summary>
+        /// Filterhook for the commands module
+        /// </summary>
+        public static Func<IQueryable<SaveAuction>,Dictionary<string,string>, IQueryable<SaveAuction>> AddFilters;
 
         private const string INTRA_HOUR_PREFIX = "IPH";
         private const string INTRA_DAY_PREFIX = "IPD";
@@ -33,7 +36,7 @@ namespace hypixel
             return BazzarItem.ContainsKey(itemId);
         }
 
-        internal async Task<Resonse> GetPriceFor(ItemSearchQuery details)
+        public async Task<Resonse> GetPriceFor(ItemSearchQuery details)
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
             var itemTag = details.name;
@@ -122,22 +125,10 @@ namespace hypixel
                 Filterable = true,
                 Bazaar = isBazaar,
                 // exclude high moving 
-                Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList(),
-                Filters = GetFiltersForItem(itemTag)
+                Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList()
             };
         }
 
-        private Dictionary<string, IEnumerable<string>> FilterCache = new Dictionary<string, IEnumerable<string>>();
-
-        public IEnumerable<string> GetFiltersForItem(string itemTag)
-        {
-            if (FilterCache.TryGetValue(itemTag, out IEnumerable<string> filters))
-                return filters;
-            var details = ItemDetails.Instance.GetDetailsWithCache(itemTag).Result;
-            filters = FilterEngine.FiltersFor(details).Select(f => f.Name);
-            FilterCache[itemTag] = filters;
-            return filters;
-        }
 
         static ItemPrices()
         {
@@ -245,7 +236,7 @@ namespace hypixel
             if (details.Filter != null && details.Filter.Count > 0)
             {
                 details.Filter["ItemId"] = itemId.ToString();
-                return FilterEngine.AddFilters(select, details.Filter);
+                return AddFilters(select, details.Filter);//FilterEngine.AddFilters(select, details.Filter);
             }
 
             if (details.Enchantments != null && details.Enchantments.Any())
@@ -662,7 +653,7 @@ namespace hypixel
         }
 
 
-        internal async Task<List<AuctionPreview>> GetActiveAuctions(GetActiveAuctionsCommand.ActiveItemSearchQuery query, int amount = 24)
+        public async Task<List<AuctionPreview>> GetActiveAuctions(ActiveItemSearchQuery query, int amount = 24)
         {
             query.Start = DateTime.Now.Subtract(TimeSpan.FromDays(14)).RoundDown(TimeSpan.FromDays(1));
             using (var context = new HypixelContext())
@@ -680,10 +671,10 @@ namespace hypixel
                             });
                 switch (query.Order)
                 {
-                    case GetActiveAuctionsCommand.SortOrder.ENDING_SOON:
+                    case ActiveItemSearchQuery.SortOrder.ENDING_SOON:
                         select = select.OrderBy(a => a.End);
                         break;
-                    case GetActiveAuctionsCommand.SortOrder.LOWEST_PRICE:
+                    case ActiveItemSearchQuery.SortOrder.LOWEST_PRICE:
                         select = select.OrderBy(a => a.Price);
                         break;
                     default:

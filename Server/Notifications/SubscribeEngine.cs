@@ -324,7 +324,7 @@ namespace hypixel
                 foreach (var sub in value)
                 {
                     var resultJson = JsonConvert.SerializeObject(data);
-                    if (!SkyblockBackEnd.SendTo(new MessageData(commandType, resultJson), sub.Id))
+                    //if (!SkyblockBackEnd.SendTo(new MessageData(commandType, resultJson), sub.Id))
                         // could not be reached, unsubscribe
                         ToUnsubscribe.Enqueue(new UnSub(topic, sub.Id));
                 }

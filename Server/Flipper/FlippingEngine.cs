@@ -10,7 +10,6 @@ using Confluent.Kafka;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using static hypixel.GetActiveAuctionsCommand;
 
 namespace hypixel.Flipper
 {
@@ -18,38 +17,21 @@ namespace hypixel.Flipper
     {
         public static FlipperEngine Instance { get; }
 
-        private const string FoundFlippsKey = "foundFlipps";
         public static bool disabled;
         public static readonly string ProduceTopic = SimplerConfig.Config.Instance["TOPICS:FLIP"];
-        public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:FLIP_CONSUME"];
-        public ConcurrentQueue<FlipInstance> Flipps = new ConcurrentQueue<FlipInstance>();
-        private ConcurrentQueue<FlipInstance> SlowFlips = new ConcurrentQueue<FlipInstance>();
         /// <summary>
         /// List of ultimate enchantments
         /// </summary>
         public static ConcurrentDictionary<Enchantment.EnchantmentType, bool> UltimateEnchants = new ConcurrentDictionary<Enchantment.EnchantmentType, bool>();
-
-        private ConcurrentDictionary<long, int> Subs = new ConcurrentDictionary<long, int>();
-        private ConcurrentDictionary<long, int> SlowSubs = new ConcurrentDictionary<long, int>();
-
-        private ConcurrentDictionary<int, bool> AlreadyChecked = new ConcurrentDictionary<int, bool>();
 
         private ConcurrentQueue<SaveAuction> PotetialFlipps = new ConcurrentQueue<SaveAuction>();
         private ConcurrentQueue<SaveAuction> LowPriceQueue = new ConcurrentQueue<SaveAuction>();
         CancellationTokenSource TempWorkersStopSource = new CancellationTokenSource();
 
         public int QueueSize => PotetialFlipps.Count + LowPriceQueue.Count * 10000;
-        private ConcurrentDictionary<long, DateTime> SoldAuctions = new ConcurrentDictionary<long, DateTime>();
-        /// <summary>
-        /// Wherether or not a given <see cref="SaveAuction.UId"/> was a flip or not
-        /// </summary>
-        private ConcurrentDictionary<long, bool> FlipIdLookup = new ConcurrentDictionary<long, bool>();
         static private List<Enchantment.EnchantmentType> UltiEnchantList = new List<Enchantment.EnchantmentType>();
 
-        /// <summary>
-        /// Special load burst queue that will send out 5 flips at load
-        /// </summary>
-        private Queue<FlipInstance> LoadBurst = new Queue<FlipInstance>();
+
 
 
         Prometheus.Counter foundFlipCount = Prometheus.Metrics
@@ -74,156 +56,14 @@ namespace hypixel.Flipper
                 while (Program.updater == null)
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 Console.WriteLine("booting flipper");
-                Program.updater.OnNewUpdateStart += Instance.OnUpdateStart;
-                Program.updater.OnNewUpdateEnd += Instance.OnUpdateEnd;
+                //Program.updater.OnNewUpdateStart += Instance.OnUpdateStart;
+                //Program.updater.OnNewUpdateEnd += Instance.OnUpdateEnd;
             }).ConfigureAwait(false);
         }
 
-        public async Task ProcessSlowQueue()
-        {
-            try
-            {
-                if (SlowFlips.TryDequeue(out FlipInstance flip))
-                {
-                    if (SoldAuctions.ContainsKey(flip.UId))
-                        flip.Sold = true;
-                    var message = CreateDataFromFlip(flip);
-                    Console.WriteLine("\nshouting slow flip");
-                    NotifyAll(message, SlowSubs);
-                    LoadBurst.Enqueue(flip);
-                    if (LoadBurst.Count > 5)
-                        LoadBurst.Dequeue();
-                }
 
-                await Task.Delay(DelayTimeFor(SlowFlips.Count) * 4 / 5);
-            }
-            catch (Exception e)
-            {
-                dev.Logger.Instance.Error(e, "slow queue processor");
-            }
-        }
 
-        ConsumerConfig consumerConf = new ConsumerConfig
-        {
-            GroupId = System.Net.Dns.GetHostName(),
-            BootstrapServers = Program.KafkaHost,
-            AutoOffsetReset = AutoOffsetReset.Latest
-        };
 
-        public void ListentoUnavailableTopics()
-        {
-            string[] topics = new string[] { Indexer.AuctionEndedTopic, Indexer.SoldAuctionTopic, Indexer.MissingAuctionsTopic };
-            ConsumeBatch<SaveAuction>(topics, AuctionSold);
-        }
-
-        public void ListenToNewFlips()
-        {
-            string[] topics = new string[] { ConsumeTopic };
-            ConsumeBatch<FlipInstance>(topics, DeliverFlip);
-        }
-
-        private void ConsumeBatch<T>(string[] topics, Action<T> work)
-        {
-            using (var c = new ConsumerBuilder<Ignore, T>(consumerConf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
-            {
-                c.Subscribe(topics);
-                try
-                {
-                    var batch = new List<TopicPartitionOffset>();
-                    while (true)
-                    {
-                        try
-                        {
-                            var cr = c.Consume(500);
-                            if (cr == null)
-                                continue;
-                            if (cr.TopicPartitionOffset.Offset % 20 == 0)
-                                Console.WriteLine($"consumed {cr.TopicPartitionOffset.Topic} {cr.TopicPartitionOffset.Offset}");
-                            work(cr.Message.Value);
-                            batch.Add(cr.TopicPartitionOffset);
-                        }
-                        catch (ConsumeException e)
-                        {
-                            dev.Logger.Instance.Error(e, "flipper consume batch " + topics[0]);
-                        }
-                        if (batch.Count > 10)
-                        {
-                            // tell kafka that we stored the batch
-                            c.Commit(batch);
-                            batch.Clear();
-                        }
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
-                    c.Close();
-                }
-            }
-        }
-
-        public static int DelayTimeFor(int queueSize)
-        {
-            return (int)Math.Min((TimeSpan.FromMinutes(5) / (Math.Max(queueSize, 1))).TotalMilliseconds, 10000);
-        }
-
-        private void OnUpdateStart()
-        {
-            TempWorkersStopSource.Cancel();
-            TempWorkersStopSource = new CancellationTokenSource();
-            var skippCount = Instance.LowPriceQueue.Count * 4 / 5 - 100;
-            if (skippCount <= 0)
-            {
-                Console.WriteLine("got through all/most auctions :)");
-                return;
-            }
-            Console.WriteLine($"flipper skipping {skippCount} auctions");
-            Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromSeconds(5));
-                for (int i = 0; i < skippCount; i++)
-                {
-                    Instance.LowPriceQueue.TryDequeue(out SaveAuction removed);
-                }
-            }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Gets called when the updater has finished an update
-        /// </summary>
-        private void OnUpdateEnd()
-        {
-            var cancleToken = TempWorkersStopSource.Token;
-            var workerCount = 3;
-            Console.WriteLine($"Starting {workerCount} temp flip workers");
-            for (int i = 0; i < workerCount; i++)
-            {
-                var worker = Task.Run(async () =>
-                {
-                    await DoFlipWork(cancleToken);
-
-                }, cancleToken).ConfigureAwait(false);
-            }
-            ClearSoldBuffer();
-        }
-
-        /// <summary>
-        /// Removes old <see cref="SoldAuctions"/>
-        /// </summary>
-        private void ClearSoldBuffer()
-        {
-            var toRemove = new List<long>();
-            var oldestTime = DateTime.Now - TimeSpan.FromMinutes(10);
-            foreach (var item in SoldAuctions)
-            {
-                if (item.Value < oldestTime)
-                    toRemove.Add(item.Key);
-            }
-            foreach (var item in toRemove)
-            {
-                SoldAuctions.TryRemove(item, out DateTime deleted);
-            }
-        }
 
         private async Task DoFlipWork(CancellationToken cancleToken)
         {
@@ -245,46 +85,7 @@ namespace hypixel.Flipper
             }
         }
 
-        public void AddConnection(SkyblockBackEnd con, int id = 0)
-        {
-            Subs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
-            var toSendFlips = Flipps.Reverse().Take(5);
-            SendFlipHistory(con, id, toSendFlips);
-        }
 
-        public void AddNonConnection(SkyblockBackEnd con, int id = 0)
-        {
-            SlowSubs.AddOrUpdate(con.Id, cid => id, (cid, oldMId) => id);
-            SendFlipHistory(con, id, LoadBurst, 0);
-        }
-
-        public void RemoveNonConnection(SkyblockBackEnd con)
-        {
-            SlowSubs.TryRemove(con.Id, out int value);
-        }
-
-        public void RemoveConnection(SkyblockBackEnd con)
-        {
-            Subs.TryRemove(con.Id, out int value);
-            RemoveNonConnection(con);
-        }
-
-
-
-
-        private static void SendFlipHistory(SkyblockBackEnd con, int id, IEnumerable<FlipInstance> toSendFlips, int delay = 5000)
-        {
-            Task.Run(async () =>
-            {
-                foreach (var item in toSendFlips)
-                {
-                    var data = CreateDataFromFlip(item);
-                    data.mId = id;
-                    con.SendBack(data);
-                    await Task.Delay(delay);
-                }
-            }).ConfigureAwait(false);
-        }
 
         public void Test()
         {
@@ -300,7 +101,6 @@ namespace hypixel.Flipper
         {
             try
             {
-                await TryLoadFromCache();
                 var conf = new ConsumerConfig
                 {
                     GroupId = "flipper-processor",
@@ -380,31 +180,15 @@ namespace hypixel.Flipper
             return LowPriceQueue.TryDequeue(out auction);
         }
 
-        private async Task TryLoadFromCache()
-        {
-            if (Flipps.Count == 0)
-            {
-                // try to get from redis
 
-                var fromCache = await CacheService.Instance.GetFromRedis<ConcurrentQueue<FlipInstance>>(FoundFlippsKey);
-                if (fromCache != default(ConcurrentQueue<FlipInstance>))
-                {
-                    Flipps = fromCache;
-                    foreach (var item in Flipps)
-                    {
-                        FlipIdLookup[item.UId] = true;
-                    }
-                }
-            }
-        }
 
         public ConcurrentDictionary<long, List<long>> relevantAuctionIds = new ConcurrentDictionary<long, List<long>>();
 
         public async System.Threading.Tasks.Task<FlipInstance> NewAuction(SaveAuction auction, HypixelContext context)
         {
-            
+
             // blacklist
-            if(auction.ItemName == "null")
+            if (auction.ItemName == "null")
                 return null;
 
             var price = (auction.HighestBidAmount == 0 ? auction.StartingBid : (auction.HighestBidAmount * 1.1)) / auction.Count;
@@ -424,10 +208,10 @@ namespace hypixel.Flipper
 
                 // the overall median was deemed to inaccurate
                 return null;
-                var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
-                var lookupPrices = await ItemPrices.GetLookupForToday(itemId);
-                if (lookupPrices?.Prices.Count > 0)
-                    medianPrice = (long)(lookupPrices?.Prices?.Average(p => p.Avg * 0.8 + p.Min * 0.2) ?? 0);
+                /* var itemId = ItemDetails.Instance.GetItemIdForName(auction.Tag, false);
+                 var lookupPrices = await ItemPrices.GetLookupForToday(itemId);
+                 if (lookupPrices?.Prices.Count > 0)
+                     medianPrice = (long)(lookupPrices?.Prices?.Average(p => p.Avg * 0.8 + p.Min * 0.2) ?? 0);*/
             }
             else
             {
@@ -475,10 +259,9 @@ namespace hypixel.Flipper
             foundFlipCount.Inc();
 
             time.Observe((DateTime.Now - auction.Start).TotalSeconds);
-            if (auction.Uuid[0] == 'a') // reduce saves
-                await CacheService.Instance.SaveInRedis(FoundFlippsKey, Flipps);
             return flip;
         }
+
 
         public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
         {
@@ -488,7 +271,7 @@ namespace hypixel.Flipper
 
             var query = new ActiveItemSearchQuery()
             {
-                Order = SortOrder.LOWEST_PRICE,
+                Order = ActiveItemSearchQuery.SortOrder.LOWEST_PRICE,
                 Limit = 2,
                 Filter = filter,
                 name = itemTag
@@ -574,7 +357,7 @@ namespace hypixel.Flipper
                 relevantAuctions = await GetSelect(auction, context, null, itemId, youngest, matchingCount, ulti, ultiList, highLvlEnchantList, oldest)
                         .ToListAsync();
             } */
-            if(relevantAuctions.Count > 1)
+            if (relevantAuctions.Count > 1)
                 relevantAuctions = relevantAuctions.GroupBy(a => a.SellerId).Select(a => a.First()).ToList();
 
 
@@ -644,7 +427,7 @@ namespace hypixel.Flipper
                 }
             }
 
-            if(auction.Tag.Contains("HOE") || flatNbt.ContainsKey("farming_for_dummies_count"))
+            if (auction.Tag.Contains("HOE") || flatNbt.ContainsKey("farming_for_dummies_count"))
                 select = AddNBTSelect(select, flatNbt, "farming_for_dummies_count");
 
 
@@ -662,7 +445,7 @@ namespace hypixel.Flipper
         private static IQueryable<SaveAuction> AddNBTSelect(IQueryable<SaveAuction> select, Dictionary<string, string> flatNbt, string keyValue)
         {
             var keyId = NBT.GetLookupKey(keyValue);
-            if(!flatNbt.ContainsKey(keyValue))
+            if (!flatNbt.ContainsKey(keyValue))
                 return select.Where(a => !a.NBTLookup.Where(n => n.KeyId == keyId).Any());
             var val = long.Parse(flatNbt[keyValue]);
             select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value == val).Any());
@@ -718,85 +501,8 @@ namespace hypixel.Flipper
 
 
 
-        /// <summary>
-        /// Sends out new flips based on tier.
-        /// (active on the light client)
-        /// </summary>
-        /// <param name="flip"></param>
-        private void DeliverFlip(FlipInstance flip)
-        {
-            MessageData message = CreateDataFromFlip(flip);
-            Console.Write("d flips");
-            NotifyAll(message, Subs);
-            SlowFlips.Enqueue(flip);
-            Flipps.Enqueue(flip);
-            FlipIdLookup[flip.UId] = true;
-            if (Flipps.Count > 1500)
-            {
-                if (Flipps.TryDequeue(out FlipInstance result))
-                {
-                    FlipIdLookup.Remove(result.UId, out bool value);
-                }
-            }
-        }
 
         private static ProducerConfig producerConfig = new ProducerConfig { BootstrapServers = SimplerConfig.Config.Instance["KAFKA_HOST"] };
-
-
-        /// <summary>
-        /// Tell the flipper that an auction was sold
-        /// </summary>
-        /// <param name="auction"></param>
-        public void AuctionSold(SaveAuction auction)
-        {
-            if (!FlipIdLookup.ContainsKey(auction.UId))
-                return;
-            SoldAuctions[auction.UId] = auction.End;
-            var auctionUUid = auction.Uuid;
-            NotifySubsInactiveAuction(auctionUUid);
-        }
-
-        private void NotifySubsInactiveAuction(string auctionUUid)
-        {
-            var message = new MessageData("sold", auctionUUid);
-            NotifyAll(message, Subs);
-            NotifyAll(message, SlowSubs);
-        }
-
-        /// <summary>
-        /// Auction is no longer active for some reason
-        /// </summary>
-        /// <param name="uuid"></param>
-        public void AuctionInactive(string uuid)
-        {
-            NotifySubsInactiveAuction(uuid);
-            var uid = AuctionService.Instance.GetId(uuid);
-            SoldAuctions[uid] = DateTime.Now;
-        }
-
-        private static void NotifyAll(MessageData message, ConcurrentDictionary<long, int> subscribers)
-        {
-            foreach (var item in subscribers.Keys)
-            {
-                var m = MessageData.Copy(message);
-                m.mId = subscribers[item];
-                try
-                {
-                    if (!SkyblockBackEnd.SendTo(m, item))
-                        subscribers.TryRemove(item, out int value);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Failed to send flip {e.Message} {e.StackTrace}");
-                    subscribers.TryRemove(item, out int value);
-                }
-            }
-        }
-
-        private static MessageData CreateDataFromFlip(FlipInstance flip)
-        {
-            return new MessageData("flip", JSON.Stringify(flip), 60);
-        }
 
         /*
         1 Enchantments
@@ -808,39 +514,39 @@ namespace hypixel.Flipper
         7 Hot Potato Books
 
         */
+    }
 
-        [DataContract]
-        public class FlipInstance
-        {
-            [DataMember(Name = "median")]
-            public int MedianPrice;
-            [DataMember(Name = "cost")]
-            public int LastKnownCost;
-            [DataMember(Name = "uuid")]
-            public string Uuid;
-            [DataMember(Name = "name")]
-            public string Name;
-            [DataMember(Name = "sellerName")]
-            public string SellerName;
-            [DataMember(Name = "volume")]
-            public float Volume;
-            [DataMember(Name = "tag")]
-            public string Tag;
-            [DataMember(Name = "bin")]
-            public bool Bin;
-            [DataMember(Name = "sold")]
-            public bool Sold { get; internal set; }
-            [DataMember(Name = "tier")]
-            public Tier Rarity { get; internal set; }
-            [DataMember(Name = "prop")]
-            public List<string> Interesting { get; internal set; }
-            [DataMember(Name = "secondLowestBin")]
-            public long? SecondLowestBin { get; internal set; }
+    [DataContract]
+    public class FlipInstance
+    {
+        [DataMember(Name = "median")]
+        public int MedianPrice;
+        [DataMember(Name = "cost")]
+        public int LastKnownCost;
+        [DataMember(Name = "uuid")]
+        public string Uuid;
+        [DataMember(Name = "name")]
+        public string Name;
+        [DataMember(Name = "sellerName")]
+        public string SellerName;
+        [DataMember(Name = "volume")]
+        public float Volume;
+        [DataMember(Name = "tag")]
+        public string Tag;
+        [DataMember(Name = "bin")]
+        public bool Bin;
+        [DataMember(Name = "sold")]
+        public bool Sold { get; set; }
+        [DataMember(Name = "tier")]
+        public Tier Rarity { get; set; }
+        [DataMember(Name = "prop")]
+        public List<string> Interesting { get; set; }
+        [DataMember(Name = "secondLowestBin")]
+        public long? SecondLowestBin { get; set; }
 
-            [DataMember(Name = "lowestBin")]
-            public long? LowestBin;
-            [IgnoreDataMember]
-            public long UId;
-        }
+        [DataMember(Name = "lowestBin")]
+        public long? LowestBin;
+        [IgnoreDataMember]
+        public long UId;
     }
 }

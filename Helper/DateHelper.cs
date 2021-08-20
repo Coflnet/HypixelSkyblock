@@ -2,7 +2,7 @@ using System;
 
 namespace hypixel
 {
-    static class DateHelper
+    public static class DateHelper
     {
         public static long ToUnix(this DateTime time)
         {

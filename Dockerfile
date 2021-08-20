@@ -10,15 +10,6 @@ RUN cp -n appsettings.json custom.conf.json
 RUN dotnet restore
 RUN dotnet publish -c release
 
-#FROM node:alpine as frontend
-#RUN apk add git
-#WORKDIR /build
-#RUN git clone https://github.com/Coflnet/hypixel-react.git .
-#RUN npm i
-#RUN npm run build
-#RUN ls
-
-
 FROM mcr.microsoft.com/dotnet/aspnet:3.1
 WORKDIR /app
 

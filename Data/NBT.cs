@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace hypixel
 {
-    class NBT
+    public class NBT
     {
         public static string SkullUrl(string data)
         {

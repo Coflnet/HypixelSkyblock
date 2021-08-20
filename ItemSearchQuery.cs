@@ -29,7 +29,7 @@ namespace hypixel
         public Tier Tier;
 
         [Key("filter")]
-        public Dictionary<string,string> Filter;
+        public Dictionary<string, string> Filter;
 
 
         [Key("start")]
@@ -103,6 +103,26 @@ namespace hypixel
             ASYNC,
             CREATED = 2,
             ENDED = 4
+        }
+    }
+
+
+
+    [MessagePackObject]
+    public class ActiveItemSearchQuery : ItemSearchQuery
+    {
+        [Key("order")]
+        public SortOrder Order;
+        [Key("limit")]
+        public int Limit;
+
+
+        public enum SortOrder
+        {
+            RELEVANT = 0,
+            HIGHEST_PRICE = 1,
+            LOWEST_PRICE = 2,
+            ENDING_SOON = 4
         }
     }
 }

@@ -168,7 +168,8 @@ namespace hypixel
             {
                 try
                 {
-                    Server.ExecuteCommandHeadless(proxyReq);
+                    dev.Logger.Instance.Info("cache refresh is currently inactive");
+                    //Server.ExecuteCommandHeadless(proxyReq);
                 }
                 catch (Exception e)
                 {

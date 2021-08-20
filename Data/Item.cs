@@ -58,7 +58,7 @@ namespace hypixel
             public int HitCount;
         }
 
-        internal async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
+        public async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
         {
             var clearedSearch = ItemReferences.RemoveReforgesAndLevel(search).TrimStart().TrimEnd();
             var tagified = search.ToUpper().Replace(' ', '_');

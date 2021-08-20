@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Coflnet;
-using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
-using WebSocketSharp;
 
 namespace hypixel
 {
@@ -23,9 +21,9 @@ namespace hypixel
             FileController.CreatePath("players/");
         }
 
-        internal string GetName(string uuid)
+        public string GetName(string uuid)
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 return context.Players
                     .Where(player => player.UuId == uuid)
@@ -33,9 +31,9 @@ namespace hypixel
                     .FirstOrDefault();
             }
         }
-        internal string GetIdForName(string name)
+        public string GetIdForName(string name)
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 return context.Players
                     .Where(player => player.Name == name)
@@ -58,7 +56,7 @@ namespace hypixel
 
         public Task<string> GetNameWithCacheAsync(string uuid)
         {
-            return Server.ExecuteCommandWithCache<string,string>("playerName",uuid);
+            return Server.ExecuteCommandWithCache<string, string>("playerName", uuid);
         }
 
 
@@ -78,7 +76,7 @@ namespace hypixel
             foreach (var hit in hits)
             {
                 var player = context.Players.Where(player => player.UuId == hit.Key).FirstOrDefault();
-                if(player == null)
+                if (player == null)
                     continue;
                 player.HitCount += hit.Value;
                 context.Update(player);
@@ -90,7 +88,7 @@ namespace hypixel
             //Console.WriteLine($"Saving {name} ({uuid})");
             var index = name.Substring(0, 3).ToLower();
             string path = "players/" + index;
-            lock(path)
+            lock (path)
             {
                 HashSet<PlayerResult> list = null;
                 if (FileController.Exists(path))
@@ -120,7 +118,7 @@ namespace hypixel
             List<PlayerResult> result;
             search = search.Replace("_", "\\_");
 
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 result = await context.Players
                     .Where(e => EF.Functions.Like(e.Name, $"{search}%"))
@@ -151,10 +149,19 @@ namespace hypixel
                 }
             else
             {
-                var value = JsonConvert.DeserializeObject<SearchCommand.MinecraftProfile>(response.Content);
+                var value = JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
                 NameUpdater.UpdateUUid(value.Id, value.Name);
                 result.Add(new PlayerResult(value.Name, value.Id));
             }
+        }
+
+        public class MinecraftProfile
+        {
+            [JsonProperty("id")]
+            public string Id { get; private set; }
+
+            [JsonProperty("name")]
+            public string Name { get; private set; }
         }
     }
 }

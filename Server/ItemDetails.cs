@@ -37,7 +37,7 @@ namespace hypixel
         static ItemDetails()
         {
             Instance = new ItemDetails();
-            Instance.Load();
+            
         }
 
         public void LoadFromDB()
@@ -65,16 +65,6 @@ namespace hypixel
 
         public void Load()
         {
-            try
-            {
-                if (FileController.Exists("itemDetails"))
-                    Items = FileController.LoadAs<Dictionary<string, Item>>("itemDetails");
-            }
-            catch (Exception)
-            {
-                FileController.Move("itemDetails", "corruptedItemDetails" + DateTime.Now.Ticks);
-            }
-
             if (Items == null)
             {
                 Items = new Dictionary<string, Item>();

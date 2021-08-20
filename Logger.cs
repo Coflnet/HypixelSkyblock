@@ -16,7 +16,7 @@ namespace dev
 
         public void Log(string message)
         {
-            FileController.AppendLineAs("log", message);
+            System.Console.WriteLine(message);
         }
 
         public void Error(string message)
@@ -28,6 +28,11 @@ namespace dev
             }
             catch (System.Exception)
             { }
+        }
+
+        public void Info(string message)
+        {
+            Log(message);
         }
 
 

@@ -15,7 +15,6 @@ using Hypixel.NET;
 using Hypixel.NET.SkyblockApi;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
-using static hypixel.FullSearchCommand;
 
 namespace hypixel
 {
@@ -29,7 +28,7 @@ namespace hypixel
         private int updateCount = 0;
         public static SearchService Instance { get; private set; }
 
-        internal void AddPopularSite(string type, string id)
+        public void AddPopularSite(string type, string id)
         {
             string title = "";
             if (type == "player")
@@ -48,7 +47,7 @@ namespace hypixel
             return popularSite;
         }
 
-        internal Task<ConcurrentQueue<SearchResultItem>> Search(string search, CancellationToken token)
+        public Task<ConcurrentQueue<SearchResultItem>> Search(string search, CancellationToken token)
         {
             if (search.Length > 40)
                 return Task.FromResult(new ConcurrentQueue<SearchResultItem>());
@@ -69,8 +68,6 @@ namespace hypixel
                     await AddOccurences(context);
                 if (updateCount % 10000 == 9999)
                     ShrinkHits(context);
-                if(updateCount % 2000 == 0)
-                    await PrefetchCache();
             }
             await SaveHits();
         }
@@ -157,7 +154,7 @@ namespace hypixel
 
 
         private static int prefetchIndex = new Random().Next(1000);
-        private async Task PrefetchCache()
+/*        private async Task PrefetchCache()
         {
             var charCount = VALID_MINECRAFT_NAME_CHARS.Length;
             var combinations = charCount * charCount + charCount;
@@ -173,7 +170,7 @@ namespace hypixel
                 requestString = VALID_MINECRAFT_NAME_CHARS[index / charCount].ToString() + VALID_MINECRAFT_NAME_CHARS[index % charCount];
             }
             await Server.ExecuteCommandWithCache<string, object>("fullSearch", requestString);
-        }
+        }*/
 
         private static Regex RomanNumber = new Regex("^[IVX]+$");
         private static async Task<ConcurrentQueue<SearchResultItem>> CreateResponse(string search, CancellationToken token)
