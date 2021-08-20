@@ -45,7 +45,7 @@ namespace hypixel
 
         public static event Action onStop;
 
-        public static Server server;
+        public static CoreServer server;
 
         static Program()
         {
@@ -190,7 +190,7 @@ namespace hypixel
             Console.Write("Key: " + apiKey);
             FullServerMode = true;
 
-            server = new Server();
+            server = new CoreServer();
             Task.Run(async () =>
             {
                 while (true)
@@ -319,7 +319,7 @@ namespace hypixel
 
         }
 
-        private static void StopServices(Updater updater, Server server, BazaarUpdater bazzar)
+        private static void StopServices(Updater updater, CoreServer server, BazaarUpdater bazzar)
         {
             Console.WriteLine("Stopping");
             Indexer.Stop();
@@ -380,14 +380,7 @@ namespace hypixel
                     if (!context.Items.Any() || context.Players.Count() < 2_000_000)
                         isNew = true;
                 }
-                if (isNew && !Flipper.FlipperEngine.disabled)
-                {
-                    Console.WriteLine("detected that this is a new instance, starting syncing");
-                    //ClientProxy.Instance.InitialSync();
-                    Console.WriteLine("sync is over now, continuing with operation");
-                }
-                else
-                    Migrated = true;
+                Migrated = true;
             }
             catch (Exception e)
             {

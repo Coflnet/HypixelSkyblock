@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
@@ -7,18 +8,31 @@ using RestSharp;
 
 namespace hypixel
 {
-    public partial class Server
+    public partial class CoreServer
     {
-        static RestClient client = new RestClient(SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"]);
+        static RestClient client;
 
 
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
-            var source = new TaskCompletionSource<TRes>();
-            var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-            var request = new RestRequest("/command/" + MessagePackSerializer.ToJson(reqdata));
-            var result = await client.ExecuteAsync(request);
-            return MessagePackSerializer.Deserialize<TRes>(result.RawBytes);
+            try
+            {
+                if(client == null)
+                    client = new RestClient("http://"+SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"]);
+                var source = new TaskCompletionSource<TRes>();
+                var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
+                var request = new RestRequest($"/command/{command}/{System.Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
+                var result = await client.ExecuteAsync(request);
+                Console.WriteLine(client.BuildUri(request));
+                Console.WriteLine(result.ErrorMessage);
+                Console.WriteLine(result.StatusCode);
+                return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "execute with cache");
+                throw e;
+            }
         }
 
 

@@ -276,7 +276,7 @@ namespace hypixel.Flipper
                 Filter = filter,
                 name = itemTag
             };
-            var lowestBin = Server.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
+            var lowestBin = CoreServer.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
             return lowestBin;
         }
 

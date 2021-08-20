@@ -18,7 +18,6 @@ namespace hypixel
         static PlayerSearch()
         {
             Instance = new PlayerSearch();
-            FileController.CreatePath("players/");
         }
 
         public string GetName(string uuid)
@@ -56,7 +55,7 @@ namespace hypixel
 
         public Task<string> GetNameWithCacheAsync(string uuid)
         {
-            return Server.ExecuteCommandWithCache<string, string>("playerName", uuid);
+            return CoreServer.ExecuteCommandWithCache<string, string>("playerName", uuid);
         }
 
 

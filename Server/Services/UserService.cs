@@ -85,7 +85,7 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                Server.AddPremiumTime(days, user);
+                CoreServer.AddPremiumTime(days, user);
                 context.SaveChanges();
                 context.Add(new Bonus()
                 {

@@ -216,13 +216,13 @@ namespace hypixel
                     return;
                 await Task.Delay(1);
                 Console.WriteLine("scheduled last cache wait");
-                foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
+                foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", search.Substring(0, search.Length - 2)))
                     Results.Enqueue(item);
                 if (searchWords.Count() == 1 || String.IsNullOrWhiteSpace(searchWords.Last()))
                     return;
                 if(searchWords[1].Length < 2)
                     return;
-                foreach (var item in await Server.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", searchWords[1]))
+                foreach (var item in await CoreServer.ExecuteCommandWithCache<string, List<SearchResultItem>>("fullSearch", searchWords[1]))
                 {
                     item.HitCount -= 20; // no exact match
                     Results.Enqueue(item);
