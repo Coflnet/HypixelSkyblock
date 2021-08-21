@@ -23,14 +23,20 @@ namespace hypixel
 
                 var samplingRate = 0.20d;
                 var lowerBoundInSeconds = 30d;
-                ISampler sampler = new GuaranteedThroughputSampler(samplingRate,lowerBoundInSeconds);
-                var config = Jaeger.Configuration.FromIConfiguration(loggerFactory,iConfiguration);
+                ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
+                var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
 
                 ITracer tracer = config.GetTracerBuilder()
                     .WithSampler(sampler)
                     .Build();
-
-                GlobalTracer.Register(tracer);
+                try
+                {
+                    GlobalTracer.Register(tracer);
+                }
+                catch (System.Exception)
+                {
+                    loggerFactory.CreateLogger("jager").LogError("Could not register new tracer");
+                }
 
                 return tracer;
             });
