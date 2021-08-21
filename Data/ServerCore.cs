@@ -12,7 +12,6 @@ namespace hypixel
     {
         static RestClient client;
 
-
         public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
             try
@@ -23,9 +22,6 @@ namespace hypixel
                 var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
                 var request = new RestRequest($"/command/{command}/{System.Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
                 var result = await client.ExecuteAsync(request);
-                Console.WriteLine(client.BuildUri(request));
-                Console.WriteLine(result.ErrorMessage);
-                Console.WriteLine(result.StatusCode);
                 return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
             }
             catch (Exception e)
