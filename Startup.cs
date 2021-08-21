@@ -22,6 +22,7 @@ namespace dev
     public class Startup
     {
         private IConfiguration Configuration;
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public Startup(IConfiguration conf)
         {
             Configuration = conf;
@@ -57,6 +58,14 @@ namespace dev
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
+            });
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                                builder =>
+                                {
+                                    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                                });
             });
             services.AddSwaggerGenNewtonsoftSupport();
             services.AddStackExchangeRedisCache(options =>
@@ -102,6 +111,8 @@ namespace dev
             });
 
             app.UseRouting();
+            
+            app.UseCors(MyAllowSpecificOrigins);
 
 
             app.UseResponseCaching();
@@ -118,6 +129,12 @@ namespace dev
                     };
                 context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
                     new string[] { "Accept-Encoding" };
+                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.AccessControlAllowOrigin] =
+                    new string[] { "*" };
+                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.AccessControlAllowHeaders] =
+                    new string[] { "*" };
+                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.AccessControlAllowMethods] =
+                    new string[] { "GET" };
 
                 await next();
             });
