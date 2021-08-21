@@ -300,7 +300,8 @@ namespace hypixel
             {
                 dev.Logger.Instance.Error(e, "loading frontend " + $"http://{frontendUrl}/{filePath.TrimStart('/')}");
                 context.SetStatusCode(404);
-                await context.WriteAsync("File not found, maybe you fogot to upload the fronted");
+                context.AddHeader("cache-control", "private");
+                await context.WriteAsync("Sorry, for some reason the website failed to load. Please press F5 in a minute.");
                 return;
             }
 
