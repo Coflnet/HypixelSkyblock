@@ -62,7 +62,8 @@ namespace hypixel.Flipper
             Instance = new FlipperEngine();
             foreach (var item in Enum.GetValues(typeof(Enchantment.EnchantmentType)).Cast<Enchantment.EnchantmentType>())
             {
-                if (item.ToString().StartsWith("ultimate_", true, null))
+                // overloard is considered ulti becase it costs 1M per book
+                if (item.ToString().StartsWith("ultimate_", true, null) || item == Enchantment.EnchantmentType.overload)
                 {
                     UltimateEnchants.TryAdd(item, true);
                     UltiEnchantList.Add(item);
