@@ -299,6 +299,8 @@ namespace hypixel
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "loading frontend " + $"http://{frontendUrl}/{filePath.TrimStart('/')}");
+                context.Span.SetTag("error","404");
+                context.Span.Log($"failed to load  http://{frontendUrl}/{filePath.TrimStart('/')}");
                 context.SetStatusCode(404);
                 context.AddHeader("cache-control", "private");
                 await context.WriteAsync("Sorry, for some reason the website failed to load. Please press F5 in a minute.");
