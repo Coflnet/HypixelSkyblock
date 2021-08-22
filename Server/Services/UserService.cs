@@ -97,7 +97,7 @@ namespace hypixel
                 if (user.ReferedBy != 0)
                     context.Add(new Bonus()
                     {
-                        BonusTime = TimeSpan.FromDays(days) / 10,
+                        BonusTime = TimeSpan.FromDays(days) / 5,
                         ReferenceData = transactionId,
                         Type = Bonus.BonusType.REFERED_UPGRADE,
                         UserId = user.ReferedBy

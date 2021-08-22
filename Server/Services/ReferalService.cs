@@ -35,12 +35,13 @@ namespace hypixel
             {
                 user.ReferedBy = id;
                 // give the user 'test' premium time
-                Server.AddPremiumTime(1, user);
+                var bonusTime = TimeSpan.FromHours(4);
+                Server.AddPremiumTime(bonusTime.TotalDays, user);
                 context.Update(user);
                 // persist the boni
                 context.Add(new Bonus()
                 {
-                    BonusTime = TimeSpan.FromDays(1),
+                    BonusTime = bonusTime,
                     ReferenceData = id.ToString(),
                     Type = Bonus.BonusType.BEING_REFERED,
                     UserId = user.Id
@@ -51,10 +52,10 @@ namespace hypixel
                 if (referUser != null)
                 {
                     // award referal bonus to user who refered
-                    Server.AddPremiumTime(1, referUser);
+                    Server.AddPremiumTime(bonusTime.TotalDays, referUser);
                     context.Add(new Bonus()
                     {
-                        BonusTime = TimeSpan.FromDays(1),
+                        BonusTime = bonusTime,
                         ReferenceData = user.Id.ToString(),
                         Type = Bonus.BonusType.REFERAL,
                         UserId = referUser.Id

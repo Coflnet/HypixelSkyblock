@@ -536,7 +536,7 @@ namespace hypixel
         }
 
 
-        public static void AddPremiumTime(int days, GoogleUser user)
+        public static void AddPremiumTime(double days, GoogleUser user)
         {
             if (user.PremiumExpires > DateTime.Now)
                 user.PremiumExpires += TimeSpan.FromDays(days);
