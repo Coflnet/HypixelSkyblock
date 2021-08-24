@@ -26,12 +26,12 @@ namespace hypixel
                 var code = a.StartingBid;
                 if (a.AuctioneerId != uuid)
                     code = a.Bids.Where(u => u.Bidder == uuid).Select(b => b.Amount).Where(b => b % 1000 == amount || b % 1000 == lastAmount).FirstOrDefault();
-                Console.WriteLine("vertifying " + code);
+                Console.WriteLine("verifying user \n-------------------\n" + code);
                 if (code % 1000 == amount || code % 1000 == lastAmount)
                     using (var context = new HypixelContext())
                     {
                         var user = context.Users.Where(u => u.Id == userId).FirstOrDefault();
-                        user.MinecraftUuid = a.AuctioneerId;
+                        user.MinecraftUuid = uuid;
                         context.Update(user);
                         context.SaveChanges();
                     }
