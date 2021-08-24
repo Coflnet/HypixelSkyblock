@@ -45,7 +45,8 @@ namespace hypixel
 
             var response = new Response()
             {
-                StartingBid = amount
+                StartingBid = amount,
+                ConnectedUuid = data.User.MinecraftUuid
             };
 
             await data.SendBack(data.Create("connectMc", response));
@@ -63,6 +64,8 @@ namespace hypixel
         {
             [DataMember(Name = "bid")]
             public int StartingBid;
+            [DataMember(Name = "uuid")]
+            public string ConnectedUuid;
         }
 
         public class VerifySub : SubscribeItem
