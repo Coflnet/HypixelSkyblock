@@ -18,7 +18,6 @@ namespace hypixel
 
     public class Program
     {
-        static string apiKey = SimplerConfig.Config.Instance["apiKey"];
         public static string StripeKey;
         public static string StripeSigningSecret;
 
@@ -127,10 +126,6 @@ namespace hypixel
                 case 'f':
                     FullServer();
                     break;
-                case 'u':
-                    var updater = new Updater(apiKey);
-                    updater.Update().Wait();
-                    break;
 
                 case '7':
                     displayMode = false;
@@ -187,7 +182,6 @@ namespace hypixel
         private static void FullServer()
         {
             Console.WriteLine($"\n - Starting FullServer {version} - \n");
-            Console.Write("Key: " + apiKey);
             FullServerMode = true;
 
             server = new CoreServer();
@@ -220,14 +214,6 @@ namespace hypixel
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
 
-            var bazzar = new BazaarUpdater();
-            if (modes.Contains("updater"))
-            {
-                updater = new Updater(apiKey);
-                updater.UpdateForEver();
-                bazzar.UpdateForEver(apiKey);
-            }
-
             Flipper.FlipperEngine.disabled = !modes.Contains("flipper");
             if (!Flipper.FlipperEngine.disabled)
                 for (int i = 0; i < 2; i++)
@@ -245,9 +231,10 @@ namespace hypixel
                 redisInit = MakeSureRedisIsInitialized();
 
                 Console.WriteLine("booting db dependend stuff");
-                RunIsolatedForever(bazzar.ProcessBazaarQueue, "bazaar queue");
+                var bazaar = new BazaarUpdater();
+                RunIsolatedForever(bazaar.ProcessBazaarQueue, "bazaar queue");
                 RunIndexer();
-                NameUpdater.Run();
+                //NameUpdater.Run();
                 SearchService.Instance.RunForEver();
                 Task.Run(async () =>
                 {
@@ -268,7 +255,7 @@ namespace hypixel
 
             onStop += () =>
             {
-                StopServices(updater, server, bazzar);
+                Console.WriteLine("stopped");
             };
 
 
@@ -317,16 +304,6 @@ namespace hypixel
                 Logger.Instance.Error($"Redis init failed {e.Message} \n{e.StackTrace}");
             }
 
-        }
-
-        private static void StopServices(Updater updater, CoreServer server, BazaarUpdater bazzar)
-        {
-            Console.WriteLine("Stopping");
-            Indexer.Stop();
-            updater?.Stop();
-            bazzar?.Stop();
-            System.Threading.Thread.Sleep(500);
-            Console.WriteLine("done");
         }
 
         private static void CleanDB()
@@ -498,7 +475,6 @@ namespace hypixel
         }
 
         private static System.Collections.Concurrent.ConcurrentDictionary<string, int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
-        public static Updater updater;
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {

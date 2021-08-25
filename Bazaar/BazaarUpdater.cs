@@ -29,7 +29,45 @@ namespace dev
         private static async Task PullAndSave(HypixelApi api, int i)
         {
             var result = await api.GetBazaarProductsAsync();
-            var pull = new BazaarPull(result);
+            var pull = new BazaarPull()
+            {
+                Timestamp = result.LastUpdated
+            };
+            pull.Products = result.Products.Select(p =>
+            {
+                var pInfo = new ProductInfo()
+                {
+                    ProductId = p.Value.ProductId,
+                    BuySummery = p.Value.BuySummary.Select(s => new BuyOrder()
+                    {
+                        Amount = (int)s.Amount,
+                        Orders = (short)s.Orders,
+                        PricePerUnit = s.PricePerUnit
+                    }).ToList(),
+                    SellSummary = p.Value.SellSummary.Select(s => new SellOrder()
+                    {
+                        Amount = (int)s.Amount,
+                        Orders = (short)s.Orders,
+                        PricePerUnit = s.PricePerUnit
+                    }).ToList(),
+                    QuickStatus = new QuickStatus()
+                    {
+                        ProductId = p.Value.QuickStatus.ProductId,
+                        BuyMovingWeek = p.Value.QuickStatus.BuyMovingWeek,
+                        BuyOrders = (int)p.Value.QuickStatus.BuyOrders,
+                        BuyPrice = p.Value.QuickStatus.BuyPrice,
+                        BuyVolume = p.Value.QuickStatus.BuyVolume,
+                        SellMovingWeek = p.Value.QuickStatus.SellMovingWeek,
+                        SellOrders = (int)p.Value.QuickStatus.SellOrders,
+                        SellPrice = p.Value.QuickStatus.SellPrice,
+                        SellVolume = p.Value.QuickStatus.SellVolume
+                    },
+                    PullInstance = pull
+                };
+                pInfo.QuickStatus.SellPrice = p.Value.SellSummary.Select(o => o.PricePerUnit).FirstOrDefault();
+                pInfo.QuickStatus.BuyPrice = p.Value.BuySummary.Select(o => o.PricePerUnit).FirstOrDefault();
+                return pInfo;
+            }).ToList();
             await ProduceIntoQueue(pull);
         }
 

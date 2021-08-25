@@ -51,14 +51,6 @@ namespace hypixel.Flipper
                     UltiEnchantList.Add(item);
                 }
             }
-            Task.Run(async () =>
-            {
-                while (Program.updater == null)
-                    await Task.Delay(TimeSpan.FromSeconds(10));
-                Console.WriteLine("booting flipper");
-                //Program.updater.OnNewUpdateStart += Instance.OnUpdateStart;
-                //Program.updater.OnNewUpdateEnd += Instance.OnUpdateEnd;
-            }).ConfigureAwait(false);
         }
 
 

@@ -208,7 +208,6 @@ namespace hypixel
         }
 
         private const int MAX_MEDIUM_INT = 8388607;
-        private static ConcurrentDictionary<string, DBItem> ToFillDetails = new ConcurrentDictionary<string, DBItem>();
 
         public int GetOrCreateItemIdForAuction(SaveAuction auction, HypixelContext context)
         {
@@ -234,9 +233,6 @@ namespace hypixel
                 return itemByTag.Id;
             }
             Console.WriteLine($"!! completely new !! {JsonConvert.SerializeObject(auction)}");
-            // new Item
-            //var tempAuction = new Hypixel.NET.SkyblockApi.Auction(){Category=auction.Category,};
-            //AddNewItem(tempAuction,auction.ItemName,auction.Tag,null);
             var item = new DBItem()
             {
                 Tag = auction.Tag,
@@ -248,7 +244,8 @@ namespace hypixel
                 // unindexable item
                 return MAX_MEDIUM_INT;
             }
-            ToFillDetails[item.Tag] = item;
+            // todo send this to an updater
+            //ToFillDetails[item.Tag] = item;
             return AddItemToDB(item);
             //throw new CoflnetException("can_add","can't add this item");
         }

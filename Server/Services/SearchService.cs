@@ -8,11 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
-using Coflnet;
 using dev;
-using Hypixel.NET;
-using Hypixel.NET.SkyblockApi;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 

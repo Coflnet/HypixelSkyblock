@@ -7,18 +7,6 @@ namespace dev
     public class QuickStatus
     { 
         public QuickStatus() { }
-        public QuickStatus(Hypixel.NET.SkyblockApi.Bazaar.QuickStatus quickStatus)
-        {
-            this.ProductId = quickStatus.ProductId;
-            this.BuyMovingWeek = quickStatus.BuyMovingWeek;
-            this.BuyOrders = (int)quickStatus.BuyOrders;
-            this.BuyPrice = quickStatus.BuyPrice;
-            this.BuyVolume = quickStatus.BuyVolume;
-            this.SellMovingWeek = quickStatus.SellMovingWeek;
-            this.SellOrders = (int)quickStatus.SellOrders;
-            this.SellPrice = quickStatus.SellPrice;
-            this.SellVolume = quickStatus.SellVolume;
-        }
 
         [IgnoreMember]
         public int ID {get;set;}
