@@ -145,11 +145,6 @@ namespace hypixel
                 entity.HasIndex(e => e.GoogleId);
             });
 
-            modelBuilder.Entity<Device>(entity =>
-            {
-                entity.HasIndex(e => e.ConnectionId);
-            });
-
             modelBuilder.Entity<NBTLookup>(entity =>
             {
                 entity.HasKey(e => new {e.AuctionId,e.KeyId});

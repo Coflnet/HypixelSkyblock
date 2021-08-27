@@ -692,7 +692,22 @@ namespace hypixel
             }
         }
 
+        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
+        {
+            var filter = new Dictionary<string, string>() { { "Bin", "true" } };
+            if (tier != Tier.UNCOMMON)
+                filter["Rarity"] = tier.ToString();
 
+            var query = new ActiveItemSearchQuery()
+            {
+                Order = ActiveItemSearchQuery.SortOrder.LOWEST_PRICE,
+                Limit = 2,
+                Filter = filter,
+                name = itemTag
+            };
+            var lowestBin = CoreServer.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
+            return lowestBin;
+        }
 
 
         [MessagePackObject]

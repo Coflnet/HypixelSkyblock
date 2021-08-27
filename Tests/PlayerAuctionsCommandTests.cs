@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using hypixel;
 using NUnit.Framework;
-using hypixel.Flipper;
 
 namespace Tests
 {

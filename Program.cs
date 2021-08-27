@@ -134,9 +134,6 @@ namespace hypixel
                     Console.WriteLine(auction.ItemName);
                     //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
                     break;
-                case 'i':
-                    Flipper.FlipperEngine.Instance.Test();
-                    break;
                 case 'p':
                     Indexer.LastHourIndex().Wait();
                     //StorageManager.Migrate();
@@ -213,11 +210,7 @@ namespace hypixel
                 Console.WriteLine("running on " + System.Net.Dns.GetHostName());
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
-
-            Flipper.FlipperEngine.disabled = !modes.Contains("flipper");
-            if (!Flipper.FlipperEngine.disabled)
-                for (int i = 0; i < 2; i++)
-                    RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
+            
 
 
             Task redisInit = null;
