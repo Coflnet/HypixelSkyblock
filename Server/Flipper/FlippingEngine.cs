@@ -370,7 +370,6 @@ namespace hypixel.Flipper
 
 
 
-
             var recomendedBuyUnder = medianPrice * 0.8;
             if (price > recomendedBuyUnder) // at least 20% profit
             {
@@ -482,7 +481,7 @@ namespace hypixel.Flipper
                 if (relevantAuctions.Count < 50 && PotetialFlipps.Count < 2000)
                 {
                     // to few auctions in a day, query a week
-                    oldest = DateTime.Now - TimeSpan.FromDays(8);
+                    oldest = DateTime.Now - TimeSpan.FromDays(7);
                     relevantAuctions = await GetSelect(auction, context, clearedName, itemId, youngest, matchingCount, ulti, highLvlEnchantList, oldest, auction.Reforge, 120)
                     .ToListAsync();
                     if (relevantAuctions.Count < 10 && clearedName.Contains("✪"))
@@ -573,6 +572,16 @@ namespace hypixel.Flipper
             if(auction.Tag.Contains("HOE") || flatNbt.ContainsKey("farming_for_dummies_count"))
                 select = AddNBTSelect(select, flatNbt, "farming_for_dummies_count");
 
+            if(flatNbt.ContainsKey("gemstone_slots"))
+                select = AddNBTSelect(select, flatNbt, "gemstone_slots");
+            
+            if(flatNbt.ContainsKey("heldItem"))
+            {
+                // don't show pets with tier bosts
+                var keyId = NBT.GetLookupKey("heldItem");
+                var val = ItemDetails.Instance.GetItemIdForName(flatNbt["heldItem"]);
+                select = select.Where(a => a.NBTLookup.Where(n => n.KeyId == keyId && n.Value == val).Any());
+            }            
 
             select = AddEnchantmentSubselect(auction, matchingCount, highLvlEnchantList, select, ultiLevel, ultiType);
             if (limit == 0)
