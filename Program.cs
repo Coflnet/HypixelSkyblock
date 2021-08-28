@@ -222,7 +222,7 @@ namespace hypixel
                 redisInit = MakeSureRedisIsInitialized();
 
                 Console.WriteLine("booting db dependend stuff");
-                var bazaar = new BazaarUpdater();
+                var bazaar = new BazaarIndexer();
                 RunIsolatedForever(bazaar.ProcessBazaarQueue, "bazaar queue");
                 RunIndexer();
                 //NameUpdater.Run();

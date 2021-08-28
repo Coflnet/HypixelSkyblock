@@ -25,7 +25,6 @@ namespace dev
             {
 
                 var lastMinPulls = await context.BazaarPull
-
                             .OrderByDescending(b => b.Timestamp)
                             .Include(b => b.Products)
                             .ThenInclude(p => p.QuickStatus)
