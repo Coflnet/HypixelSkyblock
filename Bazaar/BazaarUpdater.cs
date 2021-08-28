@@ -99,7 +99,6 @@ namespace dev
                 Console.Write("\r" + i);
 
             }
-            SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
             LastUpdate = DateTime.Now;

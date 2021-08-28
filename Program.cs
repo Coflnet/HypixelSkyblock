@@ -219,8 +219,6 @@ namespace hypixel
             {
                 GetDBToDesiredState();
                 ItemDetails.Instance.LoadFromDB();
-                SubscribeEngine.Instance.LoadFromDb();
-                RunIsolatedForever(SubscribeEngine.Instance.ProcessQueues, "SubscribeEngine");
                 redisInit = MakeSureRedisIsInitialized();
 
                 Console.WriteLine("booting db dependend stuff");
