@@ -33,6 +33,7 @@ namespace hypixel
         public long StartingBid { get; set; }
 
         [Key(4)]
+        [JsonIgnore]
         public string OldTier
         {
             set
@@ -45,6 +46,7 @@ namespace hypixel
 
 
         [Key(5)]
+        [JsonIgnore]
         public string OldCategory
         {
             set
