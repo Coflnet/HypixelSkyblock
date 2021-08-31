@@ -54,8 +54,8 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
     <PackageReference Include="NUnit" Version="3.11.0" />
 
-    <None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <None Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-    <None Include="keyfile.p12" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <None Include="keyfile.p12" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" /-->
   </ItemGroup>
 </Project>
