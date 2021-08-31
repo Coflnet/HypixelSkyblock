@@ -511,7 +511,8 @@ namespace hypixel.Flipper
         {
             ItemReferences.Reforge.ancient,
             ItemReferences.Reforge.Necrotic,
-            ItemReferences.Reforge.Giant
+            ItemReferences.Reforge.Giant,
+            ItemReferences.Reforge.jaded
         };
 
         private static IQueryable<SaveAuction> GetSelect(
