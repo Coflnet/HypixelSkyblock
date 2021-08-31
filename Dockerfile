@@ -1,13 +1,8 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as build
-WORKDIR /build
-RUN git clone https://github.com/Ekwav/websocket-sharp
-RUN mkdir -p /build/skyblock/External/api
-RUN git clone https://github.com/Ekwav/Hypixel.NET.git /build/skyblock/External/api
 WORKDIR /build/skyblock
-COPY . .
-RUN touch keyfile.p12 
-RUN cp -n appsettings.json custom.conf.json
+COPY hypixel.csproj .
 RUN dotnet restore
+COPY . .
 RUN dotnet publish -c release
 
 FROM mcr.microsoft.com/dotnet/aspnet:3.1

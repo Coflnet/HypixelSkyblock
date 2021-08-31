@@ -15,8 +15,6 @@ namespace hypixel
     {
         public static CacheService Instance { get; protected set; }
 
-        private static int MaxCacheSize = Int32.Parse(SimplerConfig.Config.Instance["MaxCacheItems"]);
-
         public int CacheSize => -1;
 
         public ConnectionMultiplexer RedisConnection { get; }
