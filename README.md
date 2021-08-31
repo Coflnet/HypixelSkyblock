@@ -2,7 +2,7 @@
 This is the back-end for https://sky.coflnet.com 
 You can get the same data and play around with it by using this project.
 
-Some endpoins are exposed via REST, see the open-api docs: https://sky.coflnet.com/api
+Some endpoints are exposed via REST, see the open-api docs: https://sky.coflnet.com/api
 
 # Requests
 ### General
@@ -20,9 +20,9 @@ Example:
 You can find a bare bone example frontend inside the file `test_frontend.html`.
 It has no UI and you have to interact with it via the console and the `sendData` comand.
 1. Copy the script 
-2. make sure you use the hosted backend if you are not running it locally
+2. Make sure you use the hosted backend if you are not running it locally
 3. Open the file in chrome
-3. Open the brwoser console
+3. Open the browser console
 4. Try `sendData("filterFor","ASPECT_OF_THE_END")` 
 
 
@@ -186,7 +186,7 @@ Sets a unique connectionId that should be the same if you reconnect. This is use
 ```
 
 ## PremiumExpiration
-Gets the timestamp untila a given user has Premium.
+Gets the timestamp until a given user has their Premium subscription expired.
 ```
 {
     "type":"premiumExpiration",
@@ -405,7 +405,7 @@ Response:
 ```
 
 ## GetFilter
-Returns a filters optons
+Returns a filter's optons
 ```
 {
     type:"getFilter",
@@ -435,7 +435,7 @@ The `longType` is for reference only it will be removed in the future.
 ```
 
 ## SubFlip
-Subscribes to the fliper. This will push the command `flip` with the same format as `getFlips`.
+Subscribes to the flipper. This will push the command `flip` with the same format as `getFlips`.
 ```
 {
     type:"subFlip"
@@ -548,7 +548,7 @@ Response:
 }
 ```
 ## getRefInfo
-Returns information about refered users 
+Returns information about referred users 
 ```
 {
     type:"getRefInfo"
@@ -563,10 +563,10 @@ Response:
     bougthPremium:0
 }
 ```
-`bougthPremium` is the count of users that bought premium. If a refered user buys premium the user who created the link receives 3 extra days.
+`bougthPremium` is the count of users that bought premium. If a referred user buys premium, the user who created the link receives 3 extra days.
 
 ## setRef
-Sets the users who refereed this user.  
+Sets the users who referred this user.  
 Caution: this can only be executed once for every user.
 ```
 {
@@ -643,7 +643,7 @@ type: 1
 }[
 ```
 The response is the same as with `getFilter` just as an array because all options are returned at once.
-It is planed to filter the available options at some point (currently that is not the case)
+It is planned to filter the available options at some point (currently that is not the case)
 
 ## accountInfo
 Get Account information about the currently logged in user (no data required)
