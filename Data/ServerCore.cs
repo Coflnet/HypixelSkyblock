@@ -16,13 +16,30 @@ namespace hypixel
         {
             try
             {
-                if(client == null)
-                    client = new RestClient("http://"+SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"]);
+                if (client == null)
+                {
+                    var host = SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"];
+                    if (string.IsNullOrEmpty(host))
+                    {
+                        throw new Exception("The enviroment variable SKYCOMMANDS_HOST is not set to a valid hostname");
+                    }
+                    client = new RestClient("http://" + host);
+
+                }
                 var source = new TaskCompletionSource<TRes>();
                 var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
                 var request = new RestRequest($"/command/{command}/{System.Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
                 var result = await client.ExecuteAsync(request);
-                return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
+                try
+                {
+                    return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
+
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e,"deserialize command response");
+                    return JsonConvert.DeserializeObject<TRes>(result.Content);
+                }
             }
             catch (Exception e)
             {
