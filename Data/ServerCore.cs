@@ -37,7 +37,7 @@ namespace hypixel
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e,"deserialize command response");
+                    dev.Logger.Instance.Error(e,"deserialize command response \n"+result.Content);
                     return JsonConvert.DeserializeObject<TRes>(result.Content);
                 }
             }
