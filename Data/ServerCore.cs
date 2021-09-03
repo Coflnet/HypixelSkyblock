@@ -32,13 +32,13 @@ namespace hypixel
                 var result = await client.ExecuteAsync(request);
                 try
                 {
-                    return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
+                    return JsonConvert.DeserializeObject<TRes>(result.Content);
 
                 }
                 catch (Exception e)
                 {
                     dev.Logger.Instance.Error(e,"deserialize command response \n"+result.Content);
-                    return JsonConvert.DeserializeObject<TRes>(result.Content);
+                    return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
                 }
             }
             catch (Exception e)

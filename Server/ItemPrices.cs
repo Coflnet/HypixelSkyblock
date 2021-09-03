@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coflnet;
 using ConcurrentCollections;
@@ -710,31 +711,31 @@ namespace hypixel
         }
 
 
-        [MessagePackObject]
+        [DataContract]
         public class Resonse
         {
-            [Key("filterable")]
+            [DataMember(Name = "filterable")]
             public bool Filterable;
-            [Key("bazaar")]
+            [DataMember(Name = "bazaar")]
             public bool Bazaar;
-            [Key("filters")]
+            [DataMember(Name = "filters")]
             public IEnumerable<string> Filters;
-            [Key("prices")]
+            [DataMember(Name = "prices")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
         }
 
-        [MessagePackObject]
+        [DataContract]
         public class AuctionPreview
         {
-            [Key("seller")]
+            [DataMember(Name = "seller")]
             public string Seller;
-            [Key("price")]
+            [DataMember(Name = "price")]
             public long Price;
-            [Key("end")]
+            [DataMember(Name = "end")]
             public DateTime End;
-            [Key("uuid")]
+            [DataMember(Name = "uuid")]
             public string Uuid;
-            [Key("playerName")]
+            [DataMember(Name = "playerName")]
             public string PlayerName;
         }
     }

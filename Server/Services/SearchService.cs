@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -306,23 +307,23 @@ namespace hypixel
             }
         }
 
-        [MessagePackObject]
+        [DataContract]
         public class SearchResultItem
         {
             private const int ITEM_EXTRA_IMPORTANCE = 10;
             private const int NOT_NORMALIZED_PENILTY = ITEM_EXTRA_IMPORTANCE * 3 / 2;
-            [Key("name")]
+            [DataMember(Name = "name")]
             public string Name;
-            [Key("id")]
+            [DataMember(Name = "id")]
             public string Id;
-            [Key("type")]
+            [DataMember(Name = "type")]
             public string Type;
-            [Key("iconUrl")]
+            [DataMember(Name = "iconUrl")]
             public string IconUrl;
             /// <summary>
             /// Low resolution preview icon
             /// </summary>
-            [Key("img")]
+            [DataMember(Name = "img")]
             public string Image;
             [IgnoreMember]
             //[Key("hits")]
