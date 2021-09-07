@@ -38,17 +38,17 @@ namespace hypixel
             
         }
 
-        public void LoadFromDB()
+        public Task LoadFromDB()
         {
-            LoadLookup();
+            return LoadLookup();
         }
 
-        public void LoadLookup()
+        public async Task LoadLookup()
         {
             using (var context = new HypixelContext())
             {
-                TagLookup = context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
-                                    .ToDictionary(item => item.Tag, item => item.Id);
+                TagLookup = await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
+                                    .ToDictionaryAsync(item => item.Tag, item => item.Id);
             }
         }
 

@@ -21,7 +21,7 @@ namespace dev
 
         public void Error(string message)
         {
-            System.Console.WriteLine(message);
+            System.Console.WriteLine("Error: " + message);
             try
             {
                 FileController.AppendLineAs("errors", message);
@@ -32,7 +32,7 @@ namespace dev
 
         public void Info(string message)
         {
-            Log(message);
+            Log("Info: " + message);
         }
 
 

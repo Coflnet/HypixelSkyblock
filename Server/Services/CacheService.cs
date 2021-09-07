@@ -16,6 +16,10 @@ namespace hypixel
         public static CacheService Instance { get; protected set; }
 
         public int CacheSize => -1;
+        /// <summary>
+        /// event executed when the cache should be refreshed
+        /// </summary>
+        public event Action<MessageData> OnCacheRefresh;
 
         public ConnectionMultiplexer RedisConnection { get; }
 
@@ -159,15 +163,14 @@ namespace hypixel
             return CacheStatus.RECENT;
         }
 
-        private static void RefreshResponse(MessageData request)
+        private void RefreshResponse(MessageData request)
         {
             var proxyReq = new CacheMessageData(request.Type, request.Data);
             var task = Task.Run(() =>
             {
                 try
                 {
-                    dev.Logger.Instance.Info("cache refresh is currently inactive");
-                    //Server.ExecuteCommandHeadless(proxyReq);
+                    OnCacheRefresh?.Invoke(proxyReq);
                 }
                 catch (Exception e)
                 {

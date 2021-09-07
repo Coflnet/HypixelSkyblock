@@ -18,9 +18,6 @@ namespace hypixel
 
     public class Program
     {
-        public static string StripeKey;
-        public static string StripeSigningSecret;
-
         public static string InstanceId { get; }
 
         public static bool displayMode = false;
@@ -54,10 +51,6 @@ namespace hypixel
 
         static void Main(string[] args)
         {
-            StripeKey = SimplerConfig.Config.Instance["stripeKey"];
-            StripeSigningSecret = SimplerConfig.Config.Instance["stripeSecret"];
-            StripeConfiguration.ApiKey = Program.StripeKey;
-
             Console.CancelKeyPress += delegate
             {
                 Console.WriteLine("\nAbording");
