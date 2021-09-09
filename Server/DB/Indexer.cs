@@ -22,11 +22,11 @@ namespace hypixel
         public static int IndexedAmount => count;
         public static int QueueCount => auctionsQueue.Count;
 
-        public static readonly string MissingAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:MISSING_AUCTION_CONSUME"];
-        public static readonly string SoldAuctionTopic = SimplerConfig.Config.Instance["TOPICS:SOLD_AUCTION_CONSUME"];
-        public static readonly string NewAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:NEW_AUCTION_CONSUME"];
-        public static readonly string AuctionEndedTopic = SimplerConfig.Config.Instance["TOPICS:AUCTION_ENDED_CONSUME"];
-        public static readonly string NewBidTopic = SimplerConfig.Config.Instance["TOPICS:NEW_BID_CONSUME"];
+        public static readonly string MissingAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:MISSING_AUCTION"];
+        public static readonly string SoldAuctionTopic = SimplerConfig.Config.Instance["TOPICS:SOLD_AUCTION"];
+        public static readonly string NewAuctionsTopic = SimplerConfig.Config.Instance["TOPICS:NEW_AUCTION"];
+        public static readonly string AuctionEndedTopic = SimplerConfig.Config.Instance["TOPICS:AUCTION_ENDED"];
+        public static readonly string NewBidTopic = SimplerConfig.Config.Instance["TOPICS:NEW_BID"];
 
         private static int count;
         public static DateTime LastFinish { get; internal set; }

@@ -15,7 +15,7 @@ namespace dev
 
         public static Dictionary<string, QuickStatus> LastStats = new Dictionary<string, QuickStatus>();
 
-        public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:BAZAAR_CONSUME"];
+        public static readonly string ConsumeTopic = SimplerConfig.Config.Instance["TOPICS:BAZAAR"];
 
         private static async Task IndexBazaar(int i, BazaarPull pull)
         {
