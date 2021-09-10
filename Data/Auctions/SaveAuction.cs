@@ -219,6 +219,7 @@ namespace hypixel
         public long UId { get; set; }
         [Key(27)]
         [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public DateTime FindTime { get; set; } = DateTime.Now;
 
         public SaveAuction() { }
