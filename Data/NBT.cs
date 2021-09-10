@@ -59,7 +59,7 @@ namespace hypixel
                 {
                     json = Encoding.UTF8.GetString(Convert.FromBase64String(base64 + "=="));
                 }
-                Console.WriteLine(json);
+                Console.WriteLine("Skull url json" + json);
 
                 //return null;
             }

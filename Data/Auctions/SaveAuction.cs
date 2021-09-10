@@ -217,6 +217,9 @@ namespace hypixel
         [Key(26)]
         [JsonIgnore]
         public long UId { get; set; }
+        [Key(27)]
+        [JsonIgnore]
+        public DateTime FindTime { get; set; } = DateTime.Now;
 
         public SaveAuction() { }
 
