@@ -4,7 +4,7 @@ using OpenTracing.Propagation;
 
 namespace Coflnet.Tracing
 {
-    class TextMap : Dictionary<string, string>, ITextMap
+    public class TextMap : Dictionary<string, string>, ITextMap
     {
         public void Set(string key, string value)
         {

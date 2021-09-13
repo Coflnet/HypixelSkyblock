@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Coflnet.Tracing;
 using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -221,6 +222,10 @@ namespace hypixel
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public DateTime FindTime { get; set; } = DateTime.Now;
+        [Key(28)]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public TextMap TraceContext { get; set; } 
 
         public SaveAuction() { }
 
