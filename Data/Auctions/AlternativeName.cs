@@ -10,7 +10,7 @@ namespace hypixel
         [IgnoreMember]
         public int Id { get; set; }
 
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [JsonProperty("name")]
         public string Name { get; set; }
         [JsonIgnore]

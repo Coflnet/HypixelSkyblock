@@ -18,7 +18,7 @@ namespace Coflnet.Kafka
         /// <param name="groupId"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static async Task Consume<T>(string host, string topic, Func<T, Task> action,CancellationToken cancleToken, string groupId = "default")
+        public static async Task Consume<T>(string host, string topic, Func<T, Task> action, CancellationToken cancleToken, string groupId = "default")
         {
             try
             {
@@ -69,7 +69,7 @@ namespace Coflnet.Kafka
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e,$"Kafka consumer process for {topic}");
+                dev.Logger.Instance.Error(e, $"Kafka consumer process for {topic}");
             }
         }
     }

@@ -79,7 +79,7 @@ namespace hypixel
         private string _itemName;
         [Key(8)]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [JsonProperty("itemName")]
         public string ItemName { get { return _itemName; } set { _itemName = value?.Substring(0, Math.Min(value.Length, 45)); } }
 

@@ -30,14 +30,14 @@ namespace hypixel
             }
         }
 
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [DataMember(Name = "name")]
         public string Name { get; set; }
 
         [DataMember(Name = "altNames")]
         public List<AlternativeName> Names { get; set; }
 
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [DataMember(Name = "description")]
         public string Description { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
@@ -51,12 +51,12 @@ namespace hypixel
 
         public string IconUrl { get; set; }
 
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [DataMember(Name = "extra")]
         public string Extra { get; set; }
 
         [System.ComponentModel.DataAnnotations.MaxLength(44)]
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
         [DataMember(Name = "minecraftType")]
         public string MinecraftType { get; set; }
 

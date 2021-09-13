@@ -41,6 +41,7 @@ namespace hypixel
         }
 
         [IgnoreMember]
+        [NotMapped]
         public Dictionary<string, object> Data
         {
             get
