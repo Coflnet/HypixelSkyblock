@@ -343,14 +343,24 @@ namespace hypixel
             }
             if (Cache.TryGetValue(name, out short id))
                 return id;
+
             return Cache.AddOrUpdate(name, k =>
             {
-                using (var context = new HypixelContext())
+                using var context = new HypixelContext();
+                id = context.NBTKeys.Where(k => k.Slug == name).Select(k => k.Id).FirstOrDefault();
+                if (id != 0)
+                    return id;
+                try
                 {
                     var key = new NBTKey() { Slug = k };
                     context.NBTKeys.Add(key);
                     context.SaveChanges();
                     return key.Id;
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, $"saving new nbtKey {name}");
+                    return -1;
                 }
             }, (K, v) => v);
         }
@@ -358,20 +368,6 @@ namespace hypixel
 
         private static int GetValueId(short key, string value)
         {
-            lock (ValueCache)
-            {
-                if (ValueCache.Count == 0)
-                    using (var context = new HypixelContext())
-                    {
-                        foreach (var item in context.NBTValues)
-                        {
-                            if (item?.Value == null)
-                                continue;
-                            if (item.Value.Length < 40)
-                                ValueCache.TryAdd((item.KeyId, item.Value), item.Id);
-                        }
-                    }
-            }
             if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
 
@@ -384,13 +380,24 @@ namespace hypixel
 
             return ValueCache.AddOrUpdate((key, value), k =>
             {
-                using (var context = new HypixelContext())
+                using var context = new HypixelContext();
+                id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
+                if (id != 0)
+                    return id;
+                try
                 {
                     var key = new NBTValue() { Value = k.Item2, KeyId = k.Item1 };
                     context.NBTValues.Add(key);
                     context.SaveChanges();
                     return key.Id;
                 }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, $"saving new nbtValue {value} for key {key}");
+                    return -1;
+                }
+
+
             }, (K, v) => v);
         }
 
