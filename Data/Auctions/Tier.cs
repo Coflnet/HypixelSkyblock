@@ -11,7 +11,7 @@ namespace hypixel
         SPECIAL,
         VERY_SPECIAL,
         MYTHIC,
-        SUPREME
+        SUPREME // aka DIVINE but in the api its still called Supreme
 
     }
 }
