@@ -235,6 +235,7 @@ namespace hypixel
                 UnwrapList(data, "necromancer_souls");
                 UnwarpStringArray(data, "ability_scroll");
                 UnwarpStringArray(data, "mixins");
+                UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
             }
             catch (Exception e)
