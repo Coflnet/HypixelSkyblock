@@ -31,7 +31,7 @@ namespace hypixel
                     {
                         throw new Exception("The enviroment variable SKYCOMMANDS_HOST is not set to a valid hostname");
                     }
-                    client = new RestClient("http://" + host);
+                    client = new RestClient("http://" + host.Replace(":8008","") + ":8008");
 
                 }
                 var source = new TaskCompletionSource<TRes>();
