@@ -12,7 +12,15 @@ namespace hypixel
     {
         static RestClient client;
 
-        public static async Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
+        public static CoreServer Instance = new CoreServer();
+
+
+        public static Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
+        {
+            return Instance.ExecuteCommandWithCacheInternal<TReq,TRes>(command,reqdata);
+        }
+
+        public virtual async Task<TRes> ExecuteCommandWithCacheInternal<TReq, TRes>(string command, TReq reqdata)
         {
             try
             {
