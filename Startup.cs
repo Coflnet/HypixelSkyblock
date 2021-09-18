@@ -32,7 +32,7 @@ namespace dev
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
-            var redisCon = Configuration["redisCon"];
+            var redisCon = Configuration["REDIS_HOST"] ?? Configuration["redisCon"];
             services.AddControllers().AddNewtonsoftJson();
             services.AddSwaggerGen(c =>
             {
