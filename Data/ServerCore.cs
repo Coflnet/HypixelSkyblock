@@ -37,7 +37,10 @@ namespace hypixel
                 var source = new TaskCompletionSource<TRes>();
                 var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
                 var request = new RestRequest($"/command/{command}/{System.Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
+                request.Timeout = 10000;
                 var result = await client.ExecuteAsync(request);
+                if(result.StatusCode != System.Net.HttpStatusCode.OK)
+                    return default(TRes);
                 try
                 {
                     return JsonConvert.DeserializeObject<TRes>(result.Content);

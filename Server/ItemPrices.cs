@@ -705,7 +705,7 @@ namespace hypixel
 
         public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
         {
-            var filter = new Dictionary<string, string>() { { "Bin", "true" } };
+            var filter = new Dictionary<string, string>();
             if (tier != Tier.UNCOMMON)
                 filter["Rarity"] = tier.ToString();
 
