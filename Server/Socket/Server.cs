@@ -77,8 +77,8 @@ namespace hypixel
                     try
                     {
                         var tracer = OpenTracing.Util.GlobalTracer.Instance;
-                        var builder = tracer.BuildSpan("GET:"+e.Request.RawUrl.Trim('/').Split('/','?').FirstOrDefault())
-                                    .WithTag("route",e.Request.RawUrl);
+                        var builder = tracer.BuildSpan("GET:" + e.Request.RawUrl.Trim('/').Split('/', '?').FirstOrDefault())
+                                    .WithTag("route", e.Request.RawUrl);
                         using (var scope = builder.StartActive(true))
                         {
                             var span = scope.Span;
@@ -112,7 +112,8 @@ namespace hypixel
                 //    await HandleCommand(e.Request, e.Response);
 
             };
-            server.Log.Output = (a,b)=>{
+            server.Log.Output = (a, b) =>
+            {
                 Console.Write("socket error ");
             };
             server.Start();
@@ -299,7 +300,7 @@ namespace hypixel
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "loading frontend " + $"http://{frontendUrl}/{filePath.TrimStart('/')}");
-                context.Span.SetTag("error","404");
+                context.Span.SetTag("error", "404");
                 context.Span.Log($"failed to load  http://{frontendUrl}/{filePath.TrimStart('/')}");
                 context.SetStatusCode(404);
                 context.AddHeader("cache-control", "private");
@@ -574,6 +575,15 @@ namespace hypixel
                 || data.LastAuctionPull < maxTime))
             {
                 res.SetStatusCode(500);
+            }
+
+            if (Program.LightClient)
+            {
+                var request = new RestRequest("/api");
+                request.Timeout = 2000;
+                var result = await aspNet.ExecuteAsync(request);
+                if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                    res.SetStatusCode(500);
             }
 
 
