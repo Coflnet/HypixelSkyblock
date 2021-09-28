@@ -367,7 +367,7 @@ namespace hypixel
         }
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
 
-        private static int GetValueId(short key, string value)
+        public static int GetValueId(short key, string value)
         {
             if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
