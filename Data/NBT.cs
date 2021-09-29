@@ -68,7 +68,7 @@ namespace hypixel
             return result.textures.SKIN.url;
         }
 
-        public static void FillDetails(SaveAuction auction, string itemBytes)
+        public static void FillDetails(SaveAuction auction, string itemBytes, bool includeTier = false)
         {
             var f = File(Convert.FromBase64String(itemBytes));
             var a = f.RootTag.ToString();
@@ -79,6 +79,18 @@ namespace hypixel
             auction.ItemCreatedAt = GetDateTime(f);
             auction.Reforge = GetReforge(f);
             auction.NbtData = new NbtData(f);
+            if(includeTier)
+            {
+                var lastLine = GetLore(f).LastOrDefault();
+                var formatIndex = lastLine.LastIndexOf("§")+2;
+                var stringRarity = lastLine?.Substring(formatIndex,lastLine.Length-formatIndex);
+                if (Enum.TryParse(
+                    stringRarity,
+                    true, out Tier tier))
+                {
+                    auction.Tier = tier;
+                }
+            }
         }
 
         static readonly ConcurrentBag<string> ValidKeys = new ConcurrentBag<string>()
@@ -415,7 +427,20 @@ namespace hypixel
             }
             Logger.Instance.Error($"Reforge {modifier.StringValue} not found");
             return ItemReferences.Reforge.Unknown;
+        }
 
+        public static IEnumerable<string> GetLore(NbtFile f)
+        {
+            var loreLines = f?.RootTag?.Get<NbtList>("i")
+            ?.Get<NbtCompound>(0)
+            ?.Get<NbtCompound>("tag")
+            ?.Get<NbtCompound>("display")
+            ?.Get<NbtList>("Lore");
+
+            foreach (var item in loreLines)
+            {
+                yield return item.StringValue;
+            }
         }
 
         public static DateTime GetDateTime(NbtFile file)
