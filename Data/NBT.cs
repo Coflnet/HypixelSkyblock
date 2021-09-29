@@ -79,16 +79,15 @@ namespace hypixel
             auction.ItemCreatedAt = GetDateTime(f);
             auction.Reforge = GetReforge(f);
             auction.NbtData = new NbtData(f);
-            if(includeTier)
+            if (includeTier)
             {
                 var lastLine = GetLore(f).LastOrDefault();
-                var formatIndex = lastLine.LastIndexOf("§")+2;
-                var stringRarity = lastLine?.Substring(formatIndex,lastLine.Length-formatIndex);
-                if (Enum.TryParse(
-                    stringRarity,
-                    true, out Tier tier))
+                foreach (var item in Enum.GetValues<Tier>())
                 {
-                    auction.Tier = tier;
+                    if (lastLine.Contains(item.ToString()))
+                    {
+                        auction.Tier = item;
+                    }
                 }
             }
         }
