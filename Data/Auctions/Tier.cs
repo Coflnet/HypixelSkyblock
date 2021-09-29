@@ -11,7 +11,8 @@ namespace hypixel
         SPECIAL,
         VERY_SPECIAL,
         MYTHIC,
-        SUPREME
+        SUPREME,
+        DIVAN = 9
 
     }
 }
