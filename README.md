@@ -25,106 +25,21 @@ Example:
 To set `"MISSING_AUCTION":"sky-canceledauction"` you have to set `TOPICS__MISSING_AUCTION=mycooltopic`
 
 ## Get started/usage
-Hello there fellow developer. Development of this project is done with the following docker-compose file.
-1. create a new folder, enter and clone this repository with `git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev`
-2. copy this and paste it into the file called `docker-compose.yml`
-3. Now clone whatever project you like to develop with/need (indicated by `depends_on`). 
+Hello there fellow developer. Development of this project is done with docker-compose.
+1. Install docker and docker-compose if you are a windows user these come with docker desktop.
+1. create a new folder `skyblock`, enter it and clone this repository with `git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev`
+2. copy `docker-compose.yml` to the `skyblock` folder
+3. Now clone whatever project you like to develop with/need (also indicated by `depends_on` in `docker-compose.yml`). 
 eg. `git clone https://github.com/Coflnet/SkyUpdater.git` and start it with `docker-compose up updater`
 or `git clone https://github.com/Coflnet/SkyCommands.git` and start it with `docker-compose up commands`
 
-```
-version: '3.7'
-services:
-  mariadb:
-    image: 'docker.io/bitnami/mariadb:10.3-debian-10'
-    volumes:
-      - './server/test_data:/bitnami'
-    ports:
-      - '3306:3306'
-    environment:
-      - MARIADB_ROOT_PASSWORD=takenfrombitnami
-      - MARIADB_EXTRA_FLAGS=--innodb-buffer-pool-size=3G --key-buffer-size=2G --connect-timeout=101
-  phpmyadmin:
-    image: 'docker.io/bitnami/phpmyadmin:5-debian-10'
-    ports:
-      - '8038:8080'
-      - '4438:8443'
-    depends_on:
-      - mariadb
-  indexer:
-    build: dev
-    ports:
-    - '8007:8008'
-    - '1234:80'
-    volumes:
-    - ./server/ah:/data
-    restart: always
-    depends_on:
-      - mariadb
-      - kafka
-      - redis
-    environment: 
-      FRONTEND_PROD: "frontend"
-      JAEGER_SERVICE_NAME: "hypixel-skyblock-core"
-      JAEGER_AGENT_HOST: "jaeger"
-      KAFKA_HOST: "kafka:9092"
-      SKYCOMMANDS_HOST: "skycommands:8008"
-  commands:
-    build: SkyCommands
-    environment: 
-      - JAEGER_AGENT_HOST=jaeger
-      - KAFKA_HOST=kafka:9092
-    ports:
-    - "8008:8008"
-    restart: always
-    depends_on:
-      - mariadb
-      - kafka
-      - redis
-      - frontend
-  redis:
-    image: "redis:alpine"
-    environment:
-      - REDIS_REPLICATION_MODE=master
-  imgproxy:
-    image: willnorris/imageproxy
-    command: -addr 0.0.0.0:80 -cache memory -allowHosts sky.shiiyu.moe,mc-heads.net,crafatar.com
-  frontend:
-    build: Hypixel-react
-  jaeger:
-    image: "jaegertracing/all-in-one:1.22"
-    ports:
-      - "16686:16686"
-  zookeeper:
-    image: docker.io/bitnami/zookeeper:3.7
-    ports:
-      - "2181:2181"
-    volumes:
-      - "zookeeper_data:/bitnami"
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-  kafka:
-    image: docker.io/bitnami/kafka:2
-    ports:
-      - "9092:9092"
-    volumes:
-      - "kafka_data:/bitnami"
-    environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-    depends_on:
-      - zookeeper
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1500M
-  mcconnect:
-    build: SkyMcConnect
-  subscription:
-    build: SkySubscriptions
-  updater:
-    build: SkyUpdater
-    environment: 
-      SLOWDOWN_MS: 800
-```
+For basic website functunality you need
+* this repo
+* SkyCommands
+* Hypixel-react (frontend)
+* SkyUpdater (downloading process)
+
+#### Scenario
+You update something in `SkyCommands`. You cloned all repos in the right structure. 
+Since you only care about the `commands` service you start all others in the background with: `docker-compose up -d indexer updater`
+Now you build and start `commands` with `docker-compose up --build commands` 
