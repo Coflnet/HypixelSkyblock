@@ -26,9 +26,9 @@ To set `"MISSING_AUCTION":"sky-canceledauction"` you have to set `TOPICS__MISSIN
 
 ## Get started/usage
 Hello there fellow developer. Development of this project is done with the following docker-compose file.
-I recomend you create a new folder, enter and clone this repository with `git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev`
-Then copy this and paste it into the file called `docker-compose.yml`
-Now clone whatever project you like to develop. 
+1. create a new folder, enter and clone this repository with `git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev`
+2. copy this and paste it into the file called `docker-compose.yml`
+3. Now clone whatever project you like to develop with/need (indicated by `depends_on`). 
 eg. `git clone https://github.com/Coflnet/SkyUpdater.git` and start it with `docker-compose up updater`
 or `git clone https://github.com/Coflnet/SkyCommands.git` and start it with `docker-compose up commands`
 
@@ -90,7 +90,7 @@ services:
     image: willnorris/imageproxy
     command: -addr 0.0.0.0:80 -cache memory -allowHosts sky.shiiyu.moe,mc-heads.net,crafatar.com
   frontend:
-    image: "sky-frontend"
+    build: Hypixel-react
   jaeger:
     image: "jaegertracing/all-in-one:1.22"
     ports:
