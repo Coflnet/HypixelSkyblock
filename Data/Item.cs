@@ -54,8 +54,10 @@ namespace hypixel
             [Key(2)]
             public string IconUrl;
 
-            [Key(2)]
+            [Key(3)]
             public int HitCount;
+            [Key(4)]
+            public Tier Tier;
         }
 
         public async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
@@ -99,11 +101,12 @@ namespace hypixel
                 .Select(item => new ItemSearchResult()
                 {
                     Name = (item.Names
-                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()))
+                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()) && n.Name != "Beastmaster Crest")
                             .FirstOrDefault()?.Name) ??( item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
                     Tag = item.Tag,
                     IconUrl = item.IconUrl,
-                    HitCount = item.HitCount
+                    HitCount = item.HitCount,
+                    Tier = item.Tier
                 });
         }
 

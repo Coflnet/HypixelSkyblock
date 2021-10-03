@@ -325,6 +325,9 @@ namespace hypixel
             /// </summary>
             [DataMember(Name = "img")]
             public string Image;
+
+            [DataMember(Name = "tier")]
+            public Tier Tier;
             [IgnoreMember]
             //[Key("hits")]
             public int HitCount;
@@ -347,6 +350,7 @@ namespace hypixel
                 this.HitCount = item.HitCount + ITEM_EXTRA_IMPORTANCE;
                 if (ItemReferences.RemoveReforgesAndLevel(Name) != Name)
                     this.HitCount -= NOT_NORMALIZED_PENILTY;
+                this.Tier = item.Tier;
             }
 
             private static bool IsPet(ItemDetails.ItemSearchResult item)
