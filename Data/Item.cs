@@ -110,7 +110,14 @@ namespace hypixel
                 });
         }
 
-        internal async Task<IEnumerable<ItemSearchResult>> FindClosest(string search, int count = 5)
+        /// <summary>
+        /// Finds the item(s) with the closest name.
+        /// Switched, adds and removes characters to do so
+        /// </summary>
+        /// <param name="search"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<ItemSearchResult>> FindClosest(string search, int count = 5)
         {
             if (search.Length <= 3 || search.Length > 16)
                 return new ItemSearchResult[0];

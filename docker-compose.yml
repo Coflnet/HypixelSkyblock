@@ -22,7 +22,6 @@ services:
     build: dev
     ports:
     - '8007:8008'
-    - '1234:80'
     volumes:
     - ./server/ah:/data
     restart: always
@@ -43,6 +42,7 @@ services:
       - KAFKA_HOST=kafka:9092
     ports:
     - "8008:8008"
+    - '1234:80'
     restart: always
     depends_on:
       - mariadb
