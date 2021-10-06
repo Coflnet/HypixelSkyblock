@@ -229,6 +229,39 @@ namespace hypixel
 
         public SaveAuction() { }
 
+        public SaveAuction(SaveAuction auction)
+        {
+            Id = auction.Id;
+            Uuid = auction.Uuid;
+            Claimed = auction.Claimed;
+            Count = auction.Count;
+            StartingBid = auction.StartingBid;
+            Tag = auction.Tag;
+            ItemName = auction.ItemName;
+            Start = auction.Start;
+            End = auction.End;
+            AuctioneerId = auction.AuctioneerId;
+            ProfileId = auction.ProfileId;
+            CoopMembers = auction.CoopMembers;
+            ClaimedBids = auction.ClaimedBids;
+            HighestBidAmount = auction.HighestBidAmount;
+            Bids = auction.Bids;
+            AnvilUses = auction.AnvilUses;
+            Enchantments = auction.Enchantments;
+            NbtData = auction.NbtData;
+            ItemCreatedAt = auction.ItemCreatedAt;
+            Reforge = auction.Reforge;
+            Category = auction.Category;
+            Tier = auction.Tier;
+            Bin = auction.Bin;
+            SellerId = auction.SellerId;
+            ItemId = auction.ItemId;
+            NBTLookup = auction.NBTLookup;
+            UId = auction.UId;
+            FindTime = auction.FindTime;
+            TraceContext = auction.TraceContext;
+        }
+
         public override bool Equals(object obj)
         {
             return obj is SaveAuction auction &&
