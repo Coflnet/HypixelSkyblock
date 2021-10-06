@@ -44,7 +44,7 @@ namespace hypixel.Flipper
             if (data.ContainsKey("hpc"))
                 properties.Add(new Property("HPB: " + data["hpc"], 12));
             if (data.ContainsKey("rarity_upgrades"))
-                properties.Add(new Property("Recombulated ", 12));
+                properties.Add(new Property("Recombobulated ", 12));
             if (data.ContainsKey("heldItem"))
                 properties.Add(new Property($"Holds {ItemDetails.TagToName(data["heldItem"])}", 12));
             if (data.ContainsKey("candyUsed"))
