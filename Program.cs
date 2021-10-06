@@ -167,7 +167,7 @@ namespace hypixel
 
 
 
-        private static void FullServer()
+        public static void FullServer()
         {
             Console.WriteLine($"\n - Starting FullServer {version} - \n");
             FullServerMode = true;
