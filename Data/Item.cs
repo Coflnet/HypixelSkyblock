@@ -101,7 +101,8 @@ namespace hypixel
                 .Select(item => new ItemSearchResult()
                 {
                     Name = (item.Names
-                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()) && n.Name != "Beastmaster Crest")
+                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()) 
+                                && n.Name != "Beastmaster Crest" && n.Name != "Griffin Upgrade Stone")
                             .FirstOrDefault()?.Name) ??( item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
                     Tag = item.Tag,
                     IconUrl = item.IconUrl,
