@@ -7,7 +7,7 @@ namespace hypixel
 {
     public class Numberer
     {
-        internal static async Task NumberUsers()
+        public static async Task NumberUsers()
         {
 
             Task bidNumberTask = null;

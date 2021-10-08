@@ -346,7 +346,7 @@ namespace hypixel
         }
 
 
-        internal static void LoadFromDB()
+        public static void LoadFromDB()
         {
             using (var context = new HypixelContext())
             {
