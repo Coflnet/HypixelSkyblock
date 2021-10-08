@@ -570,7 +570,7 @@ namespace hypixel
             var maxTime = DateTime.Now.Subtract(new TimeSpan(0, 5, 0));
             if (!Program.LightClient && (
                 data.LastIndexFinish < maxTime
-                || data.LastBazaarUpdate < maxTime
+           //     || data.LastBazaarUpdate < maxTime
                 || data.LastNameUpdate < maxTime
                 || data.LastAuctionPull < maxTime))
             {

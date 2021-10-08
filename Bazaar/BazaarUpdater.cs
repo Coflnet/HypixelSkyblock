@@ -83,11 +83,11 @@ namespace dev
                 Console.Write("\r" + i);
 
             }
-         /*   var saveTask = Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromMinutes(1));
-                await ItemPrices.Instance.AddBazaarData(pull);
-            });*/
+            /*   var saveTask = Task.Run(async () =>
+               {
+                   await Task.Delay(TimeSpan.FromMinutes(1));
+                   await ItemPrices.Instance.AddBazaarData(pull);
+               });*/
             SubscribeEngine.Instance.NewBazaar(pull);
 
             LastStats = pull.Products.Select(p => p.QuickStatus).ToDictionary(qs => qs.ProductId);
@@ -185,6 +185,8 @@ namespace dev
 
         public void UpdateForEver(string apiKey)
         {
+            Console.WriteLine("bazaar saving disabled for the legacy system");
+            return;
             HypixelApi api = null;
             Task.Run(async () =>
             {
@@ -193,8 +195,8 @@ namespace dev
                 {
                     try
                     {
-                        if(api == null)
-                            api  = new HypixelApi(apiKey, 9);
+                        if (api == null)
+                            api = new HypixelApi(apiKey, 9);
                         var start = DateTime.Now;
                         await PullAndSave(api, i);
                         await WaitForServerCacheRefresh(i, start);
@@ -208,7 +210,7 @@ namespace dev
                     }
                 }
                 Console.WriteLine("Stopped Bazaar :/");
-            }).ConfigureAwait(false);;
+            }).ConfigureAwait(false); ;
         }
 
         internal void Stop()

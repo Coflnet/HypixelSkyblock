@@ -27,6 +27,9 @@ namespace hypixel
 
         private static void AddToQueue(SaveAuction auction)
         {
+            if(auction.UId % 200 == 0)
+                Console.WriteLine("db writing is disabled for the legacy system");
+            return;
             auctionsQueue.Enqueue(auction);
 
             if (QueueCount > MAX_QUEUE_SIZE)
