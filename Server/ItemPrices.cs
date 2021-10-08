@@ -216,7 +216,7 @@ namespace hypixel
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
                 IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
-                IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now - TimeSpan.FromDays(1.1));
+                IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now.Subtract(TimeSpan.FromDays(1.1)));
 
                 return FromList(response.ToList(), details.name);
             }
@@ -543,8 +543,8 @@ namespace hypixel
         private static async Task<IEnumerable<AveragePrice>> AvgFromAuctions(int itemId, IQueryable<SaveAuction> select, bool detailed = false)
         {
             var groupedSelect = select.GroupBy(item => new { item.End.Date, Hour = 0 });
-            if (detailed)
-                groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
+            //if (detailed)
+            //    groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
 
             var dbResult = await groupedSelect
                 .Select(item =>
@@ -564,7 +564,7 @@ namespace hypixel
                     Avg = i.Avg,
                     Max = i.Max,
                     Min = i.Min,
-                    Date = i.End.Date + TimeSpan.FromHours(i.End.Hour),
+                    Date = i.End.Date.Add(TimeSpan.FromHours(i.End.Hour)),
                     ItemId = itemId
                 });
         }
