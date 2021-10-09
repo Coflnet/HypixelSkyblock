@@ -231,6 +231,8 @@ namespace hypixel
 
         public SaveAuction(SaveAuction auction)
         {
+            if(auction == null)
+                return;
             Id = auction.Id;
             Uuid = auction.Uuid;
             Claimed = auction.Claimed;
