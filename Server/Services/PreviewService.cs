@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using RestSharp;
 
 namespace hypixel
@@ -17,29 +18,27 @@ namespace hypixel
             Instance = new PreviewService();
         }
 
-        public Preview GetPlayerPreview(string id)
+        public async Task<Preview> GetPlayerPreview(string id)
         {
             var request = new RestRequest("/avatars/{uuid}").AddUrlSegment("uuid",id).AddQueryParameter("overlay","");
 
             var uri = crafatarClient.BuildUri(request.AddParameter("size",64));
-            var response = crafatarClient.DownloadData(request.AddParameter("size", 8));
+            var response = await crafatarClient.ExecuteAsync(request.AddParameter("size", 8));
 
             return new Preview()
             {
                 Id = id,
-                Image = Convert.ToBase64String(response),
+                Image = Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
                 Name = PlayerSearch.Instance.GetName(id)
             };
         }
 
-        public Preview GetItemPreview(string tag, int size = 32)
+        public async Task<Preview> GetItemPreview(string tag, int size = 32)
         {
             var request = new RestRequest("/item/{tag}").AddUrlSegment("tag", tag);
 
-            var detailsRequest = ItemDetails.Instance.GetDetailsWithCache(tag);
-            detailsRequest.Wait();
-            var details = detailsRequest.Result;
+            var details = await ItemDetails.Instance.GetDetailsWithCache(tag);
             /* Most icons are currently available via the texture pack
             if(details.MinecraftType.StartsWith("Leather "))
                 request = new RestRequest("/leather/{type}/{color}")
@@ -47,14 +46,14 @@ namespace hypixel
                     .AddUrlSegment("color", details.color.Replace(":",",")); */
 
             var uri = skyLeaClient.BuildUri(request);
-            IRestResponse response = GetProxied(uri,size);
+            IRestResponse response = await GetProxied(uri,size);
             
 
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 uri = skyClient.BuildUri(new RestRequest(details.IconUrl));
-                response = GetProxied(uri,size);
+                response = await GetProxied(uri,size);
             }
 
             return new Preview()
@@ -67,11 +66,11 @@ namespace hypixel
             };
         }
 
-        private IRestResponse GetProxied(Uri uri, int size)
+        private async Task<IRestResponse> GetProxied(Uri uri, int size)
         {
             var proxyRequest = new RestRequest($"/x{size}/"+uri.ToString())
                         .AddUrlSegment("size", size);
-            var response = proxyClient.Execute(proxyRequest);
+            var response = await proxyClient.ExecuteAsync(proxyRequest);
             return response;
         }
 
