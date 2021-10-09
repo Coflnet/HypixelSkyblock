@@ -656,7 +656,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
-                var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now);
+                var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now && (!a.Bin || a.Bids.Count == 0));
 
                 var select = CreateSelect(query, context, itemId, amount, dbselect)
                             .Select(a => new
