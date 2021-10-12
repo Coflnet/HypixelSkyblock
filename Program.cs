@@ -230,7 +230,7 @@ namespace hypixel
 
             updater = new Updater(apiKey);
             updater.UpdateForEver();
-            Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
+            Flipper.FlipperEngine.diabled = true;
 
             // bring the db up to date
             GetDBToDesiredState();
@@ -243,7 +243,7 @@ namespace hypixel
             var bazzar = new BazaarUpdater();
             bazzar.UpdateForEver(apiKey);
             RunIndexer();
-
+            
             if (!Flipper.FlipperEngine.diabled)
                 for (int i = 0; i < 2; i++)
                     RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
