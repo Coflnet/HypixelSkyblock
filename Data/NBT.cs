@@ -134,7 +134,8 @@ namespace hypixel
             "AMBER_0",
             "RUBY_0",
             "AMETHYST_0",
-            "SAPPHIRE_0"
+            "SAPPHIRE_0",
+            "JASPER_0"
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()

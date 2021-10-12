@@ -257,7 +257,7 @@ namespace hypixel
                 }
 
                 count++;
-                if (!minimumOutput && count % 5 == 0)
+                if (!minimumOutput && count % 50 == 0)
                     Console.Write($"\r         Indexed: {count} Saved: {StorageManager.SavedOnDisc} \tcache: {StorageManager.CacheItems}  NameRequests: {Program.RequestsSinceStart}");
 
             }
