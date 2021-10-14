@@ -319,7 +319,13 @@ namespace hypixel
 
         public static long GetColor(KeyValuePair<string, object> attr)
         {
-            var parts = (attr.Value as string).Split(':');
+            var fullColor = (attr.Value as string);
+            return GetColor(fullColor);
+        }
+
+        public static long GetColor(string fullColor)
+        {
+            var parts = fullColor.Split(':');
             int result = 0;
             foreach (var item in parts)
             {
