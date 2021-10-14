@@ -208,7 +208,7 @@ namespace hypixel
                 if (key == "tier" || key == "type") // both already save on auctions table
                     return null;
                 if (key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
-                    return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + (attr.Value as string)));
+                    return new NBTLookup(GetLookupKey(key), GetItemIdForSkin(attr.Value as string));
                 if (KeysWithItem.Contains(key))
                     return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName(attr.Value as string));
                 if (ValidKeys.Contains(key))
@@ -229,6 +229,11 @@ namespace hypixel
             }).Where(a => a != null).ToList();
         }
 
+        public static long GetItemIdForSkin(string name)
+        {
+            return ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name);
+        }
+
         public static List<KeyValuePair<string, object>> FlattenNbtData(Dictionary<string, object> data)
         {
             Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
@@ -238,8 +243,6 @@ namespace hypixel
                                         ? flatten((Dictionary<string, object>)kv.Value)
                                         : new List<KeyValuePair<string, object>>() { kv }
                                    );
-
-
 
             try
             {
@@ -314,7 +317,7 @@ namespace hypixel
             return true;
         }
 
-        private static long GetColor(KeyValuePair<string, object> attr)
+        public static long GetColor(KeyValuePair<string, object> attr)
         {
             var parts = (attr.Value as string).Split(':');
             int result = 0;
