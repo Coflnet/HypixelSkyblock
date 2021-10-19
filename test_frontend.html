@@ -6,8 +6,8 @@
         //ws = new WebSocket("wss://skyblock-backend.coflnet.com/skyblock?id=testVerbindung");
         //ws = new WebSocket("wss://sky-commands.coflnet.com/skyblock?id=aaaaaaaaaaaaaaaaaaaaaaaaaa");
         //ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
-        ws = new WebSocket("wss://sky-commands.coflnet.com/modsocket?sid=nicede&uuid=384a029294fc445e863f2c42fe9709cb");
-        //ws = new WebSocket("ws://localhost:8008/modsocket?sid=nicede&uuid=384a029294fc445e863f2c42fe9709cb");
+        ws = new WebSocket("wss://sky-commands.coflnet.com/modsocket?sid=nicede&version=1.2-Alpha&uuid=384a029294fc445e863f2c42fe9709cb");
+        //ws = new WebSocket("ws://localhost:8008/modsocket?sid=nicede&version=1.2-Alpdha&uuid=384a029294fc445e863f2c42fe9709cb");
 
 
         ws.onmessage = function (evt) {
@@ -26,6 +26,13 @@
         ws.send(JSON.stringify({
             type: type,
             data: btoa(data)
+        }));
+    }
+
+        function sendMod(type, data) {
+        ws.send(JSON.stringify({
+            type: type,
+            data: data
         }));
     }
 
