@@ -97,8 +97,8 @@ services:
     environment: 
       SLOWDOWN_MS: 800
 
-  volumes:
-    zookeeper_data:
-      driver: local
-    kafka_data:
-      driver: local
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
