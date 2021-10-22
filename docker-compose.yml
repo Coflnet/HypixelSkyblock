@@ -96,7 +96,8 @@ services:
       - jaeger
     environment: 
       SLOWDOWN_MS: 800
-
+  flipper:
+    build: SkyFlipper
 volumes:
   zookeeper_data:
     driver: local
