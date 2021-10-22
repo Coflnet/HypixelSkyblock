@@ -23,7 +23,7 @@ services:
     ports:
     - '8007:8008'
     volumes:
-    - ./server/ah:/data
+    - ./db:/data
     restart: always
     depends_on:
       - mariadb
