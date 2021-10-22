@@ -19,7 +19,7 @@ services:
     depends_on:
       - mariadb
   indexer:
-    build: dev
+    build: SkyIndexer
     ports:
     - '8007:8008'
     volumes:
