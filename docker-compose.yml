@@ -5,7 +5,7 @@ services:
   mariadb:
     image: 'docker.io/bitnami/mariadb:10.3-debian-10'
     volumes:
-      - './server/test_data:/bitnami'
+      - './db:/bitnami'
     ports:
       - '3306:3306'
     environment:
@@ -22,8 +22,6 @@ services:
     build: SkyIndexer
     ports:
     - '8007:8008'
-    volumes:
-    - ./db:/data
     restart: always
     depends_on:
       - mariadb
