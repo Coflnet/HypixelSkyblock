@@ -60,7 +60,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e,$"Redis error when getting key: {key}");
+                dev.Logger.Instance.Error(e, $"Redis error when getting key: {key.ToString().Truncate(40)}");
                 return default(T);
             }
         }
@@ -73,7 +73,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e,$"error on deleting key: {key}");
+                dev.Logger.Instance.Error(e, $"error on deleting key: {key.ToString().Truncate(40)}");
             }
         }
 
@@ -148,7 +148,7 @@ namespace hypixel
                 {
                     await request.SendBack(response, false);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     await DeleteInRedis(key);
                     dev.Logger.Instance.Error(e, "Try from cache return failed");
