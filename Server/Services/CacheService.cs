@@ -23,6 +23,8 @@ namespace hypixel
 
         public ConnectionMultiplexer RedisConnection { get; }
 
+        private ConcurrentDictionary<string, byte[]> HotCache = new ConcurrentDictionary<string, byte[]>();
+
         static CacheService()
         {
             Instance = new CacheService();
@@ -53,6 +55,15 @@ namespace hypixel
         {
             try
             {
+                if (HotCache.TryGetValue(key, out byte[] val))
+                {
+                    return MessagePack.MessagePackSerializer.Deserialize<T>(val);
+                }
+                if (RedisConnection == null)
+                {
+                    dev.Logger.Instance.Info("no redis connection");
+                    return default(T);
+                }
                 var value = await RedisConnection.GetDatabase().StringGetAsync(key);
                 if (value == RedisValue.Null)
                     return default(T);
@@ -83,7 +94,11 @@ namespace hypixel
                 timeout = TimeSpan.FromDays(1);
             try
             {
-                await RedisConnection.GetDatabase().StringSetAsync(key, MessagePack.MessagePackSerializer.Serialize(obj), timeout);
+                var data = MessagePack.MessagePackSerializer.Serialize(obj);
+                await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout);
+                if (HotCache.Count > 200)
+                    HotCache.Clear();
+                HotCache.AddOrUpdate(key, data, (a, b) => data);
             }
             catch (Exception e)
             {
