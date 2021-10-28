@@ -35,7 +35,7 @@ namespace hypixel
             {
                 user.ReferedBy = id;
                 // give the user 'test' premium time
-                var bonusTime = TimeSpan.FromHours(4);
+                var bonusTime = TimeSpan.FromHours(1);
                 Server.AddPremiumTime(bonusTime.TotalDays, user);
                 context.Update(user);
                 // persist the boni
