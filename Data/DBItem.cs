@@ -97,7 +97,7 @@ namespace hypixel
             this.Tier = tier;
             this.IconUrl = item.IconUrl;
             this.color = item.color;
-            this.MinecraftType = item.MinecraftType.Length > 44 ? item.MinecraftType.Substring(0, 44) : item.MinecraftType;
+            this.MinecraftType = item.MinecraftType?.Length > 44 ? item.MinecraftType.Substring(0, 44) : item.MinecraftType;
             this.Names = new List<AlternativeName>(item.AltNames.Select(n => new AlternativeName() { Name = n }));
         }
     }

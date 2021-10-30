@@ -35,7 +35,7 @@ namespace hypixel
         static ItemDetails()
         {
             Instance = new ItemDetails();
-            
+
         }
 
         public Task LoadFromDB()
@@ -99,26 +99,23 @@ namespace hypixel
         /// Fast access to an item id for index lookup
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="forceGet">throw an exception if the lookup wasn't found</param>
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
-            if (TagLookup.Count == 0)
-            {
-                using (var context = new HypixelContext())
-                {
-                    var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
-                    if (id != 0)
-                        return id;
-                }
-            }
-            // this should be a tag by now
             if (TagLookup.TryGetValue(name, out int value))
                 return value;
-            // may be a name
-            var tag = GetIdForName(name);
-            if (!TagLookup.TryGetValue(tag, out value) && forceGet)
-                throw new CoflnetException("item_not_found", $"could not find the item with the tag `{name}`");
-            return value;
+
+            // fall back to the db
+            using (var context = new HypixelContext())
+            {
+                var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
+                if (id == 0 && forceGet)
+                    throw new CoflnetException("item_not_found", $"could not find the item with the tag `{name}`");
+                if (id != 0)
+                    TagLookup[name] = id;
+                return id;
+            }
         }
 
         public IEnumerable<string> AllItemNames()
