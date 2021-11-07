@@ -15,7 +15,7 @@ namespace hypixel
         /// <summary>
         /// Filterhook for the commands module
         /// </summary>
-        public static Func<IQueryable<SaveAuction>,Dictionary<string,string>, IQueryable<SaveAuction>> AddFilters;
+        public static Func<IQueryable<SaveAuction>, Dictionary<string, string>, IQueryable<SaveAuction>> AddFilters;
 
         private const string INTRA_HOUR_PREFIX = "IPH";
         private const string INTRA_DAY_PREFIX = "IPD";
@@ -477,10 +477,10 @@ namespace hypixel
                         var idOfLava = ItemDetails.Instance.GetItemIdForName("ENCHANTED_LAVA_BUCKET");
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
                         {
-                            var interval = (end-start)/4;
-                            for (DateTime bstart = start; bstart < end; bstart+= interval)
+                            var interval = (end - start) / 4;
+                            for (DateTime bstart = start; bstart < end; bstart += interval)
                             {
-                                await context.Prices.AddRangeAsync(await AvgBazzarHistory(bstart, bstart+interval));
+                                await context.Prices.AddRangeAsync(await AvgBazzarHistory(bstart, bstart + interval));
                                 await Task.Delay(5000);
                                 await context.SaveChangesAsync();
                             }
@@ -645,7 +645,7 @@ namespace hypixel
                     Seller = a.AuctioneerId,
                     Uuid = a.Uuid,
                     PlayerName = await PlayerSearch.Instance.GetNameWithCacheAsync(a.AuctioneerId)
-                }).Select(a=> a.Result).ToList();
+                }).Select(a => a.Result).ToList();
             }
         }
 
@@ -685,17 +685,17 @@ namespace hypixel
                     Seller = a.AuctioneerId,
                     Uuid = a.Uuid,
                     PlayerName = await PlayerSearch.Instance.GetNameWithCacheAsync(a.AuctioneerId)
-                }).Select(a=>a.Result).ToList();
+                }).Select(a => a.Result).ToList();
             }
         }
 
-        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Dictionary<string,string> filter)
+        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Dictionary<string, string> filter, int limit = 2)
         {
             filter["Bin"] = "true";
             var query = new ActiveItemSearchQuery()
             {
                 Order = ActiveItemSearchQuery.SortOrder.LOWEST_PRICE,
-                Limit = 2,
+                Limit = limit,
                 Filter = filter,
                 name = itemTag
             };
