@@ -120,8 +120,8 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 result = await context.Players
-                    .Where(e => EF.Functions.Like(e.Name, $"{search}%"))
-                    .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search ? 10000000 : 0))
+                    .Where(e => EF.Functions.Like(e.Name, $"{search}%") || e.UuId == search)
+                    .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search || p.UuId == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)
                     .ToListAsync();
