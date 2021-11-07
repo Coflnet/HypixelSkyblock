@@ -64,17 +64,19 @@ namespace hypixel
         {
             var clearedSearch = ItemReferences.RemoveReforgesAndLevel(search).TrimStart().TrimEnd();
             var tagified = search.ToUpper().Replace(' ', '_');
+            if (tagified.EndsWith("_pet"))
+                tagified = "PET_" + tagified.Replace("_pet", "");
             using (var context = new HypixelContext())
             {
                 var items = await context.Items
                     .Include(item => item.Names)
                     .Where(item =>
                         item.Names
-                        .Where(name => EF.Functions.Like(name.Name, clearedSearch + '%') 
+                        .Where(name => EF.Functions.Like(name.Name, clearedSearch + '%')
                         || EF.Functions.Like(name.Name, "Enchanted " + clearedSearch + '%')
                         || EF.Functions.Like(name.Name, search + '%')).Any()
-                        || EF.Functions.Like(item.Tag,tagified + '%')
-                    ).OrderBy(item => item.Name.Length/2 - item.HitCount - (item.Name == clearedSearch ? 10000000 : 0))
+                        || EF.Functions.Like(item.Tag, tagified + '%')
+                    ).OrderBy(item => item.Name.Length / 2 - item.HitCount - (item.Name == clearedSearch ? 10000000 : 0))
                     .Take(count)
                     .ToListAsync();
 
@@ -87,7 +89,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 return await context.Items
-                    .Where(i=>i.IsBazaar)
+                    .Where(i => i.IsBazaar)
                     .ToListAsync();
 
             }
@@ -101,9 +103,9 @@ namespace hypixel
                 .Select(item => new ItemSearchResult()
                 {
                     Name = (item.Names
-                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()) 
+                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower())
                                 && n.Name != "Beastmaster Crest" && n.Name != "Griffin Upgrade Stone")
-                            .FirstOrDefault()?.Name) ??( item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
+                            .FirstOrDefault()?.Name) ?? (item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
                     Tag = item.Tag,
                     IconUrl = item.IconUrl,
                     HitCount = item.HitCount,
@@ -204,15 +206,15 @@ namespace hypixel
 
         public static string TagToName(string tag)
         {
-            if(tag == null || tag.Length <= 2)
+            if (tag == null || tag.Length <= 2)
                 return tag;
             var split = tag.ToLower().Split('_');
             var result = "";
             foreach (var item in split)
             {
-                if(item == "of" || item == "the")
+                if (item == "of" || item == "the")
                     result += " " + item;
-                else 
+                else
                     result += " " + Char.ToUpper(item[0]) + item.Substring(1);
             }
             return result.Trim();
@@ -235,7 +237,7 @@ namespace hypixel
                 // new alternative name
                 if (clearedName != null)
                     this.ReverseNames[clearedName] = auction.Tag;
-                TagLookup.Add(auction.Tag,itemByTag.Id);
+                TagLookup.Add(auction.Tag, itemByTag.Id);
                 var exists = context.AltItemNames
                     .Where(name => name.Name == clearedName && name.DBItemId == itemByTag.Id)
                     .Any();
