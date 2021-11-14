@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Coflnet.Tracing;
@@ -187,7 +188,7 @@ namespace hypixel
         [IgnoreMember]
         [JsonIgnore]
         public List<NBTLookup> NBTLookup { get; set; }
-        private Dictionary<string,string> _flatenedNBT;
+        private Dictionary<string, string> _flatenedNBT;
         [IgnoreMember]
         [JsonProperty("flatNbt")]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
@@ -195,14 +196,19 @@ namespace hypixel
         {
             get
             {
-                if(_flatenedNBT != null)
+                if (_flatenedNBT != null)
                     return _flatenedNBT;
                 try
                 {
                     var data = NbtData.Data;
                     if (data == null || data.Count == 0)
                         return new Dictionary<string, string>();
-                    _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d => d.Value.ToString());
+                    _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
+                    {
+                        if (d.Value is IEnumerable)
+                            return string.Join(",", d.Value);
+                        return d.Value.ToString();
+                    });
                     return _flatenedNBT;
                 }
                 catch (Exception e)
@@ -225,13 +231,13 @@ namespace hypixel
         [Key(28)]
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-        public TextMap TraceContext { get; set; } 
+        public TextMap TraceContext { get; set; }
 
         public SaveAuction() { }
 
         public SaveAuction(SaveAuction auction)
         {
-            if(auction == null)
+            if (auction == null)
                 return;
             Id = auction.Id;
             Uuid = auction.Uuid;

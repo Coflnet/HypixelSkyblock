@@ -15,7 +15,8 @@ namespace Coflnet.Sky
         public SaveAuction Auction;
         [DataMember(Name = "finder")]
         public FinderType Finder;
-
+        [DataMember(Name = "props")]
+        public Dictionary<string,string> AdditionalProps;
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
 
@@ -23,7 +24,9 @@ namespace Coflnet.Sky
         {
             UNKOWN,
             FLIPPER,
-            SNIPER
+            SNIPER,
+            SNIPER_MEDIAN,
+            AI
         }
     }
 }
