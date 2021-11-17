@@ -205,8 +205,8 @@ namespace hypixel
                         return new Dictionary<string, string>();
                     _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
                     {
-                        if (d.Value is IEnumerable)
-                            return string.Join(",", d.Value);
+                        if (d.Value is IEnumerable list)
+                            return string.Join(",", list);
                         return d.Value.ToString();
                     });
                     return _flatenedNBT;
