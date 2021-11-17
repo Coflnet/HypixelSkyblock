@@ -217,6 +217,10 @@ namespace hypixel
                     return null;
                 }
             }
+            set 
+            {
+                _flatenedNBT = value;
+            }
         }
         /// <summary>
         /// The first part of a uuid converted to a long for faster lookups
