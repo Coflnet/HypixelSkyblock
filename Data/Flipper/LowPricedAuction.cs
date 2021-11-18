@@ -23,10 +23,10 @@ namespace Coflnet.Sky
         public enum FinderType
         {
             UNKOWN,
-            FLIPPER,
-            SNIPER,
-            SNIPER_MEDIAN,
-            AI
+            FLIPPER = 1,
+            SNIPER = 2,
+            SNIPER_MEDIAN = 4,
+            AI = 8
         }
     }
 }
