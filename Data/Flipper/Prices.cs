@@ -31,7 +31,9 @@ namespace Coflnet.Sky
             ItemReferences.Reforge.toil,
             ItemReferences.Reforge.moil, // on axe
             ItemReferences.Reforge.Fabled,
-            ItemReferences.Reforge.Giant
+            ItemReferences.Reforge.Giant,
+            ItemReferences.Reforge.submerged, // for shark armor
+            ItemReferences.Reforge.Renowned, // for superior, sorrow armor
         };
         // include pet items lucky clover, shemlet, quick cloth, golden cloth, buble gum, text book
         // include gemstone (just add the bazaar price)
