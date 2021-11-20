@@ -1,4 +1,5 @@
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace hypixel
@@ -10,7 +11,7 @@ namespace hypixel
         [IgnoreMember]
         public int Id { get; set; }
 
-        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [JsonProperty("name")]
         public string Name { get; set; }
         [JsonIgnore]

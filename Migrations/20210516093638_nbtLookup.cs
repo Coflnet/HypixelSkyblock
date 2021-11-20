@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
-using MySql.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace hypixel.Migrations
 {
@@ -50,7 +50,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<short>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Slug = table.Column<string>(maxLength: 45, nullable: true)
                 },
                 constraints: table =>
@@ -82,7 +82,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<short>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     KeyId = table.Column<short>(nullable: false),
                     Value = table.Column<string>(nullable: true)
                 },

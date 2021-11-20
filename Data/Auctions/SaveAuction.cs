@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Coflnet.Tracing;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -80,7 +81,7 @@ namespace hypixel
         private string _itemName;
         [Key(8)]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
-        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [JsonProperty("itemName")]
         public string ItemName { get { return _itemName; } set { _itemName = value?.Substring(0, Math.Min(value.Length, 45)); } }
 

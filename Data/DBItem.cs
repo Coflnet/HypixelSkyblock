@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace hypixel
 {
@@ -30,14 +32,14 @@ namespace hypixel
             }
         }
 
-        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [DataMember(Name = "name")]
         public string Name { get; set; }
 
         [DataMember(Name = "altNames")]
         public List<AlternativeName> Names { get; set; }
 
-        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [DataMember(Name = "description")]
         public string Description { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
@@ -51,12 +53,12 @@ namespace hypixel
 
         public string IconUrl { get; set; }
 
-        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [DataMember(Name = "extra")]
         public string Extra { get; set; }
 
         [System.ComponentModel.DataAnnotations.MaxLength(44)]
-        [MySql.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [DataMember(Name = "minecraftType")]
         public string MinecraftType { get; set; }
 

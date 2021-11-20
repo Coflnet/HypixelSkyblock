@@ -56,10 +56,11 @@ namespace hypixel
         public DbSet<Bonus> Boni { get; set; }
 
         public static string DbContextId = SimplerConfig.Config.Instance["DBConnection"];
+        public static string DBVersion = SimplerConfig.Config.Instance["DBVersion"] ?? "10.3";
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySQL(DbContextId,
+            optionsBuilder.UseMySql(DbContextId,new MariaDbServerVersion(DBVersion),
             opts => opts.CommandTimeout(60));
         }
 
