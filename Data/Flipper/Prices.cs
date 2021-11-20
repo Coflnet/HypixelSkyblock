@@ -51,6 +51,8 @@ namespace Coflnet.Sky
             new Enchantment(Enchantment.EnchantmentType.chance,4),
             new Enchantment(Enchantment.EnchantmentType.dragon_hunter,1),
             new Enchantment(Enchantment.EnchantmentType.snipe,4),
+            new Enchantment(Enchantment.EnchantmentType.pristine,2), // maybe 1 as well
+            new Enchantment(Enchantment.EnchantmentType.overload,2),
             new Enchantment(Enchantment.EnchantmentType.true_protection,1)
         };
 
