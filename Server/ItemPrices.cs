@@ -542,10 +542,9 @@ namespace hypixel
 
         private static async Task<IEnumerable<AveragePrice>> AvgFromAuctions(int itemId, IQueryable<SaveAuction> select, bool detailed = false)
         {
-            var groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
-            Console.WriteLine("hourly group");
-            //if (detailed)
-            //    groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
+            var groupedSelect = select.GroupBy(item => new { item.End.Date, Hour = 0 });
+            if (detailed)
+                groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
 
             var dbResult = await groupedSelect
                 .Select(item =>
