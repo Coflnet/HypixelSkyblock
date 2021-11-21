@@ -59,10 +59,6 @@ namespace hypixel
                 StorageManager.Stop();
                 Indexer.Stop();
 
-                var t = StorageManager.Save();
-                Console.WriteLine("Saving");
-                t.Wait();
-                Console.WriteLine($"Saved {cacheCount}");
             };
 
             if (args.Length > 0)

@@ -21,9 +21,10 @@ namespace hypixel
         /// </summary>
         public event Action<MessageData> OnCacheRefresh;
 
-        public ConnectionMultiplexer RedisConnection { get; }
+        public ConnectionMultiplexer RedisConnection { get; private set; }
 
         private ConcurrentDictionary<string, byte[]> HotCache = new ConcurrentDictionary<string, byte[]>();
+        private DateTime lastReconnect;
 
         static CacheService()
         {
@@ -34,11 +35,7 @@ namespace hypixel
         {
             try
             {
-                var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
-                ConfigurationOptions options = ConfigurationOptions.Parse(conName);
-                options.Password = SimplerConfig.Config.Instance["redisPassword"];
-                options.AsyncTimeout = 10000;
-                RedisConnection = ConnectionMultiplexer.Connect(options);
+                ConnectToRedis();
             }
             catch (Exception e)
             {
@@ -49,6 +46,18 @@ namespace hypixel
                     Instance = new CacheService();
                 }).ConfigureAwait(false);
             }
+        }
+
+        private void ConnectToRedis()
+        {
+            if(lastReconnect > DateTime.Now - TimeSpan.FromSeconds(10))
+                return;
+            lastReconnect = DateTime.Now;
+            var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
+            ConfigurationOptions options = ConfigurationOptions.Parse(conName);
+            options.Password = SimplerConfig.Config.Instance["redisPassword"];
+            options.AsyncTimeout = 10000;
+            RedisConnection = ConnectionMultiplexer.Connect(options);
         }
 
         public async Task<T> GetFromRedis<T>(RedisKey key)
@@ -69,11 +78,16 @@ namespace hypixel
                     return default(T);
                 return MessagePack.MessagePackSerializer.Deserialize<T>(value);
             }
+            catch (RedisConnectionException)
+            {
+                ConnectToRedis();
+                dev.Logger.Instance.Error("Redis timeout, reconnecting");
+            }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, $"Redis error when getting key: {key.ToString().Truncate(40)}");
-                return default(T);
             }
+            return default(T);
         }
 
         public async Task DeleteInRedis(RedisKey key)
