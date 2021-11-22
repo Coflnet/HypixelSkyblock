@@ -45,8 +45,6 @@ namespace hypixel
         {
             if(Span != null)
                 Span.Log(message);
-            
-            dev.Logger.Instance.Log(message);
         }
 
         public void LogError(Exception e, string message)
