@@ -29,31 +29,35 @@ namespace Coflnet.Sky
             ItemReferences.Reforge.jaded, // (sorrow armor and divan, maybe just above some tier)
             ItemReferences.Reforge.warped, // for aote
             ItemReferences.Reforge.toil,
-            ItemReferences.Reforge.moil, // on axe
+            // only 50k ItemReferences.Reforge.moil, // on axe
             ItemReferences.Reforge.Fabled,
             ItemReferences.Reforge.Giant,
             ItemReferences.Reforge.submerged, // for shark armor
             ItemReferences.Reforge.Renowned, // for superior, sorrow armor
+            ItemReferences.Reforge.Superior, // got removed and thus exotic 
         };
-        // include pet items lucky clover, shemlet, quick cloth, golden cloth, buble gum, text book
+        // include pet items lucky clover, shemlet, quick clow, golden clow, buble gum, text book
         // include gemstone (just add the bazaar price)
         // include scrolls
 
         public static HashSet<Enchantment> RelevantEnchants = new HashSet<Enchantment>()
         {
-            new Enchantment(Enchantment.EnchantmentType.experience,4),
+            // only 500k new Enchantment(Enchantment.EnchantmentType.experience,4),
             new Enchantment(Enchantment.EnchantmentType.first_strike,5),
-            new Enchantment(Enchantment.EnchantmentType.life_steal,4),
-            new Enchantment(Enchantment.EnchantmentType.looting,4),
-            new Enchantment(Enchantment.EnchantmentType.scavenger,4),
-            new Enchantment(Enchantment.EnchantmentType.syphon,4),
+            // may also have value new Enchantment(Enchantment.EnchantmentType.triple_strike,5),
+            new Enchantment(Enchantment.EnchantmentType.life_steal,5),
+            new Enchantment(Enchantment.EnchantmentType.looting,5),
+            new Enchantment(Enchantment.EnchantmentType.scavenger,5),
+            new Enchantment(Enchantment.EnchantmentType.syphon,5),
             new Enchantment(Enchantment.EnchantmentType.vicious,1),
-            new Enchantment(Enchantment.EnchantmentType.chance,4),
+            new Enchantment(Enchantment.EnchantmentType.chance,5),
             new Enchantment(Enchantment.EnchantmentType.dragon_hunter,1),
             new Enchantment(Enchantment.EnchantmentType.snipe,4),
             new Enchantment(Enchantment.EnchantmentType.pristine,2), // maybe 1 as well
             new Enchantment(Enchantment.EnchantmentType.overload,2),
-            new Enchantment(Enchantment.EnchantmentType.true_protection,1)
+            new Enchantment(Enchantment.EnchantmentType.true_protection,1),
+            new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
+            new Enchantment(Enchantment.EnchantmentType.feather_falling,11)
         };
 
         static Constants()
@@ -62,7 +66,7 @@ namespace Coflnet.Sky
             {
                 if (item.ToString().StartsWith("ultimate_", true, null))
                 {
-                    RelevantEnchants.Add(new Enchantment(item,1));
+                    RelevantEnchants.Add(new Enchantment(item, 1));
                 }
             }
         }
