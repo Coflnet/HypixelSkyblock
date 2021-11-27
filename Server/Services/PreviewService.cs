@@ -28,7 +28,7 @@ namespace hypixel
             return new Preview()
             {
                 Id = id,
-                Image = Convert.ToBase64String(response.RawBytes),
+                Image = response.RawBytes == null ? null : Convert.ToBase64String(response.RawBytes),
                 ImageUrl = uri.ToString(),
                 Name = PlayerSearch.Instance.GetName(id)
             };

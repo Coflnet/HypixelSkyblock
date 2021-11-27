@@ -42,9 +42,8 @@ namespace Coflnet.Sky
 
         public static HashSet<Enchantment> RelevantEnchants = new HashSet<Enchantment>()
         {
-            // only 500k new Enchantment(Enchantment.EnchantmentType.experience,4),
             new Enchantment(Enchantment.EnchantmentType.first_strike,5),
-            // may also have value new Enchantment(Enchantment.EnchantmentType.triple_strike,5),
+            new Enchantment(Enchantment.EnchantmentType.triple_strike,5),
             new Enchantment(Enchantment.EnchantmentType.life_steal,5),
             new Enchantment(Enchantment.EnchantmentType.looting,5),
             new Enchantment(Enchantment.EnchantmentType.scavenger,5),
@@ -56,6 +55,10 @@ namespace Coflnet.Sky
             new Enchantment(Enchantment.EnchantmentType.pristine,2), // maybe 1 as well
             new Enchantment(Enchantment.EnchantmentType.overload,2),
             new Enchantment(Enchantment.EnchantmentType.true_protection,1),
+            new Enchantment(Enchantment.EnchantmentType.smite,7),
+            new Enchantment(Enchantment.EnchantmentType.critical,7),
+            new Enchantment(Enchantment.EnchantmentType.giant_killer,7),
+            new Enchantment(Enchantment.EnchantmentType.luck,7),
             new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
             new Enchantment(Enchantment.EnchantmentType.feather_falling,11)
         };
