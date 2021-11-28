@@ -59,6 +59,14 @@ namespace Coflnet.Sky
             new Enchantment(Enchantment.EnchantmentType.critical,7),
             new Enchantment(Enchantment.EnchantmentType.giant_killer,7),
             new Enchantment(Enchantment.EnchantmentType.luck,7),
+            new Enchantment(Enchantment.EnchantmentType.angler,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.spiked_hook,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.caster,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.magnet,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.luck_of_the_sea,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.vampirism,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.thunderlord,7), // doesn't exist but generally worth nothing
+            new Enchantment(Enchantment.EnchantmentType.lethality,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
             new Enchantment(Enchantment.EnchantmentType.feather_falling,11)
         };
