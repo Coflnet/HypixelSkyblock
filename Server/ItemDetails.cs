@@ -103,6 +103,8 @@ namespace hypixel
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
+            if(name.StartsWith("PET_SKIN_"))
+                name = name.Replace("PET_SKIN_","");
             if (TagLookup.TryGetValue(name, out int value))
                 return value;
 
