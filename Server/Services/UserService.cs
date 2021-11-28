@@ -53,6 +53,14 @@ namespace hypixel
             return user;
         }
 
+        public async Task<int> GetUserIdByEmail(string email)
+        {
+            using (var context = new HypixelContext())
+            {
+                return await context.Users.Where(u => u.Email == email).Select(u=>u.Id).FirstOrDefaultAsync();
+            }
+        }
+
         public bool TryGetUserById(int userId, out GoogleUser user)
         {
             using (var context = new HypixelContext())
