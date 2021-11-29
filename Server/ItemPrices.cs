@@ -85,14 +85,16 @@ namespace hypixel
 
         protected virtual async Task<Resonse> RespondHourly(int itemId, string tag)
         {
+            /* cache usage disabled
             ItemLookup res = await GetLookupForToday(itemId);
             if (res != null)
                 return FromItemLookup(res, tag, (await GetHourlyLookup(itemId))?.CombineIntoOne(default(DateTime), DateTime.Now));
+                */
 
             return await QueryDB(new ItemSearchQuery()
             {
                 End = DateTime.Now,
-                Start = DateTime.Now - TimeSpan.FromDays(1),
+                Start = DateTime.Now - TimeSpan.FromDays(1.09),
                 name = tag
             });
         }
