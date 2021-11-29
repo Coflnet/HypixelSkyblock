@@ -68,7 +68,8 @@ namespace Coflnet.Sky
             new Enchantment(Enchantment.EnchantmentType.thunderlord,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.lethality,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
-            new Enchantment(Enchantment.EnchantmentType.feather_falling,11)
+            new Enchantment(Enchantment.EnchantmentType.feather_falling,11),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3) // 1 and 2 are worth nothing
         };
 
         static Constants()
@@ -77,7 +78,8 @@ namespace Coflnet.Sky
             {
                 if (item.ToString().StartsWith("ultimate_", true, null))
                 {
-                    RelevantEnchants.Add(new Enchantment(item, 1));
+                    if (!RelevantEnchants.Where(e => e.Type == item).Any())
+                        RelevantEnchants.Add(new Enchantment(item, 1));
                 }
             }
         }
