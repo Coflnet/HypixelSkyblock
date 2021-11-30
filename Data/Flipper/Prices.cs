@@ -69,7 +69,16 @@ namespace Coflnet.Sky
             new Enchantment(Enchantment.EnchantmentType.lethality,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
             new Enchantment(Enchantment.EnchantmentType.feather_falling,11),
-            new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3) // 1 and 2 are worth nothing
+            new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3), // 1 and 2 are worth nothing,
+            new Enchantment(Enchantment.EnchantmentType.ultimate_bank,6),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_combo,5),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_jerry,5),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_no_pain_no_gain,5),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_rend,3),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_swarm,3),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_wise,3),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_wisdom,3)
         };
 
         static Constants()
