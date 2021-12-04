@@ -34,7 +34,6 @@ namespace Coflnet.Sky
             ItemReferences.Reforge.Giant,
             ItemReferences.Reforge.submerged, // for shark armor
             ItemReferences.Reforge.Renowned, // for superior, sorrow armor
-            ItemReferences.Reforge.Superior, // got removed and thus exotic 
         };
         // include pet items lucky clover, shemlet, quick clow, golden clow, buble gum, text book
         // include gemstone (just add the bazaar price)
