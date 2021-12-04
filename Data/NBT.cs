@@ -135,7 +135,13 @@ namespace hypixel
             "RUBY_0",
             "AMETHYST_0",
             "SAPPHIRE_0",
-            "JASPER_0"
+            "JASPER_0",
+
+            "COMBAT_0", // rarity of gem
+            "COMBAT_0_gem", // type of gem
+            "DEFENSIVE_0", // rarity of gem
+            "DEFENSIVE_0_gem", // type of gem
+            "unlocked_slots"
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
@@ -231,7 +237,10 @@ namespace hypixel
 
         public static long GetItemIdForSkin(string name)
         {
-            return ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name);
+            var id =  ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name, false);
+            if(id == 0)
+                id =  ItemDetails.Instance.GetItemIdForName(name);
+            return id;
         }
 
         public static List<KeyValuePair<string, object>> FlattenNbtData(Dictionary<string, object> data)

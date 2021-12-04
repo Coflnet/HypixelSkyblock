@@ -201,7 +201,7 @@ namespace hypixel
                     return _flatenedNBT;
                 try
                 {
-                    var data = NbtData.Data;
+                    var data = NbtData?.Data;
                     if (data == null || data.Count == 0)
                         return new Dictionary<string, string>();
                     _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
