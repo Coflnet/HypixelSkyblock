@@ -277,7 +277,6 @@ namespace hypixel
         {
             if (data.TryGetValue(stringArrayKey, out object abilityScroll))
             {
-                Console.WriteLine(abilityScroll.GetType());
                 var list = (abilityScroll as List<object>)
                     .Select(o => o.ToString())
                     .Select(s => s.Replace("TAG_String:", "")

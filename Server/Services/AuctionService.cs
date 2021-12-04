@@ -45,6 +45,17 @@ namespace hypixel
         }
 
         /// <summary>
+        /// Reverse of <see cref="GetId(string)"/>
+        /// </summary>
+        /// <param name="internId"></param>
+        /// <returns></returns>
+        public string GetUuid(long internId)
+        {
+            var builder = new System.Text.StringBuilder(internId.ToString("x"));
+            return builder.Insert(12,4).ToString();
+        }
+
+        /// <summary>
         /// This will modify the passed auction and fill in any guessable things such as item name (from tag)
         /// </summary>
         /// <param name="auction"></param>

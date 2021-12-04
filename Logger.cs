@@ -16,7 +16,7 @@ namespace dev
 
         public void Log(string message)
         {
-            System.Console.WriteLine(message);
+            System.Console.WriteLine("Info: " + message);
         }
 
         public void Error(string message)
@@ -32,7 +32,7 @@ namespace dev
 
         public void Info(string message)
         {
-            Log("Info: " + message);
+            Log(message);
         }
 
 

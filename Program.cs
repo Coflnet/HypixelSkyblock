@@ -79,15 +79,6 @@ namespace hypixel
 
             while (true)
             {
-                //try {
-
-                Console.WriteLine("1) List Auctions");
-                Console.WriteLine("2) List Bids");
-                Console.WriteLine("3) Display");
-                Console.WriteLine("4) List Won Bids");
-                Console.WriteLine("5) Search For auction");
-                Console.WriteLine("6) Avherage selling price in the last 2 weeks");
-                Console.WriteLine("9) End");
 
                 var res = Console.ReadKey();
                 if (runSubProgram(res.KeyChar))
