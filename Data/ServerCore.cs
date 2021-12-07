@@ -17,7 +17,7 @@ namespace hypixel
 
         public static Task<TRes> ExecuteCommandWithCache<TReq, TRes>(string command, TReq reqdata)
         {
-            return Instance.ExecuteCommandWithCacheInternal<TReq,TRes>(command,reqdata);
+            return Instance.ExecuteCommandWithCacheInternal<TReq, TRes>(command, reqdata);
         }
 
         public virtual async Task<TRes> ExecuteCommandWithCacheInternal<TReq, TRes>(string command, TReq reqdata)
@@ -31,7 +31,7 @@ namespace hypixel
                     {
                         throw new Exception("The enviroment variable SKYCOMMANDS_HOST is not set to a valid hostname");
                     }
-                    client = new RestClient("http://" + host.Replace(":8008","") + ":8008");
+                    client = new RestClient("http://" + host.Replace(":8008", "") + ":8008");
 
                 }
                 var source = new TaskCompletionSource<TRes>();
@@ -39,7 +39,7 @@ namespace hypixel
                 var request = new RestRequest($"/command/{command}/{System.Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
                 request.Timeout = 10000;
                 var result = await client.ExecuteAsync(request);
-                if(result.StatusCode != System.Net.HttpStatusCode.OK)
+                if (result.StatusCode != System.Net.HttpStatusCode.OK)
                     return default(TRes);
                 try
                 {
@@ -48,7 +48,7 @@ namespace hypixel
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e,"deserialize command response \n"+result.Content);
+                    dev.Logger.Instance.Error(e, "deserialize command response \n" + result.Content);
                     return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
                 }
             }

@@ -20,24 +20,30 @@ namespace hypixel
             Instance = new PlayerSearch();
         }
 
-        public string GetName(string uuid)
+        public async Task<string> GetName(string uuid)
         {
             using (var context = new HypixelContext())
             {
-                return context.Players
+                return await context.Players
                     .Where(player => player.UuId == uuid)
                     .Select(player => player.Name)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
             }
         }
+
         public string GetIdForName(string name)
+        {
+            return GetIdForNameAsync(name).Result;
+        }
+
+        public async Task<string> GetIdForNameAsync(string name)
         {
             using (var context = new HypixelContext())
             {
-                return context.Players
+                return await context.Players
                     .Where(player => player.Name == name)
                     .Select(player => player.UuId)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
             }
         }
 
