@@ -16,22 +16,26 @@ namespace Coflnet.Kafka
         /// <param name="action"></param>
         /// <param name="cancleToken"></param>
         /// <param name="groupId"></param>
+        /// <param name="start">What event to start at</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static async Task Consume<T>(string host, string topic, Func<T, Task> action, CancellationToken cancleToken, string groupId = "default")
+        public static async Task Consume<T>(string host, string topic, Func<T, Task> action, 
+                                            CancellationToken cancleToken, 
+                                            string groupId = "default", 
+                                            AutoOffsetReset start = AutoOffsetReset.Earliest)
         {
             try
             {
                 var conf = new ConsumerConfig
                 {
-                    GroupId = "default",
+                    GroupId = groupId,
                     BootstrapServers = host,
                     // Note: The AutoOffsetReset property determines the start offset in the event
                     // there are not yet any committed offsets for the consumer group for the
                     // topic/partitions of interest. By default, offsets are committed
                     // automatically, so in this example, consumption will only start from the
                     // earliest message in the topic 'my-topic' the first time you run the program.
-                    AutoOffsetReset = AutoOffsetReset.Earliest
+                    AutoOffsetReset = start
                 };
 
                 using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
