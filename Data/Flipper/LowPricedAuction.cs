@@ -16,7 +16,7 @@ namespace Coflnet.Sky
         [DataMember(Name = "finder")]
         public FinderType Finder;
         [DataMember(Name = "props")]
-        public Dictionary<string,string> AdditionalProps;
+        public Dictionary<string, string> AdditionalProps;
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
 
@@ -26,7 +26,11 @@ namespace Coflnet.Sky
             FLIPPER = 1,
             SNIPER = 2,
             SNIPER_MEDIAN = 4,
-            AI = 8
+            AI = 8,
+
+            TFM = 32,
+            STONKS = 64,
+            EXTERNAL = 128
         }
     }
 }
