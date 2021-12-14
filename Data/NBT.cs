@@ -12,8 +12,16 @@ using Newtonsoft.Json;
 
 namespace hypixel
 {
-    public class NBT
+    public interface INBT
     {
+        short GetKeyId(string name);
+        int GetValueId(short key, string value);
+    }
+
+    public class NBT : INBT
+    {
+        public static INBT Instance = new NBT();
+
         public static string SkullUrl(string data)
         {
             var f = File(Convert.FromBase64String(data));
@@ -220,7 +228,7 @@ namespace hypixel
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
-                    return new NBTLookup(keyId, GetValueId(keyId, attr.Value as string));
+                    return new NBTLookup(keyId, Instance.GetValueId(keyId, attr.Value as string));
                 }
                 if (key == "color")
                 {
@@ -231,15 +239,15 @@ namespace hypixel
                 // just save it as strings
 
                 var lookupKey = GetLookupKey(key);
-                return new NBTLookup(lookupKey, GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
+                return new NBTLookup(lookupKey, Instance.GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
             }).Where(a => a != null).ToList();
         }
 
         public static long GetItemIdForSkin(string name)
         {
-            var id =  ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name, false);
-            if(id == 0)
-                id =  ItemDetails.Instance.GetItemIdForName(name);
+            var id = ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name, false);
+            if (id == 0)
+                id = ItemDetails.Instance.GetItemIdForName(name);
             return id;
         }
 
@@ -358,6 +366,10 @@ namespace hypixel
 
         private static ConcurrentDictionary<string, short> Cache = new ConcurrentDictionary<string, short>();
 
+        public short GetKeyId(string name)
+        {
+            return GetLookupKey(name);
+        }
         public static short GetLookupKey(string name)
         {
             lock (Cache)
@@ -396,7 +408,7 @@ namespace hypixel
         }
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
 
-        public static int GetValueId(short key, string value)
+        public int GetValueId(short key, string value)
         {
             if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
