@@ -55,7 +55,6 @@ namespace hypixel
             lastReconnect = DateTime.Now;
             var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
-            options.Password = SimplerConfig.Config.Instance["redisPassword"];
             options.AsyncTimeout = 10000;
             RedisConnection = ConnectionMultiplexer.Connect(options);
         }
