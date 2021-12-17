@@ -50,12 +50,11 @@ namespace hypixel
 
         private void ConnectToRedis()
         {
-            if(lastReconnect > DateTime.Now - TimeSpan.FromSeconds(10))
+            if (lastReconnect > DateTime.Now - TimeSpan.FromSeconds(10))
                 return;
             lastReconnect = DateTime.Now;
             var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
-            options.AsyncTimeout = 10000;
             RedisConnection = ConnectionMultiplexer.Connect(options);
         }
 
@@ -185,6 +184,7 @@ namespace hypixel
             }
             if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
             {
+                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log("refresh stale");
                 RefreshResponse(request);
                 return CacheStatus.REFRESH;
             }
