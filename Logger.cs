@@ -17,17 +17,14 @@ namespace dev
         public void Log(string message)
         {
             System.Console.WriteLine("Info: " + message);
+            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log(message);
         }
 
         public void Error(string message)
         {
             System.Console.WriteLine("Error: " + message);
-            try
-            {
-                FileController.AppendLineAs("errors", message);
-            }
-            catch (System.Exception)
-            { }
+            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log(message);
+            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("error",true);
         }
 
         public void Info(string message)
