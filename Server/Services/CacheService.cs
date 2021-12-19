@@ -182,9 +182,10 @@ namespace hypixel
                     return CacheStatus.MISS;
                 }
             }
-            if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
+            var lifetime = (responses.Expires - responses.Created).TotalSeconds;
+            if (lifetime / 2 > maxAgeLeft)
             {
-                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log("refresh stale");
+                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log($"refresh stale {lifetime} {request.Type.Truncate(10)}");
                 RefreshResponse(request);
                 return CacheStatus.REFRESH;
             }
