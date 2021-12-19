@@ -81,6 +81,11 @@ namespace hypixel
                 ConnectToRedis();
                 dev.Logger.Instance.Error("Redis timeout, reconnecting");
             }
+            catch (RedisTimeoutException e)
+            {
+                if (new Random().Next() % 16 == 0)
+                    dev.Logger.Instance.Error(e, $"Redis timeout");
+            }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, $"Redis error when getting key: {key.ToString().Truncate(40)}");
