@@ -28,6 +28,7 @@ namespace Coflnet.Sky
             ItemReferences.Reforge.Spiritual,
             ItemReferences.Reforge.jaded, // (sorrow armor and divan, maybe just above some tier)
             ItemReferences.Reforge.warped, // for aote
+            ItemReferences.Reforge.aote_stone, // warped on aote :shrug:
             ItemReferences.Reforge.toil,
             // only 50k ItemReferences.Reforge.moil, // on axe
             ItemReferences.Reforge.Fabled,
