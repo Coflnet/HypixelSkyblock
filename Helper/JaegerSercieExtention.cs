@@ -21,7 +21,7 @@ namespace hypixel
                 Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
                         .RegisterSenderFactory<ThriftSenderFactory>();
 
-                var samplingRate = 0.10d;
+                var samplingRate = 0.03d;
                 var lowerBoundInSeconds = 30d;
                 ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
                 var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
