@@ -115,7 +115,7 @@ namespace hypixel
                 if (HotCache.Count > 350)
                     HotCache.Clear();
                 HotCache.AddOrUpdate(key, data, (a, b) => data);
-                await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout);
+                await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
             }
             catch (Exception e)
             {
