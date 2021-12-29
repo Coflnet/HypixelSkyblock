@@ -3,7 +3,7 @@ using System;
 
 namespace hypixel
 {
-    internal class BidComparer : IEqualityComparer<SaveBids>
+    public class BidComparer : IEqualityComparer<SaveBids>
     {
         public bool Equals(SaveBids x, SaveBids y)
         {

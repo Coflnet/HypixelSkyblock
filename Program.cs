@@ -57,7 +57,6 @@ namespace hypixel
 
                 var cacheCount = StorageManager.CacheItems;
                 StorageManager.Stop();
-                Indexer.Stop();
 
             };
 
@@ -112,10 +111,6 @@ namespace hypixel
                     var auction = StorageManager.GetOrCreateAuction("00e45a19c27848829612be8edf53bd71");
                     Console.WriteLine(auction.ItemName);
                     //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
-                    break;
-                case 'p':
-                    Indexer.LastHourIndex().Wait();
-                    //StorageManager.Migrate();
                     break;
                 case 'n':
                     var af = new SaveAuction();
@@ -178,8 +173,6 @@ namespace hypixel
             if (modes == null)
                 modes = new string[] { "indexer", "updater", "flipper" };
 
-            if (mode == null)
-                Indexer.MiniumOutput();
             LightClient = modes.Contains("light");
             if (LightClient)
             {
@@ -202,7 +195,6 @@ namespace hypixel
                 Console.WriteLine("booting db dependend stuff");
                 var bazaar = new BazaarIndexer();
                 RunIsolatedForever(bazaar.ProcessBazaarQueue, "bazaar queue");
-                RunIndexer();
                 //NameUpdater.Run();
                 Task.Run(async () =>
                 {
@@ -337,45 +329,6 @@ namespace hypixel
 
         }
 
-        private static void RunIndexer()
-        {
-            Indexer.LoadFromDB();
-            RunIsolatedForever(async () =>
-            {
-                await Indexer.ProcessQueue();
-                await Indexer.LastHourIndex();
-
-            }, "An error occured while indexing");
-
-            RunUserIndexer();
-        }
-
-        /// <summary>
-        /// Assigns ids to users, auctions,items and bids
-        /// </summary>
-        private static void RunUserIndexer()
-        {
-            RunIsolatedForever(Numberer.NumberUsers, "Error occured while userIndexing");
-
-            int minId = 0;
-            using (var context = new HypixelContext())
-            {
-                if (context.NBTLookups.Any())
-                    minId = context.NBTLookups.Min(l => l.AuctionId);
-            }
-            if (minId == 0)
-            {
-                Console.WriteLine("All nbt is indexed :)");
-                return;
-            }
-            var bwi = new BackWardsNBTIndexer(minId);
-            Task.Run(() =>
-            {
-                Task.Delay(TimeSpan.FromSeconds(11));
-                RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
-            });
-
-        }
 
         public static void RunIsolatedForever(Func<Task> todo, string message, int backoff = 2000)
         {

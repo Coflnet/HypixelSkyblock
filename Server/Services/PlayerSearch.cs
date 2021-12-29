@@ -155,7 +155,8 @@ namespace hypixel
             else
             {
                 var value = JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
-                NameUpdater.UpdateUUid(value.Id, value.Name);
+                //NameUpdater.UpdateUUid(value.Id, value.Name);
+                dev.Logger.Instance.Error("loading names is disabled in core");
                 result.Add(new PlayerResult(value.Name, value.Id));
             }
         }

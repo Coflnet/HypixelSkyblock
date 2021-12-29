@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace hypixel
 {
-    internal class AuctionComparer : IEqualityComparer<SaveAuction>
+    public class AuctionComparer : IEqualityComparer<SaveAuction>
     {
         public bool Equals(SaveAuction x, SaveAuction y)
         {
