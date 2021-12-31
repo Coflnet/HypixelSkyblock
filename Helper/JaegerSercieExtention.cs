@@ -11,7 +11,7 @@ namespace hypixel
 {
     public static class JaegerSercieExtention
     {
-        public static void AddJaeger(this IServiceCollection services)
+        public static void AddJaeger(this IServiceCollection services, double samplingRate = 0.03, double lowerBoundInSeconds = 30)
         {
             services.AddSingleton<ITracer>(serviceProvider =>
             {
@@ -21,8 +21,6 @@ namespace hypixel
                 Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
                         .RegisterSenderFactory<ThriftSenderFactory>();
 
-                var samplingRate = 0.03d;
-                var lowerBoundInSeconds = 30d;
                 ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
                 var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
 
