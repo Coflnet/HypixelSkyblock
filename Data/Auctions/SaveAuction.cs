@@ -237,6 +237,14 @@ namespace hypixel
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public TextMap TraceContext { get; set; }
+        /// <summary>
+        /// General context for this auction (additional fields)
+        /// </summary>
+        /// <value></value>
+        [Key(29)]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public Dictionary<string,string> Context { get; set; }
 
         public SaveAuction() { }
 
@@ -273,6 +281,7 @@ namespace hypixel
             UId = auction.UId;
             FindTime = auction.FindTime;
             TraceContext = auction.TraceContext;
+            Context = Context;
         }
 
         public override bool Equals(object obj)
