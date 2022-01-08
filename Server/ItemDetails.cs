@@ -208,10 +208,7 @@ namespace hypixel
 
         public async Task<DBItem> GetDetailsWithCache(string itemTag)
         {
-            var details = await CoreServer.ExecuteCommandWithCache<string, DBItem>("itemDetails", itemTag);
-            if (details.Tag == null)
-                Console.WriteLine("got default");
-            return details;
+            return await CoreServer.ExecuteCommandWithCache<string, DBItem>("itemDetails", itemTag);
         }
 
         public DBItem GetDetailsWithCache(int id)
