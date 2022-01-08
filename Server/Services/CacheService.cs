@@ -56,6 +56,7 @@ namespace hypixel
             var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
             RedisConnection = ConnectionMultiplexer.Connect(options);
+            RedisConnection.IncludePerformanceCountersInExceptions = true;
         }
 
         public async Task<T> GetFromRedis<T>(RedisKey key)

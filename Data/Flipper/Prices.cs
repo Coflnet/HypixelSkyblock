@@ -81,7 +81,8 @@ namespace Coflnet.Sky
             new Enchantment(Enchantment.EnchantmentType.ultimate_wisdom,3),
             new Enchantment(Enchantment.EnchantmentType.compact,9),
             new Enchantment(Enchantment.EnchantmentType.counter_strike,5),
-            new Enchantment(Enchantment.EnchantmentType.smarty_pants,2)
+            new Enchantment(Enchantment.EnchantmentType.smarty_pants,2),
+            new Enchantment(Enchantment.EnchantmentType.cultivating,1)
         };
 
         static Constants()
