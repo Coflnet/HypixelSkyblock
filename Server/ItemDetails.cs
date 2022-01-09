@@ -233,7 +233,7 @@ namespace hypixel
 
         public void Save()
         {
-            FileController.SaveAs("itemDetails", Items);
+            //FileController.SaveAs("itemDetails", Items);
         }
     }
 }
