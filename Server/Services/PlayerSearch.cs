@@ -141,24 +141,23 @@ namespace hypixel
             return result;
         }
 
-        private static async Task LoadPlayerName(string search, bool forceResolution, List<PlayerResult> result)
+        private async Task LoadPlayerName(string search, bool forceResolution, List<PlayerResult> result)
+        {
+            var profile = await GetMcProfile(search);
+            if (profile == null && forceResolution)
+                throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
+
+            result.Add(new PlayerResult(profile.Name, profile.Id));
+        }
+
+        public async Task<MinecraftProfile> GetMcProfile(string name)
         {
             var client = new RestClient("https://mc-heads.net/");
-            var request = new RestRequest($"/minecraft/profile/{search}", Method.GET);
+            var request = new RestRequest($"/minecraft/profile/{name}", Method.GET);
             var response = await client.ExecuteAsync(request);
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                if (forceResolution)
-                    throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
-                else
-                { // nothing to do 
-                }
-            else
-            {
-                var value = JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
-                //NameUpdater.UpdateUUid(value.Id, value.Name);
-                dev.Logger.Instance.Error("loading names is disabled in core");
-                result.Add(new PlayerResult(value.Name, value.Id));
-            }
+                return null;
+            return JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
         }
 
         public class MinecraftProfile
