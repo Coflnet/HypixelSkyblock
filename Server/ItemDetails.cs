@@ -16,21 +16,21 @@ namespace hypixel
     {
         public static ItemDetails Instance;
 
-        public Dictionary<string, Item> Items = new Dictionary<string, Item>();
+        public ConcurrentDictionary<string, Item> Items = new ConcurrentDictionary<string, Item>();
         /// <summary>
         /// Contains the Tags indexed by name [Name]=Tag
         /// </summary>
         /// <typeparam name="string"></typeparam>
         /// <typeparam name="string"></typeparam>
         /// <returns></returns>
-        public Dictionary<string, string> ReverseNames = new Dictionary<string, string>();
+        public ConcurrentDictionary<string, string> ReverseNames = new ConcurrentDictionary<string, string>();
         /// <summary>
         /// Contains a cache for <see cref="DBItem.Tag"/> to <see cref="DBItem.Id"/>
         /// </summary>
         /// <typeparam name="string"></typeparam>
         /// <typeparam name="int"></typeparam>
         /// <returns></returns>
-        public Dictionary<string, int> TagLookup = new Dictionary<string, int>();
+        public ConcurrentDictionary<string, int> TagLookup = new ConcurrentDictionary<string, int>();
 
         static ItemDetails()
         {
@@ -47,8 +47,8 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                TagLookup = await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
-                                    .ToDictionaryAsync(item => item.Tag, item => item.Id);
+                TagLookup = new (await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
+                                    .ToDictionaryAsync(item => item.Tag, item => item.Id));
             }
         }
 
@@ -56,7 +56,7 @@ namespace hypixel
         {
             if (Items == null)
             {
-                Items = new Dictionary<string, Item>();
+                Items = new ();
             }
             // correct keys
             foreach (var item in Items.Keys.ToList())
@@ -64,7 +64,7 @@ namespace hypixel
                 if (Items[item].Id != item)
                 {
                     Items.TryAdd(Items[item].Id, Items[item]);
-                    Items.Remove(item);
+                    Items.Remove(item, out _);
                 }
             }
 
