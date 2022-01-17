@@ -229,11 +229,11 @@ namespace hypixel
             }
 
             updater = new Updater(apiKey);
-            updater.UpdateForEver();
+            
             Flipper.FlipperEngine.diabled = true;
 
             // bring the db up to date
-            GetDBToDesiredState();
+            //GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
             SubscribeEngine.Instance.LoadFromDb();
             var redisInit = MakeSureRedisIsInitialized();
@@ -241,21 +241,7 @@ namespace hypixel
             Console.WriteLine("booting db dependend stuff");
 
             var bazzar = new BazaarUpdater();
-            bazzar.UpdateForEver(apiKey);
-            RunIndexer();
             
-            if (!Flipper.FlipperEngine.diabled)
-                for (int i = 0; i < 2; i++)
-                    RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
-
-            NameUpdater.Run();
-            SearchService.Instance.RunForEver();
-            CacheService.Instance.RunForEver();
-            Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromMinutes(3));
-                await ItemPrices.Instance.BackfillPrices();
-            }).ConfigureAwait(false); ;
 
 
             onStop += () =>
