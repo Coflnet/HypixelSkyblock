@@ -111,14 +111,15 @@ namespace hypixel.Prediction
         {
             using(var context = new HypixelContext())
             {
-                return await context.Auctions
-                        .Where(a=>a.End > new DateTime(2021,5,22))
+                return (await context.Auctions
+                        .Where(a=>a.End > new DateTime(2021,5,22) && a.HighestBidAmount > 0)
                         .Skip(page * count)
                         .Take(count)
                         .Include(a=>a.NBTLookup)
                         .Include(a=>a.Enchantments)
+                        .ToListAsync())
                         .Select(a=>Map(a,a.End))
-                        .ToListAsync();
+                        .ToList();
             }
         }
 

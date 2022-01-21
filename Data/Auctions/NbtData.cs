@@ -18,6 +18,7 @@ namespace hypixel
         [Key(0)]
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.MaxLength(1000)]
+        [System.Text.Json.Serialization.JsonIgnore]
         public byte[] data { get; set; }
 
         public void SetData(string data)
