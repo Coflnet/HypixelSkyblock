@@ -23,6 +23,7 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
+                dev.Logger.Instance.Info($"Name update request for {uuid}");
                 var player = await context.Players.Where(p => p.UuId == uuid).FirstOrDefaultAsync();
                 player.ChangedFlag = true;
                 await context.SaveChangesAsync();

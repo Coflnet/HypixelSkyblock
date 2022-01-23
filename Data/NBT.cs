@@ -79,7 +79,6 @@ namespace hypixel
         public static void FillDetails(SaveAuction auction, string itemBytes, bool includeTier = false)
         {
             var f = File(Convert.FromBase64String(itemBytes));
-            var a = f.RootTag.ToString();
             auction.Tag = ItemID(f).Truncate(40);
             auction.Enchantments = Enchantments(f);
             auction.AnvilUses = AnvilUses(f);
@@ -98,6 +97,8 @@ namespace hypixel
                     }
                 }
             }
+            if(auction.Context != null)
+                auction.Context["cname"] = GetName(f);
         }
 
         static readonly ConcurrentBag<string> ValidKeys = new ConcurrentBag<string>()
@@ -470,6 +471,15 @@ namespace hypixel
             {
                 yield return item.StringValue;
             }
+        }
+        public static string GetName(NbtFile f)
+        {
+            return  f?.RootTag?.Get<NbtList>("i")
+            ?.Get<NbtCompound>(0)
+            ?.Get<NbtCompound>("tag")
+            ?.Get<NbtCompound>("display")
+            ?.Get<NbtString>("Name")
+            ?.StringValue;            
         }
 
         public static DateTime GetDateTime(NbtFile file)
