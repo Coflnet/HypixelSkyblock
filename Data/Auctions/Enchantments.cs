@@ -114,6 +114,8 @@ namespace hypixel
             mana_steal,
             smarty_pants,
             pristine,
+            // nether update
+            fatal_tempo,
             
             Any = 126
         }

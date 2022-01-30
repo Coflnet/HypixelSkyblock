@@ -19,12 +19,14 @@ namespace Coflnet.Kafka
         /// <param name="cancleToken"></param>
         /// <param name="groupId"></param>
         /// <param name="start">What event to start at</param>
+        /// <param name="deserializer">The deserializer used for new messages</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public static async Task Consume<T>(string host, string topic, Func<T, Task> action,
                                             CancellationToken cancleToken,
                                             string groupId = "default",
-                                            AutoOffsetReset start = AutoOffsetReset.Earliest)
+                                            AutoOffsetReset start = AutoOffsetReset.Earliest,
+                                            IDeserializer<T> deserializer = null)
         {
             try
             {
@@ -39,8 +41,10 @@ namespace Coflnet.Kafka
                     // earliest message in the topic 'my-topic' the first time you run the program.
                     AutoOffsetReset = start
                 };
+                if (deserializer == null)
+                    deserializer = SerializerFactory.GetDeserializer<T>();
 
-                using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(SerializerFactory.GetDeserializer<T>()).Build())
+                using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build())
                 {
                     c.Subscribe(topic);
                     try
