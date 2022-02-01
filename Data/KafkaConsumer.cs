@@ -148,6 +148,7 @@ namespace Coflnet.Kafka
                         try
                         {
                             var cr = c.Consume(cancleToken);
+                            batch.Enqueue(cr);
                             while (batch.Count < maxChunkSize)
                             {
                                 cr = c.Consume(TimeSpan.Zero);
