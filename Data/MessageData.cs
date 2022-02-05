@@ -4,8 +4,6 @@ using System.Text;
 using System.Threading.Tasks;
 using MessagePack;
 using OpenTracing;
-using WebSocketSharp;
-using WebSocketSharp.Net;
 
 namespace hypixel
 {
@@ -41,14 +39,12 @@ namespace hypixel
 
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
-        public ISpan Span { get; internal set; }
+        public ISpan Span { get; set; }
 
         public void Log(string message)
         {
             if(Span != null)
                 Span.Log(message);
-            
-            dev.Logger.Instance.Log(message);
         }
 
         public void LogError(Exception e, string message)
@@ -126,38 +122,10 @@ namespace hypixel
         }
     }
 
-    public class SocketMessageData : MessageData
-    {
-
-        [IgnoreMember]
-        [Newtonsoft.Json.JsonIgnore]
-        public SkyblockBackEnd Connection;
-        private int responseCounter = 0;
-
-        public override int UserId
-        {
-            get => Connection.UserId;
-            set => Connection.UserId = value;
-        }
-
-        public SocketMessageData()
-        {
-        }
-
-        public override Task SendBack(MessageData data, bool cache = true)
-        {
-            data.mId = mId;
-            if (cache)
-                CacheService.Instance.Save(this, data, responseCounter++);
-            Connection.SendBack(data);
-            Span.SetTag("result", data.Type);
-            return Task.CompletedTask;
-        }
-    }
 
     public class HttpMessageData : MessageData
     {
-        public Server.RequestContext context { get; private set; }
+        public RequestContext context { get; private set; }
 
         TaskCompletionSource<bool> source = new TaskCompletionSource<bool>();
 
@@ -174,7 +142,7 @@ namespace hypixel
         }
         public Action<int> SetUserId { get; set; }
 
-        public HttpMessageData(Server.RequestContext context)
+        public HttpMessageData(RequestContext context)
         {
             Type = context.path.Split('/')[2];
             this.Span = context.Span;

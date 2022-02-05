@@ -1,11 +1,16 @@
-version: '2'
+# Copy this file to the parent folder and clone the coresponding folders with "git clone https://github.com/Coflnet/_______.git"
+# also make sure to rename this folder to "dev" (historical name)
+version: '3.7'
 services:
   mariadb:
     image: 'docker.io/bitnami/mariadb:10.3-debian-10'
+    volumes:
+      - './db:/bitnami'
+    ports:
+      - '3306:3306'
     environment:
       - MARIADB_ROOT_PASSWORD=takenfrombitnami
-    volumes:
-      - './mariadb_data:/bitnami'
+      - MARIADB_EXTRA_FLAGS=--innodb-buffer-pool-size=500M --key-buffer-size=1G --connect-timeout=101
   phpmyadmin:
     image: 'docker.io/bitnami/phpmyadmin:5-debian-10'
     ports:
@@ -13,23 +18,86 @@ services:
       - '4438:8443'
     depends_on:
       - mariadb
-    volumes:
-      - './phpmyadmin_data:/bitnami'
-  skyblock:
-    build: 
-      context: .
-      dockerfile: Legacy.Dockerfile
+  indexer:
+    build: SkyIndexer
     ports:
-    - "8108:8008"
-    volumes:
-    - ./ah:/data
-    - ./import:/import
+    - '8007:8008'
     restart: always
     depends_on:
       - mariadb
+      - kafka
+      - redis
+    environment: 
+      FRONTEND_PROD: "frontend"
+      JAEGER_SERVICE_NAME: "hypixel-skyblock-core"
+      JAEGER_AGENT_HOST: "jaeger"
+      KAFKA_HOST: "kafka:9092"
+      SKYCOMMANDS_HOST: "commands:8008"
+  commands:
+    build: SkyCommands
+    environment: 
+      - JAEGER_AGENT_HOST=jaeger
+      - KAFKA_HOST=kafka:9092
+    ports:
+    - "8008:8008"
+    - '1234:80'
+    restart: always
+    depends_on:
+      - mariadb
+      - kafka
+      - redis
+      - frontend
   redis:
     image: "redis:alpine"
     environment:
       - REDIS_REPLICATION_MODE=master
- 
-
+  imgproxy:
+    image: willnorris/imageproxy
+    command: -addr 0.0.0.0:80 -cache memory -allowHosts sky.shiiyu.moe,mc-heads.net,crafatar.com
+  frontend:
+    build: Hypixel-react
+  jaeger:
+    image: "jaegertracing/all-in-one:1.22"
+    ports:
+      - "16686:16686"
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.7
+    ports:
+      - "2181:2181"
+    volumes:
+      - "zookeeper_data:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: docker.io/bitnami/kafka:2
+    ports:
+      - "9092:9092"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1500M
+  mcconnect:
+    build: SkyMcConnect
+  subscription:
+    build: SkySubscriptions
+  updater:
+    build: SkyUpdater
+    depends_on:
+      - jaeger
+    environment: 
+      SLOWDOWN_MS: 800
+  flipper:
+    build: SkyFlipper
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local

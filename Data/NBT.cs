@@ -12,8 +12,16 @@ using Newtonsoft.Json;
 
 namespace hypixel
 {
-    class NBT
+    public interface INBT
     {
+        short GetKeyId(string name);
+        int GetValueId(short key, string value);
+    }
+
+    public class NBT : INBT
+    {
+        public static INBT Instance = new NBT();
+
         public static string SkullUrl(string data)
         {
             var f = File(Convert.FromBase64String(data));
@@ -59,7 +67,7 @@ namespace hypixel
                 {
                     json = Encoding.UTF8.GetString(Convert.FromBase64String(base64 + "=="));
                 }
-                Console.WriteLine(json);
+                Console.WriteLine("Skull url json" + json);
 
                 //return null;
             }
@@ -68,10 +76,9 @@ namespace hypixel
             return result.textures.SKIN.url;
         }
 
-        public static void FillDetails(SaveAuction auction, string itemBytes)
+        public static void FillDetails(SaveAuction auction, string itemBytes, bool includeTier = false)
         {
             var f = File(Convert.FromBase64String(itemBytes));
-            var a = f.RootTag.ToString();
             auction.Tag = ItemID(f).Truncate(40);
             auction.Enchantments = Enchantments(f);
             auction.AnvilUses = AnvilUses(f);
@@ -79,6 +86,19 @@ namespace hypixel
             auction.ItemCreatedAt = GetDateTime(f);
             auction.Reforge = GetReforge(f);
             auction.NbtData = new NbtData(f);
+            if (includeTier)
+            {
+                var lastLine = GetLore(f).LastOrDefault();
+                foreach (var item in Enum.GetValues<Tier>())
+                {
+                    if (lastLine.Contains(item.ToString()))
+                    {
+                        auction.Tier = item;
+                    }
+                }
+            }
+            if(auction.Context != null)
+                auction.Context["cname"] = GetName(f);
         }
 
         static readonly ConcurrentBag<string> ValidKeys = new ConcurrentBag<string>()
@@ -123,7 +143,14 @@ namespace hypixel
             "AMBER_0",
             "RUBY_0",
             "AMETHYST_0",
-            "SAPPHIRE_0"
+            "SAPPHIRE_0",
+            "JASPER_0",
+
+            "COMBAT_0", // rarity of gem
+            "COMBAT_0_gem", // type of gem
+            "DEFENSIVE_0", // rarity of gem
+            "DEFENSIVE_0_gem", // type of gem
+            "unlocked_slots"
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
@@ -196,13 +223,13 @@ namespace hypixel
                 if (key == "tier" || key == "type") // both already save on auctions table
                     return null;
                 if (key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
-                    return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + (attr.Value as string)));
+                    return new NBTLookup(GetLookupKey(key), GetItemIdForSkin(attr.Value as string));
                 if (KeysWithItem.Contains(key))
                     return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName(attr.Value as string));
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
-                    return new NBTLookup(keyId, GetValueId(keyId, attr.Value as string));
+                    return new NBTLookup(keyId, Instance.GetValueId(keyId, attr.Value as string));
                 }
                 if (key == "color")
                 {
@@ -213,8 +240,16 @@ namespace hypixel
                 // just save it as strings
 
                 var lookupKey = GetLookupKey(key);
-                return new NBTLookup(lookupKey, GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
+                return new NBTLookup(lookupKey, Instance.GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
             }).Where(a => a != null).ToList();
+        }
+
+        public static long GetItemIdForSkin(string name)
+        {
+            var id = ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name, false);
+            if (id == 0)
+                id = ItemDetails.Instance.GetItemIdForName(name);
+            return id;
         }
 
         public static List<KeyValuePair<string, object>> FlattenNbtData(Dictionary<string, object> data)
@@ -227,14 +262,13 @@ namespace hypixel
                                         : new List<KeyValuePair<string, object>>() { kv }
                                    );
 
-
-
             try
             {
                 UnwrapList(data, "effects");
                 UnwrapList(data, "necromancer_souls");
                 UnwarpStringArray(data, "ability_scroll");
                 UnwarpStringArray(data, "mixins");
+                UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
             }
             catch (Exception e)
@@ -252,7 +286,6 @@ namespace hypixel
         {
             if (data.TryGetValue(stringArrayKey, out object abilityScroll))
             {
-                Console.WriteLine(abilityScroll.GetType());
                 var list = (abilityScroll as List<object>)
                     .Select(o => o.ToString())
                     .Select(s => s.Replace("TAG_String:", "")
@@ -301,9 +334,15 @@ namespace hypixel
             return true;
         }
 
-        private static long GetColor(KeyValuePair<string, object> attr)
+        public static long GetColor(KeyValuePair<string, object> attr)
         {
-            var parts = (attr.Value as string).Split(':');
+            var fullColor = (attr.Value as string);
+            return GetColor(fullColor);
+        }
+
+        public static long GetColor(string fullColor)
+        {
+            var parts = fullColor.Split(':');
             int result = 0;
             foreach (var item in parts)
             {
@@ -328,6 +367,10 @@ namespace hypixel
 
         private static ConcurrentDictionary<string, short> Cache = new ConcurrentDictionary<string, short>();
 
+        public short GetKeyId(string name)
+        {
+            return GetLookupKey(name);
+        }
         public static short GetLookupKey(string name)
         {
             lock (Cache)
@@ -343,35 +386,31 @@ namespace hypixel
             }
             if (Cache.TryGetValue(name, out short id))
                 return id;
+
             return Cache.AddOrUpdate(name, k =>
             {
-                using (var context = new HypixelContext())
+                using var context = new HypixelContext();
+                id = context.NBTKeys.Where(k => k.Slug == name).Select(k => k.Id).FirstOrDefault();
+                if (id != 0)
+                    return id;
+                try
                 {
                     var key = new NBTKey() { Slug = k };
                     context.NBTKeys.Add(key);
                     context.SaveChanges();
                     return key.Id;
                 }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, $"saving new nbtKey {name}");
+                    return -1;
+                }
             }, (K, v) => v);
         }
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
 
-        private static int GetValueId(short key, string value)
+        public int GetValueId(short key, string value)
         {
-            lock (ValueCache)
-            {
-                if (ValueCache.Count == 0)
-                    using (var context = new HypixelContext())
-                    {
-                        foreach (var item in context.NBTValues)
-                        {
-                            if (item?.Value == null)
-                                continue;
-                            if (item.Value.Length < 40)
-                                ValueCache.TryAdd((item.KeyId, item.Value), item.Id);
-                        }
-                    }
-            }
             if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
 
@@ -384,13 +423,24 @@ namespace hypixel
 
             return ValueCache.AddOrUpdate((key, value), k =>
             {
-                using (var context = new HypixelContext())
+                using var context = new HypixelContext();
+                id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
+                if (id != 0)
+                    return id;
+                try
                 {
                     var key = new NBTValue() { Value = k.Item2, KeyId = k.Item1 };
                     context.NBTValues.Add(key);
                     context.SaveChanges();
                     return key.Id;
                 }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, $"saving new nbtValue {value} for key {key}");
+                    return -1;
+                }
+
+
             }, (K, v) => v);
         }
 
@@ -407,7 +457,29 @@ namespace hypixel
             }
             Logger.Instance.Error($"Reforge {modifier.StringValue} not found");
             return ItemReferences.Reforge.Unknown;
+        }
 
+        public static IEnumerable<string> GetLore(NbtFile f)
+        {
+            var loreLines = f?.RootTag?.Get<NbtList>("i")
+            ?.Get<NbtCompound>(0)
+            ?.Get<NbtCompound>("tag")
+            ?.Get<NbtCompound>("display")
+            ?.Get<NbtList>("Lore");
+
+            foreach (var item in loreLines)
+            {
+                yield return item.StringValue;
+            }
+        }
+        public static string GetName(NbtFile f)
+        {
+            return  f?.RootTag?.Get<NbtList>("i")
+            ?.Get<NbtCompound>(0)
+            ?.Get<NbtCompound>("tag")
+            ?.Get<NbtCompound>("display")
+            ?.Get<NbtString>("Name")
+            ?.StringValue;            
         }
 
         public static DateTime GetDateTime(NbtFile file)

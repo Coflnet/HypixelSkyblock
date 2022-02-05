@@ -1,24 +1,25 @@
 using System;
+using System.Runtime.Serialization;
 using MessagePack;
 
 namespace hypixel
 {
-    [MessagePackObject]
+    [DataContract]
     public class AveragePrice
     {
-        [IgnoreMember]
+        [IgnoreDataMember]
         public int Id {get;set;}
-        [Key("min")]
+        [DataMember(Name = "min")]
         public float Min { get; set; }
-        [Key("max")]
+        [DataMember(Name = "max")]
         public float Max { get; set; }
-        [Key("avg")]
+        [DataMember(Name = "avg")]
         public float Avg { get; set; }
-        [Key("volume")]
+        [DataMember(Name = "volume")]
         public int Volume { get; set; }
-        [IgnoreMember]
+        [IgnoreDataMember]
         public virtual int ItemId { get; set; }
-        [Key("time")]
+        [DataMember(Name = "time")]
         public DateTime Date { get; set; }
 
         public override bool Equals(object obj)

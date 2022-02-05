@@ -1,4 +1,3 @@
-using Hypixel.NET.SkyblockApi.Bazaar;
 using MessagePack;
 using Newtonsoft.Json;
 
@@ -7,15 +6,11 @@ namespace dev
     public class BuyOrder : Order 
     {
         public BuyOrder() { }
-        public BuyOrder(Summary s) : base(s)
-        { }
     }
 
     public class SellOrder : Order 
     {
         public SellOrder() { }
-        public SellOrder(Summary s) : base(s)
-        { }
     }
 
 
@@ -23,12 +18,6 @@ namespace dev
     public class Order
     {
         public Order() {}
-        public Order(Summary s)
-        {
-            this.Amount = (int)s.Amount;
-            this.Orders = (short)s.Orders;
-            this.PricePerUnit = s.PricePerUnit;
-        }
 
         [IgnoreMember]
         public int Id {get;set;}

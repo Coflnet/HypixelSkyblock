@@ -1,6 +1,7 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using MySql.Data.EntityFrameworkCore.Metadata;
+
 
 namespace hypixel.Migrations
 {
@@ -13,7 +14,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Timestamp = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
@@ -26,7 +27,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     data = table.Column<byte[]>(maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
@@ -41,7 +42,7 @@ namespace hypixel.Migrations
                     UuId = table.Column<string>(type: "char(32)", nullable: false),
                     Name = table.Column<string>(maxLength: 16, nullable: true),
                     UpdatedAt = table.Column<DateTime>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.ComputedColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.ComputedColumn),
                     ChangedFlag = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
@@ -54,12 +55,12 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     ItemTag = table.Column<string>(maxLength: 45, nullable: true),
                     PlayerUuid = table.Column<string>(type: "char(32)", nullable: true),
                     Price = table.Column<long>(nullable: false),
                     GeneratedAt = table.Column<DateTime>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.ComputedColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.ComputedColumn),
                     Type = table.Column<int>(nullable: false),
                     Token = table.Column<string>(nullable: true),
                     Initiator = table.Column<string>(maxLength: 32, nullable: true)
@@ -74,7 +75,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     PullInstanceId = table.Column<int>(nullable: true),
                     ProductId = table.Column<string>(maxLength: 40, nullable: true)
                 },
@@ -94,7 +95,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Uuid = table.Column<string>(type: "char(32)", nullable: true),
                     Claimed = table.Column<bool>(nullable: false),
                     Count = table.Column<int>(nullable: false),
@@ -135,7 +136,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Amount = table.Column<int>(nullable: false),
                     PricePerUnit = table.Column<double>(nullable: false),
                     Orders = table.Column<short>(nullable: false),
@@ -157,7 +158,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     ID = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     QuickStatusID = table.Column<int>(nullable: true),
                     BuyPrice = table.Column<double>(nullable: false),
                     BuyVolume = table.Column<long>(nullable: false),
@@ -184,7 +185,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Amount = table.Column<int>(nullable: false),
                     PricePerUnit = table.Column<double>(nullable: false),
                     Orders = table.Column<short>(nullable: false),
@@ -206,7 +207,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Uuid = table.Column<int>(nullable: true),
                     Bidder = table.Column<string>(type: "char(32)", nullable: true),
                     ProfileId = table.Column<string>(type: "char(32)", nullable: true),
@@ -235,7 +236,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Type = table.Column<byte>(type: "TINYINT(2)", nullable: false),
                     Level = table.Column<short>(nullable: false),
                     SaveAuctionId = table.Column<int>(nullable: true)
@@ -256,7 +257,7 @@ namespace hypixel.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     value = table.Column<string>(type: "char(32)", nullable: true),
                     SaveAuctionId = table.Column<int>(nullable: true),
                     SaveAuctionId1 = table.Column<int>(nullable: true)

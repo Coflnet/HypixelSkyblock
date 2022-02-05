@@ -33,6 +33,8 @@ namespace hypixel
 
         public long GetId(string uuid)
         {
+            if(uuid == null)
+                return -1;
             if (uuid.Length > 17)
                 uuid = uuid.Substring(0, 17);
             var builder = new System.Text.StringBuilder(uuid);
@@ -45,11 +47,22 @@ namespace hypixel
         }
 
         /// <summary>
+        /// Reverse of <see cref="GetId(string)"/>
+        /// </summary>
+        /// <param name="internId"></param>
+        /// <returns></returns>
+        public string GetUuid(long internId)
+        {
+            var builder = new System.Text.StringBuilder(internId.ToString("x"));
+            return builder.Insert(12,4).ToString();
+        }
+
+        /// <summary>
         /// This will modify the passed auction and fill in any guessable things such as item name (from tag)
         /// </summary>
         /// <param name="auction"></param>
         /// <returns>The modified original auction</returns>
-        public PlayerAuctionsCommand.AuctionResult GuessMissingProperties(PlayerAuctionsCommand.AuctionResult auction)
+        public AuctionResult GuessMissingProperties(AuctionResult auction)
         {
             if (String.IsNullOrEmpty(auction.ItemName))
                 auction.ItemName = ItemDetails.TagToName(auction.Tag);
@@ -59,7 +72,7 @@ namespace hypixel
             return auction;
         }
 
-        internal T GetAuctionWithSelect<T>(string uuid, Func<IQueryable<SaveAuction>, T> selectFunc)
+        public T GetAuctionWithSelect<T>(string uuid, Func<IQueryable<SaveAuction>, T> selectFunc)
         {
             var uId = GetId(uuid);
             using (var context = new HypixelContext())

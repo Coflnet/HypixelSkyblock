@@ -19,7 +19,7 @@ namespace hypixel
             Instance = new UserService();
         }
 
-        internal GoogleUser GetOrCreateUser(string googleId, string email = null)
+        public GoogleUser GetOrCreateUser(string googleId, string email = null)
         {
             using (var context = new HypixelContext())
             {
@@ -46,11 +46,19 @@ namespace hypixel
             }
         }
 
-        internal GoogleUser GetUserById(int userId)
+        public GoogleUser GetUserById(int userId)
         {
             if(!TryGetUserById(userId,out GoogleUser user))
                 throw new UserNotFoundException(userId.ToString());
             return user;
+        }
+
+        public async Task<int> GetUserIdByEmail(string email)
+        {
+            using (var context = new HypixelContext())
+            {
+                return await context.Users.Where(u => u.Email == email).Select(u=>u.Id).FirstOrDefaultAsync();
+            }
         }
 
         public bool TryGetUserById(int userId, out GoogleUser user)
@@ -85,7 +93,7 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                Server.AddPremiumTime(days, user);
+                CoreServer.AddPremiumTime(days, user);
                 context.SaveChanges();
                 context.Add(new Bonus()
                 {
@@ -106,28 +114,6 @@ namespace hypixel
                 context.SaveChanges();
                 purchases.Inc();
             }
-        }
-    }
-
-    public class Bonus
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public BonusType Type { get; set; }
-        public TimeSpan BonusTime { get; set; }
-        public DateTime TimeStamp { get; set; } = DateTime.Now;
-        public string ReferenceData { get; set; }
-
-        public enum BonusType
-        {
-            REFERAL,
-            BEING_REFERED,
-            FEEDBACK,
-            /// <summary>
-            /// A refered user upgraded to a premium plan
-            /// </summary>
-            REFERED_UPGRADE,
-            PURCHASE
         }
     }
 }

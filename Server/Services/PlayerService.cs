@@ -12,11 +12,22 @@ namespace hypixel
             Instance = new PlayerService();
         }
 
-        public Task<Player> GetPlayer(string uuid)
+        public async Task<Player> GetPlayer(string uuidOrName)
         {
             using (var context = new HypixelContext())
             {
-                return context.Players.Where(p => p.UuId == uuid).FirstOrDefaultAsync();
+                return await context.Players.Where(p => p.UuId == uuidOrName || p.Name == uuidOrName).FirstOrDefaultAsync();
+            }
+        }
+        public async Task<Player> UpdatePlayerName(string uuid)
+        {
+            using (var context = new HypixelContext())
+            {
+                dev.Logger.Instance.Info($"Name update request for {uuid}");
+                var player = await context.Players.Where(p => p.UuId == uuid).FirstOrDefaultAsync();
+                player.ChangedFlag = true;
+                await context.SaveChangesAsync();
+                return player;
             }
         }
     }

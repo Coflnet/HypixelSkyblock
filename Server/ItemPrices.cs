@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using Coflnet;
-using ConcurrentCollections;
 using dev;
-using MessagePack;
 using Microsoft.EntityFrameworkCore;
 
 namespace hypixel
@@ -15,7 +12,10 @@ namespace hypixel
     {
         public static ItemPrices Instance;
 
-        public Filter.FilterEngine FilterEngine = new Filter.FilterEngine();
+        /// <summary>
+        /// Filterhook for the commands module
+        /// </summary>
+        public static Func<IQueryable<SaveAuction>, Dictionary<string, string>, IQueryable<SaveAuction>> AddFilters;
 
         private const string INTRA_HOUR_PREFIX = "IPH";
         private const string INTRA_DAY_PREFIX = "IPD";
@@ -33,7 +33,7 @@ namespace hypixel
             return BazzarItem.ContainsKey(itemId);
         }
 
-        internal async Task<Resonse> GetPriceFor(ItemSearchQuery details)
+        public async Task<Resonse> GetPriceFor(ItemSearchQuery details)
         {
             var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
             var itemTag = details.name;
@@ -85,14 +85,16 @@ namespace hypixel
 
         protected virtual async Task<Resonse> RespondHourly(int itemId, string tag)
         {
+            /* cache usage disabled
             ItemLookup res = await GetLookupForToday(itemId);
             if (res != null)
                 return FromItemLookup(res, tag, (await GetHourlyLookup(itemId))?.CombineIntoOne(default(DateTime), DateTime.Now));
+                */
 
             return await QueryDB(new ItemSearchQuery()
             {
                 End = DateTime.Now,
-                Start = DateTime.Now - TimeSpan.FromDays(1),
+                Start = DateTime.Now - TimeSpan.FromDays(1.09),
                 name = tag
             });
         }
@@ -122,22 +124,10 @@ namespace hypixel
                 Filterable = true,
                 Bazaar = isBazaar,
                 // exclude high moving 
-                Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList(),
-                Filters = GetFiltersForItem(itemTag)
+                Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList()
             };
         }
 
-        private Dictionary<string, IEnumerable<string>> FilterCache = new Dictionary<string, IEnumerable<string>>();
-
-        public IEnumerable<string> GetFiltersForItem(string itemTag)
-        {
-            if (FilterCache.TryGetValue(itemTag, out IEnumerable<string> filters))
-                return filters;
-            var details = ItemDetails.Instance.GetDetailsWithCache(itemTag).Result;
-            filters = FilterEngine.FiltersFor(details).Select(f => f.Name);
-            FilterCache[itemTag] = filters;
-            return filters;
-        }
 
         static ItemPrices()
         {
@@ -228,7 +218,7 @@ namespace hypixel
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
                 IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
-                IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now - TimeSpan.FromDays(1.1));
+                IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now.Subtract(TimeSpan.FromDays(1.1)));
 
                 return FromList(response.ToList(), details.name);
             }
@@ -245,7 +235,7 @@ namespace hypixel
             if (details.Filter != null && details.Filter.Count > 0)
             {
                 details.Filter["ItemId"] = itemId.ToString();
-                return FilterEngine.AddFilters(select, details.Filter);
+                return AddFilters(select, details.Filter);//FilterEngine.AddFilters(select, details.Filter);
             }
 
             if (details.Enchantments != null && details.Enchantments.Any())
@@ -489,10 +479,10 @@ namespace hypixel
                         var idOfLava = ItemDetails.Instance.GetItemIdForName("ENCHANTED_LAVA_BUCKET");
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
                         {
-                            var interval = (end-start)/4;
-                            for (DateTime bstart = start; bstart < end; bstart+= interval)
+                            var interval = (end - start) / 4;
+                            for (DateTime bstart = start; bstart < end; bstart += interval)
                             {
-                                await context.Prices.AddRangeAsync(await AvgBazzarHistory(bstart, bstart+interval));
+                                await context.Prices.AddRangeAsync(await AvgBazzarHistory(bstart, bstart + interval));
                                 await Task.Delay(5000);
                                 await context.SaveChangesAsync();
                             }
@@ -576,7 +566,7 @@ namespace hypixel
                     Avg = i.Avg,
                     Max = i.Max,
                     Min = i.Min,
-                    Date = i.End.Date + TimeSpan.FromHours(i.End.Hour),
+                    Date = i.End.Date.Add(TimeSpan.FromHours(i.End.Hour)),
                     ItemId = itemId
                 });
         }
@@ -657,18 +647,18 @@ namespace hypixel
                     Seller = a.AuctioneerId,
                     Uuid = a.Uuid,
                     PlayerName = await PlayerSearch.Instance.GetNameWithCacheAsync(a.AuctioneerId)
-                }).Select(a=> a.Result).ToList();
+                }).Select(a => a.Result).ToList();
             }
         }
 
 
-        internal async Task<List<AuctionPreview>> GetActiveAuctions(GetActiveAuctionsCommand.ActiveItemSearchQuery query, int amount = 24)
+        public async Task<List<AuctionPreview>> GetActiveAuctions(ActiveItemSearchQuery query, int amount = 24)
         {
             query.Start = DateTime.Now.Subtract(TimeSpan.FromDays(14)).RoundDown(TimeSpan.FromDays(1));
             using (var context = new HypixelContext())
             {
                 var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
-                var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now);
+                var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now && (!a.Bin || a.Bids.Count == 0));
 
                 var select = CreateSelect(query, context, itemId, amount, dbselect)
                             .Select(a => new
@@ -680,10 +670,10 @@ namespace hypixel
                             });
                 switch (query.Order)
                 {
-                    case GetActiveAuctionsCommand.SortOrder.ENDING_SOON:
+                    case ActiveItemSearchQuery.SortOrder.ENDING_SOON:
                         select = select.OrderBy(a => a.End);
                         break;
-                    case GetActiveAuctionsCommand.SortOrder.LOWEST_PRICE:
+                    case ActiveItemSearchQuery.SortOrder.LOWEST_PRICE:
                         select = select.OrderBy(a => a.Price);
                         break;
                     default:
@@ -697,38 +687,59 @@ namespace hypixel
                     Seller = a.AuctioneerId,
                     Uuid = a.Uuid,
                     PlayerName = await PlayerSearch.Instance.GetNameWithCacheAsync(a.AuctioneerId)
-                }).Select(a=>a.Result).ToList();
+                }).Select(a => a.Result).ToList();
             }
         }
 
+        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Dictionary<string, string> filter, int limit = 2)
+        {
+            filter["Bin"] = "true";
+            var query = new ActiveItemSearchQuery()
+            {
+                Order = ActiveItemSearchQuery.SortOrder.LOWEST_PRICE,
+                Limit = limit,
+                Filter = filter,
+                name = itemTag
+            };
+            var lowestBin = CoreServer.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
+            return lowestBin;
+        }
+
+        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
+        {
+            var filter = new Dictionary<string, string>();
+            if (tier != Tier.UNCOMMON)
+                filter["Rarity"] = tier.ToString();
+
+            return GetLowestBin(itemTag, filter);
+        }
 
 
-
-        [MessagePackObject]
+        [DataContract]
         public class Resonse
         {
-            [Key("filterable")]
+            [DataMember(Name = "filterable")]
             public bool Filterable;
-            [Key("bazaar")]
+            [DataMember(Name = "bazaar")]
             public bool Bazaar;
-            [Key("filters")]
+            [DataMember(Name = "filters")]
             public IEnumerable<string> Filters;
-            [Key("prices")]
+            [DataMember(Name = "prices")]
             public List<AveragePrice> Prices = new List<AveragePrice>();
         }
 
-        [MessagePackObject]
+        [DataContract]
         public class AuctionPreview
         {
-            [Key("seller")]
+            [DataMember(Name = "seller")]
             public string Seller;
-            [Key("price")]
+            [DataMember(Name = "price")]
             public long Price;
-            [Key("end")]
+            [DataMember(Name = "end")]
             public DateTime End;
-            [Key("uuid")]
+            [DataMember(Name = "uuid")]
             public string Uuid;
-            [Key("playerName")]
+            [DataMember(Name = "playerName")]
             public string PlayerName;
         }
     }

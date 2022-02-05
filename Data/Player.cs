@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Confluent.Kafka;
 using MessagePack;
 
 namespace hypixel

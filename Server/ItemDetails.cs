@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Coflnet;
-using fNbt;
-using Hypixel.NET.SkyblockApi;
 using Newtonsoft.Json;
 using dev;
 using System.Threading.Tasks;
@@ -18,66 +16,47 @@ namespace hypixel
     {
         public static ItemDetails Instance;
 
-        public Dictionary<string, Item> Items = new Dictionary<string, Item>();
+        public ConcurrentDictionary<string, Item> Items = new ConcurrentDictionary<string, Item>();
         /// <summary>
         /// Contains the Tags indexed by name [Name]=Tag
         /// </summary>
         /// <typeparam name="string"></typeparam>
         /// <typeparam name="string"></typeparam>
         /// <returns></returns>
-        public Dictionary<string, string> ReverseNames = new Dictionary<string, string>();
+        public ConcurrentDictionary<string, string> ReverseNames = new ConcurrentDictionary<string, string>();
         /// <summary>
         /// Contains a cache for <see cref="DBItem.Tag"/> to <see cref="DBItem.Id"/>
         /// </summary>
         /// <typeparam name="string"></typeparam>
         /// <typeparam name="int"></typeparam>
         /// <returns></returns>
-        public Dictionary<string, int> TagLookup = new Dictionary<string, int>();
+        public ConcurrentDictionary<string, int> TagLookup = new ConcurrentDictionary<string, int>();
 
         static ItemDetails()
         {
             Instance = new ItemDetails();
-            Instance.Load();
+
         }
 
-        public void LoadFromDB()
+        public Task LoadFromDB()
+        {
+            return LoadLookup();
+        }
+
+        public async Task LoadLookup()
         {
             using (var context = new HypixelContext())
             {
-                var items = context.Items.Where(item => item.Description == null);
-                foreach (var item in items)
-                {
-                    ToFillDetails.TryAdd(item.Tag, item);
-                }
-
-            }
-            LoadLookup();
-        }
-
-        public void LoadLookup()
-        {
-            using (var context = new HypixelContext())
-            {
-                TagLookup = context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
-                                    .ToDictionary(item => item.Tag, item => item.Id);
+                TagLookup = new (await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
+                                    .ToDictionaryAsync(item => item.Tag, item => item.Id));
             }
         }
 
         public void Load()
         {
-            try
-            {
-                if (FileController.Exists("itemDetails"))
-                    Items = FileController.LoadAs<Dictionary<string, Item>>("itemDetails");
-            }
-            catch (Exception)
-            {
-                FileController.Move("itemDetails", "corruptedItemDetails" + DateTime.Now.Ticks);
-            }
-
             if (Items == null)
             {
-                Items = new Dictionary<string, Item>();
+                Items = new ();
             }
             // correct keys
             foreach (var item in Items.Keys.ToList())
@@ -85,7 +64,7 @@ namespace hypixel
                 if (Items[item].Id != item)
                 {
                     Items.TryAdd(Items[item].Id, Items[item]);
-                    Items.Remove(item);
+                    Items.Remove(item, out _);
                 }
             }
 
@@ -120,26 +99,23 @@ namespace hypixel
         /// Fast access to an item id for index lookup
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="forceGet">throw an exception if the lookup wasn't found</param>
         /// <returns></returns>
         public int GetItemIdForName(string name, bool forceGet = true)
         {
-            if (TagLookup.Count == 0)
-            {
-                using (var context = new HypixelContext())
-                {
-                    var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
-                    if (id != 0)
-                        return id;
-                }
-            }
-            // this should be a tag by now
             if (TagLookup.TryGetValue(name, out int value))
                 return value;
-            // may be a name
-            var tag = GetIdForName(name);
-            if (!TagLookup.TryGetValue(tag, out value) && forceGet)
-                throw new CoflnetException("item_not_found", $"could not find the item with the tag `{name}`");
-            return value;
+
+            // fall back to the db
+            using (var context = new HypixelContext())
+            {
+                var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
+                if (id == 0 && forceGet)
+                    throw new CoflnetException("item_not_found", $"could not find the item with the tag `{name}`");
+                if (id != 0)
+                    TagLookup[name] = id;
+                return id;
+            }
         }
 
         public IEnumerable<string> AllItemNames()
@@ -147,122 +123,7 @@ namespace hypixel
             return ReverseNames.Keys;
         }
 
-        public void AddOrIgnoreDetails(Auction a)
-        {
-            var id = NBT.ItemID(a.ItemBytes);
-            if (id == null)
-            {
-                if (a.ItemName == "Revive Stone")
-                {
-                    // known item, has no tag, nothing to do
-                    return;
-                }
-                Logger.Instance.Error($"item has no tag {JsonConvert.SerializeObject(a)}");
-                return;
-            }
-
-            var name = ItemReferences.RemoveReforgesAndLevel(a.ItemName);
-
-            if (ToFillDetails.TryRemove(id, out DBItem i))
-            {
-                Console.WriteLine("Filling details for " + i.Tag + i.Id);
-                AddNewItem(a, name, id, i);
-                return;
-            }
-            if (Items.ContainsKey(id))
-            {
-                var tragetItem = Items[id];
-                if (tragetItem.AltNames == null)
-                    tragetItem.AltNames = new HashSet<string>();
-
-                // try to get shorter lore
-                if (Items[id]?.Description?.Length > a?.ItemLore?.Length && a.ItemLore.Length > 10)
-                {
-                    Items[id].Description = a.ItemLore;
-                }
-                tragetItem.AltNames.Add(name);
-                return;
-            }
-            // legacy item names
-            if (Items.ContainsKey(name))
-            {
-                var item = Items[name];
-                item.Id = id;
-                if (item.AltNames == null)
-                {
-                    item.AltNames = new HashSet<string>();
-                }
-                item.AltNames.Add(name);
-                Items[id] = item;
-                Items.Remove(name);
-
-                return;
-            }
-
-            // new item, add it
-            AddNewItem(a, name, id, i);
-        }
-
-        private void AddNewItem(Auction a, string name, string tag, DBItem existingItem = null)
-        {
-            var i = new Item();
-            i.Id = tag;
-            i.AltNames = new HashSet<string>() { name };
-            i.Tier = a.Tier;
-            i.Category = a.Category;
-            i.Description = a.ItemLore;
-            i.Extra = a.Extra;
-            i.MinecraftType = MinecraftTypeParser.Instance.Parse(a);
-
-            //Console.WriteLine($"New: {name} ({i.MinecraftType})" );
-            SetIconUrl(a, i);
-
-            Items[name] = i;
-            var newItem = new DBItem(i);
-
-            System.Threading.Tasks.Task.Run(async () =>
-            {
-                if (existingItem == null)
-                    AddItemToDB(newItem);
-                else
-                    await UpdateItem(existingItem, newItem);
-            }).ConfigureAwait(false);;
-        }
-
-        private async Task UpdateItem(DBItem existingItem, DBItem newItem)
-        {
-            await Task.Delay(5000);
-            Console.WriteLine("updating item");
-            using (var context = new HypixelContext())
-            {
-                newItem.Id = existingItem.Id;
-                context.Items.Update(newItem);
-                await context.SaveChangesAsync();
-            }
-        }
-
-        private static void SetIconUrl(Auction a, IItem i)
-        {
-            if (i.MinecraftType == "skull")
-            {
-                try
-                {
-                    i.IconUrl = $"https://mc-heads.net/head/{Path.GetFileName(NBT.SkullUrl(a.ItemBytes))}/50";
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Error :O \n {e.Message} \n {e.StackTrace}");
-                }
-                // Console.WriteLine(i.IconUrl);
-            }
-            else
-            {
-                var t = MinecraftTypeParser.Instance.GetDetails(i.MinecraftType);
-                i.IconUrl = $"https://sky.coflnet.com/static/{t?.type}-{t?.meta}.png";
-            }
-        }
-
-        private int AddItemToDB(DBItem item)
+        public int AddItemToDB(DBItem item)
         {
             using (var context = new HypixelContext())
             {
@@ -347,10 +208,7 @@ namespace hypixel
 
         public async Task<DBItem> GetDetailsWithCache(string itemTag)
         {
-            var details = await Server.ExecuteCommandWithCache<string, DBItem>("itemDetails", itemTag);
-            if (details.Tag == null)
-                Console.WriteLine("got default");
-            return details;
+            return await CoreServer.ExecuteCommandWithCache<string, DBItem>("itemDetails", itemTag);
         }
 
         public DBItem GetDetailsWithCache(int id)
@@ -375,7 +233,7 @@ namespace hypixel
 
         public void Save()
         {
-            FileController.SaveAs("itemDetails", Items);
+            //FileController.SaveAs("itemDetails", Items);
         }
     }
 }

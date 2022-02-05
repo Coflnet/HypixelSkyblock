@@ -1,5 +1,6 @@
 using System;
 using MessagePack;
+using Newtonsoft.Json;
 
 namespace hypixel
 {
@@ -10,6 +11,7 @@ namespace hypixel
         public string Name;
 
         [Key(1)]
+        [JsonProperty("uuid")]
         public string UUid;
 
         [Key(2)]

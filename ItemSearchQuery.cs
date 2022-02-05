@@ -1,38 +1,39 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using MessagePack;
 
 namespace hypixel
 {
-    [MessagePackObject]
+    [DataContract]
     public class ItemSearchQuery
     {
-        [Key("name")]
+        [DataMember(Name = "name")]
         public string name;
 
-        [Key("count")]
+        [DataMember(Name = "count")]
         public int Count;
 
-        [Key("price")]
+        [DataMember(Name = "price")]
         public int Price;
 
-        [Key("reforge")]
+        [DataMember(Name = "reforge")]
         public ItemReferences.Reforge Reforge = ItemReferences.Reforge.Any;
 
-        [Key("enchantments")]
+        [DataMember(Name = "enchantments")]
         public List<Enchantment> Enchantments;
 
-        [Key("normalized")]
+        [DataMember(Name = "normalized")]
         public bool Normalized;
 
-        [Key("rarity")]
+        [DataMember(Name = "rarity")]
         public Tier Tier;
 
-        [Key("filter")]
-        public Dictionary<string,string> Filter;
+        [DataMember(Name = "filter")]
+        public Dictionary<string, string> Filter;
 
 
-        [Key("start")]
+        [DataMember(Name = "start")]
         public long StartTimeStamp
         {
             set
@@ -48,7 +49,7 @@ namespace hypixel
         [IgnoreMember]
         public DateTime Start;
 
-        [Key("end")]
+        [DataMember(Name = "end")]
         public long EndTimeStamp
         {
             set
@@ -103,6 +104,26 @@ namespace hypixel
             ASYNC,
             CREATED = 2,
             ENDED = 4
+        }
+    }
+
+
+
+    [DataContract]
+    public class ActiveItemSearchQuery : ItemSearchQuery
+    {
+        [DataMember(Name = "order")]
+        public SortOrder Order;
+        [DataMember(Name = "limit")]
+        public int Limit;
+
+
+        public enum SortOrder
+        {
+            RELEVANT = 0,
+            HIGHEST_PRICE = 1,
+            LOWEST_PRICE = 2,
+            ENDING_SOON = 4
         }
     }
 }

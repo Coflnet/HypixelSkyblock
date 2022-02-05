@@ -16,18 +16,20 @@ namespace dev
 
         public void Log(string message)
         {
-            FileController.AppendLineAs("log", message);
+            System.Console.WriteLine("Info: " + message);
+            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log(message);
         }
 
         public void Error(string message)
         {
-            System.Console.WriteLine(message);
-            try
-            {
-                FileController.AppendLineAs("errors", message);
-            }
-            catch (System.Exception)
-            { }
+            System.Console.WriteLine("Error: " + message);
+            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log(message);
+            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("error",true);
+        }
+
+        public void Info(string message)
+        {
+            Log(message);
         }
 
 

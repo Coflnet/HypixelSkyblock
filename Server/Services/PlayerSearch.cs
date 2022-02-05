@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Coflnet;
-using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
-using WebSocketSharp;
 
 namespace hypixel
 {
@@ -20,27 +18,32 @@ namespace hypixel
         static PlayerSearch()
         {
             Instance = new PlayerSearch();
-            FileController.CreatePath("players/");
         }
 
-        internal string GetName(string uuid)
+        public async Task<string> GetName(string uuid)
         {
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
-                return context.Players
+                return await context.Players
                     .Where(player => player.UuId == uuid)
                     .Select(player => player.Name)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
             }
         }
-        internal string GetIdForName(string name)
+
+        public string GetIdForName(string name)
         {
-            using(var context = new HypixelContext())
+            return GetIdForNameAsync(name).Result;
+        }
+
+        public async Task<string> GetIdForNameAsync(string name)
+        {
+            using (var context = new HypixelContext())
             {
-                return context.Players
+                return await context.Players
                     .Where(player => player.Name == name)
                     .Select(player => player.UuId)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
             }
         }
 
@@ -58,7 +61,7 @@ namespace hypixel
 
         public Task<string> GetNameWithCacheAsync(string uuid)
         {
-            return Server.ExecuteCommandWithCache<string,string>("playerName",uuid);
+            return CoreServer.ExecuteCommandWithCache<string, string>("playerName", uuid);
         }
 
 
@@ -78,7 +81,7 @@ namespace hypixel
             foreach (var hit in hits)
             {
                 var player = context.Players.Where(player => player.UuId == hit.Key).FirstOrDefault();
-                if(player == null)
+                if (player == null)
                     continue;
                 player.HitCount += hit.Value;
                 context.Update(player);
@@ -90,7 +93,7 @@ namespace hypixel
             //Console.WriteLine($"Saving {name} ({uuid})");
             var index = name.Substring(0, 3).ToLower();
             string path = "players/" + index;
-            lock(path)
+            lock (path)
             {
                 HashSet<PlayerResult> list = null;
                 if (FileController.Exists(path))
@@ -120,11 +123,11 @@ namespace hypixel
             List<PlayerResult> result;
             search = search.Replace("_", "\\_");
 
-            using(var context = new HypixelContext())
+            using (var context = new HypixelContext())
             {
                 result = await context.Players
-                    .Where(e => EF.Functions.Like(e.Name, $"{search}%"))
-                    .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search ? 10000000 : 0))
+                    .Where(e => EF.Functions.Like(e.Name, $"{search}%") || e.UuId == search)
+                    .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search || p.UuId == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)
                     .ToListAsync();
@@ -138,23 +141,32 @@ namespace hypixel
             return result;
         }
 
-        private static async Task LoadPlayerName(string search, bool forceResolution, List<PlayerResult> result)
+        private async Task LoadPlayerName(string search, bool forceResolution, List<PlayerResult> result)
+        {
+            var profile = await GetMcProfile(search);
+            if (profile == null && forceResolution)
+                throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
+
+            result.Add(new PlayerResult(profile.Name, profile.Id));
+        }
+
+        public async Task<MinecraftProfile> GetMcProfile(string name)
         {
             var client = new RestClient("https://mc-heads.net/");
-            var request = new RestRequest($"/minecraft/profile/{search}", Method.GET);
+            var request = new RestRequest($"/minecraft/profile/{name}", Method.GET);
             var response = await client.ExecuteAsync(request);
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                if (forceResolution)
-                    throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
-                else
-                { // nothing to do 
-                }
-            else
-            {
-                var value = JsonConvert.DeserializeObject<SearchCommand.MinecraftProfile>(response.Content);
-                NameUpdater.UpdateUUid(value.Id, value.Name);
-                result.Add(new PlayerResult(value.Name, value.Id));
-            }
+                return null;
+            return JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
+        }
+
+        public class MinecraftProfile
+        {
+            [JsonProperty("id")]
+            public string Id { get; private set; }
+
+            [JsonProperty("name")]
+            public string Name { get; private set; }
         }
     }
 }

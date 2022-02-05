@@ -54,25 +54,29 @@ namespace hypixel
             [Key(2)]
             public string IconUrl;
 
-            [Key(2)]
+            [Key(3)]
             public int HitCount;
+            [Key(4)]
+            public Tier Tier;
         }
 
-        internal async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
+        public async Task<IEnumerable<ItemSearchResult>> Search(string search, int count = 5)
         {
             var clearedSearch = ItemReferences.RemoveReforgesAndLevel(search).TrimStart().TrimEnd();
             var tagified = search.ToUpper().Replace(' ', '_');
+            if (tagified.EndsWith("_pet"))
+                tagified = "PET_" + tagified.Replace("_pet", "");
             using (var context = new HypixelContext())
             {
                 var items = await context.Items
                     .Include(item => item.Names)
                     .Where(item =>
                         item.Names
-                        .Where(name => EF.Functions.Like(name.Name, clearedSearch + '%') 
+                        .Where(name => EF.Functions.Like(name.Name, clearedSearch + '%')
                         || EF.Functions.Like(name.Name, "Enchanted " + clearedSearch + '%')
                         || EF.Functions.Like(name.Name, search + '%')).Any()
-                        || EF.Functions.Like(item.Tag,tagified + '%')
-                    ).OrderBy(item => item.Name.Length/2 - item.HitCount - (item.Name == clearedSearch ? 10000000 : 0))
+                        || EF.Functions.Like(item.Tag, tagified + '%')
+                    ).OrderBy(item => item.Name.Length / 2 - item.HitCount - (item.Name == clearedSearch ? 10000000 : 0))
                     .Take(count)
                     .ToListAsync();
 
@@ -85,7 +89,7 @@ namespace hypixel
             using (var context = new HypixelContext())
             {
                 return await context.Items
-                    .Where(i=>i.IsBazaar)
+                    .Where(i => i.IsBazaar)
                     .ToListAsync();
 
             }
@@ -99,15 +103,24 @@ namespace hypixel
                 .Select(item => new ItemSearchResult()
                 {
                     Name = (item.Names
-                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower()))
-                            .FirstOrDefault()?.Name) ??( item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
+                            .Where(n => n?.Name != null && n.Name.ToLower().StartsWith(clearedSearch.ToLower())
+                                && n.Name != "Beastmaster Crest" && n.Name != "Griffin Upgrade Stone")
+                            .FirstOrDefault()?.Name) ?? (item.Name == item.Tag ? TagToName(item.Tag) : item.Name),
                     Tag = item.Tag,
                     IconUrl = item.IconUrl,
-                    HitCount = item.HitCount
+                    HitCount = item.HitCount,
+                    Tier = item.Tier
                 });
         }
 
-        internal async Task<IEnumerable<ItemSearchResult>> FindClosest(string search, int count = 5)
+        /// <summary>
+        /// Finds the item(s) with the closest name.
+        /// Switched, adds and removes characters to do so
+        /// </summary>
+        /// <param name="search"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<ItemSearchResult>> FindClosest(string search, int count = 5)
         {
             if (search.Length <= 3 || search.Length > 16)
                 return new ItemSearchResult[0];
@@ -193,22 +206,21 @@ namespace hypixel
 
         public static string TagToName(string tag)
         {
-            if(tag == null || tag.Length <= 2)
+            if (tag == null || tag.Length <= 2)
                 return tag;
             var split = tag.ToLower().Split('_');
             var result = "";
             foreach (var item in split)
             {
-                if(item == "of" || item == "the")
+                if (item == "of" || item == "the")
                     result += " " + item;
-                else 
+                else
                     result += " " + Char.ToUpper(item[0]) + item.Substring(1);
             }
             return result.Trim();
         }
 
         private const int MAX_MEDIUM_INT = 8388607;
-        private static ConcurrentDictionary<string, DBItem> ToFillDetails = new ConcurrentDictionary<string, DBItem>();
 
         public int GetOrCreateItemIdForAuction(SaveAuction auction, HypixelContext context)
         {
@@ -225,7 +237,7 @@ namespace hypixel
                 // new alternative name
                 if (clearedName != null)
                     this.ReverseNames[clearedName] = auction.Tag;
-                TagLookup.Add(auction.Tag,itemByTag.Id);
+                TagLookup.TryAdd(auction.Tag, itemByTag.Id);
                 var exists = context.AltItemNames
                     .Where(name => name.Name == clearedName && name.DBItemId == itemByTag.Id)
                     .Any();
@@ -234,9 +246,6 @@ namespace hypixel
                 return itemByTag.Id;
             }
             Console.WriteLine($"!! completely new !! {JsonConvert.SerializeObject(auction)}");
-            // new Item
-            //var tempAuction = new Hypixel.NET.SkyblockApi.Auction(){Category=auction.Category,};
-            //AddNewItem(tempAuction,auction.ItemName,auction.Tag,null);
             var item = new DBItem()
             {
                 Tag = auction.Tag,
@@ -248,7 +257,8 @@ namespace hypixel
                 // unindexable item
                 return MAX_MEDIUM_INT;
             }
-            ToFillDetails[item.Tag] = item;
+            // todo send this to an updater
+            //ToFillDetails[item.Tag] = item;
             return AddItemToDB(item);
             //throw new CoflnetException("can_add","can't add this item");
         }

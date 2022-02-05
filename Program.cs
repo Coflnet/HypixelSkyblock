@@ -8,7 +8,6 @@ using dev;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
-using Stripe;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,18 +15,15 @@ using Microsoft.Extensions.Configuration;
 namespace hypixel
 {
 
-    class Program
+    public class Program
     {
-        static string apiKey = SimplerConfig.Config.Instance["apiKey"];
-        public static string StripeKey;
-        public static string StripeSigningSecret;
-
         public static string InstanceId { get; }
 
         public static bool displayMode = false;
 
         public static bool FullServerMode { get; private set; }
         public static bool LightClient { get; private set; }
+        public static string KafkaHost = SimplerConfig.Config.Instance["KAFKA_HOST"];
 
         public static int usersLoaded = 0;
 
@@ -44,7 +40,7 @@ namespace hypixel
 
         public static event Action onStop;
 
-        public static Server server;
+        public static CoreServer server;
 
         static Program()
         {
@@ -54,10 +50,6 @@ namespace hypixel
 
         static void Main(string[] args)
         {
-            StripeKey = SimplerConfig.Config.Instance["stripeKey"];
-            StripeSigningSecret = SimplerConfig.Config.Instance["stripeSecret"];
-            StripeConfiguration.ApiKey = Program.StripeKey;
-
             Console.CancelKeyPress += delegate
             {
                 Console.WriteLine("\nAbording");
@@ -65,12 +57,7 @@ namespace hypixel
 
                 var cacheCount = StorageManager.CacheItems;
                 StorageManager.Stop();
-                Indexer.Stop();
 
-                var t = StorageManager.Save();
-                Console.WriteLine("Saving");
-                t.Wait();
-                Console.WriteLine($"Saved {cacheCount}");
             };
 
             if (args.Length > 0)
@@ -91,15 +78,6 @@ namespace hypixel
 
             while (true)
             {
-                //try {
-
-                Console.WriteLine("1) List Auctions");
-                Console.WriteLine("2) List Bids");
-                Console.WriteLine("3) Display");
-                Console.WriteLine("4) List Won Bids");
-                Console.WriteLine("5) Search For auction");
-                Console.WriteLine("6) Avherage selling price in the last 2 weeks");
-                Console.WriteLine("9) End");
 
                 var res = Console.ReadKey();
                 if (runSubProgram(res.KeyChar))
@@ -123,26 +101,8 @@ namespace hypixel
         {
             switch (mode)
             {
-                case 't':
-                    // test
-                    //NotificationService.Instance.NotifyAsync("dPRj0dnG2NcY_kMTdNbpjz:APA91bHJINgv1SjuUlv-sGM21wLlHX5ISC5nYgl8DKP2r0fm273Cs0ujcESW6NR1RyGvFDtTBdQLK0SSq5TY_guLgc57VylKk8AAnH_xKq3zDIrdA1F6UhJNTu-Q0wNDKKIIQkYoVcyj","test","click me","https://sky.coflnet.com").Wait();
-                    SetGoogleIdCommand.ValidateToken("eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1MmZjYjk3ZGY1YjZiNGY2ZDFhODg1ZjFlNjNkYzRhOWNkMjMwYzUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiNTcwMzAyODkwNzYwLW5sa2dkOTliNzFxNGQ2MWFtNGxwcWRoZW4xcGVuZGR0LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNTcwMzAyODkwNzYwLW5sa2dkOTliNzFxNGQ2MWFtNGxwcWRoZW4xcGVuZGR0LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTAxOTkzNTcwNzI0MDg4NDMyMjk4IiwiZW1haWwiOiJ0by5jb2ZsbmV0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYWdLN21RM2YySFZQclZNQ3l1UVVmdyIsIm5hbWUiOiJFa3dhdiBDb2ZsbmV0IiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9BT2gxNEdobEx6TjV5U1o3VDZWYnpYRnFhUlR4c3dNRXJLaW1VQk1uem41Nz1zOTYtYyIsImdpdmVuX25hbWUiOiJFa3dhdiIsImZhbWlseV9uYW1lIjoiQ29mbG5ldCIsImxvY2FsZSI6ImRlIiwiaWF0IjoxNjEwMjk4MTE5LCJleHAiOjE2MTAzMDE3MTksImp0aSI6ImIzMWYzODUwNDMwYjNhOWMxNTQ5YTRjMDFiNTFiNTBlZjBhZTkwYTAifQ.cvsqp0GaYca---qkBAm-nS3QI-x_ZTGkzZh7sk-SsYctubikHqJz9VpafY_ih88ouOFTg_CWHKPMvS9dTrR8T4W_iY65cYp2hxsc-iMignDBgxbP6KlUCm3MvpRTHTdLAtL3Eq4JeXAL6_BN21AetRMaOhsWMgvz6yprhTkirOgFSuDt386Q8NXr19csjDhAW6bb2bRwEYJp4ZlBXD77zfzP_kZaF2y671M_lZUXnrqKrDqF7sFL2Jx4r6htKV_e86IuKhx0N1ttNTuEOeqccIZHdRQasivVO9Nq0twjhFIWn-5-azkPyz0VstxzIuYc7mTi2LSVjF4QDl-aLiOlPQ");
-                    break;
-                case 'b':
-                    //var key = System.Text.Encoding.UTF8.GetString (FileController.ReadAllBytes ("apiKey")).Trim ();
-                    BazaarUpdater.NewUpdate(apiKey).Wait();
-                    break;
                 case 'f':
                     FullServer();
-                    break;
-
-                case 's':
-                    var server = new Server();
-                    server.Start().Wait();
-                    break;
-                case 'u':
-                    var updater = new Updater(apiKey);
-                    updater.Update().Wait();
                     break;
 
                 case '7':
@@ -152,20 +112,12 @@ namespace hypixel
                     Console.WriteLine(auction.ItemName);
                     //Console.WriteLine(ItemReferences.RemoveReforges("Itchy Bat man"));
                     break;
-                case 'i':
-                    Flipper.FlipperEngine.Instance.Test();
-                    break;
-                case 'p':
-                    Indexer.LastHourIndex().Wait();
-                    //StorageManager.Migrate();
-                    break;
                 case 'n':
-                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAHVUS28jRRAux8mu4ywbxIkLohdtRCKvkxnb49cByXGcxIJ1IvJYblbPTHmmyUyP6elxyJEbJ84cFgkJpEgcOSMh5afkhyCqZ5woHLjMo/qrr756dRVgHUqiCgClFVgRfqlegrVhkkldqkJZ82AdVlF64RJRjhYRlHMkVKAEGxfSVcivuBthqQzrx8LHw4gHKcH/qcJzX6TziN8QyVeJwgpZP4FP7247R8gVO/PI1md3t75j9+jV3bYbVmsnB5xphTLQoTn2araTH9eand2es0MsNkGOkUcFgNcalsOOT+kTt2stiz53CgfH7u62zdEOfE4uBzhDmWLh07UKfMNaghtWY5fCdwk4lhqjSASU+hJtN42G3vYEPZVo4bGa/ejYbNm7Tq6LgvQon7vb6J1I/SRml2+M1wHOdcgoJyqPYuPxGF6R9RC5Dun/kFMoGbBvcuyRSq4JfAnm55RioadFIpdMX+O32QIl10gIgK272/ZhFkXsDDXbT2SW9tloNhOeQKmZVlxIYobPKKXRAtUNUbgmj86Qa+4lsZuyCBcYpW9MuI4ORcq4ihPF5gI9ZAERpKxGBWhswQt6ESjVXKe7FNywHikuNfn4vjAqecRcowJT5vIU/RxD4m+STLEUI8oFfeZnMkCyehFP01fE9Jpk7aNKUV0R3hS8QzG9hnX/yw/sYRRgSCjTdFRPQNy2tswndV8h9QsVz8vFpf9A0yKa31kxLqZi7lse4BMK17Hu3//EnvYcqIsdOjnn8qki3iSqH9lyjMiWh1HoZx5l7POYiMExheRXKJlb1DvXN6OaIvfCZWGpICzkC2T4XSbmTMxgj0DGyhWyUGjjTNPBUh4jixOZapqUa0EdkmZsbQte0su0A71E+tSQLyjWQHnhf8rTc+5//o0NFREOQ06ZPdhtOvi1ODgodAN8fHdL4qPR6XjIDi4mR6OTCds/OTk/K8Oal0SJgr//+rMCqxPSZCrkPC7DwOdzLSid/SShcaCpvH//x/89oQqbo+9pOAeaNsLNNKZl+DBM9HSe0GwlU8/cP6SnWnmIu2H37L7d7fbtTrcClTjxxUyggopcKijDR8upmgqN8TSfaqJYq8B6okQg5DkP4PnF5MvJybtJJb/AXg4OBqfn48vRNE+yCi/MTUfzHNPykKQPfLO207RYWyIrl2Ezi7SIaf2m1/mCmxBknRWrPJ0Vq2y0l6GqHpe1gD0L8t0ufqrzx902BrpOV7OMVL3mLbvddjtOHTvYrrfsZrfOXR/rnPdmlt12vRl3yZ3LhYimZtXIfYPSJF1IuxnPYbO713D2GhZr922bDd4CrMCzxy7Dvy+PLTX1BQAA"));
+                    var af = new SaveAuction();
+                    NBT.FillDetails(af,"H4sIAAAAAAAAAE1Ry26bUBAdP9JiNl120yosKnXlCptglyWysY1jrmOCH7CJLnB5OBdswSUx/od+h7f9Bn9Y1ZuqqirNZuacmXNmRgToQCMVAaDRhGYaNn404GZ0qHLWEKHFcNyCziwNyYTiuOSsXyKIj88VpcvXnBQCNM0QvgTEx+pd1OtGfVXpKpoadbEiy11F9Yd337VADvwe73soDkdSsJSUHRAYObGqIOUfaQFuNphWBH6Sei57u0QOd3Ma1OaA586jTJfm/jg0803tj8yBmXF8pg8WtfYfV2V4q1JXmSdevqr8bCMvFJuSmd0LsvWL59iJu0XpcmqcUbaurX34vBy7J29ryGhs9VGGqNU3z8gxXr3tWnHPpmLt53s03STImaRW5taeE5/ReaW6mXuy9qs02vU07l6E92FaHimuO9BeHAoi8GIbbq+XIQ9dmhQ4zkjOpJDvfySh5NcSSwh85ig91JhKJSlecM5K6RBJeoGDJCff3gZfL9r1Qm3dNgRoI5wR+MRLfxlfS+meEH7QfwLcyQfjxAqsM1akfsVIKbz9FD7qtj6aIePp3jAeDPtpYutTy0AOQBPejXGGYwItgN8ILuLQDQIAAA\u003d\u003d",true);
+                    Console.WriteLine(af.Tier);
+                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAI1T227rRBTdac/hOEGi4gEh3owpT8Q9Thw7F4mHqk2pS+30kl4ShNDEs21PMrYje9wTF/EJPHP+oK98Qz+FD0HsFA7iEcuWZ61Ze60943ELoAkN0QKAxg7sCN74tQGvj/IqU40W7CoW70LzVHA8kSwuSfVnC1rXq0rKybsMCw12PA77LuOc9fjCdIbITZuHjsnCDjctm3XDnh31Obeo7qLI11gogWUTNIUbVRVYvkRr8PqWyQrhd6zPrPl9YvH7MxnWnkt4em3Jibdc973stl4cea6X0vzpoXteD/+jdRS7c+TMPkvm2WW1SG+tc/tK4ulVJ0xvHvxpsJwvk9VsGVuT40N79nhp+3eX9J45/tJ79I+9OlieJLPHExHcjTfBo0wn0/nKn44dejpBekv1gfTvvM38OFjOrs+G0b31LXXfgjdclGvJ6ia8Os8L1Ij8BPaenwYnecFikcX6BSoiiepfrxH5SH9+Yt+48DkRXqZQShFjFuLffMch7cfPT+60QFzkRQZfk47u7wqWqfIfzYFDA/eP9+/1DynwFREEVJUhqdv6u0SEiS6ysEBWYqnXeVXAFzQVJozSdKZ0nlcLibrM4/KAUvdfgvBKxIkyQynCla5ynT6vrhJR6mtUhOFTkmy9XnCKWfXldsXU1vOTvAmOJr4/CTR4FbAU4TNy/OH8Qep258dt536erbCmTdsbb1TBDpUqxKJSWGrwhuy8LMrht58NVa/RGBlk9P14ZrQNFirxQEzEZIltAzdrY9Qd9rruwaDTG1jba9BvG3S4Cir70AQVJnR4t6b/loYs4/VNidwYWW2jqgQNjKjroo2Ra3b7zDV7gwjNgR0uzNDqI+850YBH3PhFg2ZeCNrqKYtBuxhPf/LHwY22/W9glyCteesH+//HjsyUSLFULF3D3vBtd/C229GdkTXUL3yAHfjomKUsRtgF+AvZCYDnpwMAAA\u003d\u003d"));
                     //Console.WriteLine (JsonConvert.SerializeObject (.Instance.Items.Where (item => item.Value.AltNames != null && item.Value.AltNames.Count > 3 && !item.Key.Contains("DRAGON")).Select((item)=>new P(item.Value))));
-                    break;
-                case 'g':
-                    var ds = new DataSyncer();
-                    ds.Sync("e5bac11a8cc04ca4bae539aed6500823");
                     break;
                 case 'm':
                     Migrator.Migrate();
@@ -197,14 +149,12 @@ namespace hypixel
 
 
 
-        private static void FullServer()
+        public static void FullServer()
         {
             Console.WriteLine($"\n - Starting FullServer {version} - \n");
-            Console.Write("Key: " + apiKey);
             FullServerMode = true;
 
-            server = new Server();
-            Task.Run(() => server.Start()).ConfigureAwait(false);
+            server = new CoreServer();
             Task.Run(async () =>
             {
                 while (true)
@@ -219,59 +169,57 @@ namespace hypixel
             }).ConfigureAwait(false);
 
             var mode = SimplerConfig.Config.Instance["MODE"];
-            if (mode == null)
-                Indexer.MiniumOutput();
-            LightClient = mode == "light";
+            var modes = SimplerConfig.Config.Instance["MODES"]?.Split(",");
+            if (modes == null)
+                modes = new string[] { "indexer", "updater", "flipper" };
+
+            LightClient = modes.Contains("light");
             if (LightClient)
             {
-                ItemDetails.Instance.LoadLookup();
+
+
+                Console.WriteLine("running on " + System.Net.Dns.GetHostName());
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
+            
 
-            updater = new Updater(apiKey);
-            updater.UpdateForEver();
-            Flipper.FlipperEngine.diabled = FileController.Exists("blockFlipper");
 
+            Task redisInit = null;
             // bring the db up to date
-            GetDBToDesiredState();
-            ItemDetails.Instance.LoadFromDB();
-            SubscribeEngine.Instance.LoadFromDb();
-            var redisInit = MakeSureRedisIsInitialized();
-
-            Console.WriteLine("booting db dependend stuff");
-
-            var bazzar = new BazaarUpdater();
-            bazzar.UpdateForEver(apiKey);
-            RunIndexer();
-
-            if (!Flipper.FlipperEngine.diabled)
-                for (int i = 0; i < 2; i++)
-                    RunIsolatedForever(Flipper.FlipperEngine.Instance.ProcessPotentialFlipps, $"flipper worker {i} got error", 1);
-
-            NameUpdater.Run();
-            SearchService.Instance.RunForEver();
-            CacheService.Instance.RunForEver();
-            Task.Run(async () =>
+            if (modes.Contains("indexer"))
             {
-                await Task.Delay(TimeSpan.FromMinutes(3));
-                await ItemPrices.Instance.BackfillPrices();
-            }).ConfigureAwait(false); ;
+                GetDBToDesiredState();
+                ItemDetails.Instance.LoadFromDB();
+                redisInit = MakeSureRedisIsInitialized();
+
+                Console.WriteLine("booting db dependend stuff");
+                var bazaar = new BazaarIndexer();
+                RunIsolatedForever(bazaar.ProcessBazaarQueue, "bazaar queue");
+                //NameUpdater.Run();
+                Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(3));
+                    await ItemPrices.Instance.BackfillPrices();
+                }).ConfigureAwait(false);
+
+                try
+                {
+                    CleanDB();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Cleaning failed {e.Message}");
+                }
+            }
 
 
             onStop += () =>
             {
-                StopServices(updater, server, bazzar);
+                Console.WriteLine("stopped");
             };
-            try
-            {
-                CleanDB();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Cleaning failed {e.Message}");
-            }
 
-            redisInit.GetAwaiter().GetResult();
+
+            redisInit?.GetAwaiter().GetResult();
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 
@@ -316,17 +264,6 @@ namespace hypixel
                 Logger.Instance.Error($"Redis init failed {e.Message} \n{e.StackTrace}");
             }
 
-        }
-
-        private static void StopServices(Updater updater, Server server, BazaarUpdater bazzar)
-        {
-            Console.WriteLine("Stopping");
-            server.Stop();
-            Indexer.Stop();
-            updater.Stop();
-            bazzar.Stop();
-            System.Threading.Thread.Sleep(500);
-            Console.WriteLine("done");
         }
 
         private static void CleanDB()
@@ -380,14 +317,7 @@ namespace hypixel
                     if (!context.Items.Any() || context.Players.Count() < 2_000_000)
                         isNew = true;
                 }
-                if (isNew && !Flipper.FlipperEngine.diabled)
-                {
-                    Console.WriteLine("detected that this is a new instance, starting syncing");
-                    ClientProxy.Instance.InitialSync();
-                    Console.WriteLine("sync is over now, continuing with operation");
-                }
-                else
-                    Migrated = true;
+                Migrated = true;
             }
             catch (Exception e)
             {
@@ -399,47 +329,8 @@ namespace hypixel
 
         }
 
-        private static void RunIndexer()
-        {
-            Indexer.LoadFromDB();
-            RunIsolatedForever(async () =>
-            {
-                await Indexer.ProcessQueue();
-                await Indexer.LastHourIndex();
 
-            }, "An error occured while indexing");
-
-            RunUserIndexer();
-        }
-
-        /// <summary>
-        /// Assigns ids to users, auctions,items and bids
-        /// </summary>
-        private static void RunUserIndexer()
-        {
-            RunIsolatedForever(Numberer.NumberUsers, "Error occured while userIndexing");
-
-            int minId = 0;
-            using (var context = new HypixelContext())
-            {
-                if (context.NBTLookups.Any())
-                    minId = context.NBTLookups.Min(l => l.AuctionId);
-            }
-            if (minId == 0)
-            {
-                Console.WriteLine("All nbt is indexed :)");
-                return;
-            }
-            var bwi = new BackWardsNBTIndexer(minId);
-            Task.Run(() =>
-            {
-                Task.Delay(TimeSpan.FromSeconds(11));
-                RunIsolatedForever(bwi.DoBatch, "Error occured while userIndexing");
-            });
-
-        }
-
-        private static void RunIsolatedForever(Func<Task> todo, string message, int backoff = 2000)
+        public static void RunIsolatedForever(Func<Task> todo, string message, int backoff = 2000)
         {
             Task.Run(async () =>
             {
@@ -458,6 +349,15 @@ namespace hypixel
                     await Task.Delay(backoff);
                 }
             }).ConfigureAwait(false);
+        }
+
+        private static void RunIsolatedForever(Action todo, string message, int backoff = 2000)
+        {
+            RunIsolatedForever(() =>
+            {
+                todo();
+                return Task.CompletedTask;
+            }, message, backoff);
         }
 
         private static void WaitForDatabaseCreation()
@@ -496,7 +396,6 @@ namespace hypixel
         }
 
         private static System.Collections.Concurrent.ConcurrentDictionary<string, int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
-        public static Updater updater;
 
         public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
         {

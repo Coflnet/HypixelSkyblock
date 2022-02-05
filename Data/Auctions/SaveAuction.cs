@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Coflnet.Tracing;
 using MessagePack;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -33,6 +36,7 @@ namespace hypixel
         public long StartingBid { get; set; }
 
         [Key(4)]
+        [JsonIgnore]
         public string OldTier
         {
             set
@@ -45,6 +49,7 @@ namespace hypixel
 
 
         [Key(5)]
+        [JsonIgnore]
         public string OldCategory
         {
             set
@@ -76,7 +81,7 @@ namespace hypixel
         private string _itemName;
         [Key(8)]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
-        [MySql.Data.EntityFrameworkCore.DataAnnotations.MySqlCharset("utf8")]
+        [MySqlCharSet("utf8")]
         [JsonProperty("itemName")]
         public string ItemName { get { return _itemName; } set { _itemName = value?.Substring(0, Math.Min(value.Length, 45)); } }
 
@@ -184,7 +189,7 @@ namespace hypixel
         [IgnoreMember]
         [JsonIgnore]
         public List<NBTLookup> NBTLookup { get; set; }
-        private Dictionary<string,string> _flatenedNBT;
+        private Dictionary<string, string> _flatenedNBT;
         [IgnoreMember]
         [JsonProperty("flatNbt")]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
@@ -192,14 +197,19 @@ namespace hypixel
         {
             get
             {
-                if(_flatenedNBT != null)
+                if (_flatenedNBT != null)
                     return _flatenedNBT;
                 try
                 {
-                    var data = NbtData.Data;
+                    var data = NbtData?.Data;
                     if (data == null || data.Count == 0)
                         return new Dictionary<string, string>();
-                    _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d => d.Value.ToString());
+                    _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
+                    {
+                        if (d.Value is List<object> list)
+                            return string.Join(",", list);
+                        return d.Value.ToString();
+                    });
                     return _flatenedNBT;
                 }
                 catch (Exception e)
@@ -208,6 +218,10 @@ namespace hypixel
                     return null;
                 }
             }
+            set 
+            {
+                _flatenedNBT = value;
+            }
         }
         /// <summary>
         /// The first part of a uuid converted to a long for faster lookups
@@ -215,82 +229,60 @@ namespace hypixel
         [Key(26)]
         [JsonIgnore]
         public long UId { get; set; }
-
-        public SaveAuction(string uuid)
-        {
-            this.Uuid = uuid;
-            UId = AuctionService.Instance.GetId(uuid);
-            this.End = DateTime.Now;
-        }
-
-        public SaveAuction(Hypixel.NET.SkyblockApi.Auction auction)
-        {
-            ClaimedBids = auction.ClaimedBidders.Select(s => new UuId((string)s)).ToList();
-            Claimed = auction.Claimed;
-            //ItemBytes = auction.ItemBytes;
-            StartingBid = auction.StartingBid;
-            if (Enum.TryParse(auction.Tier, true, out Tier tier))
-                Tier = tier;
-            else
-                OldTier = auction.Tier;
-            if (Enum.TryParse(auction.Category, true, out Category category))
-                Category = category;
-            else
-                OldCategory = auction.Category;
-            // make sure that the lenght is shorter than max
-            ItemName = auction.ItemName;
-            End = auction.End;
-            Start = auction.Start;
-            Coop = auction.Coop;
-
-            ProfileId = auction.ProfileId == auction.Auctioneer ? null : auction.ProfileId;
-            AuctioneerId = auction.Auctioneer;
-            Uuid = auction.Uuid;
-            HighestBidAmount = auction.HighestBidAmount;
-            Bids = new List<SaveBids>();
-            foreach (var item in auction.Bids)
-            {
-                Bids.Add(new SaveBids(item));
-            }
-            NBT.FillDetails(this, auction.ItemBytes);
-            Bin = auction.BuyItNow; // missing from nuget package
-            UId = AuctionService.Instance.GetId(auction.Uuid);
-        }
-
-        public SaveAuction(Hypixel.NET.SkyblockApi.Auctions.Auction auction)
-        {
-            ClaimedBids = auction.ClaimedBidders.Select(s => new UuId((string)s)).ToList();
-            Claimed = auction.Claimed;
-            //ItemBytes = auction.ItemBytes;
-            StartingBid = auction.StartingBid;
-            if (Enum.TryParse(auction.Tier, true, out Tier tier))
-                Tier = tier;
-            else
-                OldTier = auction.Tier;
-            if (Enum.TryParse(auction.Category, true, out Category category))
-                Category = category;
-            else
-                OldCategory = auction.Category;
-            // make sure that the lenght is shorter than max
-            ItemName = auction.ItemName;
-            End = auction.End;
-            Start = auction.Start;
-            Coop = auction.Coop;
-
-            ProfileId = auction.ProfileId == auction.Auctioneer ? null : auction.ProfileId;
-            AuctioneerId = auction.Auctioneer;
-            Uuid = auction.Uuid;
-            HighestBidAmount = auction.HighestBidAmount;
-            Bids = new List<SaveBids>();
-            foreach (var item in auction.Bids)
-            {
-                Bids.Add(new SaveBids(item));
-            }
-            NBT.FillDetails(this, auction.ItemBytes.Data);
-            Bin = auction.BuyItNow; // missing from nuget package
-        }
+        [Key(27)]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public DateTime FindTime { get; set; } = DateTime.Now;
+        [Key(28)]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public TextMap TraceContext { get; set; }
+        /// <summary>
+        /// General context for this auction (additional fields)
+        /// </summary>
+        /// <value></value>
+        [Key(29)]
+        [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public Dictionary<string,string> Context { get; set; }
 
         public SaveAuction() { }
+
+        public SaveAuction(SaveAuction auction)
+        {
+            if (auction == null)
+                return;
+            Id = auction.Id;
+            Uuid = auction.Uuid;
+            Claimed = auction.Claimed;
+            Count = auction.Count;
+            StartingBid = auction.StartingBid;
+            Tag = auction.Tag;
+            ItemName = auction.ItemName;
+            Start = auction.Start;
+            End = auction.End;
+            AuctioneerId = auction.AuctioneerId;
+            ProfileId = auction.ProfileId;
+            CoopMembers = auction.CoopMembers;
+            ClaimedBids = auction.ClaimedBids;
+            HighestBidAmount = auction.HighestBidAmount;
+            Bids = auction.Bids;
+            AnvilUses = auction.AnvilUses;
+            Enchantments = auction.Enchantments;
+            NbtData = auction.NbtData;
+            ItemCreatedAt = auction.ItemCreatedAt;
+            Reforge = auction.Reforge;
+            Category = auction.Category;
+            Tier = auction.Tier;
+            Bin = auction.Bin;
+            SellerId = auction.SellerId;
+            ItemId = auction.ItemId;
+            NBTLookup = auction.NBTLookup;
+            UId = auction.UId;
+            FindTime = auction.FindTime;
+            TraceContext = auction.TraceContext;
+            Context = Context;
+        }
 
         public override bool Equals(object obj)
         {

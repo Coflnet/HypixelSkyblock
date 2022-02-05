@@ -15,11 +15,16 @@ namespace hypixel
     {
         public static CacheService Instance { get; protected set; }
 
-        private static int MaxCacheSize = Int32.Parse(SimplerConfig.Config.Instance["MaxCacheItems"]);
-
         public int CacheSize => -1;
+        /// <summary>
+        /// event executed when the cache should be refreshed
+        /// </summary>
+        public event Action<MessageData> OnCacheRefresh;
 
-        public ConnectionMultiplexer RedisConnection { get; }
+        public ConnectionMultiplexer RedisConnection { get; private set; }
+
+        private ConcurrentDictionary<string, byte[]> HotCache = new ConcurrentDictionary<string, byte[]>();
+        private DateTime lastReconnect;
 
         static CacheService()
         {
@@ -30,10 +35,7 @@ namespace hypixel
         {
             try
             {
-                ConfigurationOptions options = ConfigurationOptions.Parse(SimplerConfig.Config.Instance["redisCon"]);
-                options.Password = SimplerConfig.Config.Instance["redisPassword"];
-                options.AsyncTimeout = 10000;
-                RedisConnection = ConnectionMultiplexer.Connect(options);
+                ConnectToRedis();
             }
             catch (Exception e)
             {
@@ -46,20 +48,50 @@ namespace hypixel
             }
         }
 
+        private void ConnectToRedis()
+        {
+            if (lastReconnect > DateTime.Now - TimeSpan.FromSeconds(10))
+                return;
+            lastReconnect = DateTime.Now;
+            var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
+            ConfigurationOptions options = ConfigurationOptions.Parse(conName);
+            RedisConnection = ConnectionMultiplexer.Connect(options);
+            RedisConnection.IncludePerformanceCountersInExceptions = true;
+        }
+
         public async Task<T> GetFromRedis<T>(RedisKey key)
         {
             try
             {
+                if (HotCache.TryGetValue(key, out byte[] val))
+                {
+                    return MessagePack.MessagePackSerializer.Deserialize<T>(val);
+                }
+                if (RedisConnection == null)
+                {
+                    dev.Logger.Instance.Info("no redis connection");
+                    return default(T);
+                }
                 var value = await RedisConnection.GetDatabase().StringGetAsync(key);
                 if (value == RedisValue.Null)
                     return default(T);
                 return MessagePack.MessagePackSerializer.Deserialize<T>(value);
             }
+            catch (RedisConnectionException)
+            {
+                ConnectToRedis();
+                dev.Logger.Instance.Error("Redis timeout, reconnecting");
+            }
+            catch (RedisTimeoutException e)
+            {
+                if (new Random().Next() % 16 == 0)
+                    dev.Logger.Instance.Error(e, $"Redis timeout");
+            }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e,$"Redis error when getting key: {key}");
-                return default(T);
+                dev.Logger.Instance.Error(e, $"Redis error when getting key: {key.ToString().Truncate(40)}");
             }
+            return default(T);
         }
 
         public async Task DeleteInRedis(RedisKey key)
@@ -70,7 +102,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e,$"error on deleting key: {key}");
+                dev.Logger.Instance.Error(e, $"error on deleting key: {key.ToString().Truncate(40)}");
             }
         }
 
@@ -80,7 +112,11 @@ namespace hypixel
                 timeout = TimeSpan.FromDays(1);
             try
             {
-                await RedisConnection.GetDatabase().StringSetAsync(key, MessagePack.MessagePackSerializer.Serialize(obj), timeout);
+                var data = MessagePack.MessagePackSerializer.Serialize(obj);
+                if (HotCache.Count > 350)
+                    HotCache.Clear();
+                HotCache.AddOrUpdate(key, data, (a, b) => data);
+                await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
             }
             catch (Exception e)
             {
@@ -145,15 +181,17 @@ namespace hypixel
                 {
                     await request.SendBack(response, false);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     await DeleteInRedis(key);
                     dev.Logger.Instance.Error(e, "Try from cache return failed");
                     return CacheStatus.MISS;
                 }
             }
-            if ((responses.Expires - responses.Created).TotalSeconds / 2 > maxAgeLeft)
+            var lifetime = (responses.Expires - responses.Created).TotalSeconds;
+            if (lifetime / 2 > maxAgeLeft)
             {
+                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log($"refresh stale {lifetime} {request.Type.Truncate(10)}");
                 RefreshResponse(request);
                 return CacheStatus.REFRESH;
             }
@@ -161,14 +199,14 @@ namespace hypixel
             return CacheStatus.RECENT;
         }
 
-        private static void RefreshResponse(MessageData request)
+        private void RefreshResponse(MessageData request)
         {
             var proxyReq = new CacheMessageData(request.Type, request.Data);
             var task = Task.Run(() =>
             {
                 try
                 {
-                    Server.ExecuteCommandHeadless(proxyReq);
+                    OnCacheRefresh?.Invoke(proxyReq);
                 }
                 catch (Exception e)
                 {
@@ -177,15 +215,6 @@ namespace hypixel
             }).ConfigureAwait(false);
         }
 
-        public void ClearStale()
-        {/*
-            var toRemove = cache.Where(item => item.Value.Expires < DateTime.Now)
-                            .Select(item => item.Key).ToList();
-            foreach (var item in toRemove)
-            {
-                cache.TryRemove(item, out CacheElement value);
-            }*/
-        }
 
         private static string GetCacheKey(MessageData request)
         {
@@ -257,19 +286,6 @@ namespace hypixel
             }
 
 
-        }
-
-        internal void RunForEver()
-        {
-            var tenMin = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Task.Delay(tenMin);
-                    ClearStale();
-                }
-            }).ConfigureAwait(false);
         }
 
         /// <summary>
