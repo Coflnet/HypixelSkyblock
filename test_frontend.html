@@ -26,6 +26,10 @@
             console.log(last)
             }
         };
+
+        ws.onclose = (event)=>{
+            setTimeout(()=>connect(),1000);
+        }
     }
     connect();
 

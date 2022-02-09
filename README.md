@@ -25,13 +25,20 @@ Example:
 To set `"MISSING_AUCTION":"sky-canceledauction"` you have to set `TOPICS__MISSING_AUCTION=mycooltopic`
 
 ## Get started/usage
-Hello there fellow developer. Development of this project is done with docker-compose.
+Hello there fellow developer. Development of this project is done with docker-compose. The whole system is split into so called [microservices](https://en.wikipedia.org/wiki/Microservices) ie multiple smaller projects each doing one thing eg. flip finding.
 1. Install docker and docker-compose if you are a windows user these come with docker desktop.
-1. create a new folder `skyblock`, enter it and clone this repository with `git clone --depth=1 -b separation https://github.com/Coflnet/HypixelSkyblock.git dev`
-2. copy `docker-compose.yml` to the `skyblock` folder
-3. Now clone whatever project you like to develop with/need (also indicated by `depends_on` in `docker-compose.yml`). 
-eg. `git clone https://github.com/Coflnet/SkyUpdater.git` and start it with `docker-compose up updater`
-or `git clone https://github.com/Coflnet/SkyCommands.git` and start it with `docker-compose up commands`
+1. create a new folder `skyblock`, enter it and clone this repository with `git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev`
+2. copy `docker-compose.yml` to the `skyblock` folder (one folder above)
+3. Open a terminal in the `skyblock` folder and Start up the databases with `docker-compose up -d mariadb phpmyadmin kafka`
+3. Clone the indexer `git clone https://github.com/Coflnet/SkyIndexer.git` The indexer is the service that manages and indexes skyblock data.  
+4. Also clone the updater `git clone https://github.com/Coflnet/SkyUpdater.git`, commands `git clone https://github.com/Coflnet/SkyCommands.git` and the website `git clone https://github.com/Coflnet/hypixel-react.git`
+5. Start these services with `docker-compose up -d indexer updater commands frontend` after that is done you have a complete setup to archive and browse auctions locally.
+7. If you want flips you will also want to clone the flipper and/or sniper flip finders  
+`git clone https://github.com/Coflnet/SkyFlipper.git`   
+`git clone https://github.com/Coflnet/SkySniper.git`
+`docker-compose up -d flipper sniper`
+Note that you only need to clone services that have a `build` section. The ones with image are just downloaded.
+4. 
 
 For basic website functunality you need
 * this repo
