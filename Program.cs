@@ -228,7 +228,7 @@ namespace hypixel
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
 
-            updater = new Updater(apiKey);
+            //updater = new Updater(apiKey);
             
             Flipper.FlipperEngine.diabled = true;
 
