@@ -62,6 +62,7 @@ namespace hypixel
 
         static async Task RunForever()
         {
+            return;
             while (true)
             {
                 try

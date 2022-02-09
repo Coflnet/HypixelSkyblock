@@ -235,8 +235,8 @@ namespace hypixel
             // bring the db up to date
             //GetDBToDesiredState();
             ItemDetails.Instance.LoadFromDB();
-            SubscribeEngine.Instance.LoadFromDb();
-            var redisInit = MakeSureRedisIsInitialized();
+            //SubscribeEngine.Instance.LoadFromDb();
+            //var redisInit = MakeSureRedisIsInitialized();
 
             Console.WriteLine("booting db dependend stuff");
 
@@ -248,16 +248,8 @@ namespace hypixel
             {
                 StopServices(updater, server, bazzar);
             };
-            try
-            {
-                CleanDB();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Cleaning failed {e.Message}");
-            }
 
-            redisInit.GetAwaiter().GetResult();
+            //redisInit.GetAwaiter().GetResult();
 
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 
