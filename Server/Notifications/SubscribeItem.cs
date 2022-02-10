@@ -8,24 +8,24 @@ namespace hypixel
     public class SubscribeItem
     {
         [IgnoreMember]
-        public int Id{get;set;}
+        public int Id { get; set; }
         /// <summary>
         /// Either User,auction or ItemId UserIds are +100.000
         /// </summary>
         /// <value></value>
         [Key("topicId")]
         [System.ComponentModel.DataAnnotations.MaxLength(45)]
-        public string TopicId {get;set;}
+        public string TopicId { get; set; }
         /// <summary>
         /// Price point in case of item
         /// </summary>
         /// <value></value>
         [Key("price")]
-        public long Price {get;set;}
+        public long Price { get; set; }
 
         [System.ComponentModel.DataAnnotations.Timestamp]
         [IgnoreMember]
-        public DateTime GeneratedAt {get;set;}
+        public DateTime GeneratedAt { get; set; }
 
         public enum SubType
         {
@@ -41,12 +41,15 @@ namespace hypixel
         }
 
         [Key("type")]
-        public SubType Type  {get;set;}
+        public SubType Type { get; set; }
 
         [IgnoreMember]
-        public int UserId {get;set;}
+        public int UserId { get; set; }
         [IgnoreMember]
-        public DateTime NotTriggerAgainBefore {get;set;}
+        public DateTime NotTriggerAgainBefore { get; set; }
+
+        [Key("filter")]
+        public string Filter;
 
         public virtual void NotifyAuction(SaveAuction auction)
         {
