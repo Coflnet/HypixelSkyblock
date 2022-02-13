@@ -53,6 +53,8 @@ namespace hypixel
         /// <returns></returns>
         public string GetUuid(long internId)
         {
+            if(internId < 10_000_000_000)
+                return "";
             var builder = new System.Text.StringBuilder(internId.ToString("x"));
             return builder.Insert(12,4).ToString();
         }
