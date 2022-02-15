@@ -11,7 +11,7 @@ namespace hypixel
 
         public int GetHashCode(SaveAuction obj)
         {
-            return obj.GetHashCode();
+            return obj.Uuid?.GetHashCode() ?? 0;
         }
     }
 }

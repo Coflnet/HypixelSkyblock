@@ -139,17 +139,31 @@ namespace hypixel
             "UNIVERSAL_0",
             "UNIVERSAL_0_gem",
             "JADE_0",
+            "JADE_1",
+            "JADE_2",
             "TOPAZ_0",
             "AMBER_0",
+            "AMBER_1",
+            "AMBER_2",
             "RUBY_0",
             "AMETHYST_0",
+            "AMETHYST_1",
+            "AMETHYST_2",
             "SAPPHIRE_0",
             "JASPER_0",
+            "RUBY_1",
+            "RUBY_2",
+            "RUBY_3",
+            "RUBY_4",
 
             "COMBAT_0", // rarity of gem
             "COMBAT_0_gem", // type of gem
+            "COMBAT_1", // rarity of gem
+            "COMBAT_1_gem", // type of gem
             "DEFENSIVE_0", // rarity of gem
             "DEFENSIVE_0_gem", // type of gem
+            "UNIVERSAL_0", // rarity of gem
+            "UNIVERSAL_0_gem", // type of gem
             "unlocked_slots"
         };
 
