@@ -89,16 +89,29 @@ namespace hypixel
             if (includeTier)
             {
                 var lastLine = GetLore(f).LastOrDefault();
-                foreach (var item in Enum.GetValues<Tier>())
+                GetAndAssignTier(auction, lastLine);
+                if (auction.Tier == Tier.UNKNOWN)
                 {
-                    if (lastLine.Contains(item.ToString()))
+                    foreach (var line in GetLore(f))
                     {
-                        auction.Tier = item;
+                        GetAndAssignTier(auction, line);
                     }
+
                 }
             }
-            if(auction.Context != null)
+            if (auction.Context != null)
                 auction.Context["cname"] = GetName(f);
+        }
+
+        private static void GetAndAssignTier(SaveAuction auction, string lastLine)
+        {
+            foreach (var item in Enum.GetValues<Tier>())
+            {
+                if (lastLine.Contains(item.ToString()))
+                {
+                    auction.Tier = item;
+                }
+            }
         }
 
         static readonly ConcurrentBag<string> ValidKeys = new ConcurrentBag<string>()
@@ -488,12 +501,12 @@ namespace hypixel
         }
         public static string GetName(NbtFile f)
         {
-            return  f?.RootTag?.Get<NbtList>("i")
+            return f?.RootTag?.Get<NbtList>("i")
             ?.Get<NbtCompound>(0)
             ?.Get<NbtCompound>("tag")
             ?.Get<NbtCompound>("display")
             ?.Get<NbtString>("Name")
-            ?.StringValue;            
+            ?.StringValue;
         }
 
         public static DateTime GetDateTime(NbtFile file)
