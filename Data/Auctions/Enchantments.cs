@@ -115,7 +115,14 @@ namespace hypixel
             smarty_pants,
             pristine,
             // nether update
-            fatal_tempo,
+            ultimate_fatal_tempo,
+            ultimate_inferno,
+            charm,
+            corruption,
+            ferocious_mana,
+            strong_mana,
+            hardened_mana,
+            mana_vampire,
             
             Any = 126
         }
