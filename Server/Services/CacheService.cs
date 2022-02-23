@@ -20,8 +20,21 @@ namespace hypixel
         /// event executed when the cache should be refreshed
         /// </summary>
         public event Action<MessageData> OnCacheRefresh;
+        private ConnectionMultiplexer _con;
 
-        public ConnectionMultiplexer RedisConnection { get; private set; }
+        public ConnectionMultiplexer RedisConnection
+        {
+            get
+            {
+                if (_con == null)
+                    ConnectToRedis();
+                return _con;
+            }
+            private set
+            {
+                _con = value;
+            }
+        }
 
         private ConcurrentDictionary<string, byte[]> HotCache = new ConcurrentDictionary<string, byte[]>();
         private DateTime lastReconnect;
@@ -39,12 +52,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "Cache service constructor ");
-                Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(1));
-                    Instance = new CacheService();
-                }).ConfigureAwait(false);
+                dev.Logger.Instance.Error(e, "Cache service constructor (could not connect)");
             }
         }
 
@@ -120,7 +128,7 @@ namespace hypixel
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "Saving into redis");
+                dev.Logger.Instance.Error(e, "Saving into redis " + key.ToString());
             }
         }
 
