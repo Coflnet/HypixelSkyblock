@@ -16,5 +16,9 @@ namespace Coflnet.Sky
         public ConcurrentDictionary<string,short> ItemCount = new ConcurrentDictionary<string, short>();
         [DataMember(Name = "time")]
         public DateTime Time;
+        [DataMember(Name = "part")]
+        public int Part;
+        [DataMember(Name = "partCount")]
+        public int PartCount;
     }
 }
