@@ -35,6 +35,11 @@ namespace hypixel
                     context.Users.Add(user);
                     context.SaveChanges();
                     newRegister.Inc();
+                    if(context.Users.Where(u => u.GoogleId == googleId).Count() > 1)
+                    {
+                        context.Users.Remove(user);
+                        context.SaveChanges();
+                    }
                 }
                 if (user.Email == null)
                 {

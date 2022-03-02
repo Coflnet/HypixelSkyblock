@@ -93,6 +93,16 @@ namespace Coflnet.Sky
             47,19,61,26,51,44,64,63,88,62,52,25,54,36,66
         };
 
+
+        /// <summary>
+        /// SELECT Type,Level FROM `Enchantment`,Auctions as a
+        /// where a.Id = SaveAuctionId
+        /// and SaveAuctionId > 35092256
+        /// and a.ItemId = 1339
+        /// and HighestBidAmount > 0
+        /// group by Type,Level
+        /// order by avg(HighestBidAmount) desc
+        /// <param name="WorthOrderLevels"></param>
         private static List<(int, int)> WorthOrderLevels = new()
         {
             (70,2),(18,7),(91,5),(35,5),(23,4),(7,5),(95,5),(70,1),(75,5),(50,7),(12,7),(3,6),(2,7),
