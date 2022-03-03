@@ -456,9 +456,7 @@ namespace hypixel
                     return id;
                 try
                 {
-                    var key = new NBTValue() { Value = k.Item2, KeyId = k.Item1 };
-                    context.NBTValues.Add(key);
-                    context.SaveChanges();
+                    NBTValue key = AddNewValueToDb(k, context);
                     return key.Id;
                 }
                 catch (Exception e)
@@ -469,6 +467,14 @@ namespace hypixel
 
 
             }, (K, v) => v);
+        }
+
+        protected virtual NBTValue AddNewValueToDb((short, string) k, HypixelContext context)
+        {
+            var key = new NBTValue() { Value = k.Item2, KeyId = k.Item1 };
+            context.NBTValues.Add(key);
+            context.SaveChanges();
+            return key;
         }
 
         public static ItemReferences.Reforge GetReforge(NbtFile f)
