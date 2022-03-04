@@ -121,7 +121,7 @@ namespace hypixel
             try
             {
                 var data = MessagePack.MessagePackSerializer.Serialize(obj);
-                if (HotCache.Count > 350)
+                if (HotCache.Count > 650)
                     HotCache.Clear();
                 HotCache.AddOrUpdate(key, data, (a, b) => data);
                 await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
