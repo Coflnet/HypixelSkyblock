@@ -16,7 +16,8 @@ namespace hypixel
         /// </summary>
         private static HashSet<string> reforges;
 
-        public enum Reforge 
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public enum Reforge
         {
             None,
             Demonic,
@@ -53,7 +54,7 @@ namespace hypixel
             Smart,
             Titanic,
             Wise,
-            Very, 
+            Very,
             Highly,
             Bizarre,
             Itchy,
@@ -136,7 +137,7 @@ namespace hypixel
 
         static ItemReferences()
         {
-            reforges = new HashSet<string>(Enum.GetNames(typeof(Reforge)).Select(name=>name.ToLower()));
+            reforges = new HashSet<string>(Enum.GetNames(typeof(Reforge)).Select(name => name.ToLower()));
         }
 
         public static string RemoveReforgesAndLevel(string fullItemName)
@@ -172,7 +173,7 @@ namespace hypixel
         /// <returns></returns>
         public static Reforge GetReforges(string fullItemName)
         {
-            if(Enum.TryParse(fullItemName.Split(' ')[0],true, out Reforge reforge))
+            if (Enum.TryParse(fullItemName.Split(' ')[0], true, out Reforge reforge))
             {
                 return reforge;
             }
@@ -194,7 +195,7 @@ namespace hypixel
                 End = end;
             }
 
-            public AuctionReference() {}
+            public AuctionReference() { }
         }
     }
 }
