@@ -33,13 +33,14 @@ namespace hypixel
 
         public long GetId(string uuid)
         {
-            if(uuid == null)
+            if (uuid == null)
                 return -1;
             if (uuid.Length > 17)
                 uuid = uuid.Substring(0, 17);
             var builder = new System.Text.StringBuilder(uuid);
             builder.Remove(12, 1);
-            builder.Remove(16, uuid.Length - 17);
+            if (uuid.Length > 16)
+                builder.Remove(16, uuid.Length - 17);
             var id = Convert.ToInt64(builder.ToString(), 16);
             if (id == 0)
                 id = 1; // allow uId == 0 to be false if not calculated
@@ -53,10 +54,10 @@ namespace hypixel
         /// <returns></returns>
         public string GetUuid(long internId)
         {
-            if(internId < 5_000_000_000 && internId > 0)
-                return "";
             var builder = new System.Text.StringBuilder(internId.ToString("x"));
-            return builder.Insert(12,4).ToString();
+            if (internId < 5_000_000_000 && internId > 0)
+                return builder.ToString();
+            return builder.Insert(12, 4).ToString();
         }
 
         /// <summary>
@@ -79,7 +80,7 @@ namespace hypixel
             var uId = GetId(uuid);
             using (var context = new HypixelContext())
             {
-                IQueryable<SaveAuction> select = context.Auctions.Where(a=>a.UId == uId);
+                IQueryable<SaveAuction> select = context.Auctions.Where(a => a.UId == uId);
                 return selectFunc(select);
             }
         }
