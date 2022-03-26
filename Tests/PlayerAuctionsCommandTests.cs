@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using hypixel;
+using Coflnet.Sky.Core;
 using NUnit.Framework;
 
 namespace Tests

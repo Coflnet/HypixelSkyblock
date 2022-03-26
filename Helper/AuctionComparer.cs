@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class AuctionComparer : IEqualityComparer<SaveAuction>
     {

@@ -8,7 +8,7 @@ using Coflnet;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     class CacheItem
     {

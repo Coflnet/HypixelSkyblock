@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System;
 using MessagePack;
 
-namespace hypixel.Prediction
+namespace Coflnet.Sky.Core.Prediction
 {
     [MessagePackObject]
     public class PreditionInput

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using MessagePack;
 using Newtonsoft.Json;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class SaveBids {

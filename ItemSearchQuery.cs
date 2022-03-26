@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [DataContract]
     public class ItemSearchQuery

@@ -10,7 +10,7 @@ using dev;
 using fNbt;
 using Newtonsoft.Json;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public interface INBT
     {
@@ -389,7 +389,15 @@ namespace hypixel
         {
             if (hexNum.Length > 16)
                 hexNum = hexNum.Substring(24);
-            return Convert.ToInt64(hexNum, 16);
+            try
+            {
+                return Convert.ToInt64(hexNum, 16);
+
+            }
+            catch (Exception)
+            {
+                throw new InvalidUuidException(hexNum);
+            }
         }
 
         private static ConcurrentDictionary<string, short> Cache = new ConcurrentDictionary<string, short>();

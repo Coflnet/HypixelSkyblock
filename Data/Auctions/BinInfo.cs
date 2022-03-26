@@ -1,6 +1,6 @@
 using System;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class BinInfo
     {

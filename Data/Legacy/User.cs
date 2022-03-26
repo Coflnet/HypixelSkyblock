@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class User {

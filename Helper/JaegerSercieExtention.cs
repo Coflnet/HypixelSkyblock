@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using OpenTracing;
 using OpenTracing.Util;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public static class JaegerSercieExtention
     {

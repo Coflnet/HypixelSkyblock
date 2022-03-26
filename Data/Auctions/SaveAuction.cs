@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
 
     [MessagePackObject]

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Confluent.Kafka;
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject(true)]
     public class Player : IHitCount

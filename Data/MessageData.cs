@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MessagePack;
 using OpenTracing;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class MessageData

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     /// <summary>
     /// Fills in colors for leather items

@@ -3,9 +3,9 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using hypixel;
+using Coflnet.Sky.Core;
 
-namespace hypixel.Migrations
+namespace Coflnet.Sky.Core.Migrations
 {
     [DbContext(typeof(HypixelContext))]
     partial class HypixelContextModelSnapshot : ModelSnapshot

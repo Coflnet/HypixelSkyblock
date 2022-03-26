@@ -2,7 +2,7 @@ using System;
 using MessagePack;
 using Newtonsoft.Json;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class PlayerResult : IComparable<PlayerResult>

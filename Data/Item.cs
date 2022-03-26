@@ -10,7 +10,7 @@ using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public partial class ItemDetails
     {

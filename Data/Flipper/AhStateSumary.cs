@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Runtime.Serialization;
 
-namespace Coflnet.Sky
+namespace Coflnet.Sky.Core
 {
     /// <summary>
     /// Sumary of the auction house state

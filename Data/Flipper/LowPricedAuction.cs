@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using hypixel;
+using Coflnet.Sky.Core;
 
-namespace Coflnet.Sky
+namespace Coflnet.Sky.Core
 {
     [DataContract]
     public class LowPricedAuction

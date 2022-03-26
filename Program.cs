@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
 
     public class Program
@@ -114,7 +114,7 @@ namespace hypixel
                     break;
                 case 'n':
                     var af = new SaveAuction();
-                    NBT.FillDetails(af,"H4sIAAAAAAAAAE1Ry26bUBAdP9JiNl120yosKnXlCptglyWysY1jrmOCH7CJLnB5OBdswSUx/od+h7f9Bn9Y1ZuqqirNZuacmXNmRgToQCMVAaDRhGYaNn404GZ0qHLWEKHFcNyCziwNyYTiuOSsXyKIj88VpcvXnBQCNM0QvgTEx+pd1OtGfVXpKpoadbEiy11F9Yd337VADvwe73soDkdSsJSUHRAYObGqIOUfaQFuNphWBH6Sei57u0QOd3Ma1OaA586jTJfm/jg0803tj8yBmXF8pg8WtfYfV2V4q1JXmSdevqr8bCMvFJuSmd0LsvWL59iJu0XpcmqcUbaurX34vBy7J29ryGhs9VGGqNU3z8gxXr3tWnHPpmLt53s03STImaRW5taeE5/ReaW6mXuy9qs02vU07l6E92FaHimuO9BeHAoi8GIbbq+XIQ9dmhQ4zkjOpJDvfySh5NcSSwh85ig91JhKJSlecM5K6RBJeoGDJCff3gZfL9r1Qm3dNgRoI5wR+MRLfxlfS+meEH7QfwLcyQfjxAqsM1akfsVIKbz9FD7qtj6aIePp3jAeDPtpYutTy0AOQBPejXGGYwItgN8ILuLQDQIAAA\u003d\u003d",true);
+                    NBT.FillDetails(af, "H4sIAAAAAAAAAE1Ry26bUBAdP9JiNl120yosKnXlCptglyWysY1jrmOCH7CJLnB5OBdswSUx/od+h7f9Bn9Y1ZuqqirNZuacmXNmRgToQCMVAaDRhGYaNn404GZ0qHLWEKHFcNyCziwNyYTiuOSsXyKIj88VpcvXnBQCNM0QvgTEx+pd1OtGfVXpKpoadbEiy11F9Yd337VADvwe73soDkdSsJSUHRAYObGqIOUfaQFuNphWBH6Sei57u0QOd3Ma1OaA586jTJfm/jg0803tj8yBmXF8pg8WtfYfV2V4q1JXmSdevqr8bCMvFJuSmd0LsvWL59iJu0XpcmqcUbaurX34vBy7J29ryGhs9VGGqNU3z8gxXr3tWnHPpmLt53s03STImaRW5taeE5/ReaW6mXuy9qs02vU07l6E92FaHimuO9BeHAoi8GIbbq+XIQ9dmhQ4zkjOpJDvfySh5NcSSwh85ig91JhKJSlecM5K6RBJeoGDJCff3gZfL9r1Qm3dNgRoI5wR+MRLfxlfS+meEH7QfwLcyQfjxAqsM1akfsVIKbz9FD7qtj6aIePp3jAeDPtpYutTy0AOQBPejXGGYwItgN8ILuLQDQIAAA\u003d\u003d", true);
                     Console.WriteLine(af.Tier);
                     Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAI1T227rRBTdac/hOEGi4gEh3owpT8Q9Thw7F4mHqk2pS+30kl4ShNDEs21PMrYje9wTF/EJPHP+oK98Qz+FD0HsFA7iEcuWZ61Ze60943ELoAkN0QKAxg7sCN74tQGvj/IqU40W7CoW70LzVHA8kSwuSfVnC1rXq0rKybsMCw12PA77LuOc9fjCdIbITZuHjsnCDjctm3XDnh31Obeo7qLI11gogWUTNIUbVRVYvkRr8PqWyQrhd6zPrPl9YvH7MxnWnkt4em3Jibdc973stl4cea6X0vzpoXteD/+jdRS7c+TMPkvm2WW1SG+tc/tK4ulVJ0xvHvxpsJwvk9VsGVuT40N79nhp+3eX9J45/tJ79I+9OlieJLPHExHcjTfBo0wn0/nKn44dejpBekv1gfTvvM38OFjOrs+G0b31LXXfgjdclGvJ6ia8Os8L1Ij8BPaenwYnecFikcX6BSoiiepfrxH5SH9+Yt+48DkRXqZQShFjFuLffMch7cfPT+60QFzkRQZfk47u7wqWqfIfzYFDA/eP9+/1DynwFREEVJUhqdv6u0SEiS6ysEBWYqnXeVXAFzQVJozSdKZ0nlcLibrM4/KAUvdfgvBKxIkyQynCla5ynT6vrhJR6mtUhOFTkmy9XnCKWfXldsXU1vOTvAmOJr4/CTR4FbAU4TNy/OH8Qep258dt536erbCmTdsbb1TBDpUqxKJSWGrwhuy8LMrht58NVa/RGBlk9P14ZrQNFirxQEzEZIltAzdrY9Qd9rruwaDTG1jba9BvG3S4Cir70AQVJnR4t6b/loYs4/VNidwYWW2jqgQNjKjroo2Ra3b7zDV7gwjNgR0uzNDqI+850YBH3PhFg2ZeCNrqKYtBuxhPf/LHwY22/W9glyCteesH+//HjsyUSLFULF3D3vBtd/C229GdkTXUL3yAHfjomKUsRtgF+AvZCYDnpwMAAA\u003d\u003d"));
                     //Console.WriteLine (JsonConvert.SerializeObject (.Instance.Items.Where (item => item.Value.AltNames != null && item.Value.AltNames.Count > 3 && !item.Key.Contains("DRAGON")).Select((item)=>new P(item.Value))));
@@ -181,7 +181,6 @@ namespace hypixel
                 Console.WriteLine("running on " + System.Net.Dns.GetHostName());
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
-            
 
 
             Task redisInit = null;
@@ -397,14 +396,15 @@ namespace hypixel
 
         private static System.Collections.Concurrent.ConcurrentDictionary<string, int> PlayerAddCache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
 
-        public static int AddPlayer(HypixelContext context, string uuid, ref int highestId, string name = null)
+        public static int AddPlayer(HypixelContext callingContext, string uuid, ref int highestId, string name = null)
         {
-            lock (uuid)
+            try
             {
                 if (PlayerAddCache.TryGetValue(uuid, out int id))
                     return id;
 
 
+                using var context = new HypixelContext();
                 var existingPlayer = context.Players.Find(uuid);
                 if (existingPlayer != null)
                     return existingPlayer.Id;
@@ -418,8 +418,18 @@ namespace hypixel
                     context.SaveChanges();
                     return p.Id;
                 }
-                return 0;
             }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, "failed to save user");
+                var existingPlayer = callingContext.Players.Find(uuid);
+                if (existingPlayer != null)
+                    return existingPlayer.Id;
+            }
+
+
+            return 0;
+
 
         }
 

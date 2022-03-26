@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public partial class ItemDetails
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class BidComparer : IEqualityComparer<SaveBids>
     {

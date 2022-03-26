@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class UuId 
     {

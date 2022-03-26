@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     /// <summary>
     /// Adopted from https://stackoverflow.com/a/22039673

@@ -2,7 +2,7 @@ using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject(true)]
     public class AlternativeName

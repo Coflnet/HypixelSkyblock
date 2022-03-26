@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class NbtData

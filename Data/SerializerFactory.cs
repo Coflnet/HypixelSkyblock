@@ -1,7 +1,7 @@
 using System;
 using Confluent.Kafka;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class SerializerFactory
     {

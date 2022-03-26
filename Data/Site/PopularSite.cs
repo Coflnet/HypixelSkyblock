@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [DataContract]
     public class PopularSite

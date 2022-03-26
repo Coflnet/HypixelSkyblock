@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     /// <summary>
     /// Source: https://docs.microsoft.com/de-de/dotnet/api/system.threading.tasks.taskscheduler

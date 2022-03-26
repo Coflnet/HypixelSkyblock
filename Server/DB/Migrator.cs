@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Coflnet;
-using hypixel;
+using Coflnet.Sky.Core;
 
 public class Migrator {
     public static void Migrate () {

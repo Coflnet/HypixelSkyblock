@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class SubscribeItem

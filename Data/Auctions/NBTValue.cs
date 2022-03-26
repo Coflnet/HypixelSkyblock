@@ -1,6 +1,6 @@
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     /// <summary>
     /// Mapps values to ids for use in <see cref="NBTLookup"/>

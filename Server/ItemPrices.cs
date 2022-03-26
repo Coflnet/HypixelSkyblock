@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using dev;
 using Microsoft.EntityFrameworkCore;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public partial class ItemPrices
     {

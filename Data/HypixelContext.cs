@@ -1,9 +1,8 @@
 using dev;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using static hypixel.ItemDetails;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public abstract class MyDbSet<TEntity> : DbSet<TEntity> where TEntity : class
     {

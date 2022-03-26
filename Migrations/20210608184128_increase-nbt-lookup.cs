@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace hypixel.Migrations
+namespace Coflnet.Sky.Core.Migrations
 {
     public partial class increasenbtlookup : Migration
     {

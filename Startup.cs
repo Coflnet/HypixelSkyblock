@@ -4,7 +4,7 @@ using System.Net;
 using System.Reflection;
 using AspNetCoreRateLimit;
 using AspNetCoreRateLimit.Redis;
-using hypixel;
+using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;

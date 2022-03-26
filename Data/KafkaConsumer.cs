@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using hypixel;
+using Coflnet.Sky.Core;
 
 namespace Coflnet.Kafka
 {

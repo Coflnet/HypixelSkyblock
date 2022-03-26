@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class JSON
     {

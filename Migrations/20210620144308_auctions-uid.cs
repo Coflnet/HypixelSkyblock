@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace hypixel.Migrations
+namespace Coflnet.Sky.Core.Migrations
 {
     public partial class auctionsuid : Migration
     {

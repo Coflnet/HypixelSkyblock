@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class AuctionService
     {

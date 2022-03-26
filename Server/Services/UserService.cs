@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using RestSharp.Extensions;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class UserService
     {
@@ -35,13 +35,13 @@ namespace hypixel
                     context.Users.Add(user);
                     context.SaveChanges();
                     newRegister.Inc();
-                    if(context.Users.Where(u => u.GoogleId == googleId).Count() > 1)
+                    if (context.Users.Where(u => u.GoogleId == googleId).Count() > 1)
                     {
                         context.Users.Remove(user);
                         context.SaveChanges();
                     }
                 }
-                if (user.Email == null)
+                else if (user.Email == null)
                 {
                     user.Email = email;
                     context.SaveChanges();
@@ -53,7 +53,7 @@ namespace hypixel
 
         public GoogleUser GetUserById(int userId)
         {
-            if(!TryGetUserById(userId,out GoogleUser user))
+            if (!TryGetUserById(userId, out GoogleUser user))
                 throw new UserNotFoundException(userId.ToString());
             return user;
         }
@@ -62,7 +62,7 @@ namespace hypixel
         {
             using (var context = new HypixelContext())
             {
-                return await context.Users.Where(u => u.Email == email).Select(u=>u.Id).FirstOrDefaultAsync();
+                return await context.Users.Where(u => u.Email == email).Select(u => u.Id).FirstOrDefaultAsync();
             }
         }
 

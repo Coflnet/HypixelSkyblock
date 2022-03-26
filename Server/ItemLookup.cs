@@ -4,7 +4,7 @@ using System.Linq;
 using dev;
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public partial class ItemPrices
     {

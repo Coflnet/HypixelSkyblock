@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Coflnet;
-using hypixel;
+using Coflnet.Sky.Core;
 using NUnit.Framework;
 
 namespace Tests

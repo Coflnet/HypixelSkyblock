@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePack.MessagePackObject]
     public class Enchantment

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [DataContract]
     public class DBItem : IItem, IHitCount

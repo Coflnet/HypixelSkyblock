@@ -1,4 +1,4 @@
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
     public enum Tier {

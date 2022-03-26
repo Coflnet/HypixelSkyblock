@@ -5,7 +5,7 @@ using System.Linq;
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 
-namespace hypixel.Prediction
+namespace Coflnet.Sky.Core.Prediction
 {
     /// <summary>
     /// Mapps db to model format

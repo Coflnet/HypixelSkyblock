@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class PlayerSearch
     {

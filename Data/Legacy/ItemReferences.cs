@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using MessagePack;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     [MessagePackObject]
     public class ItemReferences

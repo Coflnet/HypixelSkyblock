@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace hypixel.Data
+namespace Coflnet.Sky.Core.Data
 {
     public class TradeOffer
     {

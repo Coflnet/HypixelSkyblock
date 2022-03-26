@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using MessagePack;
 using StackExchange.Redis;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class CacheService
     {

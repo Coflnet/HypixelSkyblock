@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public class GoogleUser
     {

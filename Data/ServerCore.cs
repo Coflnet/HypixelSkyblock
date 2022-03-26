@@ -6,7 +6,7 @@ using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace hypixel
+namespace Coflnet.Sky.Core
 {
     public partial class CoreServer
     {
@@ -40,7 +40,11 @@ namespace hypixel
                 request.Timeout = 10000;
                 var result = await client.ExecuteAsync(request);
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    Console.WriteLine(result.StatusCode);
                     return default(TRes);
+
+                }
                 try
                 {
                     return JsonConvert.DeserializeObject<TRes>(result.Content);
