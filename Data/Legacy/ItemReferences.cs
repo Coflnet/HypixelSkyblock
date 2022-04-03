@@ -120,6 +120,15 @@ namespace Coflnet.Sky.Core
             heated,
             jaded,
             ambered,
+            double_bit,
+            excellent,
+            fortunate,
+            prospector,
+            lush,
+            sturdy,
+            lumberjack,
+            unyielding,
+
 
             Unknown = 125,
             Any
