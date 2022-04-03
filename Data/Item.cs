@@ -177,10 +177,11 @@ namespace Coflnet.Sky.Core
 
         internal int GetOrCreateItemByTag(string tag)
         {
-            var id = GetItemIdForName(tag, false);
+            var id = GetItemIdForTag(tag, false);
             if (id != 0)
                 return id;
 
+            throw new Exception("item creation is handled by the item service now");
             using (var context = new HypixelContext())
             {
                 id = context.Items.Where(i => i.Tag == tag).Select(i => i.Id).FirstOrDefault();
@@ -225,9 +226,8 @@ namespace Coflnet.Sky.Core
         public int GetOrCreateItemIdForAuction(SaveAuction auction, HypixelContext context)
         {
             var clearedName = ItemReferences.RemoveReforgesAndLevel(auction.ItemName);
-            var tag = GetIdForName(auction.Tag ?? clearedName);
-            if (tag != null && TagLookup.TryGetValue(tag, out int value))
-                return value;
+            var id = GetItemIdForTag(auction.Tag ?? clearedName);
+            return id;
 
             Console.WriteLine($"Creating item {clearedName} ({auction.ItemName},{auction.Tag})");
             // doesn't exist yet, create it

@@ -86,7 +86,7 @@ namespace Coflnet.Sky.Core
             {
                 AddNew(new AveragePrice()
                 {
-                    ItemId = ItemDetails.Instance.GetItemIdForName(item.ProductId, false),
+                    ItemId = ItemDetails.Instance.GetItemIdForTag(item.ProductId, false),
                     Max = (float)item.QuickStatus.BuyPrice,
                     Min = (float)item.QuickStatus.SellPrice,
                     Avg = (float)(item.QuickStatus.BuyPrice + item.QuickStatus.SellPrice) / 2,

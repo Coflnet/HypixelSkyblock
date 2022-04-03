@@ -45,9 +45,10 @@ namespace Coflnet.Sky.Core
 
         public async Task LoadLookup()
         {
+            return;
             using (var context = new HypixelContext())
             {
-                TagLookup = new (await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
+                TagLookup = new(await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
                                     .ToDictionaryAsync(item => item.Tag, item => item.Id));
             }
         }
@@ -56,7 +57,7 @@ namespace Coflnet.Sky.Core
         {
             if (Items == null)
             {
-                Items = new ();
+                Items = new();
             }
             // correct keys
             foreach (var item in Items.Keys.ToList())
@@ -98,22 +99,34 @@ namespace Coflnet.Sky.Core
         /// <summary>
         /// Fast access to an item id for index lookup
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="tag"></param>
         /// <param name="forceGet">throw an exception if the lookup wasn't found</param>
         /// <returns></returns>
-        public int GetItemIdForName(string name, bool forceGet = true)
+        public int GetItemIdForTag(string tag, bool forceGet = true)
         {
-            if (TagLookup.TryGetValue(name, out int value))
+            if (TagLookup.TryGetValue(tag, out int value))
                 return value;
 
-            // fall back to the db
-            using (var context = new HypixelContext())
+            try
             {
-                var id = context.Items.Where(i => i.Tag == name).Select(i => i.Id).FirstOrDefault();
+                var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
+                var id = client.ItemsSearchTermIdGet(tag);
                 if (id == 0 && forceGet)
-                    throw new CoflnetException("item_not_found", $"could not find the item with the tag `{name}`");
+                    throw new CoflnetException("item_not_found", $"could not find the item with the tag `{tag}`");
                 if (id != 0)
-                    TagLookup[name] = id;
+                    TagLookup[tag] = id;
+                return id;
+            }
+            catch (Exception e)
+            {
+                // fall back to the db
+                Logger.Instance.Error(e, "loading itemid from service for " + tag);
+                using var context = new HypixelContext();
+                var id = context.Items.Where(i => i.Tag == tag).Select(i => i.Id).FirstOrDefault();
+                if (id == 0 && forceGet)
+                    throw new CoflnetException("item_not_found", $"could not find the item with the tag `{tag}`");
+                if (id != 0)
+                    TagLookup[tag] = id;
                 return id;
             }
         }
@@ -125,22 +138,7 @@ namespace Coflnet.Sky.Core
 
         public int AddItemToDB(DBItem item)
         {
-            using (var context = new HypixelContext())
-            {
-                // make sure it doesn't exist
-                if (!context.Items.Where(i => i.Tag == item.Tag).Any())
-                    context.Items.Add(item);
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine($"Ran into an error while saving {JsonConvert.SerializeObject(item)}");
-                    throw;
-                }
-                return item.Id;
-            }
+            throw new Exception("items are handled by the items service now");
         }
 
         private ConcurrentDictionary<int, int> itemHits = new ConcurrentDictionary<int, int>();
@@ -181,7 +179,7 @@ namespace Coflnet.Sky.Core
 
             using (var context = new HypixelContext())
             {
-                var id = GetItemIdForName(cleanedName, false);
+                var id = GetItemIdForTag(cleanedName, false);
                 if (id == 0)
                     id = context.AltItemNames.Where(name => name.Name == fullName || name.Name == cleanedName)
                        .Select(name => name.DBItemId).FirstOrDefault();

@@ -252,7 +252,7 @@ namespace Coflnet.Sky.Core
                 if (key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
                     return new NBTLookup(GetLookupKey(key), GetItemIdForSkin(attr.Value as string));
                 if (KeysWithItem.Contains(key))
-                    return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForName(attr.Value as string));
+                    return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForTag(attr.Value as string));
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
@@ -273,9 +273,9 @@ namespace Coflnet.Sky.Core
 
         public static long GetItemIdForSkin(string name)
         {
-            var id = ItemDetails.Instance.GetItemIdForName("PET_SKIN_" + name, false);
+            var id = ItemDetails.Instance.GetItemIdForTag("PET_SKIN_" + name, false);
             if (id == 0)
-                id = ItemDetails.Instance.GetItemIdForName(name);
+                id = ItemDetails.Instance.GetItemIdForTag(name);
             return id;
         }
 

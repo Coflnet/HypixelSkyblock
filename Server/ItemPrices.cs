@@ -35,7 +35,7 @@ namespace Coflnet.Sky.Core
 
         public async Task<Resonse> GetPriceFor(ItemSearchQuery details)
         {
-            var itemId = ItemDetails.Instance.GetItemIdForName(details.name, false);
+            var itemId = ItemDetails.Instance.GetItemIdForTag(details.name, false);
             var itemTag = details.name;
 
             if (details.Reforge != ItemReferences.Reforge.Any
@@ -118,7 +118,7 @@ namespace Coflnet.Sky.Core
 
         private Resonse FromList(IEnumerable<AveragePrice> prices, string itemTag)
         {
-            var isBazaar = IsBazaar(ItemDetails.Instance.GetItemIdForName(itemTag));
+            var isBazaar = IsBazaar(ItemDetails.Instance.GetItemIdForTag(itemTag));
             return new Resonse()
             {
                 Filterable = true,
@@ -149,7 +149,7 @@ namespace Coflnet.Sky.Core
 
         private async Task AddAuction(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, SaveAuction auction)
         {
-            var id = ItemDetails.Instance.GetItemIdForName(auction.Tag);
+            var id = ItemDetails.Instance.GetItemIdForTag(auction.Tag);
             var res = await GetHourlyLookup(id);
             if (res == null)
                 res = new ItemLookup();
@@ -216,7 +216,7 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
-                var itemId = ItemDetails.Instance.GetItemIdForName(details.name);
+                var itemId = ItemDetails.Instance.GetItemIdForTag(details.name);
                 IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
                 IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now.Subtract(TimeSpan.FromDays(1.1)));
 
@@ -365,6 +365,7 @@ namespace Coflnet.Sky.Core
 
         private static async Task UpdateBazaarFor(DateTime start, DateTime end, DateTime removeBefore)
         {
+            return; // handled by bazaar service
             foreach (var item in await AvgBazzarHistory(start, end))
             {
                 await CacheService.Instance.ModifyInRedis<ItemLookup>(GetIntradayKey(item.ItemId), hoursList =>
@@ -396,7 +397,7 @@ namespace Coflnet.Sky.Core
                 context.Database.SetCommandTimeout(3600);
                 // bazzar
                 DateTime start = new DateTime();
-                var idOfLava = ItemDetails.Instance.GetItemIdForName("ENCHANTED_LAVA_BUCKET");
+                var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
                 var end = new DateTime(2020, 5, 1);
                 while (
                     end < DateTime.Now - TimeSpan.FromDays(1))
@@ -476,7 +477,7 @@ namespace Coflnet.Sky.Core
                     using (var context = new HypixelContext())
                     {
                         context.Database.SetCommandTimeout(3600);
-                        var idOfLava = ItemDetails.Instance.GetItemIdForName("ENCHANTED_LAVA_BUCKET");
+                        var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
                         {
                             var interval = (end - start) / 4;
@@ -630,7 +631,7 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
-                var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
+                var itemId = ItemDetails.Instance.GetItemIdForTag(query.name);
 
                 var result = CreateSelect(query, context, itemId, amount)
                             .OrderByDescending(a => a.End).Take(amount).Select(a => new
@@ -657,7 +658,7 @@ namespace Coflnet.Sky.Core
             query.Start = DateTime.Now.Subtract(TimeSpan.FromDays(14)).RoundDown(TimeSpan.FromDays(1));
             using (var context = new HypixelContext())
             {
-                var itemId = ItemDetails.Instance.GetItemIdForName(query.name);
+                var itemId = ItemDetails.Instance.GetItemIdForTag(query.name);
                 var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now && (!a.Bin || a.Bids.Count == 0));
 
                 var select = CreateSelect(query, context, itemId, amount, dbselect)
