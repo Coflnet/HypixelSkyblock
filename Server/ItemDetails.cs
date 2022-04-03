@@ -45,11 +45,19 @@ namespace Coflnet.Sky.Core
 
         public async Task LoadLookup()
         {
-            return;
-            using (var context = new HypixelContext())
+            try
             {
-                TagLookup = new(await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
-                                    .ToDictionaryAsync(item => item.Tag, item => item.Id));
+                var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
+                TagLookup = new(await client.ItemsIdsGetAsync());
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Error(e, "trying to load itemid lookup from service");
+                using (var context = new HypixelContext())
+                {
+                    TagLookup = new(await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
+                                        .ToDictionaryAsync(item => item.Tag, item => item.Id));
+                }
             }
         }
 
