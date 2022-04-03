@@ -128,6 +128,8 @@ namespace Coflnet.Sky.Core
             sturdy,
             lumberjack,
             unyielding,
+            great,
+            robust,
 
 
             Unknown = 125,
