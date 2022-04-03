@@ -49,6 +49,7 @@ namespace Coflnet.Sky.Core
             {
                 var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
                 TagLookup = new(await client.ItemsIdsGetAsync());
+                Logger.Instance.Info("loaded item tag lookup");
             }
             catch (Exception e)
             {
