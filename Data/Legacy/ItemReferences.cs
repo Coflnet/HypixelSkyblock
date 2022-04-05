@@ -130,6 +130,8 @@ namespace Coflnet.Sky.Core
             unyielding,
             great,
             robust,
+            rugged,
+            zooming,
 
 
             Unknown = 125,
