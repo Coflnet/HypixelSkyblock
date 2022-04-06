@@ -397,7 +397,7 @@ namespace Coflnet.Sky.Core
                 context.Database.SetCommandTimeout(3600);
                 // bazzar
                 DateTime start = new DateTime();
-                var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
+                /*var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
                 var end = new DateTime(2020, 5, 1);
                 while (
                     end < DateTime.Now - TimeSpan.FromDays(1))
@@ -429,7 +429,7 @@ namespace Coflnet.Sky.Core
                         Console.WriteLine($"Backfill failed :( for day {start} \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
                     }
                     await Task.Delay(1000);
-                }
+                } */
 
                 var skyblockStart = new DateTime(2019, 5, 1);
                 foreach (var itemId in ItemDetails.Instance.TagLookup.Values.ToList())
@@ -477,7 +477,7 @@ namespace Coflnet.Sky.Core
                     using (var context = new HypixelContext())
                     {
                         context.Database.SetCommandTimeout(3600);
-                        var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
+                        /*var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
                         {
                             var interval = (end - start) / 4;
@@ -487,7 +487,7 @@ namespace Coflnet.Sky.Core
                                 await Task.Delay(5000);
                                 await context.SaveChangesAsync();
                             }
-                        }
+                        }*/
 
 
                         foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
