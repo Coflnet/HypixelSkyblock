@@ -281,6 +281,7 @@ namespace Coflnet.Sky.Core
                         return;
                 }
 
+            /*
                 DateTime start;
                 var bucket = await GetLookupForToday(ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET"));
                 Console.WriteLine("----------\nyoungest lava bucket is " + bucket.Youngest.Date);
@@ -297,7 +298,7 @@ namespace Coflnet.Sky.Core
 
                     if (token.IsCancellationRequested)
                         return;
-                }
+                }*/
             }
             if (token.IsCancellationRequested)
                 return;
