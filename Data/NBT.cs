@@ -256,7 +256,9 @@ namespace Coflnet.Sky.Core
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
-                    return new NBTLookup(keyId, Instance.GetValueId(keyId, attr.Value as string));
+                    if(!(attr.Value is string value))
+                        value = JsonConvert.SerializeObject(attr.Value);
+                    return new NBTLookup(keyId, Instance.GetValueId(keyId, value));
                 }
                 if (key == "color")
                 {
