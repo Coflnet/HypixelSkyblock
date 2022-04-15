@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
@@ -119,6 +120,20 @@ namespace Coflnet.Sky.Core
                 context.SaveChanges();
                 purchases.Inc();
             }
+        }
+
+        public string AnonymiseEmail(string email)
+        {
+            var length = email.Length < 10 ? 3 : 6;
+            var builder = new StringBuilder(email);
+            for (int i = 0; i < builder.Length - 5; i++)
+            {
+                if (builder[i] == '@' || i < 3)
+                    continue;
+                builder[i] = '*';
+            }
+            var anonymisedEmail = builder.ToString();
+            return anonymisedEmail;
         }
     }
 }
