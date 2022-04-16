@@ -40,7 +40,6 @@ namespace Coflnet.Sky.Core
 
             if (details.Reforge != ItemReferences.Reforge.Any
                     || (details.Enchantments != null && details.Enchantments.Count != 0)
-                    //|| details.Rarity != Tier.UNKNOWN 
                     || details.Tier != Tier.UNKNOWN
                     || details.Filter != null)
                 return await QueryDB(details);

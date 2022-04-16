@@ -32,7 +32,7 @@ namespace Coflnet.Sky.Core
         /// </summary>
         /// <returns></returns>
         private static DateTime BlockedSince = new DateTime(0);
-        private static string version = "0.3.6";
+        private static string version = "0.4.0";
         public static string Version => version;
 
         public static int RequestsSinceStart { get; private set; }

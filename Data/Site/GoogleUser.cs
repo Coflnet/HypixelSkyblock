@@ -6,10 +6,11 @@ namespace Coflnet.Sky.Core
 {
     public class GoogleUser
     {
-        static bool EveryoneIsPremium;
+        public static bool EveryoneIsPremium { get;  private set; }
         static GoogleUser()
         {
-            bool.TryParse(SimplerConfig.Config.Instance["EveryonePremium"], out EveryoneIsPremium);
+            bool.TryParse(SimplerConfig.Config.Instance["EveryonePremium"], out bool allprem);
+            EveryoneIsPremium = allprem;
         }
 
         public int Id { get; set; }
