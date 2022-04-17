@@ -132,6 +132,7 @@ namespace Coflnet.Sky.Core
             robust,
             rugged,
             zooming,
+            peasant,
 
 
             Unknown = 125,
