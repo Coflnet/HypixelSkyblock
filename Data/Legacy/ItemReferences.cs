@@ -159,7 +159,7 @@ namespace Coflnet.Sky.Core
             {
                 return fullItemName;
             }
-            fullItemName = fullItemName.Trim('✪').Replace("⚚", "");
+            fullItemName = fullItemName.Trim('✪').Replace("⚚", "").Replace("✦","");
             fullItemName = RemoveReforge(fullItemName);
             // remove pet level
             return Regex.Replace(fullItemName, @"\[Lvl \d{1,3}\] ", "").Trim();
