@@ -52,7 +52,7 @@ namespace Coflnet.Sky.Core
             if(Span != null)
             {
                 Span.Log(message);
-                LogException(e);
+                Span.Log(e.ToString());
             }
             else
                 dev.Logger.Instance.Error(e,message);

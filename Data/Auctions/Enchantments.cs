@@ -123,6 +123,7 @@ namespace Coflnet.Sky.Core
             strong_mana,
             hardened_mana,
             mana_vampire,
+            smoldering,
             
             Any = 126
         }
