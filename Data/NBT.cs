@@ -177,7 +177,9 @@ namespace Coflnet.Sky.Core
             "DEFENSIVE_0_gem", // type of gem
             "UNIVERSAL_0", // rarity of gem
             "UNIVERSAL_0_gem", // type of gem
-            "unlocked_slots"
+            "unlocked_slots",
+
+            "hideRightClick" // looks like it is always false
         };
 
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
