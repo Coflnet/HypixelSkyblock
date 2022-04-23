@@ -11,8 +11,25 @@ namespace Coflnet.Sky.Core
     {
         public static double Double(string val)
         {
+            if (TryDouble(val, out double result))
+                return result;
+            throw new CoflnetException("number_invalid", $"{val} is not a valid number");
+        }
+
+        public static bool TryLong(string val, out long result)
+        {
+            var returnVal = TryDouble(val, out double res);
+            result = (long)Math.Round(res);
+            return returnVal;
+        }
+
+        public static bool TryDouble(string val, out double result)
+        {
             if (string.IsNullOrWhiteSpace(val))
-                return 0;
+            {
+                result = 0;
+                return true;
+            }
             var multiple = GetMultiplication(val);
 
             string normalized;
@@ -21,8 +38,13 @@ namespace Coflnet.Sky.Core
             else
                 normalized = val.Replace(',', '.');
 
-            return double.Parse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture) * multiple;
-
+            if(double.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out double internalRes))
+            {
+                result = internalRes * multiple;
+                return true;
+            }
+            result = 0;
+            return false;
         }
 
         public static long Long(string val)
