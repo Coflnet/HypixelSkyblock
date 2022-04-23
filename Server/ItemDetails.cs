@@ -202,7 +202,11 @@ namespace Coflnet.Sky.Core
                     return item;
                 }
             }
-
+            if(fullName.ToUpper() == fullName)
+            {
+                // looks like actually a tag
+                return new DBItem() { Tag = fullName, Name = fullName };
+            }
             return new DBItem() { Tag = "Unknown", Name = fullName };
         }
 
