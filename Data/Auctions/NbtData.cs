@@ -93,8 +93,11 @@ namespace Coflnet.Sky.Core
                             var child = i as NbtCompound;
                             if(child != null)
                                 return AsDictonary(child);
+                            if(i is NbtString s)
+                                return s.StringValue;
+                            // return default string representation
                             return i.ToString();
-                        }).ToList());
+                        }).OrderBy(i=>i).ToList());
                         break;
                     default:
                         dict.Add(item.Name, item.ToString());

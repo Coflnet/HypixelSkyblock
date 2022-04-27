@@ -319,7 +319,7 @@ namespace Coflnet.Sky.Core
             {
                 var list = (abilityScroll as List<object>)
                     .Select(o => o.ToString())
-                    .Select(s => s.Replace("TAG_String:", "")
+                    .Select(s => s.Replace("TAG_String: ", "")
                     .Replace("\"", ""))
                     .OrderBy(a => a);
                 data[stringArrayKey] = String.Join(" ", list);
