@@ -97,7 +97,7 @@ namespace Coflnet.Sky.Core
                                 return s.StringValue;
                             // return default string representation
                             return i.ToString();
-                        }).OrderBy(i=>i).ToList());
+                        }).OrderBy(i=>i.ToString()).ToList());
                         break;
                     default:
                         dict.Add(item.Name, item.ToString());
