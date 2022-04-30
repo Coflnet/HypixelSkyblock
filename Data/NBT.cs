@@ -78,7 +78,13 @@ namespace Coflnet.Sky.Core
 
         public static void FillDetails(SaveAuction auction, string itemBytes, bool includeTier = false)
         {
-            var f = File(Convert.FromBase64String(itemBytes));
+            var f = File(Convert.FromBase64String(itemBytes)).RootTag?.Get<NbtList>("i")
+                ?.Get<NbtCompound>(0);
+            FillFromTag(auction, f, includeTier);
+        }
+
+        public static void FillFromTag(SaveAuction auction, NbtCompound f, bool includeTier)
+        {
             auction.Tag = ItemID(f).Truncate(40);
             auction.Enchantments = Enchantments(f);
             auction.AnvilUses = AnvilUses(f);
@@ -96,7 +102,6 @@ namespace Coflnet.Sky.Core
                     {
                         GetAndAssignTier(auction, line);
                     }
-
                 }
             }
             if (auction.Context != null)
@@ -105,6 +110,8 @@ namespace Coflnet.Sky.Core
 
         private static void GetAndAssignTier(SaveAuction auction, string lastLine)
         {
+            if(lastLine == null)
+                return;
             foreach (var item in Enum.GetValues<Tier>())
             {
                 if (lastLine.Contains(item.ToString()))
@@ -489,7 +496,7 @@ namespace Coflnet.Sky.Core
             return key;
         }
 
-        public static ItemReferences.Reforge GetReforge(NbtFile f)
+        public static ItemReferences.Reforge GetReforge(NbtCompound f)
         {
             var extra = GetExtraTag(f);
             if (extra == null || !extra.TryGet<NbtString>("modifier", out NbtString modifier))
@@ -504,30 +511,31 @@ namespace Coflnet.Sky.Core
             return ItemReferences.Reforge.Unknown;
         }
 
-        public static IEnumerable<string> GetLore(NbtFile f)
+        public static IEnumerable<string> GetLore(NbtCompound rootTag)
         {
-            var loreLines = f?.RootTag?.Get<NbtList>("i")
-            ?.Get<NbtCompound>(0)
+            var loreLines = rootTag
             ?.Get<NbtCompound>("tag")
             ?.Get<NbtCompound>("display")
             ?.Get<NbtList>("Lore");
+
+            if(loreLines == null)
+                yield break;
 
             foreach (var item in loreLines)
             {
                 yield return item.StringValue;
             }
         }
-        public static string GetName(NbtFile f)
+        public static string GetName(NbtCompound rootTag)
         {
-            return f?.RootTag?.Get<NbtList>("i")
-            ?.Get<NbtCompound>(0)
+            return rootTag
             ?.Get<NbtCompound>("tag")
             ?.Get<NbtCompound>("display")
             ?.Get<NbtString>("Name")
             ?.StringValue;
         }
 
-        public static DateTime GetDateTime(NbtFile file)
+        public static DateTime GetDateTime(NbtCompound file)
         {
             var extra = GetExtraTag(file);
             if (extra == null || !extra.TryGet<NbtString>("timestamp", out NbtString timestamp))
@@ -546,7 +554,7 @@ namespace Coflnet.Sky.Core
             return new DateTime();
         }
 
-        public static byte AnvilUses(NbtFile data)
+        public static byte AnvilUses(NbtCompound data)
         {
             var extra = GetExtraTag(data);
             if (extra == null || !extra.TryGet<NbtInt>("anvil_uses", out NbtInt anvilUses))
@@ -557,7 +565,7 @@ namespace Coflnet.Sky.Core
             return (byte)(anvilUses.IntValue < 100 ? anvilUses.IntValue : 100);
         }
 
-        public static short HotPotatoCount(NbtFile data)
+        public static short HotPotatoCount(NbtCompound data)
         {
             var extra = GetExtraTag(data);
             if (!extra.TryGet<NbtCompound>("hot_potato_count", out NbtCompound hotPotatoCount))
@@ -568,22 +576,20 @@ namespace Coflnet.Sky.Core
             return hotPotatoCount.ShortValue;
         }
 
-        public static byte Count(NbtFile file)
+        public static byte Count(NbtCompound rootTag)
         {
-            return file.RootTag?.Get<NbtList>("i")
-                ?.Get<NbtCompound>(0)
+            return rootTag
                 ?.Get<NbtByte>("Count")?.ByteValue ?? 0;
         }
 
-        private static NbtCompound GetExtraTag(NbtFile file)
+        private static NbtCompound GetExtraTag(NbtCompound rootTag)
         {
-            return file?.RootTag?.Get<NbtList>("i")
-                ?.Get<NbtCompound>(0)
+            return rootTag
                 ?.Get<NbtCompound>("tag")
                 ?.Get<NbtCompound>("ExtraAttributes");
         }
 
-        public static List<Enchantment> Enchantments(NbtFile data)
+        public static List<Enchantment> Enchantments(NbtCompound data)
         {
             var extra = GetExtraTag(data);
             if (extra == null || !extra.TryGet<NbtCompound>("enchantments", out NbtCompound elements))
@@ -610,10 +616,10 @@ namespace Coflnet.Sky.Core
         {
             var f = File(Convert.FromBase64String(input));
 
-            return ItemID(f);
+            return ItemID(f.RootTag);
         }
 
-        private static string ItemID(NbtFile file)
+        private static string ItemID(NbtCompound file)
         {
             var nbt = GetExtraTag(file);
 
@@ -662,10 +668,10 @@ namespace Coflnet.Sky.Core
             var f = File(Convert.FromBase64String(input));
 
             var a = f.ToString();
-            return Extra(f);
+            return Extra(f.RootTag);
         }
 
-        public static byte[] Extra(NbtFile file)
+        public static byte[] Extra(NbtCompound file)
         {
             var tag = GetExtraTag(file);
             if (tag == null)

@@ -26,7 +26,7 @@ namespace Coflnet.Sky.Core
             this.data = NBT.Extra(data);
         }
 
-        public void SetData(NbtFile data)
+        public void SetData(NbtCompound data)
         {
             this.data = NBT.Extra(data);
         }
@@ -113,7 +113,7 @@ namespace Coflnet.Sky.Core
         {
             SetData(data);
         }
-        public NbtData(NbtFile data)
+        public NbtData(NbtCompound data)
         {
             SetData(data);
         }
