@@ -133,6 +133,9 @@ namespace Coflnet.Sky.Core
             rugged,
             zooming,
             peasant,
+            strengthened,
+            glistening,
+            waxed,
 
 
             Unknown = 125,
