@@ -125,6 +125,7 @@ namespace Coflnet.Sky.Core
             mana_vampire,
             smoldering,
             ultimate_reiterate,
+            ultimate_flash,
             
             Any = 126
         }
