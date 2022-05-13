@@ -113,6 +113,8 @@ namespace Coflnet.Sky.Core
         /// <returns></returns>
         public int GetItemIdForTag(string tag, bool forceGet = true)
         {
+            if(string.IsNullOrEmpty(tag))
+                return 0;
             if (TagLookup.TryGetValue(tag, out int value))
                 return value;
 
