@@ -29,10 +29,10 @@ Hello there fellow developer. Development of this project is done with docker-co
 1. Install docker and docker-compose if you are a windows user these come with docker desktop.
 1. create a new folder `skyblock`, enter it and clone this repository with `git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev`
 2. copy `docker-compose.yml` to the `skyblock` folder (one folder above)
-3. Open a terminal in the `skyblock` folder and Start up the databases with `docker-compose up -d mariadb phpmyadmin kafka`
+3. Open a terminal in the `skyblock` folder and Start up the databases with `docker-compose up -d mariadb phpmyadmin kafka redis`
 3. Clone the indexer `git clone https://github.com/Coflnet/SkyIndexer.git` The indexer is the service that manages and indexes skyblock data.  
 4. Also clone the updater `git clone https://github.com/Coflnet/SkyUpdater.git`, commands `git clone https://github.com/Coflnet/SkyCommands.git` and the website `git clone https://github.com/Coflnet/hypixel-react.git`
-5. Start these services with `docker-compose up -d indexer updater commands frontend` after that is done you have a complete setup to archive and browse auctions locally.
+5. Start these services with `docker-compose up -d indexer updater commands api modcommands frontend` after that is done you have a complete setup to archive and browse auctions locally.
 7. If you want flips you will also want to clone the flipper and/or sniper flip finders  
 `git clone https://github.com/Coflnet/SkyFlipper.git`   
 `git clone https://github.com/Coflnet/SkySniper.git`
@@ -43,10 +43,29 @@ Note that you only need to clone services that have a `build` section. The ones 
 For basic website functunality you need
 * this repo
 * SkyCommands
-* Hypixel-react (frontend)
+* hypixel-react (frontend)
 * SkyUpdater (downloading process)
 
 #### Scenario
 You update something in `SkyCommands`. You cloned all repos in the right structure. 
 Since you only care about the `commands` service you start all others in the background with: `docker-compose up -d indexer updater`
 Now you build and start `commands` with `docker-compose up --build commands` 
+
+
+
+## list of repos to clone
+```
+git clone --depth=1 https://github.com/Coflnet/SkyItems
+git clone --depth=1 https://github.com/Coflnet/SkyIndexer
+git clone --depth=1 https://github.com/Coflnet/SkyCommands
+git clone --depth=1 https://github.com/Coflnet/hypixel-react
+git clone --depth=1 https://github.com/Coflnet/SkyApi
+git clone --depth=1 https://github.com/Coflnet/SkyBackendForFrontend
+git clone --depth=1 https://github.com/Coflnet/SkyFlipper
+git clone --depth=1 https://github.com/Coflnet/SkyMcConnect
+git clone --depth=1 https://github.com/Coflnet/SkySubscriptions
+git clone --depth=1 https://github.com/Coflnet/SkyUpdater
+git clone --depth=1 https://github.com/Coflnet/SkyModCommands
+git clone --depth=1 https://github.com/Coflnet/SkySettings
+git clone --depth=1 https://github.com/Coflnet/SkyPlayerName
+```
