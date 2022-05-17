@@ -37,9 +37,7 @@ namespace dev
         {
             if (message != null)
                 Error(message);
-            Error($"{error.Message} {error.StackTrace}");
-            if (error.InnerException != null)
-                Error(error.InnerException);
+            Error(error.ToString());
         }
     }
 }

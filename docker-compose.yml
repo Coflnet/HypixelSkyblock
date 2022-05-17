@@ -5,7 +5,7 @@ services:
   mariadb:
     image: 'docker.io/bitnami/mariadb:10.3-debian-10'
     volumes:
-      - './db:/bitnami'
+      - 'skyblockdb_data:/bitnami/mariadb'
     ports:
       - '3306:3306'
     environment:
@@ -27,6 +27,7 @@ services:
       - mariadb
       - kafka
       - redis
+      - items
     environment: 
       FRONTEND_PROD: "frontend"
       JAEGER_SERVICE_NAME: "hypixel-skyblock-core"
@@ -55,7 +56,7 @@ services:
     image: willnorris/imageproxy
     command: -addr 0.0.0.0:80 -cache memory -allowHosts sky.shiiyu.moe,mc-heads.net,crafatar.com
   frontend:
-    build: Hypixel-react
+    build: hypixel-react
   jaeger:
     image: "jaegertracing/all-in-one:1.22"
     ports:
@@ -86,6 +87,8 @@ services:
           memory: 1500M
   mcconnect:
     build: SkyMcConnect
+  items:
+    build: SkyItems
   subscription:
     build: SkySubscriptions
   updater:
@@ -100,4 +103,6 @@ volumes:
   zookeeper_data:
     driver: local
   kafka_data:
+    driver: local
+  skyblockdb_data:
     driver: local
