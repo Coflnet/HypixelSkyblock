@@ -22,6 +22,8 @@ namespace Coflnet.Sky.Core
                         .RegisterSenderFactory<ThriftSenderFactory>();
 
                 ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
+                if(samplingRate >= 1)
+                    sampler = new ConstSampler(true);
                 var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
 
                 ITracer tracer = config.GetTracerBuilder()
