@@ -82,7 +82,13 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.compact,9),
             new Enchantment(Enchantment.EnchantmentType.counter_strike,5),
             new Enchantment(Enchantment.EnchantmentType.smarty_pants,2),
-            new Enchantment(Enchantment.EnchantmentType.cultivating,1)
+            new Enchantment(Enchantment.EnchantmentType.cultivating,1),
+            new Enchantment(Enchantment.EnchantmentType.smoldering,1),
+            new Enchantment(Enchantment.EnchantmentType.strong_mana,5),
+            new Enchantment(Enchantment.EnchantmentType.hardened_mana,5),
+            new Enchantment(Enchantment.EnchantmentType.mana_vampire,4),
+            new Enchantment(Enchantment.EnchantmentType.ferocious_mana,2),
+            new Enchantment(Enchantment.EnchantmentType.charm,4)
         };
 
         private static List<int> WorthOrder = new List<int>()
@@ -94,15 +100,15 @@ namespace Coflnet.Sky.Core
         };
 
 
-        /// <summary>
-        /// SELECT Type,Level FROM `Enchantment`,Auctions as a
-        /// where a.Id = SaveAuctionId
-        /// and SaveAuctionId > 35092256
-        /// and a.ItemId = 1339
-        /// and HighestBidAmount > 0
-        /// group by Type,Level
-        /// order by avg(HighestBidAmount) desc
-        /// <param name="WorthOrderLevels"></param>
+        /*
+        SELECT Type,Level FROM `Enchantment`,Auctions as a
+        where a.Id = SaveAuctionId
+        and SaveAuctionId > 35092256
+        and a.ItemId = 1339
+        and HighestBidAmount > 0
+        group by Type,Level
+        order by avg(HighestBidAmount) desc
+        */
         private static List<(int, int)> WorthOrderLevels = new()
         {
             (70,2),(18,7),(91,5),(35,5),(23,4),(7,5),(95,5),(70,1),(75,5),(50,7),(12,7),(3,6),(2,7),
