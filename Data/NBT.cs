@@ -308,6 +308,7 @@ namespace Coflnet.Sky.Core
                 UnwarpStringArray(data, "mixins");
                 UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
+                UnwrapJson(data, "extraData");
             }
             catch (Exception e)
             {

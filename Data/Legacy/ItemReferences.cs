@@ -136,6 +136,8 @@ namespace Coflnet.Sky.Core
             strengthened,
             glistening,
             waxed,
+            fortified,
+            green_thumb,
 
 
             Unknown = 125,
