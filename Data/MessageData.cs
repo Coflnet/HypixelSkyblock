@@ -144,7 +144,8 @@ namespace Coflnet.Sky.Core
 
         public HttpMessageData(RequestContext context)
         {
-            Type = context.path.Split('/', '?')[2];
+            var parts = context.path.Split('/', '?');
+            Type = parts[2];
             this.Span = context.Span;
             this.context = context;
             // default status code
@@ -156,7 +157,6 @@ namespace Coflnet.Sky.Core
             } */
             try
             {
-                var parts = context.path.Split('/');
                 if (parts.Length > 3)
                     Data = Encoding.UTF8.GetString(Convert.FromBase64String(parts[3]));
             }
