@@ -144,7 +144,7 @@ namespace Coflnet.Sky.Core
 
         public HttpMessageData(RequestContext context)
         {
-            Type = context.path.Split('/')[2];
+            Type = context.path.Split('/', '?')[2];
             this.Span = context.Span;
             this.context = context;
             // default status code
