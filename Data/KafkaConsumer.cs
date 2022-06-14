@@ -39,7 +39,9 @@ namespace Coflnet.Kafka
                     // topic/partitions of interest. By default, offsets are committed
                     // automatically, so in this example, consumption will only start from the
                     // earliest message in the topic 'my-topic' the first time you run the program.
-                    AutoOffsetReset = start
+                    AutoOffsetReset = start,
+                    AutoCommitIntervalMs = 0,
+                    EnableAutoCommit = false
                 };
                 if (deserializer == null)
                     deserializer = SerializerFactory.GetDeserializer<T>();
