@@ -21,7 +21,7 @@ namespace Coflnet.Sky.Core
         [IgnoreMember]
         public int OccuredTimes { get; set; }
 
-        public static implicit operator string(AlternativeName name) => name.Name;
+        public static implicit operator string(AlternativeName name) => name?.Name;
 
     }
 
