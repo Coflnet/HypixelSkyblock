@@ -339,6 +339,10 @@ namespace Coflnet.Sky.Core
                     {
                         await todo();
                     }
+                    catch(TaskCanceledException)
+                    {
+                        return;
+                    }
                     catch (Exception e)
                     {
                         Console.WriteLine();
