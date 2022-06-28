@@ -110,7 +110,7 @@ namespace Coflnet.Sky.Core
 
         private static void GetAndAssignTier(SaveAuction auction, string lastLine)
         {
-            if(lastLine == null)
+            if (lastLine == null)
                 return;
             foreach (var item in Enum.GetValues<Tier>())
             {
@@ -265,7 +265,7 @@ namespace Coflnet.Sky.Core
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
-                    if(!(attr.Value is string value))
+                    if (!(attr.Value is string value))
                         value = JsonConvert.SerializeObject(attr.Value);
                     return new NBTLookup(keyId, Instance.GetValueId(keyId, value));
                 }
@@ -344,6 +344,8 @@ namespace Coflnet.Sky.Core
                     var kv = (item as Dictionary<string, object>);
                     foreach (var keys in kv)
                     {
+                        if (data.ContainsKey(keys.Key))
+                            data[keys.Key] = string.Join(',', data[keys.Key], keys.Value);
                         data[keys.Key] = keys.Value;
                     }
                 }
@@ -519,7 +521,7 @@ namespace Coflnet.Sky.Core
             ?.Get<NbtCompound>("display")
             ?.Get<NbtList>("Lore");
 
-            if(loreLines == null)
+            if (loreLines == null)
                 yield break;
 
             foreach (var item in loreLines)
