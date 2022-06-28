@@ -303,7 +303,7 @@ namespace Coflnet.Sky.Core
             try
             {
                 UnwrapList(data, "effects");
-                UnwrapList(data, "necromancer_souls");
+                UnwrapSouls(data);
                 UnwarpStringArray(data, "ability_scroll");
                 UnwarpStringArray(data, "mixins");
                 UnwarpStringArray(data, "unlocked_slots");
@@ -344,14 +344,36 @@ namespace Coflnet.Sky.Core
                     var kv = (item as Dictionary<string, object>);
                     foreach (var keys in kv)
                     {
-                        if (data.ContainsKey(keys.Key))
-                            data[keys.Key] = string.Join(',', data[keys.Key], keys.Value);
                         data[keys.Key] = keys.Value;
                     }
                 }
                 data.Remove(name);
             }
         }
+
+        private static void UnwrapSouls(Dictionary<string, object> data)
+        {
+
+            if (!data.ContainsKey("necromancer_souls"))
+                return;
+
+            foreach (var item in (data["necromancer_souls"] as List<object>))
+            {
+                var kv = (item as Dictionary<string, object>);
+                foreach (var keys in kv)
+                {
+                    var soul = keys.Value.ToString();
+                    if(data.ContainsKey(soul))
+                        data[soul] = (int)data[soul]+1;
+                    else 
+                        data[soul] = 1;
+                }
+            }
+            data.Remove("necromancer_souls");
+
+        }
+
+
 
         private static void UnwrapJson(Dictionary<string, object> data, string key)
         {
