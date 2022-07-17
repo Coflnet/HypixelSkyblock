@@ -160,7 +160,7 @@ namespace Coflnet.Kafka
                                 }
                                 batch.Enqueue(cr);
                             }
-                            await action(batch.Select(a => a.Message.Value));
+                            await action(batch.Select(a => a.Message.Value)).ConfigureAwait(false);
                             // tell kafka that we stored the batch
                             c.Commit(batch.Select(b => b.TopicPartitionOffset));
                             batch.Clear();
