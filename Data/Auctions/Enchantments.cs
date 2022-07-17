@@ -124,8 +124,8 @@ namespace Coflnet.Sky.Core
             hardened_mana,
             mana_vampire,
             smoldering,
-            ultimate_reiterate,
-            ultimate_duplex = 113,
+            ultimate_duplex,
+            ultimate_reiterate = 113,
             ultimate_flash,
             
             Any = 126
