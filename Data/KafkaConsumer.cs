@@ -135,7 +135,8 @@ namespace Coflnet.Kafka
                 // automatically, so in this example, consumption will only start from the
                 // earliest message in the topic 'my-topic' the first time you run the program.
                 AutoOffsetReset = AutoOffsetReset.Earliest,
-                AutoCommitIntervalMs = 0
+                AutoCommitIntervalMs = 0, 
+                EnableAutoCommit = false
             };
             // in case this method is awaited on in a backgroundWorker
             await Task.Yield();
