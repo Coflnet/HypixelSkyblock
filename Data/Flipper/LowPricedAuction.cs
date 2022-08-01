@@ -8,7 +8,7 @@ namespace Coflnet.Sky.Core
     public class LowPricedAuction
     {
         [DataMember(Name = "target")]
-        public int TargetPrice;
+        public long TargetPrice;
         [DataMember(Name = "vol")]
         public float DailyVolume;
         [DataMember(Name = "auc")]
