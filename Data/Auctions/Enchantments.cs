@@ -129,6 +129,7 @@ namespace Coflnet.Sky.Core
             ultimate_flash,
             hecatomb,
             champion,
+            ultimate_habanero_tactics,
             
             Any = 126
         }
