@@ -127,6 +127,8 @@ namespace Coflnet.Sky.Core
             ultimate_duplex,
             ultimate_reiterate = 113,
             ultimate_flash,
+            hecatomb,
+            champion,
             
             Any = 126
         }
