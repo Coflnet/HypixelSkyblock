@@ -130,6 +130,7 @@ namespace Coflnet.Sky.Core
             hecatomb,
             champion,
             ultimate_habanero_tactics,
+            cayenne,
             
             Any = 126
         }

@@ -122,15 +122,16 @@ namespace Coflnet.Sky.Core
                 {
                     // try to get enchantment for bazaar
                     var lastSpace = name.LastIndexOf(' ');
-                    var level = Roman.From(name.Substring(lastSpace + 1));
-                    var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_');
+                    var levelString = name.Substring(lastSpace + 1).Split('-').First();
+                    if (!int.TryParse(levelString, out int level))
+                        level = Roman.From(levelString);
+                    var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-','_');
                     if (enchantName.StartsWith("§l"))
                         enchantName = enchantName.Substring(2);
-                    if (name.StartsWith("§d"))
-                        auction.Tag = "ENCHANTMENT_ULTIMATE_" + enchantName.ToUpper() + '_' + level;
-                    else
-                        auction.Tag = "ENCHANTMENT_" + enchantName.ToUpper() + '_' + level;
-                    Console.WriteLine(name + " enchant Tag: " + auction.Tag);
+                    if(!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
+                        if(!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
+                            Console.WriteLine("unkown enchant " + enchantName);
+                    auction.Tag = "ENCHANTMENT_" + enchant.ToString().ToUpper() + '_' + level;
                 }
             }
         }
