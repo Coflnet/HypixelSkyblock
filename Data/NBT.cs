@@ -86,7 +86,10 @@ namespace Coflnet.Sky.Core
         public static void FillFromTag(SaveAuction auction, NbtCompound f, bool includeTier)
         {
             auction.Tag = ItemID(f).Truncate(40);
+
             auction.Enchantments = Enchantments(f);
+            if (string.IsNullOrEmpty(auction.Tag))
+                TryAssignTagForBazaarBooks(auction, f);
             auction.AnvilUses = AnvilUses(f);
             auction.Count = Count(f);
             auction.ItemCreatedAt = GetDateTime(f);
@@ -106,6 +109,30 @@ namespace Coflnet.Sky.Core
             }
             if (auction.Context != null)
                 auction.Context["cname"] = GetName(f);
+        }
+
+        private static void TryAssignTagForBazaarBooks(SaveAuction auction, NbtCompound f)
+        {
+            var mcId = f?.Get<NbtString>("id").StringValue;
+            if (mcId == "minecraft:enchanted_book")
+            {
+                auction.Tag = "ENCHANTED_BOOK";
+                var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    // try to get enchantment for bazaar
+                    var lastSpace = name.LastIndexOf(' ');
+                    var level = Roman.From(name.Substring(lastSpace + 1));
+                    var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_');
+                    if (enchantName.StartsWith("§l"))
+                        enchantName = enchantName.Substring(2);
+                    if (name.StartsWith("§d"))
+                        auction.Tag = "ENCHANTMENT_ULTIMATE_" + enchantName.ToUpper() + '_' + level;
+                    else
+                        auction.Tag = "ENCHANTMENT_" + enchantName.ToUpper() + '_' + level;
+                    Console.WriteLine(name + " enchant Tag: " + auction.Tag);
+                }
+            }
         }
 
         private static void GetAndAssignTier(SaveAuction auction, string lastLine)
@@ -363,9 +390,9 @@ namespace Coflnet.Sky.Core
                 foreach (var keys in kv)
                 {
                     var soul = keys.Value.ToString();
-                    if(data.ContainsKey(soul))
-                        data[soul] = (int)data[soul]+1;
-                    else 
+                    if (data.ContainsKey(soul))
+                        data[soul] = (int)data[soul] + 1;
+                    else
                         data[soul] = 1;
                 }
             }
