@@ -162,9 +162,7 @@ namespace Coflnet.Sky.Core
         public static string RemoveReforgesAndLevel(string fullItemName)
         {
             if (fullItemName == null)
-            {
                 return fullItemName;
-            }
             fullItemName = fullItemName.Trim('✪').Replace("⚚", "").Replace("✦","");
             fullItemName = RemoveReforge(fullItemName);
             // remove pet level
@@ -173,6 +171,8 @@ namespace Coflnet.Sky.Core
 
         public static string RemoveReforge(string fullItemName)
         {
+            if (fullItemName == null)
+                return fullItemName;
             var splitName = fullItemName.Split(' ');
             if (reforges.Contains(splitName[0].ToLower()) && (splitName.Count() == 1 || splitName[1] != "Dragon") || fullItemName.StartsWith('◆'))
             {
