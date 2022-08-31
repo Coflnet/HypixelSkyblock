@@ -116,22 +116,28 @@ namespace Coflnet.Sky.Core
             var mcId = f?.Get<NbtString>("id").StringValue;
             if (mcId == "minecraft:enchanted_book")
             {
-                auction.Tag = "ENCHANTED_BOOK";
                 var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
                 if (!string.IsNullOrEmpty(name))
                 {
-                    // try to get enchantment for bazaar
-                    var lastSpace = name.LastIndexOf(' ');
-                    var levelString = name.Substring(lastSpace + 1).Split('-').First();
-                    if (!int.TryParse(levelString, out int level))
-                        level = Roman.From(levelString);
-                    var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-','_');
-                    if (enchantName.StartsWith("§l"))
-                        enchantName = enchantName.Substring(2);
-                    if(!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
-                        if(!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
-                            Console.WriteLine("unkown enchant " + enchantName);
-                    auction.Tag = "ENCHANTMENT_" + enchant.ToString().ToUpper() + '_' + level;
+                    try
+                    {
+                        // try to get enchantment for bazaar
+                        var lastSpace = name.LastIndexOf(' ');
+                        var levelString = name.Substring(lastSpace + 1).Split('-').First();
+                        if (!int.TryParse(levelString, out int level))
+                            level = Roman.From(levelString);
+                        var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
+                        if (enchantName.StartsWith("§l"))
+                            enchantName = enchantName.Substring(2);
+                        if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
+                            if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
+                                Console.WriteLine("unkown enchant " + enchantName);
+                        auction.Tag = "ENCHANTMENT_" + enchant.ToString().ToUpper() + '_' + level;
+                    }
+                    catch (Exception e)
+                    {
+                        dev.Logger.Instance.Error(e, "Parsing book name " + name);
+                    }
                 }
             }
         }
