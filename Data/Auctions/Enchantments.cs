@@ -131,6 +131,7 @@ namespace Coflnet.Sky.Core
             champion,
             ultimate_habanero_tactics,
             cayenne,
+            divine_gift,
             
             Any = 126
         }
