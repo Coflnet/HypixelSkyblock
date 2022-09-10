@@ -343,6 +343,24 @@ namespace Coflnet.Sky.Core
                 UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
                 UnwrapJson(data, "extraData");
+                if (data.TryGetValue("gems", out object gems))
+                {
+                    var dict = (gems as Dictionary<string, object>);
+                    var keys = dict?.Keys;
+                    foreach (var item in keys)
+                    {
+                        if (item.EndsWith("_1") || item.EndsWith("_0"))
+                        {
+                            dynamic gemInfo = dict[item];
+                            if (gemInfo is string)
+                                continue;
+                            if (dict is not null)
+                                Console.WriteLine("got gems " + JsonConvert.SerializeObject(gems));
+                            data[item] = gemInfo.quality;
+                            data[item + ".uuid"] = gemInfo.uuid;
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
