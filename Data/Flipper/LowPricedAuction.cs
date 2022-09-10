@@ -27,6 +27,7 @@ namespace Coflnet.Sky.Core
             SNIPER = 2,
             SNIPER_MEDIAN = 4,
             AI = 8,
+            USER = 16,
 
             TFM = 32,
             STONKS = 64,
