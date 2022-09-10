@@ -355,9 +355,10 @@ namespace Coflnet.Sky.Core
                             if (gemInfo is string)
                                 continue;
                             Console.WriteLine("got gems " + JsonConvert.SerializeObject(gems));
-                            Console.WriteLine(JsonConvert.SerializeObject(gemInfo) + gemInfo.GetType().Name);
+                            Console.WriteLine(JsonConvert.SerializeObject(gemInfo) + gemInfo.GetType());
                             data[item] = gemInfo["quality"];
                             data[item + ".uuid"] = gemInfo["uuid"];
+                            gemInfo.Remove("uuid");
                             dict.Remove(item);
                         }
                     }
