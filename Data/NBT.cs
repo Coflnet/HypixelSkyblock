@@ -356,8 +356,8 @@ namespace Coflnet.Sky.Core
                                 continue;
                             if (dict is not null)
                                 Console.WriteLine("got gems " + JsonConvert.SerializeObject(gems));
-                            data[item] = gemInfo.quality;
-                            data[item + ".uuid"] = gemInfo.uuid;
+                            data[item] = gemInfo["quality"];
+                            data[item + ".uuid"] = gemInfo["uuid"];
                         }
                     }
                 }
