@@ -205,7 +205,7 @@ namespace Coflnet.Sky.Core
                 {
                     var data = NbtData?.Data;
                     if (data == null || data.Count == 0)
-                        return null;
+                        return new();
                     _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
                     {
                         if (d.Value is List<object> list)
