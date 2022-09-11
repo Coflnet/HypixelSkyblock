@@ -354,12 +354,11 @@ namespace Coflnet.Sky.Core
                             dynamic gemInfo = dict[item];
                             if (gemInfo is string)
                                 continue;
-                            Console.WriteLine("got gems " + JsonConvert.SerializeObject(gems));
-                            Console.WriteLine(JsonConvert.SerializeObject(gemInfo) + gemInfo.GetType());
                             data[item] = gemInfo["quality"];
                             data[item + ".uuid"] = gemInfo["uuid"];
                             gemInfo.Remove("uuid");
                             dict.Remove(item);
+                            Console.WriteLine("remaped gem " + JsonConvert.SerializeObject(dict));
                         }
                     }
                 }
