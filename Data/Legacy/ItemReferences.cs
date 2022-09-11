@@ -139,6 +139,8 @@ namespace Coflnet.Sky.Core
             waxed,
             fortified,
             green_thumb,
+            pitchin,
+            coldfusion,
 
 
             Unknown = 125,
