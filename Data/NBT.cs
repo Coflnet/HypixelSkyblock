@@ -262,6 +262,8 @@ namespace Coflnet.Sky.Core
 
         public static List<NBTLookup> CreateLookup(SaveAuction auction)
         {
+            if(auction.NbtData == null)
+                return new();
             var data = auction.NbtData.Data;
             if (data == null || data.Keys.Count == 0)
                 return new List<NBTLookup>();
