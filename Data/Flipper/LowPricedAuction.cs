@@ -16,7 +16,7 @@ namespace Coflnet.Sky.Core
         [DataMember(Name = "finder")]
         public FinderType Finder;
         [DataMember(Name = "props")]
-        public Dictionary<string, string> AdditionalProps;
+        public Dictionary<string, string> AdditionalProps = new();
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
 
