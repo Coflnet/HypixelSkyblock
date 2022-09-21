@@ -537,7 +537,7 @@ namespace Coflnet.Sky.Core
 
         public int GetValueId(short key, string value)
         {
-            if (ValueCache.TryGetValue((key, value), out int id))
+            /*if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
 
             using (var context = new HypixelContext())
@@ -545,12 +545,12 @@ namespace Coflnet.Sky.Core
                 var item = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).FirstOrDefault();
                 if (item != null)
                     return item.Id;
-            }
+            }*/
 
-            return ValueCache.AddOrUpdate((key, value), k =>
+            return ValueCache.GetOrAdd((key, value), k =>
             {
                 using var context = new HypixelContext();
-                id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
+                var id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
                 if (id != 0)
                     return id;
                 try
@@ -565,7 +565,7 @@ namespace Coflnet.Sky.Core
                 }
 
 
-            }, (K, v) => v);
+            });
         }
 
         protected virtual NBTValue AddNewValueToDb((short, string) k, HypixelContext context)
