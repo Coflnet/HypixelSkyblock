@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit" Version="4.0.1" />
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="1.0.0" />
-    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.5.1" />
+    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.6.0" />
     <PackageReference Include="Confluent.Kafka" Version="1.7.0" />
     <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="1.7.0" />
     <!--Package doesn't work with .net 5 so the source is cloned-->

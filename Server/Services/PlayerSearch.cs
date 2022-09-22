@@ -153,7 +153,7 @@ namespace Coflnet.Sky.Core
         public async Task<MinecraftProfile> GetMcProfile(string name)
         {
             var client = new RestClient("https://mc-heads.net/");
-            var request = new RestRequest($"/minecraft/profile/{name}", Method.GET);
+            var request = new RestRequest($"/minecraft/profile/{name}", Method.Get);
             var response = await client.ExecuteAsync(request);
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 return null;

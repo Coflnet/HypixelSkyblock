@@ -151,7 +151,7 @@ namespace Coflnet.Sky.Core
         {
             //Create the request
             var client = new RestClient("https://api.mojang.com/");
-            var request = new RestRequest($"users/profiles/minecraft/{playerName}", Method.GET);
+            var request = new RestRequest($"users/profiles/minecraft/{playerName}", Method.Get);
 
             //Get the response and Deserialize
             var response = client.Execute(request);

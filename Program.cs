@@ -471,18 +471,18 @@ namespace Coflnet.Sky.Core
             if (RequestsSinceStart < 600)
             {
                 client = new RestClient("https://api.mojang.com/");
-                request = new RestRequest($"user/profiles/{uuid}/names", Method.GET);
+                request = new RestRequest($"user/profiles/{uuid}/names", Method.Get);
             }
             else if (RequestsSinceStart < 1500)
             {
                 client = new RestClient("https://mc-heads.net/");
-                request = new RestRequest($"/minecraft/profile/{uuid}", Method.GET);
+                request = new RestRequest($"/minecraft/profile/{uuid}", Method.Get);
                 type = 1;
             }
             else
             {
                 client = new RestClient("https://minecraft-api.com/");
-                request = new RestRequest($"/api/uuid/pseudo.php?uuid={uuid}", Method.GET);
+                request = new RestRequest($"/api/uuid/pseudo.php?uuid={uuid}", Method.Get);
                 type = 2;
             }
 
