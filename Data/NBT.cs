@@ -257,7 +257,8 @@ namespace Coflnet.Sky.Core
             "personal_deletor_9",
             "last_potion_ingredient",
             "power_ability_scroll",
-            "skin"
+            "skin",
+            "dye_item"
         };
 
         public static List<NBTLookup> CreateLookup(SaveAuction auction)
