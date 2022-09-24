@@ -361,7 +361,6 @@ namespace Coflnet.Sky.Core
                             data[item + ".uuid"] = gemInfo["uuid"];
                             gemInfo.Remove("uuid");
                             dict.Remove(item);
-                            Console.WriteLine("remaped gem " + JsonConvert.SerializeObject(dict));
                         }
                     }
                 }
