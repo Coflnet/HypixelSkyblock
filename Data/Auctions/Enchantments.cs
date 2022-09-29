@@ -133,6 +133,7 @@ namespace Coflnet.Sky.Core
             cayenne,
             divine_gift,
             piscary,
+            ultimate_bobbin_time,
             
             Any = 126
         }
