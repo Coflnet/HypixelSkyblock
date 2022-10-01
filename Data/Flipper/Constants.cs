@@ -88,7 +88,52 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.hardened_mana,5),
             new Enchantment(Enchantment.EnchantmentType.mana_vampire,4),
             new Enchantment(Enchantment.EnchantmentType.ferocious_mana,2),
-            new Enchantment(Enchantment.EnchantmentType.charm,4)
+            new Enchantment(Enchantment.EnchantmentType.charm,4),
+            new Enchantment(Enchantment.EnchantmentType.big_brain,3),
+            new Enchantment(Enchantment.EnchantmentType.cayenne,5),
+        };
+
+        /// <summary>
+        /// Enchants at or above 20m
+        /// </summary>
+        public readonly static Dictionary<Enchantment.EnchantmentType, byte> VeryValuableEnchant = new()
+        {
+            {Enchantment.EnchantmentType.execute, 6},
+            {Enchantment.EnchantmentType.ultimate_legion, 5},
+            {Enchantment.EnchantmentType.big_brain, 4},
+            {Enchantment.EnchantmentType.cayenne, 5},
+            {Enchantment.EnchantmentType.chance, 5},
+            {Enchantment.EnchantmentType.counter_strike, 5},
+            {Enchantment.EnchantmentType.turbo_cactus, 5},
+            {Enchantment.EnchantmentType.ender_slayer, 7},
+            {Enchantment.EnchantmentType.sharpness, 7},
+            {Enchantment.EnchantmentType.strong_mana, 8},
+            {Enchantment.EnchantmentType.hardened_mana, 9},
+            {Enchantment.EnchantmentType.mana_vampire, 9},
+            {Enchantment.EnchantmentType.PROSECUTE, 6},
+            {Enchantment.EnchantmentType.ultimate_rend, 4},
+            {Enchantment.EnchantmentType.growth, 7},
+            {Enchantment.EnchantmentType.ultimate_chimera, 1},
+            {Enchantment.EnchantmentType.smoldering, 5},
+            {Enchantment.EnchantmentType.critical, 7},
+            {Enchantment.EnchantmentType.ultimate_reiterate, 2},
+            {Enchantment.EnchantmentType.venomous, 6},
+            {Enchantment.EnchantmentType.ferocious_mana, 6},
+            {Enchantment.EnchantmentType.power, 7},
+            {Enchantment.EnchantmentType.ultimate_bobbin_time, 5},
+            {Enchantment.EnchantmentType.first_strike, 5},
+            {Enchantment.EnchantmentType.ultimate_flash, 5},
+            {Enchantment.EnchantmentType.ultimate_fatal_tempo, 1},
+            {Enchantment.EnchantmentType.snipe, 4},
+            {Enchantment.EnchantmentType.vicious, 5},
+            {Enchantment.EnchantmentType.giant_killer, 7},
+            {Enchantment.EnchantmentType.triple_strike, 5},
+            {Enchantment.EnchantmentType.ultimate_inferno, 1},
+            {Enchantment.EnchantmentType.syphon, 5},
+            {Enchantment.EnchantmentType.looting, 5},
+            {Enchantment.EnchantmentType.cubism, 6},
+            {Enchantment.EnchantmentType.luck, 7}
+
         };
 
         private static List<int> WorthOrder = new List<int>()
