@@ -34,7 +34,8 @@ namespace Coflnet.Kafka
             while (!cancleToken.IsCancellationRequested)
                 try
                 {
-                    await ConsumeBatch(host, topic, async batch => {
+                    await ConsumeBatch(host, topic, async batch =>
+                    {
                         foreach (var message in batch)
                             await action(message);
                     }, cancleToken, groupId, 1, start, deserializer);
@@ -90,19 +91,33 @@ namespace Coflnet.Kafka
                                             AutoOffsetReset start = AutoOffsetReset.Earliest,
                                             IDeserializer<T> deserializer = null)
         {
-            var batch = new Queue<ConsumeResult<Ignore, T>>();
-            var conf = new ConsumerConfig
+            await ConsumeBatch(new ConsumerConfig
             {
                 GroupId = groupId,
-                BootstrapServers = host,
+
                 // Note: The AutoOffsetReset property determines the start offset in the event
                 // there are not yet any committed offsets for the consumer group for the
                 // topic/partitions of interest. By default, offsets are committed
                 // automatically, so in this example, consumption will only start from the
                 // earliest message in the topic 'my-topic' the first time you run the program.
                 AutoOffsetReset = start,
-                AutoCommitIntervalMs = 0,
-                EnableAutoCommit = false
+                BootstrapServers = host
+            }, topics, action, cancleToken, maxChunkSize, deserializer);
+        }
+
+
+        public static async Task ConsumeBatch<T>(
+                                            ConsumerConfig config,
+                                            string[] topics,
+                                            Func<IEnumerable<T>, Task> action,
+                                            CancellationToken cancleToken,
+                                            int maxChunkSize = 500,
+                                            IDeserializer<T> deserializer = null)
+        {
+            var batch = new Queue<ConsumeResult<Ignore, T>>();
+            var conf = new ConsumerConfig(config)
+            {
+                AutoCommitIntervalMs = 0
             };
             // in case this method is awaited on in a backgroundWorker
             await Task.Yield();
