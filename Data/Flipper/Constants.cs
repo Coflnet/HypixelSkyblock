@@ -133,7 +133,6 @@ namespace Coflnet.Sky.Core
             {Enchantment.EnchantmentType.looting, 5},
             {Enchantment.EnchantmentType.cubism, 6},
             {Enchantment.EnchantmentType.luck, 7}
-
         };
 
         private static List<int> WorthOrder = new List<int>()
