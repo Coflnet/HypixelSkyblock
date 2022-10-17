@@ -204,3 +204,5 @@ volumes:
     driver: local
   mongodb_data:
     driver: local
+  cassandra_data:
+    driver: local
