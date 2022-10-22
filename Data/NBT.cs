@@ -352,7 +352,7 @@ namespace Coflnet.Sky.Core
                     var keys = dict?.Keys;
                     foreach (var item in keys)
                     {
-                        if (item.EndsWith("_1") || item.EndsWith("_0"))
+                        if (item.EndsWith("_1") || item.EndsWith("_0") || item.EndsWith("_2") || item.EndsWith("_3") || item.EndsWith("_4"))
                         {
                             dynamic gemInfo = dict[item];
                             if (gemInfo is string)
