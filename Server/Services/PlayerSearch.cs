@@ -121,12 +121,13 @@ namespace Coflnet.Sky.Core
                 return new PlayerResult[0];
 
             List<PlayerResult> result;
-            search = search.Replace("_", "\\_");
+            var searchPattern = search.Replace("_", "\\_");
+            System.Console.WriteLine("searching player " + search);
 
             using (var context = new HypixelContext())
             {
                 result = await context.Players
-                    .Where(e => EF.Functions.Like(e.Name, $"{search}%") || e.UuId == search)
+                    .Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%") || e.UuId == search)
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search || p.UuId == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)
