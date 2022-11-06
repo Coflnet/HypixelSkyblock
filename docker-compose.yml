@@ -48,7 +48,6 @@ services:
       - KAFKA_HOST=kafka:9092
     ports:
     - "8008:8008"
-    - '1234:80'
     restart: always
     depends_on:
       - mariadb
@@ -122,6 +121,10 @@ services:
     restart: always
     depends_on:
      - commands
+     - mcconnect
+     - fliptracker
+     - kafka
+     - items
   items:
     build: SkyItems
     restart: always 
