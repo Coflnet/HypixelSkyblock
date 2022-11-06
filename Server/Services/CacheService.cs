@@ -121,7 +121,7 @@ namespace Coflnet.Sky.Core
             try
             {
                 var data = MessagePack.MessagePackSerializer.Serialize(obj);
-                if (HotCache.Count > 650)
+                if (HotCache.Count > 350)
                     HotCache.Clear();
                 HotCache.AddOrUpdate(key, data, (a, b) => data);
                 await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
