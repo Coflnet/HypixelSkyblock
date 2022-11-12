@@ -34,11 +34,10 @@ namespace Coflnet.Sky.Core
                 {
                     GlobalTracer.Register(tracer);
                 }
-                catch (System.Exception)
+                catch (System.Exception e)
                 {
-                    loggerFactory.CreateLogger("jager").LogError("Could not register new tracer");
+                    loggerFactory.CreateLogger("jager").LogError("Could not register new tracer \n" + e);
                 }
-
 
                 return tracer;
             });
