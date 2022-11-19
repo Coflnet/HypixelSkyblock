@@ -7,8 +7,8 @@
         //ws = new WebSocket("wss://sky-commands.coflnet.com/skyblock?id=aaaaaaaaaaaaaaaaaaaaaaaaaa");
         //ws = new WebSocket("wss://sky-commands.coflnet.com/modsocket?sid=nicer&version=1.2-Alpha&uuid=ekwav");
         //ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
-        //ws = new WebSocket("ws://sky-mod.coflnet.com/modsocket?sid=niced&version=1.2-Alpha&uuid=ekwav");
-        ws = new WebSocket("ws://localhost:8009/modsocket?sid=nidxcefdks&version=1.2-Alpha&uuid=ekwav");
+        ws = new WebSocket("ws://sky-mod.coflnet.com/modsocket?sid=niced&version=1.2-Alpha&uuid=ekwav");
+        //ws = new WebSocket("ws://localhost:8009/modsocket?sid=nidxcefdks&version=1.2-Alpha&uuid=ekwav");
 
 
         ws.onmessage = function (evt) {
@@ -36,7 +36,8 @@
     function send(type, data) {
         ws.send(JSON.stringify({
             type: type,
-            data: btoa(data)
+            data: btoa(data),
+            mId: new Date().getMilliseconds()
         }));
     }
 

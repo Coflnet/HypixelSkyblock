@@ -12,7 +12,17 @@ namespace Coflnet.Sky.Core
 
         public static ISerializer<T> GetSerializer<T>()
         {
+            if (typeof(T) == typeof(Ignore))
+                return new IgnoreSerializer<T>();
             return new MsgPackSerializer<T>();
+        }
+
+        public class IgnoreSerializer<T> : ISerializer<T>
+        {
+            public byte[] Serialize(T data, SerializationContext context)
+            {
+                return new byte[0];
+            }
         }
     }
 

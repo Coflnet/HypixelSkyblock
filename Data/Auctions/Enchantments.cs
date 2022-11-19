@@ -124,9 +124,16 @@ namespace Coflnet.Sky.Core
             hardened_mana,
             mana_vampire,
             smoldering,
-            ultimate_reiterate,
-            ultimate_duplex = 113,
+            ultimate_duplex,
+            ultimate_reiterate = 113,
             ultimate_flash,
+            hecatomb,
+            champion,
+            ultimate_habanero_tactics,
+            cayenne,
+            divine_gift,
+            piscary,
+            ultimate_bobbin_time,
             
             Any = 126
         }

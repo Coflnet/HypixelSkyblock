@@ -34,6 +34,13 @@ services:
       JAEGER_AGENT_HOST: "jaeger"
       KAFKA_HOST: "kafka:9092"
       SKYCOMMANDS_HOST: "commands:8008"
+  api:
+    build: SkyApi
+    restart: always 
+    ports:
+    - '1234:8000'
+    environment: 
+      DBCONNECTION: server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=30
   commands:
     build: SkyCommands
     environment: 
@@ -41,7 +48,6 @@ services:
       - KAFKA_HOST=kafka:9092
     ports:
     - "8008:8008"
-    - '1234:80'
     restart: always
     depends_on:
       - mariadb
@@ -52,15 +58,32 @@ services:
     image: "redis:alpine"
     environment:
       - REDIS_REPLICATION_MODE=master
+    ports:
+      - "6379:6379"
   imgproxy:
-    image: willnorris/imageproxy
-    command: -addr 0.0.0.0:80 -cache memory -allowHosts sky.shiiyu.moe,mc-heads.net,crafatar.com
+    image: darthsim/imgproxy
+    environment:
+      - IMGPROXY_ALLOWED_SOURCES=https://sky.shiiyu.moe/,https://skycrypt.coflnet.com,https://mc-heads.net/,https://crafatar.com/,https://static.coflnet.com/
+      - IMGPROXY_BIND=:80
+      - IMGPROXY_MAX_ANIMATION_FRAMES=100
+    ports:
+      - 8234:80
   frontend:
     build: hypixel-react
   jaeger:
-    image: "jaegertracing/all-in-one:1.22"
+    image: "jaegertracing/all-in-one:1.35"
     ports:
       - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "5775:5775"
+      - "6831:6831"
+      - "6832:6832"
+      - "5778:5778"
+      - "14269:14269"
+      - "9411:9411"
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.7
     ports:
@@ -87,8 +110,42 @@ services:
           memory: 1500M
   mcconnect:
     build: SkyMcConnect
+  modcommands:
+    build: SkyModCommands
+    environment: 
+      - JAEGER_AGENT_HOST=jaeger
+      - KAFKA_HOST=kafka:9092
+      - DBConnection=server=mariadb;database=test;user=read;password=read; convert zero datetime=True;Charset=utf8; Connect Timeout=30; SslMode=none
+    ports:
+    - "8009:8008"
+    restart: always
+    depends_on:
+     - commands
+     - mcconnect
+     - fliptracker
+     - kafka
+     - items
   items:
     build: SkyItems
+    restart: always 
+    ports:
+     - '5014:8000'
+  fliptracker:
+    build: SkyFlipTracker
+    restart: always
+  crafts:
+    build: SkyCrafts
+  profile:
+    build: SkyPlayerInfo
+    ports:
+      - "8087:8000"
+  sniper:
+    build: SkySniper
+    restart: always 
+    ports:
+      - "8086:8000"
+    depends_on:
+      - minio
   subscription:
     build: SkySubscriptions
   updater:
@@ -99,10 +156,56 @@ services:
       SLOWDOWN_MS: 800
   flipper:
     build: SkyFlipper
+  payment:
+    build: Payments
+    depends_on:
+      - mariadb
+    ports:
+      - "8089:80"
+  cassandra:
+    image: docker.io/bitnami/cassandra:4.0
+    ports:
+      - '7000:7000'
+      - '9042:9042'
+    volumes:
+      - 'cassandra_data:/bitnami'
+    environment:
+      - CASSANDRA_SEEDS=cassandra
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=cassandra
+  mongo:
+    image: bitnami/mongodb
+    environment:
+      - MONGODB_USERNAME=my_user
+      - MONGODB_PASSWORD=password123
+      - MONGODB_ROOT_PASSWORD=password123
+      - MONGODB_DATABASE=my_database
+    volumes:
+      - 'mongodb_data:/bitnami'
+    ports:
+      - '27017:27017'
+  minio:
+    image: minio/minio
+    command: server --console-address ":9001" /data
+    depends_on:
+      - "kafka"
+    expose:
+      - 9000
+      - 9001
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
 volumes:
   zookeeper_data:
     driver: local
   kafka_data:
     driver: local
   skyblockdb_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  cassandra_data:
     driver: local

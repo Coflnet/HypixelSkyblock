@@ -30,6 +30,7 @@ namespace Coflnet.Sky.Core
                 result = 0;
                 return true;
             }
+            val =val.TrimEnd('%');
             var multiple = GetMultiplication(val);
 
             string normalized;

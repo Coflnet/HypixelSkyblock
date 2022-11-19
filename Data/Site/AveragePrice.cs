@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Core
         [DataMember(Name = "max")]
         public float Max { get; set; }
         [DataMember(Name = "avg")]
-        public float Avg { get; set; }
+        public double Avg { get; set; }
         [DataMember(Name = "volume")]
         public int Volume { get; set; }
         [IgnoreDataMember]

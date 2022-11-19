@@ -60,7 +60,7 @@ namespace Coflnet.Sky.Core
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseMySql(DbContextId,new MariaDbServerVersion(DBVersion),
-            opts => opts.CommandTimeout(60)).EnableSensitiveDataLogging();
+            opts => opts.CommandTimeout(60).MaxBatchSize(100)).EnableSensitiveDataLogging();
         }
 
 

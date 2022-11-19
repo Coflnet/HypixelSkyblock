@@ -136,8 +136,6 @@ namespace Coflnet.Sky.Core
                 var id = context.Items.Where(i => i.Tag == tag).Select(i => i.Id).FirstOrDefault();
                 if (id == 0 && forceGet)
                     throw new CoflnetException("item_not_found", $"could not find the item with the tag `{tag}`");
-                if (id != 0)
-                    TagLookup[tag] = id;
                 return id;
             }
         }

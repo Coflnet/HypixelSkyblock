@@ -72,7 +72,8 @@ namespace Coflnet.Sky.Core
             Fabled,
             Precise,
             Giant,
-            aote_stone,
+            aote_stone = 53,
+            warped_on_aote = 53,
             Spiritual,
             Treacherous,
             Renowned,
@@ -138,6 +139,8 @@ namespace Coflnet.Sky.Core
             waxed,
             fortified,
             green_thumb,
+            pitchin,
+            coldfusion,
 
 
             Unknown = 125,
@@ -162,9 +165,7 @@ namespace Coflnet.Sky.Core
         public static string RemoveReforgesAndLevel(string fullItemName)
         {
             if (fullItemName == null)
-            {
                 return fullItemName;
-            }
             fullItemName = fullItemName.Trim('✪').Replace("⚚", "").Replace("✦","");
             fullItemName = RemoveReforge(fullItemName);
             // remove pet level
@@ -173,6 +174,8 @@ namespace Coflnet.Sky.Core
 
         public static string RemoveReforge(string fullItemName)
         {
+            if (fullItemName == null)
+                return fullItemName;
             var splitName = fullItemName.Split(' ');
             if (reforges.Contains(splitName[0].ToLower()) && (splitName.Count() == 1 || splitName[1] != "Dragon") || fullItemName.StartsWith('◆'))
             {

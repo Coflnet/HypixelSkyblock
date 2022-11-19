@@ -86,7 +86,10 @@ namespace Coflnet.Sky.Core
         public static void FillFromTag(SaveAuction auction, NbtCompound f, bool includeTier)
         {
             auction.Tag = ItemID(f).Truncate(40);
+
             auction.Enchantments = Enchantments(f);
+            if (string.IsNullOrEmpty(auction.Tag))
+                TryAssignTagForBazaarBooks(auction, f);
             auction.AnvilUses = AnvilUses(f);
             auction.Count = Count(f);
             auction.ItemCreatedAt = GetDateTime(f);
@@ -108,9 +111,40 @@ namespace Coflnet.Sky.Core
                 auction.Context["cname"] = GetName(f);
         }
 
+        private static void TryAssignTagForBazaarBooks(SaveAuction auction, NbtCompound f)
+        {
+            var mcId = f?.Get<NbtString>("id").StringValue;
+            if (mcId == "minecraft:enchanted_book")
+            {
+                var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    try
+                    {
+                        // try to get enchantment for bazaar
+                        var lastSpace = name.LastIndexOf(' ');
+                        var levelString = name.Substring(lastSpace + 1).Split('-').First();
+                        if (!int.TryParse(levelString, out int level))
+                            level = Roman.From(levelString);
+                        var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
+                        if (enchantName.StartsWith("§l"))
+                            enchantName = enchantName.Substring(2);
+                        if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
+                            if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
+                                Console.WriteLine("unkown enchant " + enchantName);
+                        auction.Tag = "ENCHANTMENT_" + enchant.ToString().ToUpper() + '_' + level;
+                    }
+                    catch (Exception e)
+                    {
+                        dev.Logger.Instance.Error(e, "Parsing book name " + name);
+                    }
+                }
+            }
+        }
+
         private static void GetAndAssignTier(SaveAuction auction, string lastLine)
         {
-            if(lastLine == null)
+            if (lastLine == null)
                 return;
             foreach (var item in Enum.GetValues<Tier>())
             {
@@ -223,11 +257,14 @@ namespace Coflnet.Sky.Core
             "personal_deletor_9",
             "last_potion_ingredient",
             "power_ability_scroll",
-            "skin"
+            "skin",
+            "dye_item"
         };
 
         public static List<NBTLookup> CreateLookup(SaveAuction auction)
         {
+            if (auction.NbtData == null)
+                return new();
             var data = auction.NbtData.Data;
             if (data == null || data.Keys.Count == 0)
                 return new List<NBTLookup>();
@@ -265,7 +302,7 @@ namespace Coflnet.Sky.Core
                 if (ValidKeys.Contains(key))
                 {
                     var keyId = GetLookupKey(key);
-                    if(!(attr.Value is string value))
+                    if (!(attr.Value is string value))
                         value = JsonConvert.SerializeObject(attr.Value);
                     return new NBTLookup(keyId, Instance.GetValueId(keyId, value));
                 }
@@ -303,12 +340,30 @@ namespace Coflnet.Sky.Core
             try
             {
                 UnwrapList(data, "effects");
-                UnwrapList(data, "necromancer_souls");
+                UnwrapSouls(data);
                 UnwarpStringArray(data, "ability_scroll");
                 UnwarpStringArray(data, "mixins");
                 UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
                 UnwrapJson(data, "extraData");
+                if (data.TryGetValue("gems", out object gems))
+                {
+                    var dict = (gems as Dictionary<string, object>);
+                    var keys = dict?.Keys;
+                    foreach (var item in keys)
+                    {
+                        if (item.EndsWith("_1") || item.EndsWith("_0") || item.EndsWith("_2") || item.EndsWith("_3") || item.EndsWith("_4"))
+                        {
+                            dynamic gemInfo = dict[item];
+                            if (gemInfo is string)
+                                continue;
+                            data[item] = gemInfo["quality"];
+                            data[item + ".uuid"] = gemInfo["uuid"];
+                            gemInfo.Remove("uuid");
+                            dict.Remove(item);
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -350,6 +405,30 @@ namespace Coflnet.Sky.Core
                 data.Remove(name);
             }
         }
+
+        private static void UnwrapSouls(Dictionary<string, object> data)
+        {
+
+            if (!data.ContainsKey("necromancer_souls"))
+                return;
+
+            foreach (var item in (data["necromancer_souls"] as List<object>))
+            {
+                var kv = (item as Dictionary<string, object>);
+                foreach (var keys in kv)
+                {
+                    var soul = keys.Value.ToString();
+                    if (data.ContainsKey(soul))
+                        data[soul] = (int)data[soul] + 1;
+                    else
+                        data[soul] = 1;
+                }
+            }
+            data.Remove("necromancer_souls");
+
+        }
+
+
 
         private static void UnwrapJson(Dictionary<string, object> data, string key)
         {
@@ -458,7 +537,7 @@ namespace Coflnet.Sky.Core
 
         public int GetValueId(short key, string value)
         {
-            if (ValueCache.TryGetValue((key, value), out int id))
+            /*if (ValueCache.TryGetValue((key, value), out int id))
                 return id;
 
             using (var context = new HypixelContext())
@@ -466,12 +545,12 @@ namespace Coflnet.Sky.Core
                 var item = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).FirstOrDefault();
                 if (item != null)
                     return item.Id;
-            }
+            }*/
 
-            return ValueCache.AddOrUpdate((key, value), k =>
+            return ValueCache.GetOrAdd((key, value), k =>
             {
                 using var context = new HypixelContext();
-                id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
+                var id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
                 if (id != 0)
                     return id;
                 try
@@ -486,7 +565,7 @@ namespace Coflnet.Sky.Core
                 }
 
 
-            }, (K, v) => v);
+            });
         }
 
         protected virtual NBTValue AddNewValueToDb((short, string) k, HypixelContext context)
@@ -519,13 +598,21 @@ namespace Coflnet.Sky.Core
             ?.Get<NbtCompound>("display")
             ?.Get<NbtList>("Lore");
 
-            if(loreLines == null)
+            if (loreLines == null)
                 yield break;
 
             foreach (var item in loreLines)
             {
                 yield return item.StringValue;
             }
+        }
+
+        public static int? GetColor(NbtCompound compound)
+        {
+            return compound
+                ?.Get<NbtCompound>("tag")
+                ?.Get<NbtCompound>("display")
+                ?.Get<NbtInt>("color")?.IntValue;
         }
         public static string GetName(NbtCompound rootTag)
         {
@@ -583,11 +670,21 @@ namespace Coflnet.Sky.Core
                 ?.Get<NbtByte>("Count")?.ByteValue ?? 0;
         }
 
-        private static NbtCompound GetExtraTag(NbtCompound rootTag)
+        public static NbtCompound GetExtraTag(NbtCompound rootTag)
         {
             return rootTag
                 ?.Get<NbtCompound>("tag")
                 ?.Get<NbtCompound>("ExtraAttributes");
+        }
+
+        public static Dictionary<string, byte> GetEnchants(NbtCompound data)
+        {
+            var extra = GetExtraTag(data);
+            if (extra == null || !extra.TryGet<NbtCompound>("enchantments", out NbtCompound elements))
+            {
+                return null;
+            }
+            return elements.ToDictionary(e => e.Name, e => (byte)Math.Min(e.IntValue, 127));
         }
 
         public static List<Enchantment> Enchantments(NbtCompound data)
@@ -620,7 +717,7 @@ namespace Coflnet.Sky.Core
             return ItemID(f.RootTag);
         }
 
-        private static string ItemID(NbtCompound file)
+        public static string ItemID(NbtCompound file)
         {
             var nbt = GetExtraTag(file);
 
@@ -672,28 +769,38 @@ namespace Coflnet.Sky.Core
             return Extra(f.RootTag);
         }
 
-        public static byte[] Extra(NbtCompound file)
+        public static NbtCompound GetReducedExtra(NbtCompound file)
         {
             var tag = GetExtraTag(file);
             if (tag == null)
                 return null;
 
-
-
             tag.Remove("enchantments");
+            tag.Remove("id");
+            tag.Remove("originTag");
+
+            if (tag.Contains("uuid"))
+            {
+                var uuid = tag.Get<NbtString>("uuid");
+                tag.Add(new NbtString("uid", uuid.StringValue.Substring(24)));
+            }
+
+            return tag;
+
+        }
+
+        public static byte[] Extra(NbtCompound file)
+        {
+            var tag = GetReducedExtra(file);
+            if (tag == null)
+                return null;
+
             tag.Remove("modifier");
             tag.Remove("hotPotatoBonus");
             tag.Remove("originTag");
             tag.Remove("timestamp");
             tag.Remove("anvil_uses");
-            tag.Remove("id");
 
-            if (tag.Contains("uuid"))
-            {
-                var uuid = tag.Get<NbtString>("uuid");
-                tag.Remove("uuid");
-                tag.Add(new NbtString("uid", uuid.StringValue.Substring(24)));
-            }
             if (tag.Contains("hot_potato_count"))
             {
                 // rename to be smaler
@@ -702,6 +809,7 @@ namespace Coflnet.Sky.Core
             }
 
             tag.Name = "";
+            tag.Remove("uuid");
 
             var shortenedFile = new NbtFile(tag);
             return Bytes(shortenedFile);

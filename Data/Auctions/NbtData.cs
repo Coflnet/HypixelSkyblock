@@ -51,8 +51,10 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        private Dictionary<string, object> AsDictonary(NbtCompound top)
+        public static Dictionary<string, object> AsDictonary(NbtCompound top)
         {
+            if(top == null)
+                return null;
             var dict = new Dictionary<string, object>();
             foreach (var item in top)
             {

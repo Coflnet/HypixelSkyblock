@@ -8,7 +8,7 @@ namespace Coflnet.Sky.Core
     public class LowPricedAuction
     {
         [DataMember(Name = "target")]
-        public int TargetPrice;
+        public long TargetPrice;
         [DataMember(Name = "vol")]
         public float DailyVolume;
         [DataMember(Name = "auc")]
@@ -16,7 +16,7 @@ namespace Coflnet.Sky.Core
         [DataMember(Name = "finder")]
         public FinderType Finder;
         [DataMember(Name = "props")]
-        public Dictionary<string, string> AdditionalProps;
+        public Dictionary<string, string> AdditionalProps = new();
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
 
@@ -27,6 +27,7 @@ namespace Coflnet.Sky.Core
             SNIPER = 2,
             SNIPER_MEDIAN = 4,
             AI = 8,
+            USER = 16,
 
             TFM = 32,
             STONKS = 64,

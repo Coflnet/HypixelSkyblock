@@ -189,9 +189,11 @@ namespace Coflnet.Sky.Core
         [IgnoreMember]
         [JsonIgnore]
         public List<NBTLookup> NBTLookup { get; set; }
+
         private Dictionary<string, string> _flatenedNBT;
         [IgnoreMember]
         [JsonProperty("flatNbt")]
+        [System.Text.Json.Serialization.JsonPropertyName("flatNbt")]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public Dictionary<string, string> FlatenedNBT
         {
@@ -203,7 +205,7 @@ namespace Coflnet.Sky.Core
                 {
                     var data = NbtData?.Data;
                     if (data == null || data.Count == 0)
-                        return new Dictionary<string, string>();
+                        return new();
                     _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
                     {
                         if (d.Value is List<object> list)
@@ -218,7 +220,7 @@ namespace Coflnet.Sky.Core
                     return null;
                 }
             }
-            set 
+            set
             {
                 _flatenedNBT = value;
             }
@@ -244,7 +246,7 @@ namespace Coflnet.Sky.Core
         [Key(29)]
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-        public Dictionary<string,string> Context { get; set; }
+        public Dictionary<string, string> Context { get; set; }
 
         public SaveAuction() { }
 
