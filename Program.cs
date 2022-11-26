@@ -448,7 +448,8 @@ namespace Coflnet.Sky.Core
         {
             if (DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2400)
             {
-                //Console.Write("Blocked");
+                await Task.Delay(2000);
+                Console.Write("Blocked");
                 // blocked
                 return null;
             }
@@ -497,27 +498,32 @@ namespace Coflnet.Sky.Core
             //Get the response and Deserialize
             var response = await client.ExecuteAsync(request);
 
-            if (response.Content == "")
-            {
-                return null;
-            }
-
-            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
             {
                 // Shift out to another method
-                RequestsSinceStart += 600;
+                RequestsSinceStart += 300;
+            }
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
                 dev.Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+                return null;
+            }
+            if (response.Content == "")
+            {
+                Console.WriteLine("no content");
                 return null;
             }
 
             if (type == 2)
             {
+                if(response.Content == null)
+                    Console.WriteLine("content null");
                 return response.Content;
             }
 
             dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
 
-            if(responseDeserialized?.name == null)
+            if(responseDeserialized == null || (responseDeserialized?.name == null) || responseDeserialized.name == null)
             {
                 dev.Logger.Instance.Error(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
             }
