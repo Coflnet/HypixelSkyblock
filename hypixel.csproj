@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCoreRateLimit" Version="4.0.1" />
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="1.0.0" />
     <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.7.0" />
     <PackageReference Include="Confluent.Kafka" Version="1.7.0" />
