@@ -506,6 +506,7 @@ namespace Coflnet.Sky.Core
             {
                 // Shift out to another method
                 RequestsSinceStart += 600;
+                dev.Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
                 return null;
             }
 
@@ -515,6 +516,11 @@ namespace Coflnet.Sky.Core
             }
 
             dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
+
+            if(responseDeserialized?.name == null)
+            {
+                dev.Logger.Instance.Error(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+            }
 
             if (responseDeserialized == null)
             {
