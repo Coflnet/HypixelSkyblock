@@ -471,7 +471,8 @@ namespace Coflnet.Sky.Core
             if (RequestsSinceStart < 600)
             {
                 client = new RestClient("https://api.mojang.com/");
-                request = new RestRequest($"user/profiles/{uuid}/names", Method.Get);
+                request = new RestRequest($"user/profile/{uuid}", Method.Get);
+                type = 1;
             }
             else if (RequestsSinceStart < 1500)
             {
