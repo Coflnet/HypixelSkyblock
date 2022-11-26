@@ -446,7 +446,7 @@ namespace Coflnet.Sky.Core
         /// <returns>The name or null if error occurs</returns>
         public static async Task<string> GetPlayerNameFromUuid(string uuid)
         {
-            if (DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2400)
+            if (IsRatelimited())
             {
                 await Task.Delay(2000);
                 Console.Write("Blocked");
@@ -464,7 +464,7 @@ namespace Coflnet.Sky.Core
             RestRequest request;
             int type = 0;
 
-            if (RequestsSinceStart == 60)
+            if (RequestsSinceStart == 2)
             {
                 BlockedSince = DateTime.Now;
             }
@@ -474,7 +474,8 @@ namespace Coflnet.Sky.Core
                 client = new RestClient("https://api.mojang.com/");
                 request = new RestRequest($"user/profile/{uuid}", Method.Get);
                 type = 1;
-            } else if(RequestsSinceStart < 1200)
+            }
+            else if (RequestsSinceStart < 1200)
             {
                 client = new RestClient("https://sessionserver.mojang.com");
                 request = new RestRequest($"/session/minecraft/profile/{uuid}", Method.Get);
@@ -498,10 +499,10 @@ namespace Coflnet.Sky.Core
             //Get the response and Deserialize
             var response = await client.ExecuteAsync(request);
 
-            if(response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
             {
                 // Shift out to another method
-                RequestsSinceStart += 300;
+                RequestsSinceStart += 200;
             }
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
@@ -516,14 +517,14 @@ namespace Coflnet.Sky.Core
 
             if (type == 2)
             {
-                if(response.Content == null)
+                if (response.Content == null)
                     Console.WriteLine("content null");
                 return response.Content;
             }
 
             dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
 
-            if(responseDeserialized == null || (responseDeserialized?.name == null) || responseDeserialized.name == null)
+            if (responseDeserialized == null || (responseDeserialized?.name == null) || responseDeserialized.name == null)
             {
                 dev.Logger.Instance.Error(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
             }
@@ -544,6 +545,10 @@ namespace Coflnet.Sky.Core
             return responseDeserialized.name;
         }
 
+        public static bool IsRatelimited()
+        {
+            return DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2400;
+        }
     }
 
 }
