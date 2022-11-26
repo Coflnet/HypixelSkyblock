@@ -446,7 +446,7 @@ namespace Coflnet.Sky.Core
         /// <returns>The name or null if error occurs</returns>
         public static async Task<string> GetPlayerNameFromUuid(string uuid)
         {
-            if (DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2000)
+            if (DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2400)
             {
                 //Console.Write("Blocked");
                 // blocked
@@ -463,7 +463,7 @@ namespace Coflnet.Sky.Core
             RestRequest request;
             int type = 0;
 
-            if (RequestsSinceStart == 600)
+            if (RequestsSinceStart == 60)
             {
                 BlockedSince = DateTime.Now;
             }
@@ -473,8 +473,13 @@ namespace Coflnet.Sky.Core
                 client = new RestClient("https://api.mojang.com/");
                 request = new RestRequest($"user/profile/{uuid}", Method.Get);
                 type = 1;
+            } else if(RequestsSinceStart < 1200)
+            {
+                client = new RestClient("https://sessionserver.mojang.com");
+                request = new RestRequest($"/session/minecraft/profile/{uuid}", Method.Get);
+                type = 1;
             }
-            else if (RequestsSinceStart < 1500)
+            else if (RequestsSinceStart < 1850)
             {
                 client = new RestClient("https://mc-heads.net/");
                 request = new RestRequest($"/minecraft/profile/{uuid}", Method.Get);
@@ -499,8 +504,8 @@ namespace Coflnet.Sky.Core
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                // Shift out to another ip
-                RequestsSinceStart += 1000;
+                // Shift out to another method
+                RequestsSinceStart += 600;
                 return null;
             }
 
