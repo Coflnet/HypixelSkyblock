@@ -210,6 +210,8 @@ namespace Coflnet.Sky.Core
                     {
                         if (d.Value is List<object> list)
                             return string.Join(",", list);
+                        if (d.Value is byte[] array)
+                            return Convert.ToBase64String(array);
                         return d.Value.ToString();
                     });
                     return _flatenedNBT;
