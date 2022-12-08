@@ -49,11 +49,6 @@ namespace Coflnet.Sky.Core
         public DateTime NotTriggerAgainBefore { get; set; }
 
         [Key("filter")]
-        public string Filter;
-
-        public virtual void NotifyAuction(SaveAuction auction)
-        {
-            // may notify the user/other services
-        }
+        public string Filter { get; set; }
     }
 }

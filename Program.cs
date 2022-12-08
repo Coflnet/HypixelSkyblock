@@ -446,9 +446,10 @@ namespace Coflnet.Sky.Core
         /// <returns>The name or null if error occurs</returns>
         public static async Task<string> GetPlayerNameFromUuid(string uuid)
         {
-            if (DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2000)
+            if (IsRatelimited())
             {
-                //Console.Write("Blocked");
+                await Task.Delay(2000);
+                Console.Write("Blocked");
                 // blocked
                 return null;
             }
@@ -463,7 +464,7 @@ namespace Coflnet.Sky.Core
             RestRequest request;
             int type = 0;
 
-            if (RequestsSinceStart == 600)
+            if (RequestsSinceStart == 2)
             {
                 BlockedSince = DateTime.Now;
             }
@@ -471,9 +472,16 @@ namespace Coflnet.Sky.Core
             if (RequestsSinceStart < 600)
             {
                 client = new RestClient("https://api.mojang.com/");
-                request = new RestRequest($"user/profiles/{uuid}/names", Method.Get);
+                request = new RestRequest($"user/profile/{uuid}", Method.Get);
+                type = 1;
             }
-            else if (RequestsSinceStart < 1500)
+            else if (RequestsSinceStart < 1200)
+            {
+                client = new RestClient("https://sessionserver.mojang.com");
+                request = new RestRequest($"/session/minecraft/profile/{uuid}", Method.Get);
+                type = 1;
+            }
+            else if (RequestsSinceStart < 1850)
             {
                 client = new RestClient("https://mc-heads.net/");
                 request = new RestRequest($"/minecraft/profile/{uuid}", Method.Get);
@@ -491,24 +499,35 @@ namespace Coflnet.Sky.Core
             //Get the response and Deserialize
             var response = await client.ExecuteAsync(request);
 
-            if (response.Content == "")
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
             {
-                return null;
+                // Shift out to another method
+                RequestsSinceStart += 200;
             }
-
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                // Shift out to another ip
-                RequestsSinceStart += 1000;
+                dev.Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+                return null;
+            }
+            if (response.Content == "")
+            {
+                Console.WriteLine("no content");
                 return null;
             }
 
             if (type == 2)
             {
+                if (response.Content == null)
+                    Console.WriteLine("content null");
                 return response.Content;
             }
 
             dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
+
+            if (responseDeserialized == null || (responseDeserialized?.name == null) || responseDeserialized.name == null)
+            {
+                dev.Logger.Instance.Error(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+            }
 
             if (responseDeserialized == null)
             {
@@ -526,6 +545,10 @@ namespace Coflnet.Sky.Core
             return responseDeserialized.name;
         }
 
+        public static bool IsRatelimited()
+        {
+            return DateTime.Now.Subtract(new TimeSpan(0, 10, 0)) < BlockedSince && RequestsSinceStart >= 2400;
+        }
     }
 
 }
