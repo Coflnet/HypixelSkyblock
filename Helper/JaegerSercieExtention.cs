@@ -5,21 +5,29 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Shims.OpenTracing;
 using OpenTelemetry.Trace;
+using OpenTelemetry;
 using OpenTracing;
 using OpenTracing.Util;
+using System.Diagnostics;
+using OpenTelemetry.Resources;
 
 namespace Coflnet.Sky.Core
 {
     public static class JaegerSercieExtention
     {
-        public static void AddJaeger(this IServiceCollection services, double samplingRate = 0.03, double lowerBoundInSeconds = 30)
+        public static void AddJaeger(this IServiceCollection services, IConfiguration config, double samplingRate = 0.03, double lowerBoundInSeconds = 30)
         {
             services.AddOpenTelemetryTracing((builder) => builder
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddSqlClientInstrumentation()
-                .AddJaegerExporter(j=>{
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(config["JAEGER_SERVICE_NAME" ?? "default"]))
+                .AddJaegerExporter(j =>
+                {
                     j.Protocol = JaegerExportProtocol.HttpBinaryThrift;
+                   // j.Endpoint = new System.Uri(config["JAEGER_ENDPOINT"]);
+                    j.AgentHost = config["JAEGER_AGENT_HOST"];
+                    j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 1000, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 1000 };
                 })
                 .AddConsoleExporter()
                 .SetSampler(new TraceIdRatioBasedSampler(samplingRate))
