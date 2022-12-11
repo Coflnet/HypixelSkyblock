@@ -30,6 +30,7 @@ namespace Coflnet.Sky.Core
                     j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 1000, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 1000 };
                 })
                 .AddConsoleExporter()
+                .AddOtlpExporter()
                 .SetSampler(new TraceIdRatioBasedSampler(samplingRate))
             );
 
