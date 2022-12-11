@@ -24,13 +24,12 @@ namespace Coflnet.Sky.Core
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(config["JAEGER_SERVICE_NAME" ?? "default"]))
                 .AddJaegerExporter(j =>
                 {
-                    j.Protocol = JaegerExportProtocol.HttpBinaryThrift;
+                    j.Protocol = JaegerExportProtocol.UdpCompactThrift;
                    // j.Endpoint = new System.Uri(config["JAEGER_ENDPOINT"]);
                     j.AgentHost = config["JAEGER_AGENT_HOST"];
                     j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 1000, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 1000 };
                 })
                 .AddConsoleExporter()
-                .AddOtlpExporter()
                 .SetSampler(new TraceIdRatioBasedSampler(samplingRate))
             );
 
