@@ -134,6 +134,8 @@ namespace Coflnet.Sky.Core
             divine_gift,
             piscary,
             ultimate_bobbin_time,
+            tabasco,
+            prosperity,
             
             Any = 126
         }
