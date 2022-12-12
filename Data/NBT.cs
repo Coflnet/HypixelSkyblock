@@ -36,8 +36,8 @@ namespace Coflnet.Sky.Core
                 base64 = file.RootTag.Get<NbtList>("i")
                     .Get<NbtCompound>(0)
                     .Get<NbtCompound>("tag")
-                    .Get<NbtCompound>("SkullOwner")
-                    .Get<NbtCompound>("Properties")
+                    .Get<NbtCompound>("SkullOwner")?
+                    .Get<NbtCompound>("Properties")?
                     .Get<NbtList>("textures")
                     .Get<NbtCompound>(0)
                     .Get<NbtString>("Value").StringValue;
@@ -46,6 +46,8 @@ namespace Coflnet.Sky.Core
             {
                 Console.WriteLine($"Error in parsing {file.ToString()} {e.Message}");
             }
+            if(string.IsNullOrEmpty(base64))
+                return null;
 
             //Console.WriteLine(base64);
             base64 = base64.Replace('-', '+');
