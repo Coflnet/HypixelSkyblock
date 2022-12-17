@@ -19,11 +19,11 @@
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="16.8.3" />
@@ -35,7 +35,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.9" />
     <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9.9" />
     <PackageReference Include="OpenTelemetry.Shims.OpenTracing" Version="1.0.0-rc9.9" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0-alpha.1" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
     <PackageReference Include="prometheus-net" Version="4.2.0" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="4.2.0" />
     <PackageReference Include="RateLimiter" Version="2.2.0" />
