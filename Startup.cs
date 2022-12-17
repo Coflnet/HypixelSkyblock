@@ -72,7 +72,6 @@ namespace dev
 
             var redisOptions = ConfigurationOptions.Parse(redisCon);
             services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(redisOptions));
-            services.AddJaeger();
 
             // Rate limiting 
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
