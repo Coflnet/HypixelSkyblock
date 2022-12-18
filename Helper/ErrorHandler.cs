@@ -4,6 +4,16 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Net.Http;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using OpenTelemetry.Trace;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Coflnet.Sky.Core
 {
@@ -33,16 +43,22 @@ namespace Coflnet.Sky.Core
                 }
                 else
                 {
-                    using var span = OpenTracing.Util.GlobalTracer.Instance.BuildSpan("error").StartActive();
-                    span.Span.Log(exceptionHandlerPathFeature?.Error?.Message);
-                    span.Span.Log(exceptionHandlerPathFeature?.Error?.StackTrace);
-                    var traceId = System.Net.Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + span?.Span?.Context?.TraceId;
-                    logger.LogError(exceptionHandlerPathFeature?.Error, "fatal request error " + traceId);
+                    var source = context.RequestServices.GetService<ActivitySource>();
+                    using var activity = source.StartActivity("error", ActivityKind.Producer);
+                    if(activity == null)
+                    {
+                        logger.LogError("Could not start activity");
+                        return;
+                    }
+                    activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string,object>[] { 
+                        new ("error", exceptionHandlerPathFeature?.Error?.Message),
+                        new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace) })));
+                    var traceId = System.Net.Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + activity.Context.TraceId;
                     await context.Response.WriteAsync(
                         JsonConvert.SerializeObject(new ErrorResponse
                         {
                             Slug = "internal_error",
-                            Message = $"An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include reference '{traceId}'.",
+                            Message = $"An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include reference '{activity.Context.TraceId}'.",
                             Trace = traceId
                         }));
                     errorCount.Inc();
