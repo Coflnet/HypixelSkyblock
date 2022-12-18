@@ -26,12 +26,12 @@ namespace Coflnet.Sky.Core
             {
                 if (client == null)
                 {
-                    var host = SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"];
-                    if (string.IsNullOrEmpty(host))
+                    var url = SimplerConfig.Config.Instance["SKYCOMMANDS_BASE_URL"] ?? "http://" + SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"];
+                    if (string.IsNullOrEmpty(url))
                     {
-                        throw new Exception("The enviroment variable SKYCOMMANDS_HOST is not set to a valid hostname");
+                        throw new Exception("The enviroment variable SKYCOMMANDS_BASE_URL is not set to a valid url");
                     }
-                    client = new RestClient("http://" + host.Replace(":8008", "") + ":8008");
+                    client = new RestClient(url.Replace(":8008", "") + ":8008");
 
                 }
                 var source = new TaskCompletionSource<TRes>();
