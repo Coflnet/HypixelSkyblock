@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
 using RestSharp;
+using System.Diagnostics;
 
 namespace Coflnet.Sky.Core
 {
@@ -132,7 +133,7 @@ namespace Coflnet.Sky.Core
         public abstract void Redirect(string uri);
         public abstract IDictionary<string, string> QueryString { get; }
         public abstract string UserAgent { get; }
-        public OpenTracing.ISpan Span;
+        public Activity Span;
 
         public virtual void ForceSend(bool close = false)
         {

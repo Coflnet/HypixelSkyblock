@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using MessagePack;
-using OpenTracing;
+using System.Diagnostics;
 
 namespace Coflnet.Sky.Core
 {
@@ -39,20 +39,20 @@ namespace Coflnet.Sky.Core
 
         [IgnoreMember]
         [Newtonsoft.Json.JsonIgnore]
-        public ISpan Span { get; set; }
+        public Activity Span { get; set; }
 
         public void Log(string message)
         {
             if(Span != null)
-                Span.Log(message);
+                Span.AddTag("message", message);
         }
 
         public void LogError(Exception e, string message)
         {
             if(Span != null)
             {
-                Span.Log(message);
-                Span.Log(e.ToString());
+                Span.AddTag("message", message);
+                Span.AddTag("exception", e.ToString());
             }
             else
                 dev.Logger.Instance.Error(e,message);
