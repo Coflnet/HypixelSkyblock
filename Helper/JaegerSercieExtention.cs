@@ -11,19 +11,19 @@ using OpenTracing.Util;
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 using System.Globalization;
-using OpenTelemetry.Internal;
+using System.Collections.Concurrent;
 using System;
 
 namespace Coflnet.Sky.Core;
 public static class JaegerSercieExtention
 {
-    public static void AddJaeger(this IServiceCollection services, IConfiguration config, double samplingRate = 0.03, double lowerBoundInSeconds = 30)
+    public static void AddJaeger(this IServiceCollection services, IConfiguration config, double samplingRate = 0.03, double lowerBoundInSeconds = 60)
     {
         services.AddOpenTelemetryTracing((builder) => builder
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddSqlClientInstrumentation()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(config["JAEGER_SERVICE_NAME"]  ?? "default"))
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(config["JAEGER_SERVICE_NAME"] ?? "default"))
             .AddJaegerExporter(j =>
             {
                 j.Protocol = JaegerExportProtocol.UdpCompactThrift;
@@ -31,7 +31,7 @@ public static class JaegerSercieExtention
                 j.AgentHost = config["JAEGER_AGENT_HOST"];
                 j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 1000, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 1000 };
             })
-            .SetSampler(new CustomTraceIdRatioBasedSampler(samplingRate))
+            .SetSampler(new RationOrTimeBasedSampler(samplingRate, lowerBoundInSeconds))
         );
 
 
@@ -74,34 +74,36 @@ public static class JaegerSercieExtention
     }
 
 
-// <copyright file="TraceIdRatioBasedSampler.cs" company="OpenTelemetry Authors">
-// Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-    public sealed class CustomTraceIdRatioBasedSampler
+    // <copyright file="TraceIdRatioBasedSampler.cs" company="OpenTelemetry Authors">
+    // Copyright The OpenTelemetry Authors
+    //
+    // Licensed under the Apache License, Version 2.0 (the "License");
+    // you may not use this file except in compliance with the License.
+    // You may obtain a copy of the License at
+    //
+    //     http://www.apache.org/licenses/LICENSE-2.0
+    //
+    // Unless required by applicable law or agreed to in writing, software
+    // distributed under the License is distributed on an "AS IS" BASIS,
+    // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    // See the License for the specific language governing permissions and
+    // limitations under the License.
+    // </copyright>
+    public sealed class RationOrTimeBasedSampler
         : Sampler
     {
         private readonly long idUpperBound;
         private readonly double probability;
+        private ConcurrentDictionary<string, DateTime> lastSampled = new ConcurrentDictionary<string, DateTime>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CustomTraceIdRatioBasedSampler"/> class.
+        /// Initializes a new instance of the <see cref="RationOrTimeBasedSampler"/> class.
         /// </summary>
         /// <param name="probability">The desired probability of sampling. This must be between 0.0 and 1.0.
         /// Higher the value, higher is the probability of a given Activity to be sampled in.
         /// </param>
-        public CustomTraceIdRatioBasedSampler(double probability)
+        /// <param name="lowerBoundInSeconds">The time until sampling will forward all matches in seconds.</param>
+        public RationOrTimeBasedSampler(double probability, double lowerBoundInSeconds = 30)
         {
             this.probability = probability;
 
@@ -138,9 +140,14 @@ public static class JaegerSercieExtention
             // This is considered a reasonable trade-off for the simplicity/performance requirements (this
             // code is executed in-line for every Activity creation).
             Span<byte> traceIdBytes = stackalloc byte[16];
-            if(samplingParameters.Name == "error")
+            if (samplingParameters.Name == "error")
                 return new SamplingResult(SamplingDecision.RecordAndSample);
-            
+            if (!lastSampled.TryGetValue(samplingParameters.Name, out DateTime lastSampledTime) || lastSampledTime.AddSeconds(10) < DateTime.Now)
+            {
+                lastSampled.AddOrUpdate(samplingParameters.Name, DateTime.Now, (key, oldValue) => DateTime.Now);
+                return new SamplingResult(SamplingDecision.RecordAndSample);
+            }
+
             samplingParameters.TraceId.CopyTo(traceIdBytes);
             return new SamplingResult(Math.Abs(GetLowerLong(traceIdBytes)) < this.idUpperBound);
         }
