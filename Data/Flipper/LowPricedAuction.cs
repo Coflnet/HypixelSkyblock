@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using Coflnet.Sky.Core;
+using System;
 
 namespace Coflnet.Sky.Core
 {
@@ -20,6 +20,7 @@ namespace Coflnet.Sky.Core
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
 
+        [Flags]
         public enum FinderType
         {
             UNKOWN,
