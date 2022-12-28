@@ -46,7 +46,7 @@ namespace Coflnet.Sky.Core
             {
                 Console.WriteLine($"Error in parsing {file.ToString()} {e.Message}");
             }
-            if(string.IsNullOrEmpty(base64))
+            if (string.IsNullOrEmpty(base64))
                 return null;
 
             //Console.WriteLine(base64);
@@ -109,8 +109,11 @@ namespace Coflnet.Sky.Core
                     }
                 }
             }
+            var name = GetName(f);
             if (auction.Context != null)
-                auction.Context["cname"] = GetName(f);
+                auction.Context["cname"] = name;
+            if (auction.ItemName == null)
+                auction.ItemName = name;
         }
 
         private static void TryAssignTagForBazaarBooks(SaveAuction auction, NbtCompound f)
