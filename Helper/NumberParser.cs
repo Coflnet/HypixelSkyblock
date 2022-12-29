@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Coflnet.Sky.Core
 {
@@ -39,7 +40,8 @@ namespace Coflnet.Sky.Core
             else
                 normalized = val.Replace(',', '.');
 
-            if(double.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out double internalRes))
+            var cleared = Regex.Replace(normalized, "[^0-9\\.]", "");
+            if(double.TryParse(cleared, NumberStyles.Any, CultureInfo.InvariantCulture, out double internalRes))
             {
                 result = internalRes * multiple;
                 return true;
