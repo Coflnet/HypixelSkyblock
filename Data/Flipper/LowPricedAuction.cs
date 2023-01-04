@@ -28,6 +28,8 @@ namespace Coflnet.Sky.Core
             SNIPER = 2,
             SNIPER_MEDIAN = 4,
             AI = 8,
+            SNIPERS = SNIPER_MEDIAN | SNIPER,
+            FLIPPER_AND_SNIPERS = FLIPPER | SNIPERS,
             USER = 16,
 
             TFM = 32,
