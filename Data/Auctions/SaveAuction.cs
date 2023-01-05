@@ -236,7 +236,7 @@ namespace Coflnet.Sky.Core
         [Key(27)]
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-        public DateTime FindTime { get; set; } = DateTime.Now;
+        public DateTime FindTime { get; set; } = DateTime.UtcNow;
         [Key(28)]
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
