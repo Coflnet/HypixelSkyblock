@@ -20,6 +20,20 @@ namespace Coflnet.Sky.Core
         [IgnoreDataMember]
         public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
 
+        // copy constructor
+        public LowPricedAuction(LowPricedAuction other)
+        {
+            this.TargetPrice = other.TargetPrice;
+            this.DailyVolume = other.DailyVolume;
+            this.Auction = new SaveAuction(other.Auction);
+            this.Finder = other.Finder;
+            this.AdditionalProps = other.AdditionalProps;
+        }
+
+        public LowPricedAuction()
+        {
+        }
+
         [Flags]
         public enum FinderType
         {
