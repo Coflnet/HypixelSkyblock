@@ -36,7 +36,7 @@ namespace Coflnet.Sky.Core
             if (uuid == null)
                 return -1;
             if (uuid.Length > 17)
-                uuid = uuid.Substring(0, 17);
+                uuid = uuid.Replace("-", "").Substring(0, 17);
             var builder = new System.Text.StringBuilder(uuid);
             builder.Remove(12, 1);
             if (uuid.Length > 16)
