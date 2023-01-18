@@ -350,7 +350,18 @@ namespace Coflnet.Sky.Core
                 UnwarpStringArray(data, "mixins");
                 UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
-                UnwrapJson(data, "extraData");
+                if(data.ContainsKey("petInfo"))
+                    if(data["petInfo"] is Dictionary<string, object> petInfo && petInfo.ContainsKey("extraData"))
+                    {
+                        if(petInfo["extraData"] is Newtonsoft.Json.Linq.JObject obj)
+                        {
+                            foreach(var item in obj)
+                            {
+                                data[item.Key] = item.Value;
+                            }
+                        }
+                        petInfo.Remove("extraData");
+                    }
                 if (data.TryGetValue("gems", out object gems))
                 {
                     var dict = (gems as Dictionary<string, object>);
@@ -439,8 +450,9 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                if (data.ContainsKey(key))
-                    data[key] = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key] as string);
+                if (!data.ContainsKey(key))
+                    return;
+                data[key] = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key] as string);
             }
             catch (Exception e)
             {
