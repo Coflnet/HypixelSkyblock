@@ -359,7 +359,7 @@ namespace Coflnet.Sky.Core
                         {
                             foreach (var item in obj)
                             {
-                                data[item.Key] = item.Value;
+                                data[item.Key] = ((long)item.Value);
                             }
                         }
                         petInfo.Remove("extraData");
