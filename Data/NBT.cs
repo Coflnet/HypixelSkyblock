@@ -67,7 +67,9 @@ namespace Coflnet.Sky.Core
                 }
                 catch (Exception)
                 {
-                    json = Encoding.UTF8.GetString(Convert.FromBase64String(base64 + "=="));
+                    Console.WriteLine("Invalid base64 " + base64);
+
+                    json = Encoding.UTF8.GetString(Convert.FromBase64String(base64.TrimEnd('=') + "=="));
                 }
                 Console.WriteLine("Skull url json" + json);
 
@@ -350,12 +352,12 @@ namespace Coflnet.Sky.Core
                 UnwarpStringArray(data, "mixins");
                 UnwarpStringArray(data, "unlocked_slots");
                 UnwrapJson(data, "petInfo");
-                if(data.ContainsKey("petInfo"))
-                    if(data["petInfo"] is Dictionary<string, object> petInfo && petInfo.ContainsKey("extraData"))
+                if (data.ContainsKey("petInfo"))
+                    if (data["petInfo"] is Dictionary<string, object> petInfo && petInfo.ContainsKey("extraData"))
                     {
-                        if(petInfo["extraData"] is Newtonsoft.Json.Linq.JObject obj)
+                        if (petInfo["extraData"] is Newtonsoft.Json.Linq.JObject obj)
                         {
-                            foreach(var item in obj)
+                            foreach (var item in obj)
                             {
                                 data[item.Key] = item.Value;
                             }
