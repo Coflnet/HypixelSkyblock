@@ -134,7 +134,7 @@ namespace Coflnet.Sky.Core
                         if (!int.TryParse(levelString, out int level))
                             level = Roman.From(levelString);
                         var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
-                        if (enchantName.StartsWith("§l"))
+                        while (enchantName.StartsWith("§"))
                             enchantName = enchantName.Substring(2);
                         if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
                             if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
