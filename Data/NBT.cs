@@ -294,7 +294,7 @@ namespace Coflnet.Sky.Core
                 if (TryAs<double>(attr, out res))
                     return res;
 
-                if (key == "uid" || key == "uuid")
+                if (key == "uid" || key == "uuid" || key.EndsWith(".uuid"))
                     return new NBTLookup(GetLookupKey(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
                     return new NBTLookup(GetLookupKey(key), UidToLong(attr));
