@@ -107,6 +107,7 @@ namespace Coflnet.Sky.Core
             try
             {
                 var value = await RedisConnection.GetDatabase().KeyDeleteAsync(key);
+                HotCache.TryRemove(key, out byte[] val);
             }
             catch (Exception e)
             {
