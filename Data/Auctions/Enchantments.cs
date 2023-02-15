@@ -136,6 +136,7 @@ namespace Coflnet.Sky.Core
             ultimate_bobbin_time,
             tabasco,
             prosperity,
+            sunder,
             
             Any = 126
         }
