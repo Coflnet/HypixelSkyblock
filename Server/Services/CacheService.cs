@@ -65,6 +65,14 @@ namespace Coflnet.Sky.Core
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
             RedisConnection = ConnectionMultiplexer.Connect(options);
             RedisConnection.IncludePerformanceCountersInExceptions = true;
+            RedisConnection.GetSubscriber().Subscribe("cofl-cache-update", (channel, message) =>
+            {
+                var prefix =  GetHostprefix();
+                if (message.StartsWith(prefix))
+                    return;
+                message = message.ToString().Substring(prefix.Length);
+                HotCache.TryRemove(message, out byte[] val);
+            });
         }
 
         public async Task<T> GetFromRedis<T>(RedisKey key)
@@ -126,11 +134,20 @@ namespace Coflnet.Sky.Core
                     HotCache.Clear();
                 HotCache.AddOrUpdate(key, data, (a, b) => data);
                 await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
+                string hostPrefix = GetHostprefix();
+                await RedisConnection.GetSubscriber().PublishAsync("cofl-cache-update", hostPrefix + key.ToString());
             }
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "Saving into redis " + key.ToString());
             }
+        }
+
+        private static string GetHostprefix()
+        {
+            var fullHostName = System.Net.Dns.GetHostName();
+            var hostPrefix = fullHostName.Substring(Math.Max(0, fullHostName.Length - 5)).PadRight(5, '0');
+            return hostPrefix;
         }
 
         public async Task ModifyInRedis<T>(RedisKey key, Func<T, T> modifier, TimeSpan timeout = default(TimeSpan))
