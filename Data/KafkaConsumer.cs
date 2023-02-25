@@ -106,15 +106,24 @@ namespace Coflnet.Kafka
                 PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
             }, topics, action, cancleToken, maxChunkSize, deserializer);
         }
-
+        public static async Task ConsumeBatch<T>(
+                                                    ConsumerConfig config,
+                                                    string topic,
+                                                    Func<IEnumerable<T>, Task> action,
+                                                    CancellationToken cancleToken,
+                                                    int maxChunkSize = 500,
+                                                    IDeserializer<T> deserializer = null)
+        {
+            await ConsumeBatch(config, new string[] { topic }, action, cancleToken, maxChunkSize, deserializer);
+        }
 
         public static async Task ConsumeBatch<T>(
-                                            ConsumerConfig config,
-                                            string[] topics,
-                                            Func<IEnumerable<T>, Task> action,
-                                            CancellationToken cancleToken,
-                                            int maxChunkSize = 500,
-                                            IDeserializer<T> deserializer = null)
+                                                ConsumerConfig config,
+                                                string[] topics,
+                                                Func<IEnumerable<T>, Task> action,
+                                                CancellationToken cancleToken,
+                                                int maxChunkSize = 500,
+                                                IDeserializer<T> deserializer = null)
         {
             var batch = new Queue<ConsumeResult<Ignore, T>>();
             var conf = new ConsumerConfig(config)
@@ -149,7 +158,8 @@ namespace Coflnet.Kafka
                             }
                             await action(batch.Select(a => a.Message.Value)).ConfigureAwait(false);
                             // tell kafka that we stored the batch
-                            c.Commit(batch.Select(b => b.TopicPartitionOffset));
+                            if (!config.EnableAutoCommit ?? true)
+                                c.Commit(batch.Select(b => b.TopicPartitionOffset));
                             batch.Clear();
                         }
                         catch (ConsumeException e)
