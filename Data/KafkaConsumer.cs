@@ -159,7 +159,14 @@ namespace Coflnet.Kafka
                             await action(batch.Select(a => a.Message.Value)).ConfigureAwait(false);
                             // tell kafka that we stored the batch
                             if (!config.EnableAutoCommit ?? true)
-                                c.Commit(batch.Select(b => b.TopicPartitionOffset));
+                                try
+                                {
+                                    c.Commit(batch.Select(b => b.TopicPartitionOffset));
+                                }
+                                catch (KafkaException e)
+                                {
+                                    dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
+                                }
                             batch.Clear();
                         }
                         catch (ConsumeException e)
