@@ -102,7 +102,8 @@ namespace Coflnet.Kafka
                 // earliest message in the topic 'my-topic' the first time you run the program.
                 AutoOffsetReset = start,
                 BootstrapServers = host,
-                EnableAutoCommit = false
+                EnableAutoCommit = false,
+                PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
             }, topics, action, cancleToken, maxChunkSize, deserializer);
         }
 
