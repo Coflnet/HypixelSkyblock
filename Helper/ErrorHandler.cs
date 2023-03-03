@@ -52,7 +52,8 @@ namespace Coflnet.Sky.Core
                     }
                     activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string,object>[] { 
                         new ("error", exceptionHandlerPathFeature?.Error?.Message),
-                        new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace) })));
+                        new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace),
+                        new ("path", context.Request.Path) })));
                     var traceId = System.Net.Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + activity.Context.TraceId;
                     await context.Response.WriteAsync(
                         JsonConvert.SerializeObject(new ErrorResponse
