@@ -17,12 +17,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Coflnet.Sky.Core
 {
-    public static class ErrorHandler
+    public class ErrorHandler
     {
         static string prefix = "api";
         static Prometheus.Counter errorCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_error", "Counts the amount of error responses handed out");
         static Prometheus.Counter badRequestCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_bad_request", "Counts the responses for invalid requests");
-
+        static JsonSerializerSettings converter = new JsonSerializerSettings(){ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()};
+        public static void Add(IApplicationBuilder errorApp, string serviceName)
+        {
+            var logger = errorApp.ApplicationServices.GetRequiredService<ILogger<ErrorHandler>>();
+            Add(logger, errorApp, serviceName);
+        }
         public static void Add(ILogger logger, IApplicationBuilder errorApp, string serviceName)
         {
             prefix = serviceName;
@@ -38,7 +43,7 @@ namespace Coflnet.Sky.Core
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     await context.Response.WriteAsync(
-                                    JsonConvert.SerializeObject(new { ex.Slug, ex.Message }));
+                                    JsonConvert.SerializeObject(new ErrorResponse(){Slug= ex.Slug,Message= ex.Message }, converter));
                     badRequestCount.Inc();
                 }
                 else
@@ -61,7 +66,7 @@ namespace Coflnet.Sky.Core
                             Slug = "internal_error",
                             Message = $"An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include reference '{activity.Context.TraceId}'.",
                             Trace = traceId
-                        }));
+                        }, converter));
                     errorCount.Inc();
                 }
             });

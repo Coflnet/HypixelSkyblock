@@ -9,13 +9,13 @@ public class ErrorResponse
     /// <summary>
     /// Unique slug for the error
     /// </summary>
-    public string Slug;
+    public string Slug { get; set; }
     /// <summary>
     /// Human readable message
     /// </summary>
-    public string Message;
+    public string Message { get; set; }
     /// <summary>
     /// Opentelemetry trace id 
     /// </summary>
-    public string Trace;
+    public string Trace { get; set; }
 }
