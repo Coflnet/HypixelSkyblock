@@ -277,7 +277,11 @@ namespace Coflnet.Sky.Core
                 return new List<NBTLookup>();
 
             List<KeyValuePair<string, object>> flatList = FlattenNbtData(data);
+            return CreateLookup(auction.Tag, data, flatList);
+        }
 
+        public static List<NBTLookup> CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList)
+        {
             return flatList.Select(attr =>
             {
                 var key = attr.Key;
@@ -315,7 +319,7 @@ namespace Coflnet.Sky.Core
                 }
                 if (key == "color")
                 {
-                    ColorFiller.Add(auction.Tag, attr.Value as string);
+                    ColorFiller.Add(auctionTag, attr.Value as string);
                     return new NBTLookup(GetLookupKey(key), GetColor(attr));
                 }
                 Console.WriteLine(JSON.Stringify(attr));

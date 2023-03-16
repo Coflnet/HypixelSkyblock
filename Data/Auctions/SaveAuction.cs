@@ -191,7 +191,7 @@ namespace Coflnet.Sky.Core
         public List<NBTLookup> NBTLookup { get; set; }
 
         private Dictionary<string, string> _flatenedNBT;
-        [IgnoreMember]
+        [Key(30)]
         [JsonProperty("flatNbt")]
         [System.Text.Json.Serialization.JsonPropertyName("flatNbt")]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
@@ -206,14 +206,8 @@ namespace Coflnet.Sky.Core
                     var data = NbtData?.Data;
                     if (data == null || data.Count == 0)
                         return new();
-                    _flatenedNBT = NBT.FlattenNbtData(data).ToDictionary(d => d.Key, d =>
-                    {
-                        if (d.Value is List<object> list)
-                            return string.Join(",", list);
-                        if (d.Value is byte[] array)
-                            return Convert.ToBase64String(array);
-                        return d.Value.ToString();
-                    });
+                    var preFlattened = NBT.FlattenNbtData(data);
+                    SetFlattenedNbt(preFlattened);
                     return _flatenedNBT;
                 }
                 catch (Exception e)
@@ -227,6 +221,19 @@ namespace Coflnet.Sky.Core
                 _flatenedNBT = value;
             }
         }
+
+        public void SetFlattenedNbt(List<KeyValuePair<string, object>> preFlattened)
+        {
+            _flatenedNBT = preFlattened.ToDictionary(d => d.Key, d =>
+            {
+                if (d.Value is List<object> list)
+                    return string.Join(",", list);
+                if (d.Value is byte[] array)
+                    return Convert.ToBase64String(array);
+                return d.Value.ToString();
+            });
+        }
+
         /// <summary>
         /// The first part of a uuid converted to a long for faster lookups
         /// </summary>
