@@ -458,11 +458,11 @@ namespace Coflnet.Sky.Core
             {
                 if (!data.ContainsKey(key))
                     return;
-                data[key] = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key] as string);
+                data[key] = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key].ToString());
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not unwrap {JSON.Stringify(data[key])}");
+                Console.WriteLine(e + $"\nCould not unwrap {JSON.Stringify(data[key])}");
             }
         }
 
