@@ -27,7 +27,6 @@ public static class JaegerSercieExtention
             .AddJaegerExporter(j =>
             {
                 j.Protocol = JaegerExportProtocol.UdpCompactThrift;
-                // j.Endpoint = new System.Uri(config["JAEGER_ENDPOINT"]);
                 j.AgentHost = config["JAEGER_AGENT_HOST"];
                 j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 2000, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 1000 };
             })
@@ -39,19 +38,7 @@ public static class JaegerSercieExtention
         {
             ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
             IConfiguration iConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
-            /*
-            Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
-                    .RegisterSenderFactory<ThriftSenderFactory>();
 
-            ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
-            if (samplingRate >= 1)
-                sampler = new ConstSampler(true);
-            var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
-
-            ITracer tracer = config.GetTracerBuilder()
-                .WithSampler(sampler)
-                .Build();
-            */
             var traceProvider = serviceProvider.GetRequiredService<TracerProvider>();
 
             // Instantiate the OpenTracing shim. The underlying OpenTelemetry tracer will create
