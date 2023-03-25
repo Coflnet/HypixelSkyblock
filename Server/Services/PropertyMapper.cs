@@ -83,7 +83,7 @@ namespace Coflnet.Sky.Core
             { ItemReferences.Reforge.strengthened, ("SEARING_STONE",150000)},
             { ItemReferences.Reforge.glistening, ("SHINY_PRISM",150000)}, // wrong in neu
             { ItemReferences.Reforge.toil, ("TOIL_LOG",10000)},
-            { ItemReferences.Reforge.warped, ("AOTE_STONE",5000000)},
+            { ItemReferences.Reforge.aote_stone, ("AOTE_STONE",5000000)},
             { ItemReferences.Reforge.withered, ("WITHER_BLOOD",50000)},
             { ItemReferences.Reforge.headstrong, ("SALMON_OPAL",250000)},
         };
