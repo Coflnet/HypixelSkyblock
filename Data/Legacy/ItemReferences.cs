@@ -142,6 +142,7 @@ namespace Coflnet.Sky.Core
             pitchin,
             coldfusion,
             bustling,
+            earthy,
 
 
             Unknown = 125,
