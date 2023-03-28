@@ -141,6 +141,7 @@ namespace Coflnet.Sky.Core
             green_thumb,
             pitchin,
             coldfusion,
+            bustling,
 
 
             Unknown = 125,

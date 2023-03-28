@@ -137,6 +137,7 @@ namespace Coflnet.Sky.Core
             tabasco,
             prosperity,
             sunder,
+            dedication,
             
             Any = 126
         }
