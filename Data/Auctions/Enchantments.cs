@@ -139,7 +139,8 @@ namespace Coflnet.Sky.Core
             sunder,
             dedication,
             
-            Any = 126
+            Any = 126,
+            green_thumb
         }
 
         [System.ComponentModel.DataAnnotations.Key]
