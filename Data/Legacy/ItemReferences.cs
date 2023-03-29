@@ -143,7 +143,8 @@ namespace Coflnet.Sky.Core
             coldfusion,
             bustling,
             earthy,
-            
+            mossy,
+
 
             Unknown = 125,
             Any
