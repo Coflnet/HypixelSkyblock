@@ -147,7 +147,7 @@ namespace Coflnet.Sky.Core
             blooming,
             rooted,
 
-            Unknown = 125,
+            Unknown = -125,
             Any
         }
 
