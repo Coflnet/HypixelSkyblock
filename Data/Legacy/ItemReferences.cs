@@ -144,7 +144,8 @@ namespace Coflnet.Sky.Core
             bustling,
             earthy,
             mossy,
-
+            blooming,
+            rooted,
 
             Unknown = 125,
             Any
