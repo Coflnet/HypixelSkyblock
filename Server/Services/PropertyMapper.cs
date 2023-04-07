@@ -86,6 +86,8 @@ namespace Coflnet.Sky.Core
             { ItemReferences.Reforge.aote_stone, ("AOTE_STONE",5000000)},
             { ItemReferences.Reforge.withered, ("WITHER_BLOOD",50000)},
             { ItemReferences.Reforge.headstrong, ("SALMON_OPAL",250000)},
+            { ItemReferences.Reforge.mossy, ("OVERGROWN_GRASS",300000)},
+            { ItemReferences.Reforge.rooted, ("BURROWING_SPORES",300000)},
         };
 
         public (string, int) GetReforgeCost(ItemReferences.Reforge reforge, Tier tier = Tier.LEGENDARY)
