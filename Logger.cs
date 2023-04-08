@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Diagnostics;
 using Coflnet;
 using Microsoft.Extensions.Logging;
 
@@ -17,14 +19,19 @@ namespace dev
         public void Log(string message)
         {
             System.Console.WriteLine("Info: " + message);
-            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log(message);
+            LogToActivity(message);
         }
 
         public void Error(string message)
         {
             System.Console.WriteLine("Error: " + message);
-            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log(message);
-            OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.SetTag("error",true);
+            LogToActivity(message);
+            Activity.Current?.SetTag("error", true);
+        }
+
+        private static void LogToActivity(string message)
+        {
+            Activity.Current?.AddEvent(new("log", default, new(new Dictionary<string, object> { { "message", message } })));
         }
 
         public void Info(string message)
