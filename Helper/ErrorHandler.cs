@@ -55,6 +55,7 @@ namespace Coflnet.Sky.Core
                         logger.LogError("Could not start activity");
                         return;
                     }
+                    activity.AddTag("host", System.Net.Dns.GetHostName());
                     activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string,object>[] { 
                         new ("error", exceptionHandlerPathFeature?.Error?.Message),
                         new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace),
