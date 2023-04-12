@@ -135,6 +135,7 @@ namespace Coflnet.Kafka
 
             if (deserializer == null)
                 deserializer = SerializerFactory.GetDeserializer<T>();
+            var currentChunkSize = 1;
 
             using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build())
             {
@@ -147,7 +148,7 @@ namespace Coflnet.Kafka
                         {
                             var cr = c.Consume(cancleToken);
                             batch.Enqueue(cr);
-                            while (batch.Count < maxChunkSize)
+                            while (batch.Count < currentChunkSize)
                             {
                                 cr = c.Consume(TimeSpan.Zero);
                                 if (cr == null)
@@ -168,6 +169,8 @@ namespace Coflnet.Kafka
                                     dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
                                 }
                             batch.Clear();
+                            if(currentChunkSize < maxChunkSize)
+                                currentChunkSize++;
                         }
                         catch (ConsumeException e)
                         {
