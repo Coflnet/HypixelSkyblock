@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Coflnet.Sky.Core;
 using Prometheus;
+using Microsoft.Extensions.Configuration;
 
 namespace Coflnet.Kafka
 {
     public class KafkaConsumer
     {
-
         static Counter processFail = Metrics.CreateCounter("consume_process_failed", "How often processing of consumed messages failed");
         /// <summary>
         /// Generic consumer
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="config"></param>
         /// <param name="topic"></param>
         /// <param name="action"></param>
         /// <param name="cancleToken"></param>
@@ -25,7 +25,7 @@ namespace Coflnet.Kafka
         /// <param name="deserializer">The deserializer used for new messages</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static async Task Consume<T>(string host, string topic, Func<T, Task> action,
+        public static async Task Consume<T>(IConfiguration config, string topic, Func<T, Task> action,
                                             CancellationToken cancleToken,
                                             string groupId = "default",
                                             AutoOffsetReset start = AutoOffsetReset.Earliest,
@@ -34,7 +34,7 @@ namespace Coflnet.Kafka
             while (!cancleToken.IsCancellationRequested)
                 try
                 {
-                    await ConsumeBatch(host, topic, async batch =>
+                    await ConsumeBatch(config, topic, async batch =>
                     {
                         foreach (var message in batch)
                             await action(message);
@@ -51,7 +51,7 @@ namespace Coflnet.Kafka
         /// <summary>
         /// Consume a batch of messages for a single topic
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="config"></param>
         /// <param name="topic"></param>
         /// <param name="action"></param>
         /// <param name="cancleToken"></param>
@@ -61,20 +61,20 @@ namespace Coflnet.Kafka
         /// <param name="deserializer"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Task ConsumeBatch<T>(string host, string topic, Func<IEnumerable<T>, Task> action,
+        public static Task ConsumeBatch<T>(IConfiguration config, string topic, Func<IEnumerable<T>, Task> action,
                                             CancellationToken cancleToken,
                                             string groupId = "default",
                                             int maxChunkSize = 500,
                                             AutoOffsetReset start = AutoOffsetReset.Earliest,
                                             IDeserializer<T> deserializer = null)
         {
-            return ConsumeBatch<T>(host, new string[] { topic }, action, cancleToken, groupId, maxChunkSize, start, deserializer);
+            return ConsumeBatch<T>(config, new string[] { topic }, action, cancleToken, groupId, maxChunkSize, start, deserializer);
         }
 
         /// <summary>
         /// Consume a batch of messages for multiple topics 
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="config"></param>
         /// <param name="topics"></param>
         /// <param name="action"></param>
         /// <param name="cancleToken"></param>
@@ -84,14 +84,14 @@ namespace Coflnet.Kafka
         /// <param name="deserializer"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static async Task ConsumeBatch<T>(string host, string[] topics, Func<IEnumerable<T>, Task> action,
+        public static async Task ConsumeBatch<T>(IConfiguration config, string[] topics, Func<IEnumerable<T>, Task> action,
                                             CancellationToken cancleToken,
                                             string groupId = "default",
                                             int maxChunkSize = 500,
                                             AutoOffsetReset start = AutoOffsetReset.Earliest,
                                             IDeserializer<T> deserializer = null)
         {
-            await ConsumeBatch(new ConsumerConfig
+            await ConsumeBatch(new ConsumerConfig(KafkaCreator.GetClientConfig(config))
             {
                 GroupId = groupId,
 
@@ -101,7 +101,6 @@ namespace Coflnet.Kafka
                 // automatically, so in this example, consumption will only start from the
                 // earliest message in the topic 'my-topic' the first time you run the program.
                 AutoOffsetReset = start,
-                BootstrapServers = host,
                 EnableAutoCommit = false,
                 PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
             }, topics, action, cancleToken, maxChunkSize, deserializer);
@@ -169,7 +168,7 @@ namespace Coflnet.Kafka
                                     dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
                                 }
                             batch.Clear();
-                            if(currentChunkSize < maxChunkSize)
+                            if (currentChunkSize < maxChunkSize)
                                 currentChunkSize++;
                         }
                         catch (ConsumeException e)
