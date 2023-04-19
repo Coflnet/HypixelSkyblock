@@ -11,15 +11,16 @@ namespace Coflnet.Kafka
     public class KafkaCreator
     {
         private readonly ILogger<KafkaCreator> _logger;
+        private readonly IConfiguration config;
 
-        public KafkaCreator(ILogger<KafkaCreator> logger)
+        public KafkaCreator(ILogger<KafkaCreator> logger, IConfiguration config)
         {
             _logger = logger;
+            this.config = config.GetSection("Kafka");
         }
 
-        public async Task CreateTopicIfNotExist(IConfiguration config, string topic, int partitions = 3)
+        public async Task CreateTopicIfNotExist(string topic, int partitions = 3)
         {
-            config = config.GetSection("Kafka");
             short replicationFactor = config.GetValue<short>("REPLICATION_FACTOR");
             using var adminClient = new AdminClientBuilder(GetClientConfig(config)).Build();
             try
@@ -92,9 +93,8 @@ namespace Coflnet.Kafka
             };
         }
 
-        public IProducer<TKey, TRes> Produce<TKey,TRes>(IConfiguration config, bool serializeToMsgPack = true)
+        public IProducer<TKey, TRes> BuildProducer<TKey,TRes>(bool serializeToMsgPack = true)
         {
-            config = config.GetSection("Kafka");
             var producerConfig = GetProducerconfig(config);
             if(serializeToMsgPack)
                 return new ProducerBuilder<TKey, TRes>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<TRes>()).Build();
