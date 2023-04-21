@@ -63,9 +63,9 @@ namespace Coflnet.Kafka
                 SaslUsername = config["USERNAME"],
                 SaslPassword = config["PASSWORD"]
             };
-            if(!string.IsNullOrEmpty(baseConfig.SaslUsername))
+            if (!string.IsNullOrEmpty(baseConfig.SaslUsername))
             {
-                if(!string.IsNullOrEmpty(baseConfig.SslKeyLocation))
+                if (!string.IsNullOrEmpty(baseConfig.SslKeyLocation))
                     baseConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
                 else
                     baseConfig.SecurityProtocol = SecurityProtocol.SaslPlaintext;
@@ -73,14 +73,14 @@ namespace Coflnet.Kafka
             }
             else
             {
-                if(!string.IsNullOrEmpty(baseConfig.SslKeyLocation))
+                if (!string.IsNullOrEmpty(baseConfig.SslKeyLocation))
                     baseConfig.SecurityProtocol = SecurityProtocol.Ssl;
                 else
                     baseConfig.SecurityProtocol = SecurityProtocol.Plaintext;
             }
             return baseConfig;
         }
-        
+
         private static ProducerConfig GetProducerconfig(IConfiguration config)
         {
             var baseConfig = GetClientConfig(config);
@@ -94,12 +94,15 @@ namespace Coflnet.Kafka
             };
         }
 
-        public IProducer<TKey, TRes> BuildProducer<TKey,TRes>(bool serializeToMsgPack = true)
+        public IProducer<TKey, TRes> BuildProducer<TKey, TRes>(bool serializeToMsgPack = true, Func<ProducerBuilder<TKey, TRes>, ProducerBuilder<TKey, TRes>> configure = null)
         {
             var producerConfig = GetProducerconfig(config);
-            if(serializeToMsgPack)
-                return new ProducerBuilder<TKey, TRes>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<TRes>()).Build();
-            return new ProducerBuilder<TKey, TRes>(producerConfig).Build();
+            var builder = new ProducerBuilder<TKey, TRes>(producerConfig);
+            if (serializeToMsgPack)
+                builder = new ProducerBuilder<TKey, TRes>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<TRes>());
+            if (configure != null)
+                builder = configure.Invoke(builder);
+            return builder.Build();
         }
     }
 }
