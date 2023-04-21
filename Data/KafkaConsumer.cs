@@ -145,11 +145,12 @@ namespace Coflnet.Kafka
                     {
                         try
                         {
-                            if (currentChunkSize < 2)
+                            var extraLog = currentChunkSize < 2 && maxChunkSize > 2;
+                            if (extraLog)
                                 Console.WriteLine($"Polling for {currentChunkSize} messages from {string.Join(',', topics)}, config: {config.BootstrapServers}");
                             var cr = c.Consume(cancleToken);
                             batch.Enqueue(cr);
-                            if (currentChunkSize < 2)
+                            if (extraLog)
                                 Console.WriteLine($"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
                             while (batch.Count < currentChunkSize)
                             {
