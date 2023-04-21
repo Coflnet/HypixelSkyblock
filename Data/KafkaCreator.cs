@@ -54,6 +54,8 @@ namespace Coflnet.Kafka
 
         public static AdminClientConfig GetClientConfig(IConfiguration config)
         {
+            if(config["BROKERS"] == null)
+                config = config.GetSection("KAFKA");
             var baseConfig = new AdminClientConfig
             {
                 BootstrapServers = config["BROKERS"],
