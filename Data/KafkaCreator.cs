@@ -26,7 +26,7 @@ namespace Coflnet.Kafka
             try
             {
                 var meta = adminClient.GetMetadata(topic, TimeSpan.FromSeconds(10));
-                if (meta.Topics.Count != 0 && meta.Topics[0].Error.Code == ErrorCode.NoError)
+                if (meta.Topics.Count != 0 && meta.Topics[0].Error.Code == ErrorCode.NoError && meta.Topics[0].Partitions.Count >= partitions)
                     return; // topic exists
             }
             catch (Exception e)
@@ -44,6 +44,7 @@ namespace Coflnet.Kafka
                         ReplicationFactor = replicationFactor
                     }
                 });
+                _logger.LogInformation($"Created topic {topic} with {partitions} partitions and {replicationFactor} replication factor");
             }
             catch (Exception e)
             {
