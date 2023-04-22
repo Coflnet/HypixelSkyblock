@@ -17,7 +17,7 @@ namespace Coflnet.Kafka
         public KafkaCreator(ILogger<KafkaCreator> logger, IConfiguration config)
         {
             _logger = logger;
-            this.config = config.GetSection("Kafka");
+            this.config = config.GetSection("KAFKA");
         }
 
         public async Task CreateTopicIfNotExist(string topic, int partitions = 3)
