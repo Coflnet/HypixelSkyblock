@@ -26,8 +26,19 @@ namespace Coflnet.Kafka
             try
             {
                 var meta = adminClient.GetMetadata(topic, TimeSpan.FromSeconds(10));
-                if (meta.Topics.Count != 0 && meta.Topics[0].Error.Code == ErrorCode.NoError && meta.Topics[0].Partitions.Count >= partitions)
+                if (meta.Topics.Count != 0 && meta.Topics[0].Error.Code == ErrorCode.NoError)
+                {
+                    if(meta.Topics[0].Partitions.Count < partitions)
+                        await adminClient.CreatePartitionsAsync(new[]
+                        {
+                            new PartitionsSpecification
+                            {
+                                Topic = topic,
+                                IncreaseTo = partitions
+                            }
+                        });
                     return; // topic exists
+                }
             }
             catch (Exception e)
             {
