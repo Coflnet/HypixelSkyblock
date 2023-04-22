@@ -5,6 +5,7 @@ using Coflnet.Sky.Core;
 using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Coflnet.Kafka
 {
@@ -28,7 +29,10 @@ namespace Coflnet.Kafka
                 var meta = adminClient.GetMetadata(topic, TimeSpan.FromSeconds(10));
                 if (meta.Topics.Count != 0 && meta.Topics[0].Error.Code == ErrorCode.NoError)
                 {
-                    if(meta.Topics[0].Partitions.Count < partitions)
+                    if (meta.Topics[0].Partitions.Count < partitions)
+                    {
+                        _logger.LogInformation($"Topic {topic} has {meta.Topics[0].Partitions.Count} partitions, increasing to {partitions}");
+                        _logger.LogInformation($"Topic metadata: {JsonConvert.SerializeObject(meta.Topics[0])}");
                         await adminClient.CreatePartitionsAsync(new[]
                         {
                             new PartitionsSpecification
@@ -37,6 +41,7 @@ namespace Coflnet.Kafka
                                 IncreaseTo = partitions
                             }
                         });
+                    }
                     return; // topic exists
                 }
             }
@@ -65,7 +70,7 @@ namespace Coflnet.Kafka
 
         public static AdminClientConfig GetClientConfig(IConfiguration config)
         {
-            if(config["BROKERS"] == null)
+            if (config["BROKERS"] == null)
                 config = config.GetSection("KAFKA");
             var baseConfig = new AdminClientConfig
             {
