@@ -146,6 +146,8 @@ namespace Coflnet.Sky.Core
             mossy,
             blooming,
             rooted,
+            festive,
+            snowy,
 
             Unknown = -125,
             Any

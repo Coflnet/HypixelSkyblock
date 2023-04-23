@@ -78,9 +78,10 @@ namespace Coflnet.Kafka
                 SslCaLocation = config["TLS:CA_LOCATION"],
                 SslCertificateLocation = config["TLS:CERTIFICATE_LOCATION"],
                 SslKeyLocation = config["TLS:KEY_LOCATION"],
-                SaslUsername = config["USERNAME"],
                 SaslPassword = config["PASSWORD"]
             };
+            if(!string.IsNullOrEmpty(config["USERNAME"]))
+                baseConfig.SaslUsername = config["USERNAME"];
             if (!string.IsNullOrEmpty(baseConfig.SaslUsername))
             {
                 if (!string.IsNullOrEmpty(baseConfig.SslKeyLocation))
