@@ -151,7 +151,9 @@ namespace Coflnet.Sky.Core
             snowy,
 
             Unknown = -125,
-            Any
+            Any,
+
+            chomp = -100
         }
 
 
