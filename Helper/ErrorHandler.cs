@@ -22,7 +22,7 @@ namespace Coflnet.Sky.Core
         static string prefix = "api";
         static Prometheus.Counter errorCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_error", "Counts the amount of error responses handed out");
         static Prometheus.Counter badRequestCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_bad_request", "Counts the responses for invalid requests");
-        static JsonSerializerSettings converter = new JsonSerializerSettings(){ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()};
+        static JsonSerializerSettings converter = new JsonSerializerSettings() { ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver() };
         public static void Add(IApplicationBuilder errorApp, string serviceName)
         {
             var logger = errorApp.ApplicationServices.GetRequiredService<ILogger<ErrorHandler>>();
@@ -43,23 +43,24 @@ namespace Coflnet.Sky.Core
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     await context.Response.WriteAsync(
-                                    JsonConvert.SerializeObject(new ErrorResponse(){Slug= ex.Slug,Message= ex.Message }, converter));
+                                    JsonConvert.SerializeObject(new ErrorResponse() { Slug = ex.Slug, Message = ex.Message }, converter));
                     badRequestCount.Inc();
                 }
                 else
                 {
                     var source = context.RequestServices.GetService<ActivitySource>();
                     using var activity = source.StartActivity("error", ActivityKind.Producer);
-                    if(activity == null)
+                    if (activity == null)
                     {
                         logger.LogError("Could not start activity");
                         return;
                     }
                     activity.AddTag("host", System.Net.Dns.GetHostName());
-                    activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string,object>[] { 
+                    activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
                         new ("error", exceptionHandlerPathFeature?.Error?.Message),
                         new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace),
-                        new ("path", context.Request.Path) })));
+                        new ("path", context.Request.Path),
+                        new ("query", context.Request.QueryString) })));
                     var traceId = System.Net.Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + activity.Context.TraceId;
                     await context.Response.WriteAsync(
                         JsonConvert.SerializeObject(new ErrorResponse
