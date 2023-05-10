@@ -149,7 +149,7 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        private static void GetAndAssignTier(SaveAuction auction, string lastLine)
+        public static void GetAndAssignTier(SaveAuction auction, string lastLine)
         {
             if (lastLine == null)
                 return;
