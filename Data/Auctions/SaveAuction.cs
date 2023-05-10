@@ -195,7 +195,7 @@ namespace Coflnet.Sky.Core
         [JsonProperty("flatNbt")]
         [System.Text.Json.Serialization.JsonPropertyName("flatNbt")]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-        public Dictionary<string, string> FlatenedNBT
+        public virtual Dictionary<string, string> FlatenedNBT
         {
             get
             {
@@ -218,6 +218,7 @@ namespace Coflnet.Sky.Core
             }
             set
             {
+                Console.WriteLine("setting flat nbt " + JsonConvert.SerializeObject(value));
                 _flatenedNBT = value;
             }
         }
