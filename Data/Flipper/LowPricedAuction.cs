@@ -48,7 +48,8 @@ namespace Coflnet.Sky.Core
 
             TFM = 32,
             STONKS = 64,
-            EXTERNAL = 128
+            EXTERNAL = 128,
+            BINMASTER = 256,
         }
     }
 }
