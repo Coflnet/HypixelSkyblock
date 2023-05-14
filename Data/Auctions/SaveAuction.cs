@@ -218,7 +218,6 @@ namespace Coflnet.Sky.Core
             }
             set
             {
-                Console.WriteLine("setting flat nbt " + JsonConvert.SerializeObject(value));
                 _flatenedNBT = value;
             }
         }
