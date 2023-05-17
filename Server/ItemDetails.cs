@@ -20,15 +20,11 @@ namespace Coflnet.Sky.Core
         /// <summary>
         /// Contains the Tags indexed by name [Name]=Tag
         /// </summary>
-        /// <typeparam name="string"></typeparam>
-        /// <typeparam name="string"></typeparam>
         /// <returns></returns>
         public ConcurrentDictionary<string, string> ReverseNames = new ConcurrentDictionary<string, string>();
         /// <summary>
         /// Contains a cache for <see cref="DBItem.Tag"/> to <see cref="DBItem.Id"/>
         /// </summary>
-        /// <typeparam name="string"></typeparam>
-        /// <typeparam name="int"></typeparam>
         /// <returns></returns>
         public ConcurrentDictionary<string, int> TagLookup = new ConcurrentDictionary<string, int>();
 
