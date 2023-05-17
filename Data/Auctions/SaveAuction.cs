@@ -121,7 +121,7 @@ namespace Coflnet.Sky.Core
             }
             get
             {
-                return CoopMembers.Select(s => s.value).ToList();
+                return CoopMembers?.Select(s => s.value).ToList();
             }
         }
         [IgnoreMember]
