@@ -119,6 +119,10 @@ namespace Coflnet.Sky.Core
             {
                 CoopMembers = value?.Select(s => new UuId(s ?? AuctioneerId)).ToList();
             }
+            get
+            {
+                return CoopMembers.Select(s => s.value).ToList();
+            }
         }
         [IgnoreMember]
         public List<UuId> CoopMembers { get; set; }
