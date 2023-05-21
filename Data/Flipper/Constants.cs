@@ -79,7 +79,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.ultimate_no_pain_no_gain,5),
             new Enchantment(Enchantment.EnchantmentType.ultimate_rend,3),
             new Enchantment(Enchantment.EnchantmentType.ultimate_swarm,3),
-            new Enchantment(Enchantment.EnchantmentType.ultimate_wise,3),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_wise,4),
             new Enchantment(Enchantment.EnchantmentType.ultimate_wisdom,3),
             new Enchantment(Enchantment.EnchantmentType.compact,9),
             new Enchantment(Enchantment.EnchantmentType.counter_strike,5),
@@ -197,10 +197,25 @@ namespace Coflnet.Sky.Core
             (38,4),(24,2),(17,2),(21,4),(43,1),(45,4),(21,1),(45,2),(24,3),(38,3),(40,3),(38,2),(9,1)
         };
 
+        /// <summary>
+        /// Keys of attributes - only two out of these exist on any given item at the same time
+        /// </summary>
+        public static string[] AttributeKeys = new string[]{
+                "lifeline", "breeze", "speed", "experience", "mana_pool",
+                "life_regeneration", "blazing_resistance", "arachno_resistance",
+                "undead_resistance",
+                "blazing_fortune", "fishing_experience", "double_hook", "infection",
+                "trophy_hunter", "fisherman", "hunter", "fishing_speed",
+                "life_recovery", "ignition", "combo", "attack_speed", "midas_touch",
+                "mana_regeneration", "veteran", "mending", "ender_resistance", "dominance", "ender", "mana_steal", "blazing",
+                "elite", "arachno", "undead",
+                "warrior", "deadeye", "fortitude", "magic_find"
+                };
+
 
         public static Enchantment SelectBest(IEnumerable<Enchantment> enchants)
         {
-            if(enchants == null)
+            if (enchants == null)
                 return new Enchantment();
             // match exact level
             foreach (var item in WorthOrderLevels)
