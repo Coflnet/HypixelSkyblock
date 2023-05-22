@@ -20,6 +20,11 @@ namespace Coflnet.Sky.Core
             { ("artOfPeaceApplied", "1"), (new(){"THE_ART_OF_PEACE"}, string.Empty)},
             { ("art_of_war_count", "1"), (new(){"THE_ART_OF_WAR"}, string.Empty)},
             { ("wood_singularity_count", "1"), (new(){"WOOD_SINGULARITY"}, string.Empty)},
+            {("farming_for_dummies", "5"), (new(){"FARMING_FOR_DUMMIES"}, "4")},
+            {("farming_for_dummies", "4"), (new(){"FARMING_FOR_DUMMIES"}, "3") },
+            {("farming_for_dummies", "3"), (new(){"FARMING_FOR_DUMMIES"}, "2") },
+            {("farming_for_dummies", "2"), (new(){"FARMING_FOR_DUMMIES"}, "1") },
+            {("farming_for_dummies", "1"), (new(){"FARMING_FOR_DUMMIES"}, string.Empty) },
         };
 
         public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
