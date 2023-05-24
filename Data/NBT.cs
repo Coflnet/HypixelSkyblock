@@ -389,8 +389,7 @@ namespace Coflnet.Sky.Core
             }
             catch (Exception e)
             {
-                Console.WriteLine(JSON.Stringify(data));
-                Console.WriteLine(e.StackTrace);
+                dev.Logger.Instance.Error(e, "Error in flattening nbt data " + JSON.Stringify(data));
                 throw e;
             }
 

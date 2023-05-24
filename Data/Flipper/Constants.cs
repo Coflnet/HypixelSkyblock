@@ -139,6 +139,7 @@ namespace Coflnet.Sky.Core
             {Enchantment.EnchantmentType.looting, 5},
             {Enchantment.EnchantmentType.cubism, 6},
             {Enchantment.EnchantmentType.luck, 7},
+            {Enchantment.EnchantmentType.titan_killer, 7},
             {Enchantment.EnchantmentType.efficiency, 8},
             {Enchantment.EnchantmentType.divine_gift, 1},
             {Enchantment.EnchantmentType.green_thumb, 3},
