@@ -105,9 +105,10 @@ namespace Coflnet.Sky.Core
                 GetAndAssignTier(auction, lastLine);
                 if (auction.Tier == Tier.UNKNOWN)
                 {
-                    foreach (var line in GetLore(f))
+                    foreach (var line in GetLore(f).Reverse())
                     {
-                        GetAndAssignTier(auction, line);
+                        if (GetAndAssignTier(auction, line))
+                            break;
                     }
                 }
             }
@@ -124,6 +125,10 @@ namespace Coflnet.Sky.Core
             if (mcId == "minecraft:enchanted_book")
             {
                 var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
+                if (name == "§9Stacking Enchants")
+                    return; // does not have a real enchantment
+                if(name .StartsWith("§a§aBuy §e"))
+                    return;
                 if (!string.IsNullOrEmpty(name))
                 {
                     try
@@ -149,17 +154,19 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        public static void GetAndAssignTier(SaveAuction auction, string lastLine)
+        public static bool GetAndAssignTier(SaveAuction auction, string lastLine)
         {
             if (lastLine == null)
-                return;
+                return false;
             foreach (var item in Enum.GetValues<Tier>())
             {
                 if (lastLine.Contains(item.ToString()))
                 {
                     auction.Tier = item;
+                    return true;
                 }
             }
+            return false;
         }
 
         static readonly ConcurrentBag<string> ValidKeys = new ConcurrentBag<string>()
@@ -723,7 +730,8 @@ namespace Coflnet.Sky.Core
             {
                 if (!Enum.TryParse(item, true, out Enchantment.EnchantmentType type))
                 {
-                    Logger.Instance.Error("Did not find Enchantment " + item);
+                    if (!Enum.TryParse("ultimate_" + item, true, out type))
+                        Logger.Instance.Error("Did not find Enchantment " + item + " in " + extra.ToString());
                 }
                 var level = elements.Get<NbtInt>(item).IntValue;
                 result.Add(new Enchantment(type, (byte)level));
