@@ -120,5 +120,11 @@ namespace Coflnet.Sky.Core
                 type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
             return type;
         }
+
+        public string GetItemKeyForGem(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
+        {
+            var type = GetCorrectGemType(gem, flat);
+            return $"{gem.Value}_{type}_GEM";
+        }
     }
 }
