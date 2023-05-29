@@ -106,5 +106,19 @@ namespace Coflnet.Sky.Core
                 return (cost.Item1, cost.Item2 / 2);
             return (cost.Item1, cost.Item2);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gem">The gem to investigate</param>
+        /// <param name="flat">auction flat nbt data to search in</param>
+        /// <returns></returns>
+        public string GetCorrectGemType(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
+        {
+            var type = gem.Key.Split("_")[0];
+            if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE" || type == "MINING" || type == "OFFENSIVE")
+                type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
+            return type;
+        }
     }
 }
