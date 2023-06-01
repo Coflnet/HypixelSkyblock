@@ -127,7 +127,7 @@ namespace Coflnet.Sky.Core
                 var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
                 if (name == "§9Stacking Enchants")
                     return; // does not have a real enchantment
-                if(name .StartsWith("§a§aBuy §e"))
+                if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
                     return;
                 if (!string.IsNullOrEmpty(name))
                 {
@@ -768,6 +768,11 @@ namespace Coflnet.Sky.Core
                 var tag = nbt.Get<NbtCompound>("runes");
                 var runeType = tag.Tags.First().Name;
                 id += $"_{runeType}";
+            }
+            else if (id == "ABICASE")
+            {
+                if (nbt.TryGet<NbtString>("model", out NbtString model))
+                    id += $"_{model}";
             }
 
             return id;
