@@ -772,7 +772,7 @@ namespace Coflnet.Sky.Core
             else if (id == "ABICASE")
             {
                 if (nbt.TryGet<NbtString>("model", out NbtString model))
-                    id += $"_{model}";
+                    id += $"_{model.StringValue}";
             }
 
             return id;
