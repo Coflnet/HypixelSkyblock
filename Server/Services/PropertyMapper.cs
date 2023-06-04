@@ -1,14 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Coflnet.Sky.Core
+namespace Coflnet.Sky.Core;
+/// <summary>
+/// Maps properties to items to be able to get their cost
+/// </summary>
+public class PropertyMapper
 {
-    /// <summary>
-    /// Maps properties to items to be able to get their cost
-    /// </summary>
-    public class PropertyMapper
-    {
-        private Dictionary<(string, string), (List<string> needed, string previousLevel)> propertyToItem = new()
+    private Dictionary<(string, string), (List<string> needed, string previousLevel)> propertyToItem = new()
         {
             { ("upgrade_level", "10"), (new(){"FIFTH_MASTER_STAR"}, "9")},
             { ("upgrade_level", "9"), (new(){"FOURTH_MASTER_STAR"}, "8")},
@@ -27,20 +27,20 @@ namespace Coflnet.Sky.Core
             {("farming_for_dummies", "1"), (new(){"FARMING_FOR_DUMMIES"}, string.Empty) },
         };
 
-        public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
+    public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
+    {
+        if (!propertyToItem.TryGetValue((property, value), out var result))
         {
-            if (!propertyToItem.TryGetValue((property, value), out var result))
-            {
-                ingredients = null;
-                return false;
-            }
-            ingredients = new(result.needed);
-            if (baseValue != string.Empty && result.previousLevel != baseValue && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
-                ingredients.AddRange(previousLevelIngredients);
-            return true;
+            ingredients = null;
+            return false;
         }
+        ingredients = new(result.needed);
+        if (baseValue != string.Empty && result.previousLevel != baseValue && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
+            ingredients.AddRange(previousLevelIngredients);
+        return true;
+    }
 
-        public Dictionary<ItemReferences.Reforge, (string, int)> ReforgeCosts { get; set; } = new(){
+    public Dictionary<ItemReferences.Reforge, (string, int)> ReforgeCosts { get; set; } = new(){
             { ItemReferences.Reforge.ambered, ("AMBER_MATERIAL",300000)},
             { ItemReferences.Reforge.blessed, ("BLESSED_FRUIT",10000)},
             { ItemReferences.Reforge.bulky, ("BULKY_STONE",300000)},
@@ -95,36 +95,65 @@ namespace Coflnet.Sky.Core
             { ItemReferences.Reforge.rooted, ("BURROWING_SPORES",300000)},
         };
 
-        public (string, int) GetReforgeCost(ItemReferences.Reforge reforge, Tier tier = Tier.LEGENDARY)
-        {
-            var cost = ReforgeCosts.GetValueOrDefault(reforge);
-            if (cost == default)
-                return (string.Empty, 0);
-            if (tier > Tier.LEGENDARY)
-                return (cost.Item1, cost.Item2 * 2);
-            if (tier < Tier.LEGENDARY)
-                return (cost.Item1, cost.Item2 / 2);
-            return (cost.Item1, cost.Item2);
-        }
+    public (string, int) GetReforgeCost(ItemReferences.Reforge reforge, Tier tier = Tier.LEGENDARY)
+    {
+        var cost = ReforgeCosts.GetValueOrDefault(reforge);
+        if (cost == default)
+            return (string.Empty, 0);
+        if (tier > Tier.LEGENDARY)
+            return (cost.Item1, cost.Item2 * 2);
+        if (tier < Tier.LEGENDARY)
+            return (cost.Item1, cost.Item2 / 2);
+        return (cost.Item1, cost.Item2);
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gem">The gem to investigate</param>
-        /// <param name="flat">auction flat nbt data to search in</param>
-        /// <returns></returns>
-        public string GetCorrectGemType(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
-        {
-            var type = gem.Key.Split("_")[0];
-            if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE" || type == "MINING" || type == "OFFENSIVE")
-                type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
-            return type;
-        }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="gem">The gem to investigate</param>
+    /// <param name="flat">auction flat nbt data to search in</param>
+    /// <returns></returns>
+    public string GetCorrectGemType(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
+    {
+        var type = gem.Key.Split("_")[0];
+        if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE" || type == "MINING" || type == "OFFENSIVE")
+            type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
+        return type;
+    }
 
-        public string GetItemKeyForGem(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
+    public string GetItemKeyForGem(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
+    {
+        var type = GetCorrectGemType(gem, flat);
+        return $"{gem.Value}_{type}_GEM";
+    }
+    public enum Behaviour
+    {
+        Linear,
+        Exp,
+        Flag,
+        Item // single item required
+    }
+    public class AttributeDef
+    {
+        public Behaviour Behaviour;
+        public long Max;
+
+        public AttributeDef(Behaviour behaviour, long max)
         {
-            var type = GetCorrectGemType(gem, flat);
-            return $"{gem.Value}_{type}_GEM";
+            Behaviour = behaviour;
+            Max = max;
         }
     }
+    private Dictionary<(string item, string attr), AttributeDef> AttribDefinitions = new()
+    {
+        {(String.Empty, "exp"), new AttributeDef(Behaviour.Exp, 25000000)}
+    };
+
+    public bool TryGetDefinition(string item, string attr, out AttributeDef def)
+    {
+        if(AttribDefinitions.TryGetValue((item, attr), out def))
+            return true;
+        return AttribDefinitions.TryGetValue((String.Empty, attr), out def);
+    }
+
 }

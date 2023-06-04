@@ -101,15 +101,10 @@ namespace Coflnet.Sky.Core
             auction.NbtData = new NbtData(f);
             if (includeTier)
             {
-                var lastLine = GetLore(f).LastOrDefault();
-                GetAndAssignTier(auction, lastLine);
-                if (auction.Tier == Tier.UNKNOWN)
+                foreach (var line in GetLore(f).Reverse())
                 {
-                    foreach (var line in GetLore(f).Reverse())
-                    {
-                        if (GetAndAssignTier(auction, line))
-                            break;
-                    }
+                    if (GetAndAssignTier(auction, line))
+                        break;
                 }
             }
             var name = GetName(f);
@@ -156,13 +151,24 @@ namespace Coflnet.Sky.Core
 
         public static bool GetAndAssignTier(SaveAuction auction, string lastLine)
         {
+            if(TryFindTierInString(lastLine, out Tier tier))
+            {
+                auction.Tier = tier;
+                return true;
+            }
+            return false;
+        }
+
+        public static bool TryFindTierInString(string lastLine, out Tier tier)
+        {
+            tier = Tier.UNKNOWN;
             if (lastLine == null)
                 return false;
             foreach (var item in Enum.GetValues<Tier>())
             {
                 if (lastLine.Contains(item.ToString()))
                 {
-                    auction.Tier = item;
+                    tier = item;
                     return true;
                 }
             }
