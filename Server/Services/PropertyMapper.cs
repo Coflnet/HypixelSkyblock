@@ -146,7 +146,7 @@ public class PropertyMapper
     }
     private Dictionary<(string item, string attr), AttributeDef> AttribDefinitions = new()
     {
-        {(String.Empty, "exp"), new AttributeDef(Behaviour.Exp, 25000000)}
+        {(String.Empty, "exp"), new AttributeDef(Behaviour.Exp, 25353230)}
     };
 
     public bool TryGetDefinition(string item, string attr, out AttributeDef def)

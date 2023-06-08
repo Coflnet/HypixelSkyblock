@@ -28,6 +28,8 @@ namespace Coflnet.Sky.Core
             return SkullUrl(f);
         }
 
+        
+
         private static string SkullUrl(NbtFile file)
         {
             string base64 = null;
@@ -164,11 +166,11 @@ namespace Coflnet.Sky.Core
             tier = Tier.UNKNOWN;
             if (lastLine == null)
                 return false;
-            foreach (var item in Enum.GetValues<Tier>())
+            foreach (var item in TierNames)
             {
-                if (lastLine.Contains(item.ToString()))
+                if (lastLine.Contains(item.Value))
                 {
-                    tier = item;
+                    tier = item.Key;
                     return true;
                 }
             }
@@ -569,6 +571,23 @@ namespace Coflnet.Sky.Core
             }, (K, v) => v);
         }
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
+        private static readonly Dictionary<Tier,string> TierNames = new Dictionary<Tier, string>()
+        {
+            { Tier.COMMON, "COMMON" },
+            { Tier.UNCOMMON, "UNCOMMON" },
+            { Tier.RARE, "RARE" },
+            { Tier.EPIC, "EPIC" },
+            { Tier.LEGENDARY, "LEGENDARY" },
+            { Tier.MYTHIC, "MYTHIC" },
+            { Tier.SPECIAL, "SPECIAL" },
+            { Tier.VERY_SPECIAL, "VERY SPECIAL" },
+            { Tier.UNKNOWN, "UNKNOWN" },
+            { Tier.DIVINE, "DIVINE" },
+        };
+
+        public NBT()
+        {
+        }
 
         public int GetValueId(short key, string value)
         {
