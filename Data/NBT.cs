@@ -28,15 +28,20 @@ namespace Coflnet.Sky.Core
             return SkullUrl(f);
         }
 
-        
+
 
         private static string SkullUrl(NbtFile file)
+        {
+            return SkullUrl(file.RootTag.Get<NbtList>("i")
+                    .Get<NbtCompound>(0));
+        }
+
+        public static string SkullUrl(NbtCompound root)
         {
             string base64 = null;
             try
             {
-                base64 = file.RootTag.Get<NbtList>("i")
-                    .Get<NbtCompound>(0)
+                base64 = root
                     .Get<NbtCompound>("tag")
                     .Get<NbtCompound>("SkullOwner")?
                     .Get<NbtCompound>("Properties")?
@@ -46,7 +51,7 @@ namespace Coflnet.Sky.Core
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error in parsing {file.ToString()} {e.Message}");
+                Console.WriteLine($"Error in parsing {root.ToString()} {e.Message}");
             }
             if (string.IsNullOrEmpty(base64))
                 return null;
