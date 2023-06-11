@@ -105,6 +105,9 @@ namespace Coflnet.Sky.Core
             auction.Count = Count(f);
             auction.ItemCreatedAt = GetDateTime(f);
             auction.Reforge = GetReforge(f);
+            if (auction.Context == null)
+                auction.Context = new();
+            auction.Context["itemUuid"] = Uuid(f);
             auction.NbtData = new NbtData(f);
             if (includeTier)
             {
@@ -119,6 +122,16 @@ namespace Coflnet.Sky.Core
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
                 auction.ItemName = name;
+        }
+
+        private static string Uuid(NbtCompound f)
+        {
+            var tag = GetExtraTag(f);
+            if (tag == null)
+                return null;
+            if (!tag.Contains("uuid"))
+                return null;
+            return tag.Get<NbtString>("uuid").StringValue;
         }
 
         private static void TryAssignTagForBazaarBooks(SaveAuction auction, NbtCompound f)
@@ -158,7 +171,7 @@ namespace Coflnet.Sky.Core
 
         public static bool GetAndAssignTier(SaveAuction auction, string lastLine)
         {
-            if(TryFindTierInString(lastLine, out Tier tier))
+            if (TryFindTierInString(lastLine, out Tier tier))
             {
                 auction.Tier = tier;
                 return true;
@@ -576,7 +589,7 @@ namespace Coflnet.Sky.Core
             }, (K, v) => v);
         }
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
-        private static readonly Dictionary<Tier,string> TierNames = new Dictionary<Tier, string>()
+        private static readonly Dictionary<Tier, string> TierNames = new Dictionary<Tier, string>()
         {
             { Tier.COMMON, "COMMON" },
             { Tier.UNCOMMON, "UNCOMMON" },
