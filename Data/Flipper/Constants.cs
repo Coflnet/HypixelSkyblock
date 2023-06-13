@@ -98,6 +98,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.prosperity,1),
             new Enchantment(Enchantment.EnchantmentType.dedication,1),
             new Enchantment(Enchantment.EnchantmentType.tabasco,3),
+            new Enchantment(Enchantment.EnchantmentType.fire_aspect,3),
         };
 
         /// <summary>
