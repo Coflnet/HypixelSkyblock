@@ -143,7 +143,8 @@ namespace Coflnet.Sky.Core
             green_thumb,
             transylvanian = -120,
             reflection,
-            the_one
+            ultimate_the_one,
+            quantum
         }
 
         [System.ComponentModel.DataAnnotations.Key]
