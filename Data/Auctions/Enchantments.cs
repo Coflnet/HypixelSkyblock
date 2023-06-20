@@ -142,7 +142,8 @@ namespace Coflnet.Sky.Core
             Any = 126,
             green_thumb,
             transylvanian = -120,
-            reflection
+            reflection,
+            the_one
         }
 
         [System.ComponentModel.DataAnnotations.Key]

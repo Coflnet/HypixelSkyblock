@@ -153,7 +153,12 @@ namespace Coflnet.Sky.Core
             Unknown = -125,
             Any,
 
-            chomp = -100
+            chomp = -100,
+            full_jaw_fanging_kit,
+            presumed_gallon_of_red_paint,
+            displaced_leech,
+            Fang_tastic_chocolate_chip,
+            bubba_blister,
         }
 
 
