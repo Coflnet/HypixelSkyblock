@@ -140,7 +140,9 @@ namespace Coflnet.Sky.Core
             dedication,
             
             Any = 126,
-            green_thumb
+            green_thumb,
+            transylvanian = -120,
+            reflection
         }
 
         [System.ComponentModel.DataAnnotations.Key]

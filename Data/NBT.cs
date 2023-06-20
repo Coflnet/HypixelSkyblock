@@ -432,9 +432,9 @@ namespace Coflnet.Sky.Core
 
         private static void UnwarpStringArray(Dictionary<string, object> data, string stringArrayKey)
         {
-            if (data.TryGetValue(stringArrayKey, out object abilityScroll))
+            if (data.TryGetValue(stringArrayKey, out object abilityScroll) && abilityScroll is List<object> scrollList)
             {
-                var list = (abilityScroll as List<object>)
+                var list = scrollList
                     .Select(o => o.ToString())
                     .Select(s => s.Replace("TAG_String: ", "")
                     .Replace("\"", ""))
