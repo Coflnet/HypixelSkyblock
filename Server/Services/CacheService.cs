@@ -15,7 +15,7 @@ namespace Coflnet.Sky.Core
     {
         public static CacheService Instance { get; protected set; }
 
-        public int CacheSize => -1;
+        public int CacheSize => HotCache.Sum(e => e.Value.Length);
         /// <summary>
         /// event executed when the cache should be refreshed
         /// </summary>

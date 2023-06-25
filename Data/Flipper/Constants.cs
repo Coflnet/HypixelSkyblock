@@ -239,6 +239,7 @@ namespace Coflnet.Sky.Core
             return new Enchantment();
         }
 
+        public static double SkyblockYear(DateTime now) => (now - new DateTime(2019, 6, 11, 17, 55, 0, DateTimeKind.Utc)).TotalDays / (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays;
 
         static Constants()
         {
