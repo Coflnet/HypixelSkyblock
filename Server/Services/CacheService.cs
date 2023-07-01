@@ -135,7 +135,7 @@ namespace Coflnet.Sky.Core
                 HotCache.AddOrUpdate(key, data, (a, b) => data);
                 await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
                 string hostPrefix = GetHostprefix();
-                await RedisConnection.GetSubscriber().PublishAsync("cofl-cache-update", hostPrefix + key.ToString());
+                await RedisConnection.GetSubscriber().PublishAsync("cofl-cache-update", hostPrefix + key.ToString(), CommandFlags.FireAndForget);
             }
             catch (Exception e)
             {
