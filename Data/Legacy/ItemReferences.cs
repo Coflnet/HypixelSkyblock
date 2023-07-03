@@ -14,7 +14,7 @@ namespace Coflnet.Sky.Core
         /// Reforges as strings to compare name against.
         /// Loaded in the static constructor
         /// </summary>
-        private static HashSet<string> reforges;
+        public static readonly HashSet<string> reforges;
 
         [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
         public enum Reforge
@@ -159,6 +159,7 @@ namespace Coflnet.Sky.Core
             displaced_leech,
             Fang_tastic_chocolate_chip,
             bubba_blister,
+            fanged
         }
 
 
