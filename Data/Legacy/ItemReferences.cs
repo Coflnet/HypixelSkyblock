@@ -159,7 +159,8 @@ namespace Coflnet.Sky.Core
             displaced_leech,
             Fang_tastic_chocolate_chip,
             bubba_blister,
-            fanged
+            fanged,
+            blood_soaked
         }
 
 
