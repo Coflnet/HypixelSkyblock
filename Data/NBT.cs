@@ -771,6 +771,8 @@ namespace Coflnet.Sky.Core
 
             foreach (var item in elements.Names)
             {
+                if(Constants.AttributeKeys.Contains(item))
+                    continue; // for some reason they are now added into enchants sometimes
                 if (!Enum.TryParse(item, true, out Enchantment.EnchantmentType type))
                 {
                     if (!Enum.TryParse("ultimate_" + item, true, out type))
