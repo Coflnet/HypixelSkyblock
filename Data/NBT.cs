@@ -889,7 +889,6 @@ namespace Coflnet.Sky.Core
             }
 
             tag.Name = "";
-            tag.Remove("uuid");
 
             var shortenedFile = new NbtFile(tag);
             return Bytes(shortenedFile);

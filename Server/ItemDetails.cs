@@ -44,12 +44,13 @@ namespace Coflnet.Sky.Core
             try
             {
                 var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
-                TagLookup = new(await client.ItemsIdsGetAsync());
-                Logger.Instance.Info("loaded item tag lookup");
+                var ids = await client.ItemsIdsGetWithHttpInfoAsync() ?? throw new Exception("no items found");
+                TagLookup = new(ids.Data);
+                Logger.Instance.Info("loaded item tag lookup " + TagLookup.Count + " items");
             }
             catch (Exception e)
             {
-                Logger.Instance.Error(e, "trying to load itemid lookup from service");
+                Logger.Instance.Error(e, "trying to load itemid lookup from service " + SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
                 using (var context = new HypixelContext())
                 {
                     TagLookup = new(await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
@@ -109,17 +110,24 @@ namespace Coflnet.Sky.Core
         /// <returns></returns>
         public int GetItemIdForTag(string tag, bool forceGet = true)
         {
-            if(string.IsNullOrEmpty(tag))
+            if (string.IsNullOrEmpty(tag))
                 return 0;
+            if (TagLookup == null || TagLookup.Count == 0)
+                LoadLookup().GetAwaiter().GetResult();
             if (TagLookup.TryGetValue(tag, out int value))
                 return value;
 
             try
             {
                 var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
-                var id = client.ItemsSearchTermIdGet(tag);
+                var response = client.ItemsSearchTermIdGetWithHttpInfo(tag);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    throw new Exception("response from items service " + response.StatusCode + " " + response.RawContent.Truncate(100));
+                var id = response.Data;
                 if (id == 0 && forceGet)
+                {
                     throw new CoflnetException("item_not_found", $"could not find the item with the tag `{tag}`");
+                }
                 if (id != 0)
                     TagLookup[tag] = id;
                 return id;
@@ -198,7 +206,7 @@ namespace Coflnet.Sky.Core
                     return item;
                 }
             }
-            if(fullName.ToUpper() == fullName)
+            if (fullName.ToUpper() == fullName)
             {
                 // looks like actually a tag
                 return new DBItem() { Tag = fullName, Name = fullName };
