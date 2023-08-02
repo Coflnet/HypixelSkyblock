@@ -228,7 +228,7 @@ namespace Coflnet.Sky.Core
 
         public void SetFlattenedNbt(List<KeyValuePair<string, object>> preFlattened)
         {
-            _flatenedNBT = preFlattened.ToDictionary(d => d.Key, d =>
+            _flatenedNBT = preFlattened.GroupBy(p=>p.Key).Select(p=>p.First()).ToDictionary(d => d.Key, d =>
             {
                 if (d.Value is List<object> list)
                     return string.Join(",", list);
