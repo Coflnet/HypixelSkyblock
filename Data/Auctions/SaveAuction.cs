@@ -216,7 +216,7 @@ namespace Coflnet.Sky.Core
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e, "getting flat NBT");
+                    dev.Logger.Instance.Error(e, "getting flat NBT on " + Uuid + " failed");
                     return null;
                 }
             }

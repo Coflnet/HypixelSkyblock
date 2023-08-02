@@ -490,7 +490,9 @@ namespace Coflnet.Sky.Core
             {
                 if (!data.ContainsKey(key))
                     return;
-                data[key] = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key].ToString());
+                var innterData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key].ToString());
+                innterData.Remove("uuid");
+                data[key] = innterData;
             }
             catch (Exception e)
             {
