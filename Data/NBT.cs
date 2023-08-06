@@ -797,7 +797,12 @@ namespace Coflnet.Sky.Core
         public static string ItemID(NbtCompound file)
         {
             var nbt = GetExtraTag(file);
+            return ItemIdFromExtra(nbt);
 
+        }
+
+        public static string ItemIdFromExtra(NbtCompound nbt)
+        {
             var id = nbt?.Get<NbtString>("id")?.StringValue;
 
             if (id == "PET")
@@ -823,7 +828,6 @@ namespace Coflnet.Sky.Core
             }
 
             return id;
-
         }
 
         private static string GetPetId(NbtCompound nbt, string id)
