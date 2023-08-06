@@ -810,10 +810,10 @@ namespace Coflnet.Sky.Core
                     id += $"_{potionTag.StringValue}";
 
             }
-            else if (id == "RUNE")
+            else if (id.EndsWith("RUNE"))
             {
                 var tag = nbt.Get<NbtCompound>("runes");
-                var runeType = tag.Tags.First().Name;
+                var runeType = tag?.Tags?.First().Name;
                 id += $"_{runeType}";
             }
             else if (id == "ABICASE")
@@ -892,8 +892,7 @@ namespace Coflnet.Sky.Core
 
             tag.Name = "";
 
-            var shortenedFile = new NbtFile(tag);
-            return Bytes(shortenedFile);
+            return Bytes(tag);
         }
 
         public static string Pretty(string input)
@@ -916,6 +915,13 @@ namespace Coflnet.Sky.Core
         public static byte[] Bytes(NbtFile file)
         {
             var outStream = new MemoryStream();
+            file.SaveToStream(outStream, NbtCompression.None);
+            return outStream.ToArray();
+        }
+        public static byte[] Bytes(NbtCompound root)
+        {
+            var file = new NbtFile(root);
+            using var outStream = new MemoryStream();
             file.SaveToStream(outStream, NbtCompression.None);
             return outStream.ToArray();
         }
