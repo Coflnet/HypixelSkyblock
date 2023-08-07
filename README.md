@@ -68,4 +68,5 @@ git clone --depth=1 https://github.com/Coflnet/SkyUpdater
 git clone --depth=1 https://github.com/Coflnet/SkyModCommands
 git clone --depth=1 https://github.com/Coflnet/SkySettings
 git clone --depth=1 https://github.com/Coflnet/SkyPlayerName
+git clone --depth=1 https://github.com/Coflnet/SkyFilter
 ```
