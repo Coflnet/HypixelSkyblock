@@ -815,7 +815,7 @@ namespace Coflnet.Sky.Core
                     id += $"_{potionTag.StringValue}";
 
             }
-            else if (id.EndsWith("RUNE"))
+            else if (id?.EndsWith("RUNE") ?? false)
             {
                 var tag = nbt.Get<NbtCompound>("runes");
                 var runeType = tag?.Tags?.First().Name;
