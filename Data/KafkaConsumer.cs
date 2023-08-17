@@ -7,12 +7,14 @@ using Confluent.Kafka;
 using Coflnet.Sky.Core;
 using Prometheus;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Concurrent;
 
 namespace Coflnet.Kafka
 {
     public class KafkaConsumer
     {
         static Counter processFail = Metrics.CreateCounter("consume_process_failed", "How often processing of consumed messages failed");
+        static ConcurrentDictionary<string, Gauge> consumerOffsets = new();
         /// <summary>
         /// Generic consumer
         /// </summary>
@@ -139,8 +141,10 @@ namespace Coflnet.Kafka
             using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build())
             {
                 c.Subscribe(topics);
+                var key = "kafka_offset_" + string.Join('_', topics);
                 try
                 {
+                    // reset all offsets
                     while (!cancleToken.IsCancellationRequested)
                     {
                         try
@@ -167,6 +171,7 @@ namespace Coflnet.Kafka
                                 try
                                 {
                                     c.Commit(batch.Select(b => b.TopicPartitionOffset));
+                                    consumerOffsets.GetOrAdd(key, Metrics.CreateGauge(key, "offset of kafka topic")).Set(batch.Last().Offset.Value);
                                 }
                                 catch (KafkaException e)
                                 {
