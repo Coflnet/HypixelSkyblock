@@ -141,7 +141,7 @@ namespace Coflnet.Kafka
             using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build())
             {
                 c.Subscribe(topics);
-                var key = "kafka_offset_" + string.Join('_', topics);
+                var key = "kafka_offset_" + string.Join('_', topics.Select(k=> System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
                 try
                 {
                     // reset all offsets
