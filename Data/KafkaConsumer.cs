@@ -184,6 +184,14 @@ namespace Coflnet.Kafka
                 }
                 catch (OperationCanceledException)
                 {
+                    dev.Logger.Instance.Info($"Consumer for {string.Join(',', topics)} canceled");
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, $"On consume {string.Join(',', topics)}");
+                }
+                finally
+                {
                     // Ensure the consumer leaves the group cleanly and final offsets are committed.
                     c.Close();
                 }
