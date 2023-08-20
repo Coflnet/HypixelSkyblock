@@ -137,34 +137,38 @@ namespace Coflnet.Sky.Core
         private static void TryAssignTagForBazaarBooks(SaveAuction auction, NbtCompound f)
         {
             var mcId = f?.Get<NbtString>("id").StringValue;
-            if (mcId == "minecraft:enchanted_book")
+            if (mcId != "minecraft:enchanted_book")
             {
-                var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
-                if (name == "§9Stacking Enchants")
-                    return; // does not have a real enchantment
-                if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
-                    return;
-                if (!string.IsNullOrEmpty(name))
+                return;
+            }
+            var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
+            if (name == "§9Stacking Enchants")
+                return; // does not have a real enchantment
+            if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
+                return;
+            if (!string.IsNullOrEmpty(name))
+            {
+                try
                 {
-                    try
-                    {
-                        // try to get enchantment for bazaar
-                        var lastSpace = name.LastIndexOf(' ');
-                        var levelString = name.Substring(lastSpace + 1).Split('-').First();
-                        if (!int.TryParse(levelString, out int level))
+                    // try to get enchantment for bazaar
+                    var lastSpace = name.LastIndexOf(' ');
+                    var levelString = name.Substring(lastSpace + 1).Split('-').First();
+                    if (!int.TryParse(levelString, out int level))
+                        if (levelString.StartsWith("§"))
+                            level = 1;
+                        else
                             level = Roman.From(levelString);
-                        var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
-                        while (enchantName.StartsWith("§"))
-                            enchantName = enchantName.Substring(2);
-                        if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
-                            if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
-                                Console.WriteLine("unkown enchant " + enchantName);
-                        auction.Tag = "ENCHANTMENT_" + enchant.ToString().ToUpper() + '_' + level;
-                    }
-                    catch (Exception e)
-                    {
-                        dev.Logger.Instance.Error(e, "Parsing book name " + name);
-                    }
+                    var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
+                    while (enchantName.StartsWith("§"))
+                        enchantName = enchantName.Substring(2);
+                    if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
+                        if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
+                            Console.WriteLine("unkown enchant " + enchantName);
+                    auction.Tag = "ENCHANTMENT_" + enchant.ToString().ToUpper() + '_' + level;
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, "Parsing book name " + name);
                 }
             }
         }
@@ -773,7 +777,7 @@ namespace Coflnet.Sky.Core
 
             foreach (var item in elements.Names)
             {
-                if(Constants.AttributeKeys.Contains(item))
+                if (Constants.AttributeKeys.Contains(item))
                     continue; // for some reason they are now added into enchants sometimes
                 if (!Enum.TryParse(item, true, out Enchantment.EnchantmentType type))
                 {
