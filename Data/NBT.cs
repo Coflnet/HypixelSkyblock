@@ -154,7 +154,7 @@ namespace Coflnet.Sky.Core
                     var lastSpace = name.LastIndexOf(' ');
                     var levelString = name.Substring(lastSpace + 1).Split('-').First();
                     if (!int.TryParse(levelString, out int level))
-                        if (levelString.StartsWith("§"))
+                        if (lastSpace < 0)
                             level = 1;
                         else
                             level = Roman.From(levelString);
