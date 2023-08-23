@@ -146,7 +146,7 @@ namespace Coflnet.Sky.Core
         {
             var parts = context.path.Split('/', '?');
             Type = parts[2];
-            this.Span = context.Span;
+            Span = context.Span;
             this.context = context;
             // default status code
             context.SetStatusCode(201);
@@ -160,10 +160,10 @@ namespace Coflnet.Sky.Core
                 if (parts.Length > 3)
                     Data = Encoding.UTF8.GetString(Convert.FromBase64String(parts[3]));
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 dev.Logger.Instance.Error($"received invalid command {context.path} {e.Message} {e.StackTrace}");
-                this.SendBack(new MessageData("error", "commanddata was invalid"));
+                SendBack(new MessageData("error", "commanddata was invalid"));
             }
 
         }

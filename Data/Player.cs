@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Core
 
         public Player(string uuid)
         {
-            this.UuId = uuid;
+            UuId = uuid;
         }
 
 

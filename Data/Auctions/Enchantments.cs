@@ -7,7 +7,7 @@ namespace Coflnet.Sky.Core
     [MessagePack.MessagePackObject]
     public class Enchantment
     {
-        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public enum EnchantmentType
         {
             unknown,

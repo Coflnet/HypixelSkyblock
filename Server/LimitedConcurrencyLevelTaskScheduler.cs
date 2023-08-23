@@ -77,7 +77,7 @@ namespace Coflnet.Sky.Core
                         }
 
                    // Execute the task we pulled out of the queue
-                   base.TryExecuteTask(item);
+                   TryExecuteTask(item);
                     }
                 }
            // We're done processing items on the current thread
@@ -95,11 +95,11 @@ namespace Coflnet.Sky.Core
             if (taskWasPreviouslyQueued)
                 // Try to run the task.
                 if (TryDequeue(task))
-                    return base.TryExecuteTask(task);
+                    return TryExecuteTask(task);
                 else
                     return false;
             else
-                return base.TryExecuteTask(task);
+                return TryExecuteTask(task);
         }
 
         // Attempt to remove a previously scheduled task from the scheduler.

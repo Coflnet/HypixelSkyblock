@@ -168,7 +168,7 @@ namespace Coflnet.Sky.Core
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e, "Parsing book name " + name);
+                    Logger.Instance.Error(e, "Parsing book name " + name);
                 }
             }
         }
@@ -426,7 +426,7 @@ namespace Coflnet.Sky.Core
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "Error in flattening nbt data " + JSON.Stringify(data));
+                Logger.Instance.Error(e, "Error in flattening nbt data " + JSON.Stringify(data));
                 throw e;
             }
 
@@ -589,7 +589,7 @@ namespace Coflnet.Sky.Core
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e, $"saving new nbtKey {name}");
+                    Logger.Instance.Error(e, $"saving new nbtKey {name}");
                     return -1;
                 }
             }, (K, v) => v);
@@ -638,7 +638,7 @@ namespace Coflnet.Sky.Core
                 }
                 catch (Exception e)
                 {
-                    dev.Logger.Instance.Error(e, $"saving new nbtValue {value} for key {key}");
+                    Logger.Instance.Error(e, $"saving new nbtValue {value} for key {key}");
                     return -1;
                 }
 

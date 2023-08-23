@@ -324,7 +324,7 @@ namespace Coflnet.Sky.Core
             {
                 // allow another try
                 CacheService.Instance.RedisConnection.GetDatabase().KeyDelete(Key);
-                dev.Logger.Instance.Error($"FillLastHour got exception {e.Message} {e.StackTrace}");
+                Logger.Instance.Error($"FillLastHour got exception {e.Message} {e.StackTrace}");
             }
 
         }
@@ -692,7 +692,7 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Dictionary<string, string> filter, int limit = 2)
+        public static Task<List<AuctionPreview>> GetLowestBin(string itemTag, Dictionary<string, string> filter, int limit = 2)
         {
             filter["Bin"] = "true";
             var query = new ActiveItemSearchQuery()
@@ -702,11 +702,11 @@ namespace Coflnet.Sky.Core
                 Filter = filter,
                 name = itemTag
             };
-            var lowestBin = CoreServer.ExecuteCommandWithCache<ActiveItemSearchQuery, List<ItemPrices.AuctionPreview>>("activeAuctions", query);
+            var lowestBin = CoreServer.ExecuteCommandWithCache<ActiveItemSearchQuery, List<AuctionPreview>>("activeAuctions", query);
             return lowestBin;
         }
 
-        public static Task<List<ItemPrices.AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
+        public static Task<List<AuctionPreview>> GetLowestBin(string itemTag, Tier tier = Tier.UNKNOWN)
         {
             var filter = new Dictionary<string, string>();
             if (tier != Tier.UNCOMMON)

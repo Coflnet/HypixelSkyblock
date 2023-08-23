@@ -298,7 +298,7 @@ namespace Coflnet.Sky.Core
                         if(cache.Count % 500 == 0)
                         {
                             // force collection to stay under server memory limit
-                            System.GC.Collect();
+                            GC.Collect();
                         }
                     }
 

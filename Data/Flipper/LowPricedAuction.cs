@@ -18,16 +18,16 @@ namespace Coflnet.Sky.Core
         [DataMember(Name = "props")]
         public Dictionary<string, string> AdditionalProps = new();
         [IgnoreDataMember]
-        public long UId => AuctionService.Instance.GetId(this.Auction.Uuid);
+        public long UId => AuctionService.Instance.GetId(Auction.Uuid);
 
         // copy constructor
         public LowPricedAuction(LowPricedAuction other)
         {
-            this.TargetPrice = other.TargetPrice;
-            this.DailyVolume = other.DailyVolume;
-            this.Auction = new SaveAuction(other.Auction);
-            this.Finder = other.Finder;
-            this.AdditionalProps = other.AdditionalProps;
+            TargetPrice = other.TargetPrice;
+            DailyVolume = other.DailyVolume;
+            Auction = new SaveAuction(other.Auction);
+            Finder = other.Finder;
+            AdditionalProps = other.AdditionalProps;
         }
 
         public LowPricedAuction()

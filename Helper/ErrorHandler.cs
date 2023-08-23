@@ -55,13 +55,13 @@ namespace Coflnet.Sky.Core
                         logger.LogError("Could not start activity");
                         return;
                     }
-                    activity.AddTag("host", System.Net.Dns.GetHostName());
+                    activity.AddTag("host", Dns.GetHostName());
                     activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
                         new ("error", exceptionHandlerPathFeature?.Error?.Message),
                         new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace),
                         new ("path", context.Request.Path),
                         new ("query", context.Request.QueryString) })));
-                    var traceId = System.Net.Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + activity.Context.TraceId;
+                    var traceId = Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + activity.Context.TraceId;
                     await context.Response.WriteAsync(
                         JsonConvert.SerializeObject(new ErrorResponse
                         {

@@ -5,7 +5,7 @@ namespace Coflnet.Sky.Core
     public class UuId
     {
         public int Id { get; set; }
-        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        [Column(TypeName = "char(32)")]
         public string value { get; set; }
 
         public UuId(string value)

@@ -97,7 +97,7 @@ namespace Coflnet.Sky.Core
 
             internal void Discard(DateTime allBefore)
             {
-                this.Prices = this.Prices.Where(p => p.Date >= allBefore).ToList();
+                Prices = Prices.Where(p => p.Date >= allBefore).ToList();
             }
         }
     }

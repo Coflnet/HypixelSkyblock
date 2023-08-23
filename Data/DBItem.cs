@@ -88,19 +88,19 @@ namespace Coflnet.Sky.Core
 
         public DBItem(ItemDetails.Item item)
         {
-            this.Name = item.Id;
-            this.Extra = item.Extra;
-            this.Tag = item.Id;
-            this.Description = item.Description;
+            Name = item.Id;
+            Extra = item.Extra;
+            Tag = item.Id;
+            Description = item.Description;
 
             Enum.TryParse<Category>(item.Category, true, out Category category);
-            this.Category = category;
+            Category = category;
             Enum.TryParse<Tier>(item.Category, true, out Tier tier);
-            this.Tier = tier;
-            this.IconUrl = item.IconUrl;
-            this.color = item.color;
-            this.MinecraftType = item.MinecraftType?.Length > 44 ? item.MinecraftType.Substring(0, 44) : item.MinecraftType;
-            this.Names = new List<AlternativeName>(item.AltNames.Select(n => new AlternativeName() { Name = n }));
+            Tier = tier;
+            IconUrl = item.IconUrl;
+            color = item.color;
+            MinecraftType = item.MinecraftType?.Length > 44 ? item.MinecraftType.Substring(0, 44) : item.MinecraftType;
+            Names = new List<AlternativeName>(item.AltNames.Select(n => new AlternativeName() { Name = n }));
         }
     }
 

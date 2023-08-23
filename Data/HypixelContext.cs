@@ -8,7 +8,7 @@ namespace Coflnet.Sky.Core
     {
         public TEntity GetOrCreateAndAdd(TEntity entity)
         {
-            var value = this.Find(entity);
+            var value = Find(entity);
             if (value != null)
             {
                 return value;
@@ -21,11 +21,11 @@ namespace Coflnet.Sky.Core
         {
             if (this.Contains(entity))
             {
-                this.Update(entity);
+                Update(entity);
             }
             else
             {
-                this.Add(entity);
+                Add(entity);
             }
         }
     }
@@ -54,8 +54,8 @@ namespace Coflnet.Sky.Core
         public DbSet<NBTValue> NBTValues { get; set; }
         public DbSet<Bonus> Boni { get; set; }
 
-        public static string DbContextId = SimplerConfig.Config.Instance["DBConnection"];
-        public static string DBVersion = SimplerConfig.Config.Instance["DBVersion"] ?? "10.3";
+        public static string DbContextId = SimplerConfig.SConfig.Instance["DBConnection"];
+        public static string DBVersion = SimplerConfig.SConfig.Instance["DBVersion"] ?? "10.3";
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

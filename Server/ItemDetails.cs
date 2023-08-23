@@ -43,14 +43,14 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
+                var client = new Items.Client.Api.ItemsApi(SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
                 var ids = await client.ItemsIdsGetWithHttpInfoAsync() ?? throw new Exception("no items found");
                 TagLookup = new(ids.Data);
                 Logger.Instance.Info("loaded item tag lookup " + TagLookup.Count + " items");
             }
             catch (Exception e)
             {
-                Logger.Instance.Error(e, "trying to load itemid lookup from service " + SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
+                Logger.Instance.Error(e, "trying to load itemid lookup from service " + SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
                 using (var context = new HypixelContext())
                 {
                     TagLookup = new(await context.Items.Where(item => item.Tag != null).Select(item => new { item.Tag, item.Id })
@@ -119,7 +119,7 @@ namespace Coflnet.Sky.Core
 
             try
             {
-                var client = new Sky.Items.Client.Api.ItemsApi(SimplerConfig.Config.Instance["ITEMS_BASE_URL"]);
+                var client = new Items.Client.Api.ItemsApi(SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
                 var response = client.ItemsSearchTermIdGetWithHttpInfo(tag);
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                     throw new Exception("response from items service " + response.StatusCode + " " + response.RawContent.Truncate(100));

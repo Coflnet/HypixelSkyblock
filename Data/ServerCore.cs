@@ -27,7 +27,7 @@ namespace Coflnet.Sky.Core
             {
                 if (client == null)
                 {
-                    var url = SimplerConfig.Config.Instance["SKYCOMMANDS_BASE_URL"] ?? "http://" + SimplerConfig.Config.Instance["SKYCOMMANDS_HOST"];
+                    var url = SimplerConfig.SConfig.Instance["SKYCOMMANDS_BASE_URL"] ?? "http://" + SimplerConfig.SConfig.Instance["SKYCOMMANDS_HOST"];
                     if (string.IsNullOrEmpty(url))
                     {
                         throw new Exception("The enviroment variable SKYCOMMANDS_BASE_URL is not set to a valid url");
@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Core
                 }
                 var source = new TaskCompletionSource<TRes>();
                 var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-                var request = new RestRequest($"/command/{command}/{System.Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
+                var request = new RestRequest($"/command/{command}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
                 request.Timeout = 10000;
                 var result = await client.ExecuteAsync(request);
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
@@ -82,9 +82,9 @@ namespace Coflnet.Sky.Core
         public ProxyMessageData(string type, Treq request, TaskCompletionSource<TRes> source) : base(type, "", 0)
         {
             this.request = request;
-            this.Type = type;
+            Type = type;
             this.source = source;
-            this.Data = MessagePack.MessagePackSerializer.ToJson<Treq>(request);
+            Data = MessagePackSerializer.ToJson<Treq>(request);
         }
 
         public override T GetAs<T>()

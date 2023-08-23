@@ -23,7 +23,7 @@ namespace Coflnet.Sky.Core
 
         public static bool FullServerMode { get; private set; }
         public static bool LightClient { get; private set; }
-        public static string KafkaHost = SimplerConfig.Config.Instance["KAFKA_HOST"];
+        public static string KafkaHost = SimplerConfig.SConfig.Instance["KAFKA_HOST"];
 
         public static int usersLoaded = 0;
 
@@ -163,13 +163,13 @@ namespace Coflnet.Sky.Core
                     {
                         CreateHost(new string[0]);
                     }
-                    catch (Exception e) { dev.Logger.Instance.Error(e, "Exited asp.net"); }
+                    catch (Exception e) { Logger.Instance.Error(e, "Exited asp.net"); }
                     await Task.Delay(2000);
                 }
             }).ConfigureAwait(false);
 
-            var mode = SimplerConfig.Config.Instance["MODE"];
-            var modes = SimplerConfig.Config.Instance["MODES"]?.Split(",");
+            var mode = SimplerConfig.SConfig.Instance["MODE"];
+            var modes = SimplerConfig.SConfig.Instance["MODES"]?.Split(",");
             if (modes == null)
                 modes = new string[] { "indexer", "updater", "flipper" };
 
@@ -179,7 +179,7 @@ namespace Coflnet.Sky.Core
 
 
                 Console.WriteLine("running on " + System.Net.Dns.GetHostName());
-                System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                Thread.Sleep(Timeout.Infinite);
             }
 
 
@@ -220,7 +220,7 @@ namespace Coflnet.Sky.Core
 
             redisInit?.GetAwaiter().GetResult();
 
-            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+            Thread.Sleep(Timeout.Infinite);
 
         }
 
@@ -253,7 +253,7 @@ namespace Coflnet.Sky.Core
 
 
                 if (last < DateTime.Now - TimeSpan.FromMinutes(2))
-                    Program.FillRedisCache();
+                    FillRedisCache();
 
 
             }
@@ -268,7 +268,7 @@ namespace Coflnet.Sky.Core
         private static void CleanDB()
         {
             // try cleaning when the dust settled
-            System.Threading.Thread.Sleep(TimeSpan.FromHours(1));
+            Thread.Sleep(TimeSpan.FromHours(1));
             using (var context = new HypixelContext())
             {
                 // remove dupplicate itemnames
@@ -385,7 +385,7 @@ namespace Coflnet.Sky.Core
                     {
                         // looks like db doesn't exist yet
                         Console.WriteLine("Waiting for db creating in the background");
-                        System.Threading.Thread.Sleep(10000);
+                        Thread.Sleep(10000);
                     }
                     // TODO: switch to .Migrate()
                     context.Database.Migrate();
@@ -394,7 +394,7 @@ namespace Coflnet.Sky.Core
             catch (Exception e)
             {
                 Console.WriteLine($"Waiting for db creating in the background {e.Message} {e.InnerException?.Message}");
-                System.Threading.Thread.Sleep(10000);
+                Thread.Sleep(10000);
             }
         }
 
@@ -417,7 +417,7 @@ namespace Coflnet.Sky.Core
                 {
                     var p = new Player() { UuId = uuid, ChangedFlag = true };
                     p.Name = name;
-                    p.Id = System.Threading.Interlocked.Increment(ref highestId);
+                    p.Id = Interlocked.Increment(ref highestId);
                     context.Players.Add(p);
                     context.SaveChanges();
                     return p.Id;
@@ -425,7 +425,7 @@ namespace Coflnet.Sky.Core
             }
             catch (Exception e)
             {
-                dev.Logger.Instance.Error(e, "failed to save user");
+                Logger.Instance.Error(e, "failed to save user");
                 var existingPlayer = callingContext.Players.Find(uuid);
                 if (existingPlayer != null)
                     return existingPlayer.Id;
@@ -506,7 +506,7 @@ namespace Coflnet.Sky.Core
             }
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                dev.Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+                Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
                 return null;
             }
             if (response.Content == "")
@@ -526,7 +526,7 @@ namespace Coflnet.Sky.Core
 
             if (responseDeserialized == null || (responseDeserialized?.name == null) || responseDeserialized.name == null)
             {
-                dev.Logger.Instance.Error(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+                Logger.Instance.Error(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
             }
 
             if (responseDeserialized == null)

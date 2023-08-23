@@ -36,7 +36,7 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        private ConcurrentDictionary<string, byte[]> HotCache = new ConcurrentDictionary<string, byte[]>();
+        private ConcurrentDictionary<string, byte[]> HotCache = new();
         private DateTime lastReconnect;
 
         static CacheService()
@@ -61,7 +61,7 @@ namespace Coflnet.Sky.Core
             if (lastReconnect > DateTime.Now - TimeSpan.FromSeconds(10))
                 return;
             lastReconnect = DateTime.Now;
-            var conName = SimplerConfig.Config.Instance["REDIS_HOST"] ?? SimplerConfig.Config.Instance["redisCon"];
+            var conName = SimplerConfig.SConfig.Instance["REDIS_HOST"] ?? SimplerConfig.SConfig.Instance["redisCon"];
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
             RedisConnection = ConnectionMultiplexer.Connect(options);
             RedisConnection.IncludePerformanceCountersInExceptions = true;
@@ -81,7 +81,7 @@ namespace Coflnet.Sky.Core
             {
                 if (HotCache.TryGetValue(key, out byte[] val))
                 {
-                    return MessagePack.MessagePackSerializer.Deserialize<T>(val);
+                    return MessagePackSerializer.Deserialize<T>(val);
                 }
                 if (RedisConnection == null)
                 {
@@ -91,7 +91,7 @@ namespace Coflnet.Sky.Core
                 var value = await RedisConnection.GetDatabase().StringGetAsync(key);
                 if (value == RedisValue.Null)
                     return default(T);
-                return MessagePack.MessagePackSerializer.Deserialize<T>(value);
+                return MessagePackSerializer.Deserialize<T>(value);
             }
             catch (RedisConnectionException)
             {
@@ -129,10 +129,10 @@ namespace Coflnet.Sky.Core
                 timeout = TimeSpan.FromDays(1);
             try
             {
-                var data = MessagePack.MessagePackSerializer.Serialize(obj);
+                var data = MessagePackSerializer.Serialize(obj);
                 if (HotCache.Count > 350)
                     HotCache.Clear();
-                HotCache.AddOrUpdate(key, data, (a, b) => data);
+                HotCache.AddOrUpdate(key, data, (_, _) => data);
                 await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
                 string hostPrefix = GetHostprefix();
                 await RedisConnection.GetSubscriber().PublishAsync("cofl-cache-update", hostPrefix + key.ToString(), CommandFlags.FireAndForget);
@@ -244,10 +244,7 @@ namespace Coflnet.Sky.Core
 
         private static string GetCacheKey(MessageData request)
         {
-            var key = request.CustomCacheKey;
-            if (key == null)
-                key = GetCacheKey(request.Type, request.Data);
-            return key;
+            return request.CustomCacheKey ?? GetCacheKey(request.Type, request.Data);
         }
 
         private static string GetCacheKey(string type, string data)
@@ -264,7 +261,7 @@ namespace Coflnet.Sky.Core
             public IEnumerable<MessageData> Responses => Reduced.Select(e => new MessageData(e.type, Unzip(e.data)));
 
             [Key(1)]
-            public List<ReducedCommandData> Reduced;
+            public readonly List<ReducedCommandData> Reduced;
 
             [Key(2)]
             public DateTime Created;
@@ -355,30 +352,28 @@ namespace Coflnet.Sky.Core
         {
             if (bytes.Length < 100)
                 return Encoding.UTF8.GetString(bytes);
-            using (var msi = new MemoryStream(bytes))
-            using (var mso = new MemoryStream())
+            using var msi = new MemoryStream(bytes);
+            using var mso = new MemoryStream();
+            using (var gs = new GZipStream(msi, CompressionMode.Decompress))
             {
-                using (var gs = new GZipStream(msi, CompressionMode.Decompress))
-                {
-                    //gs.CopyTo(mso);
-                    CopyTo(gs, mso);
-                }
-
-                return Encoding.UTF8.GetString(mso.ToArray());
+                //gs.CopyTo(mso);
+                CopyTo(gs, mso);
             }
+
+            return Encoding.UTF8.GetString(mso.ToArray());
         }
 
         public class CacheMessageData : MessageData
         {
             public CacheMessageData(string type, string data)
             {
-                this.Type = type;
-                this.Data = data;
+                Type = type;
+                Data = data;
             }
 
             public override Task SendBack(MessageData data, bool cache = true)
             {
-                CacheService.Instance.Save(this, data);
+                Instance.Save(this, data);
                 return Task.CompletedTask;
             }
         }

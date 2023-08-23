@@ -13,7 +13,7 @@ namespace Coflnet.Tracing
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return GetEnumerator();
         }
     }
 }

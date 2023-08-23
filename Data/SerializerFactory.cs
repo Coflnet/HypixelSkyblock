@@ -21,7 +21,7 @@ namespace Coflnet.Sky.Core
         {
             public byte[] Serialize(T data, SerializationContext context)
             {
-                return new byte[0];
+                return Array.Empty<byte>();
             }
         }
     }

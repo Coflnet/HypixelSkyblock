@@ -51,7 +51,7 @@ public static class JaegerSercieExtention
             {
                 GlobalTracer.Register(tracer);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 loggerFactory.CreateLogger("jager").LogError("Could not register new tracer \n" + e);
             }
@@ -95,7 +95,7 @@ public static class JaegerSercieExtention
             this.probability = probability;
 
             // The expected description is like TraceIdRatioBasedSampler{0.000100}
-            this.Description = "TraceIdRatioBasedSampler{" + this.probability.ToString("F6", CultureInfo.InvariantCulture) + "}";
+            Description = "TraceIdRatioBasedSampler{" + this.probability.ToString("F6", CultureInfo.InvariantCulture) + "}";
 
             // Special case the limits, to avoid any possible issues with lack of precision across
             // double/long boundaries. For probability == 0.0, we use Long.MIN_VALUE as this guarantees
@@ -103,17 +103,17 @@ public static class JaegerSercieExtention
             // Math.Abs(Long.MIN_VALUE) == Long.MIN_VALUE.
             if (this.probability == 0.0)
             {
-                this.idUpperBound = long.MinValue;
+                idUpperBound = long.MinValue;
             }
             else if (this.probability == 1.0)
             {
-                this.idUpperBound = long.MaxValue;
+                idUpperBound = long.MaxValue;
             }
             else
             {
-                this.idUpperBound = (long)(probability * long.MaxValue);
+                idUpperBound = (long)(probability * long.MaxValue);
             }
-            Console.WriteLine("started sampler with " + this.probability + " " + this.idUpperBound);
+            Console.WriteLine("started sampler with " + this.probability + " " + idUpperBound);
         }
 
         /// <inheritdoc />
@@ -136,7 +136,7 @@ public static class JaegerSercieExtention
             }
 
             samplingParameters.TraceId.CopyTo(traceIdBytes);
-            return new SamplingResult(Math.Abs(GetLowerLong(traceIdBytes)) < this.idUpperBound);
+            return new SamplingResult(Math.Abs(GetLowerLong(traceIdBytes)) < idUpperBound);
         }
 
         private static long GetLowerLong(ReadOnlySpan<byte> bytes)
