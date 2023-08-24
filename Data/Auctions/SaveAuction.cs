@@ -10,9 +10,18 @@ using Newtonsoft.Json.Converters;
 
 namespace Coflnet.Sky.Core
 {
-
+    /// <summary>
+    /// Item in sql database
+    /// </summary>
+    public interface IDbItem
+    {
+        string ItemName { get; set; }
+        string Tag { get; set; }
+        int Count { get; set; }
+        NBTLookup[] NBTLookup { get; set; }
+    }
     [MessagePackObject]
-    public class SaveAuction
+    public class SaveAuction : IDbItem
     {
         [IgnoreMember]
         [JsonIgnore]
@@ -192,7 +201,7 @@ namespace Coflnet.Sky.Core
         public int ItemId { get; set; }
         [IgnoreMember]
         [JsonIgnore]
-        public List<NBTLookup> NBTLookup { get; set; }
+        public NBTLookup[] NBTLookup { get; set; }
 
         private Dictionary<string, string> _flatenedNBT;
         [Key(30)]

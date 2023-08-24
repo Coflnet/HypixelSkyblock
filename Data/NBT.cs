@@ -305,19 +305,19 @@ namespace Coflnet.Sky.Core
             "dye_item"
         };
 
-        public static List<NBTLookup> CreateLookup(SaveAuction auction)
+        public static NBTLookup[] CreateLookup(SaveAuction auction)
         {
             if (auction.NbtData == null)
-                return new();
+                return Array.Empty<NBTLookup>();
             var data = auction.NbtData.Data;
             if (data == null || data.Keys.Count == 0)
-                return new List<NBTLookup>();
+                return Array.Empty<NBTLookup>();
 
             List<KeyValuePair<string, object>> flatList = FlattenNbtData(data);
             return CreateLookup(auction.Tag, data, flatList);
         }
 
-        public static List<NBTLookup> CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList)
+        public static NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList)
         {
             return flatList.Select(attr =>
             {
@@ -364,7 +364,7 @@ namespace Coflnet.Sky.Core
 
                 var lookupKey = GetLookupKey(key);
                 return new NBTLookup(lookupKey, Instance.GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
-            }).Where(a => a != null).ToList();
+            }).Where(a => a != null).ToArray();
         }
 
         public static long GetItemIdForSkin(string name)
