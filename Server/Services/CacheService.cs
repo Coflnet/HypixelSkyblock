@@ -258,7 +258,7 @@ namespace Coflnet.Sky.Core
             [Key(0)]
             public DateTime Expires;
             [IgnoreMember]
-            public IEnumerable<MessageData> Responses => Reduced.Select(e => new MessageData(e.type, Unzip(e.data)));
+            public IEnumerable<MessageData> Responses => Reduced?.Select(e => new MessageData(e.type, Unzip(e.data)));
 
             [Key(1)]
             public readonly List<ReducedCommandData> Reduced;
@@ -269,7 +269,7 @@ namespace Coflnet.Sky.Core
             public CacheElement(DateTime expires, List<MessageData> responses)
             {
                 Expires = expires;
-                Reduced = responses.Select(CreateItem)
+                Reduced = responses?.Select(CreateItem)
                             .ToList();
                 Created = DateTime.Now - TimeSpan.FromSeconds(20);
             }
