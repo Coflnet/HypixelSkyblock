@@ -189,7 +189,7 @@ namespace Coflnet.Sky.Core
         {
             var key = GetCacheKey(request);
             var responses = await GetFromRedis<CacheElement>(key);
-            if (responses == null)
+            if (responses?.Responses == null)
                 return CacheStatus.MISS;
 
             if (responses.Expires < DateTime.Now)
