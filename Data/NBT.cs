@@ -155,7 +155,10 @@ namespace Coflnet.Sky.Core
                     var levelString = name.Substring(lastSpace + 1).Split('-').First();
                     if (!int.TryParse(levelString, out int level))
                         if (lastSpace < 0)
+                        {
                             level = 1;
+                            lastSpace = name.Length + 2;
+                        }
                         else
                             level = Roman.From(levelString);
                     var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
