@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Core
                         .Take(batchSize);
                 foreach (var auction in select)
                 {
-                    if (auction.NBTLookup != null && auction.NBTLookup.Length > 0)
+                    if (auction.NBTLookup != null && auction.NBTLookup.Count() > 0)
                         continue;
                     try
                     {

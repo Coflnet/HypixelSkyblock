@@ -18,7 +18,7 @@ namespace Coflnet.Sky.Core
         string ItemName { get; set; }
         string Tag { get; set; }
         int Count { get; set; }
-        NBTLookup[] NBTLookup { get; set; }
+        IEnumerable<NBTLookup> NBTLookup { get; set; }
     }
     [MessagePackObject]
     public class SaveAuction : IDbItem
@@ -201,7 +201,7 @@ namespace Coflnet.Sky.Core
         public int ItemId { get; set; }
         [IgnoreMember]
         [JsonIgnore]
-        public NBTLookup[] NBTLookup { get; set; }
+        public IEnumerable<NBTLookup> NBTLookup { get; set; }
 
         private Dictionary<string, string> _flatenedNBT;
         [Key(30)]
