@@ -339,20 +339,20 @@ namespace Coflnet.Sky.Core
                     return res;
 
                 if (key == "uid" || key == "uuid" || key.EndsWith(".uuid"))
-                    return new NBTLookup(GetLookupKey(key), UidToLong(attr));
+                    return new NBTLookup(Instance.GetKeyId(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
-                    return new NBTLookup(GetLookupKey(key), UidToLong(attr));
+                    return new NBTLookup(Instance.GetKeyId(key), UidToLong(attr));
                 if ((key == "hideInfo" || key == "active") && !((bool)attr.Value))
                     return null; // always false
                 if (key == "tier" || key == "type") // both already save on auctions table
                     return null;
                 if (key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
-                    return new NBTLookup(GetLookupKey(key), GetItemIdForSkin(attr.Value as string));
+                    return new NBTLookup(Instance.GetKeyId(key), GetItemIdForSkin(attr.Value as string));
                 if (KeysWithItem.Contains(key))
-                    return new NBTLookup(GetLookupKey(key), ItemDetails.Instance.GetItemIdForTag(attr.Value as string));
+                    return new NBTLookup(Instance.GetKeyId(key), ItemDetails.Instance.GetItemIdForTag(attr.Value as string));
                 if (ValidKeys.Contains(key))
                 {
-                    var keyId = GetLookupKey(key);
+                    var keyId = Instance.GetKeyId(key);
                     if (!(attr.Value is string value))
                         value = JsonConvert.SerializeObject(attr.Value);
                     return new NBTLookup(keyId, Instance.GetValueId(keyId, value));
@@ -360,12 +360,12 @@ namespace Coflnet.Sky.Core
                 if (key == "color")
                 {
                     ColorFiller.Add(auctionTag, attr.Value as string);
-                    return new NBTLookup(GetLookupKey(key), GetColor(attr));
+                    return new NBTLookup(Instance.GetKeyId(key), GetColor(attr));
                 }
                 Console.WriteLine(JSON.Stringify(attr));
                 // just save it as strings
 
-                var lookupKey = GetLookupKey(key);
+                var lookupKey = Instance.GetKeyId(key);
                 return new NBTLookup(lookupKey, Instance.GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
             }).Where(a => a != null).ToArray();
         }
