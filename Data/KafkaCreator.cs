@@ -118,7 +118,9 @@ namespace Coflnet.Kafka
             var producerConfig = GetProducerconfig(config);
             var builder = new ProducerBuilder<TKey, TRes>(producerConfig);
             if (serializeToMsgPack)
-                builder = new ProducerBuilder<TKey, TRes>(producerConfig).SetValueSerializer(SerializerFactory.GetSerializer<TRes>());
+                builder = new ProducerBuilder<TKey, TRes>(producerConfig)
+                    .SetKeySerializer(SerializerFactory.GetSerializer<TKey>())
+                    .SetValueSerializer(SerializerFactory.GetSerializer<TRes>());
             if (configure != null)
                 builder = configure.Invoke(builder);
             return builder.Build();
