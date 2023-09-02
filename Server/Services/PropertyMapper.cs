@@ -151,9 +151,35 @@ public class PropertyMapper
 
     public bool TryGetDefinition(string item, string attr, out AttributeDef def)
     {
-        if(AttribDefinitions.TryGetValue((item, attr), out def))
+        if (AttribDefinitions.TryGetValue((item, attr), out def))
             return true;
         return AttribDefinitions.TryGetValue((String.Empty, attr), out def);
     }
 
+    public long EnchantValue(Enchantment enchant, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices)
+    {
+        var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
+
+        if (bazaarPrices.ContainsKey(key) && bazaarPrices[key] > 0)
+            return (long)bazaarPrices[key];
+        else if (enchant.Type == Enchantment.EnchantmentType.efficiency && enchant.Level >= 6)
+        {
+            var singleLevelPrice = bazaarPrices.GetValueOrDefault("SIL_EX", 8_000_000);
+            return (long)(singleLevelPrice * (enchant.Level - 5));
+        }
+        else
+        {
+            // from lvl 1 ench
+            key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_1";
+            if (bazaarPrices.ContainsKey(key) && bazaarPrices[key] > 0)
+                if (Constants.EnchantToAttribute.TryGetValue(enchant.Type, out (string attrName, double factor, int max) attrData))
+                {
+                    var stringValue = flatNbt.GetValueOrDefault(attrData.attrName) ?? "0";
+                    return (long)(bazaarPrices[key] + Math.Min(float.Parse(stringValue), attrData.max) * attrData.factor);
+                }
+                else
+                    return (long)(bazaarPrices[key] * Math.Pow(2, enchant.Level - 1));
+        }
+        return -1;
+    }
 }

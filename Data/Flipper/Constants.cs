@@ -202,7 +202,7 @@ namespace Coflnet.Sky.Core
         /// <summary>
         /// Keys of attributes - only two out of these exist on any given item at the same time
         /// </summary>
-        public static string[] AttributeKeys = new string[]{
+        public static readonly string[] AttributeKeys = new string[]{
                 "lifeline", "breeze", "speed", "experience", "mana_pool",
                 "life_regeneration", "blazing_resistance", "arachno_resistance",
                 "undead_resistance",
@@ -214,6 +214,12 @@ namespace Coflnet.Sky.Core
                 "warrior", "deadeye", "fortitude", "magic_find"
                 };
 
+        public static readonly Dictionary<Enchantment.EnchantmentType, (string, double, int)> EnchantToAttribute = new(){
+            { Enchantment.EnchantmentType.cultivating, ("farmed_cultivating",0.1, 100_000_000)},
+            { Enchantment.EnchantmentType.champion, ("champion_combat_xp",1,3_000_000)},
+            { Enchantment.EnchantmentType.compact, ("compact_blocks", 2, 1_000_000)},
+            { Enchantment.EnchantmentType.hecatomb, ("hecatomb_s_runs", 200_000, 100)}
+        };
 
         public static Enchantment SelectBest(IEnumerable<Enchantment> enchants)
         {
