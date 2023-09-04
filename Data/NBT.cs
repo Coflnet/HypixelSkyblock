@@ -600,14 +600,14 @@ namespace Coflnet.Sky.Core
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
         private static readonly Dictionary<Tier, string> TierNames = new Dictionary<Tier, string>()
         {
-            { Tier.COMMON, "COMMON" },
+            { Tier.LEGENDARY, "LEGENDARY" },
             { Tier.UNCOMMON, "UNCOMMON" },
+            { Tier.COMMON, "COMMON" },
             { Tier.RARE, "RARE" },
             { Tier.EPIC, "EPIC" },
-            { Tier.LEGENDARY, "LEGENDARY" },
             { Tier.MYTHIC, "MYTHIC" },
-            { Tier.SPECIAL, "SPECIAL" },
             { Tier.VERY_SPECIAL, "VERY SPECIAL" },
+            { Tier.SPECIAL, "SPECIAL" },
             { Tier.UNKNOWN, "UNKNOWN" },
             { Tier.DIVINE, "DIVINE" },
         };
