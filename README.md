@@ -30,7 +30,7 @@ Hello there fellow developer. Development of this project is done with docker-co
 1. create a new folder `skyblock`, enter it and clone this repository with `git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev`
 2. copy `docker-compose.yml` to the `skyblock` folder (one folder above)
 3. Open a terminal in the `skyblock` folder and Start up the databases with `docker-compose up -d mariadb phpmyadmin kafka redis`
-3. Clone the indexer `git clone https://github.com/Coflnet/SkyIndexer.git` The indexer is the service that manages and indexes skyblock data.  
+3. Clone the indexer `git clone https://github.com/Coflnet/SkyIndexer.git` The indexer is the service that manages and indexes skyblock data in the database. Make sure to modify the migration for first setup in SkyIndexer/Program.cs.  
 4. Also clone the updater `git clone https://github.com/Coflnet/SkyUpdater.git`, commands `git clone https://github.com/Coflnet/SkyCommands.git` and the website `git clone https://github.com/Coflnet/hypixel-react.git`
 5. Start these services with `docker-compose up -d indexer updater commands api modcommands frontend` after that is done you have a complete setup to archive and browse auctions locally.
 7. If you want flips you will also want to clone the flipper and/or sniper flip finders  

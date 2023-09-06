@@ -70,6 +70,8 @@ services:
       - 8234:80
   frontend:
     build: hypixel-react
+    ports:
+      - "3000:3000"
   jaeger:
     image: "jaegertracing/all-in-one:1.35"
     ports:
