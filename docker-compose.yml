@@ -1,34 +1,34 @@
 # Copy this file to the parent folder and clone the coresponding folders with "git clone https://github.com/Coflnet/_______.git"
 # also make sure to rename this folder to "dev" (historical name)
-version: '3.7'
+version: "3.7"
 services:
   mariadb:
-    image: 'docker.io/bitnami/mariadb:10.3-debian-10'
+    image: "docker.io/bitnami/mariadb:10.3-debian-10"
     volumes:
-      - 'skyblockdb_data:/bitnami/mariadb'
+      - "skyblockdb_data:/bitnami/mariadb"
     ports:
-      - '3306:3306'
+      - "3306:3306"
     environment:
       - MARIADB_ROOT_PASSWORD=takenfrombitnami
       - MARIADB_EXTRA_FLAGS=--innodb-buffer-pool-size=500M --key-buffer-size=1G --connect-timeout=101
   phpmyadmin:
-    image: 'docker.io/bitnami/phpmyadmin:5-debian-10'
+    image: "docker.io/bitnami/phpmyadmin:5-debian-10"
     ports:
-      - '8038:8080'
-      - '4438:8443'
+      - "8038:8080"
+      - "4438:8443"
     depends_on:
       - mariadb
   indexer:
     build: SkyIndexer
     ports:
-    - '8007:8008'
+      - "8007:8008"
     restart: always
     depends_on:
       - mariadb
       - kafka
       - redis
       - items
-    environment: 
+    environment:
       FRONTEND_PROD: "frontend"
       JAEGER_SERVICE_NAME: "hypixel-skyblock-core"
       JAEGER_AGENT_HOST: "jaeger"
@@ -36,18 +36,18 @@ services:
       SKYCOMMANDS_HOST: "commands:8008"
   api:
     build: SkyApi
-    restart: always 
+    restart: always
     ports:
-    - '1234:8000'
-    environment: 
+      - "1234:8000"
+    environment:
       DBCONNECTION: server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=30
   commands:
     build: SkyCommands
-    environment: 
+    environment:
       - JAEGER_AGENT_HOST=jaeger
       - KAFKA_HOST=kafka:9092
     ports:
-    - "8008:8008"
+      - "8008:8008"
     restart: always
     depends_on:
       - mariadb
@@ -70,6 +70,8 @@ services:
       - 8234:80
   frontend:
     build: hypixel-react
+    ports:
+      - 3000:3000
   jaeger:
     image: "jaegertracing/all-in-one:1.35"
     ports:
@@ -106,30 +108,30 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 1500M
   mcconnect:
     build: SkyMcConnect
   modcommands:
     build: SkyModCommands
-    environment: 
+    environment:
       - JAEGER_AGENT_HOST=jaeger
       - KAFKA_HOST=kafka:9092
       - DBConnection=server=mariadb;database=test;user=read;password=read; convert zero datetime=True;Charset=utf8; Connect Timeout=30; SslMode=none
     ports:
-    - "8009:8008"
+      - "8009:8008"
     restart: always
     depends_on:
-     - commands
-     - mcconnect
-     - fliptracker
-     - kafka
-     - items
+      - commands
+      - mcconnect
+      - fliptracker
+      - kafka
+      - items
   items:
     build: SkyItems
-    restart: always 
+    restart: always
     ports:
-     - '5014:8000'
+      - "5014:8000"
   fliptracker:
     build: SkyFlipTracker
     restart: always
@@ -141,7 +143,7 @@ services:
       - "8087:8000"
   sniper:
     build: SkySniper
-    restart: always 
+    restart: always
     ports:
       - "8086:8000"
     depends_on:
@@ -152,7 +154,7 @@ services:
     build: SkyUpdater
     depends_on:
       - jaeger
-    environment: 
+    environment:
       SLOWDOWN_MS: 800
   flipper:
     build: SkyFlipper
@@ -165,10 +167,10 @@ services:
   cassandra:
     image: docker.io/bitnami/cassandra:4.0
     ports:
-      - '7000:7000'
-      - '9042:9042'
+      - "7000:7000"
+      - "9042:9042"
     volumes:
-      - 'cassandra_data:/bitnami'
+      - "cassandra_data:/bitnami"
     environment:
       - CASSANDRA_SEEDS=cassandra
       - CASSANDRA_PASSWORD_SEEDER=yes
@@ -181,9 +183,9 @@ services:
       - MONGODB_ROOT_PASSWORD=password123
       - MONGODB_DATABASE=my_database
     volumes:
-      - 'mongodb_data:/bitnami'
+      - "mongodb_data:/bitnami"
     ports:
-      - '27017:27017'
+      - "27017:27017"
   minio:
     image: minio/minio
     command: server --console-address ":9001" /data
@@ -193,8 +195,8 @@ services:
       - 9000
       - 9001
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
