@@ -164,17 +164,31 @@ services:
       - mariadb
     ports:
       - "8089:80"
-  cassandra:
-    image: docker.io/bitnami/cassandra:4.0
+  settings:
+    build: SkySettings
+    restart: always 
+    depends_on:
+      - scylla
+    ports:
+     - '5004:8000'
+    environment:
+      - CASSANDRA__HOSTS=scylla
+  bazaar:
+    build: SkyBazaar
+    restart: always 
+    ports:
+    - '5011:8000'
+    environment:
+      CASSANDRA__HOSTS: scylla
+  scylla:
+    image: scylladb/scylla
+    container_name: some-scylla
+    volumes:
+      - './scylla_data:/var/lib/scylla'
     ports:
       - '7000:7000'
       - '9042:9042'
-    volumes:
-      - 'cassandra_data:/bitnami'
-    environment:
-      - CASSANDRA_SEEDS=cassandra
-      - CASSANDRA_PASSWORD_SEEDER=yes
-      - CASSANDRA_PASSWORD=cassandra
+    command: --smp 1
   mongo:
     image: bitnami/mongodb
     environment:
