@@ -66,7 +66,7 @@ namespace Coflnet.Sky.Core
                         JsonConvert.SerializeObject(new ErrorResponse
                         {
                             Slug = "internal_error",
-                            Message = $"An unexpected internal error occured. Please check that your request is valid. If it is please report he error and include reference '{activity.Context.TraceId}'.",
+                            Message = $"An unexpected internal error occured. Please check that your request is valid. If it is please report the error and include reference '{activity.Context.TraceId}'.",
                             Trace = traceId
                         }, converter));
                     errorCount.Inc();
