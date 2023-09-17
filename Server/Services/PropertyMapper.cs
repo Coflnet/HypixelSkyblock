@@ -160,8 +160,8 @@ public class PropertyMapper
     {
         var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
 
-        if (bazaarPrices.ContainsKey(key) && bazaarPrices[key] > 0)
-            return (long)bazaarPrices[key];
+        if (bazaarPrices.TryGetValue(key, out var matchingPrice) && matchingPrice > 0 && matchingPrice < 500_000_000)
+            return (long)matchingPrice;
         else if (enchant.Type == Enchantment.EnchantmentType.efficiency && enchant.Level >= 6)
         {
             var singleLevelPrice = bazaarPrices.GetValueOrDefault("SIL_EX", 8_000_000);
