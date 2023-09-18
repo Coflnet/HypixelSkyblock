@@ -160,7 +160,7 @@ public class PropertyMapper
     {
         var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
         if (enchant.Type == Enchantment.EnchantmentType.ultimate_duplex)
-            key = $"ENCHANTMENT_{Enchantment.EnchantmentType.ultimate_reiterate}_{enchant.Level}".ToUpper();
+            key = $"ENCHANTMENT_ULTIMATE_REITERATE_{enchant.Level}".ToUpper();
 
         if (bazaarPrices.TryGetValue(key, out var matchingPrice) && matchingPrice > 0 && matchingPrice < 500_000_000)
             return (long)matchingPrice;
