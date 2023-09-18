@@ -159,6 +159,8 @@ public class PropertyMapper
     public long EnchantValue(Enchantment enchant, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices)
     {
         var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
+        if (enchant.Type == Enchantment.EnchantmentType.ultimate_duplex)
+            key = $"ENCHANTMENT_{Enchantment.EnchantmentType.ultimate_reiterate}_{enchant.Level}".ToUpper();
 
         if (bazaarPrices.TryGetValue(key, out var matchingPrice) && matchingPrice > 0 && matchingPrice < 500_000_000)
             return (long)matchingPrice;
@@ -174,6 +176,8 @@ public class PropertyMapper
             if (bazaarPrices.ContainsKey(key) && bazaarPrices[key] > 0)
                 if (Constants.EnchantToAttribute.TryGetValue(enchant.Type, out (string attrName, double factor, int max) attrData))
                 {
+                    if (flatNbt == null)
+                        return (long)(bazaarPrices[key] + attrData.factor * attrData.max * enchant.Level / 10);
                     var stringValue = flatNbt.GetValueOrDefault(attrData.attrName) ?? "0";
                     return (long)(bazaarPrices[key] + Math.Min(float.Parse(stringValue), attrData.max) * attrData.factor);
                 }
