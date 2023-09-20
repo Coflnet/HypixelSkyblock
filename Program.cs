@@ -23,8 +23,6 @@ namespace Coflnet.Sky.Core
 
         public static bool FullServerMode { get; private set; }
         public static bool LightClient { get; private set; }
-        public static string KafkaHost = SimplerConfig.SConfig.Instance["KAFKA_HOST"];
-
         public static int usersLoaded = 0;
 
         /// <summary>

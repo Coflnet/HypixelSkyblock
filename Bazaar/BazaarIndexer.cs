@@ -132,10 +132,10 @@ namespace dev
 
         public async Task ProcessBazaarQueue()
         {
+            return;
             var conf = new ConsumerConfig
             {
                 GroupId = "sky-bazaar-indexer",
-                BootstrapServers = Program.KafkaHost,
                 // Note: The AutoOffsetReset property determines the start offset in the event
                 // there are not yet any committed offsets for the consumer group for the
                 // topic/partitions of interest. By default, offsets are committed
