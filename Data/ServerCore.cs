@@ -126,7 +126,7 @@ namespace Coflnet.Sky.Core
         public abstract string path { get; }
         public abstract string HostName { get; }
         public abstract Task WriteAsync(string data);
-        public abstract void WriteAsync(byte[] data);
+        public abstract Task WriteAsync(byte[] data);
         public abstract void SetContentType(string type);
         public abstract void SetStatusCode(int code);
         public abstract void AddHeader(string name, string value);
