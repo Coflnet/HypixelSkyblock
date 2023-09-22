@@ -512,7 +512,7 @@ namespace Coflnet.Sky.Core
             value = null;
             if (!(attr.Value is T))
                 return false;
-            value = new NBTLookup(GetLookupKey(attr.Key), Convert.ToInt64(attr.Value));
+            value = new NBTLookup(Instance.GetKeyId(attr.Key), Convert.ToInt64(attr.Value));
             return true;
         }
 
