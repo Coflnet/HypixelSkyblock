@@ -163,7 +163,7 @@ namespace Coflnet.Sky.Core
             catch (Exception e)
             {
                 dev.Logger.Instance.Error($"received invalid command {context.path} {e.Message} {e.StackTrace}");
-                SendBack(new MessageData("error", "commanddata was invalid"));
+                SendBack(new MessageData("error", "commanddata was invalid")).Wait();
             }
 
         }

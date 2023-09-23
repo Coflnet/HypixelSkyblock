@@ -21,6 +21,7 @@ namespace Coflnet.Sky.Core
     public class NBT : INBT
     {
         public static INBT Instance = new NBT();
+        public bool CanWriteToDb { get; set; } = false;
 
         public static string SkullUrl(string data)
         {
@@ -632,7 +633,7 @@ namespace Coflnet.Sky.Core
             {
                 using var context = new HypixelContext();
                 var id = context.NBTValues.Where(v => v.KeyId == key && v.Value == value).Select(v => v.Id).FirstOrDefault();
-                if (id != 0)
+                if (id != 0 || !CanWriteToDb)
                     return id;
                 try
                 {
@@ -644,8 +645,6 @@ namespace Coflnet.Sky.Core
                     Logger.Instance.Error(e, $"saving new nbtValue {value} for key {key}");
                     return -1;
                 }
-
-
             });
         }
 
