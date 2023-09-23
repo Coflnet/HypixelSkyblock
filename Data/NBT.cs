@@ -271,6 +271,11 @@ namespace Coflnet.Sky.Core
             "hideRightClick" // looks like it is always false
         };
 
+        static readonly HashSet<string> IgnoreIndexing = new()
+        {
+            "uniqueId", // unimportant id
+        };
+
         static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
         {
             "heldItem",
@@ -363,7 +368,9 @@ namespace Coflnet.Sky.Core
                     ColorFiller.Add(auctionTag, attr.Value as string);
                     return new NBTLookup(Instance.GetKeyId(key), GetColor(attr));
                 }
-                Console.WriteLine(JSON.Stringify(attr));
+                if(IgnoreIndexing.Contains(key))
+                    return null;
+                Console.WriteLine("unknown id " + JSON.Stringify(attr));
                 // just save it as strings
 
                 var lookupKey = Instance.GetKeyId(key);
