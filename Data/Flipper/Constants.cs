@@ -21,7 +21,7 @@ namespace Coflnet.Sky.Core
         // ambered
         public readonly static HashSet<ItemReferences.Reforge> RelevantReforges = new HashSet<ItemReferences.Reforge>()
         {
-            ItemReferences.Reforge.ancient,
+            //ItemReferences.Reforge.ancient, fell to just 600k and low volume
             //ItemReferences.Reforge.Necrotic, avg bazaar price 40k, max apply cost 600k usually 300k or lower
             ItemReferences.Reforge.Gilded,
             ItemReferences.Reforge.withered,
