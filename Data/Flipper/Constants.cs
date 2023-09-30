@@ -73,7 +73,6 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.feather_falling,11),
             new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3), // 1 and 2 are worth nothing,
             new Enchantment(Enchantment.EnchantmentType.ultimate_bank,6),
-            new Enchantment(Enchantment.EnchantmentType.ultimate_combo,5),
             new Enchantment(Enchantment.EnchantmentType.ultimate_jerry,6),
             new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3),
             new Enchantment(Enchantment.EnchantmentType.ultimate_no_pain_no_gain,5),
