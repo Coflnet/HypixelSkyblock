@@ -55,7 +55,7 @@ namespace Coflnet.Sky.Core
         public string GetUuid(long internId)
         {
             var builder = new System.Text.StringBuilder(internId.ToString("x"));
-            if (internId < 5_000_000_000 && internId > 0)
+            if (internId < 5_000_000_000 && internId >= 0)
                 return builder.ToString();
             return builder.Insert(12, 4).ToString();
         }
