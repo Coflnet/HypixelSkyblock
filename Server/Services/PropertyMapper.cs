@@ -37,6 +37,11 @@ public class PropertyMapper
 
     public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
     {
+        if(property == "ability_scroll")
+        {
+            ingredients = value.Split(' ').Except(baseValue?.Split(' ') ?? new string [0]).ToList();
+            return true;
+        }
         if (!propertyToItem.TryGetValue((property, value), out var result))
         {
             ingredients = null;
