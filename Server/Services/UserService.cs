@@ -135,5 +135,13 @@ namespace Coflnet.Sky.Core
             var anonymisedEmail = builder.ToString();
             return anonymisedEmail;
         }
+
+        public async Task<GoogleUser> GetUserByEmail(string email)
+        {
+            using (var context = new HypixelContext())
+            {
+                return await context.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
+            }
+        }
     }
 }
