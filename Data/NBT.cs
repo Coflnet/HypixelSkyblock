@@ -569,7 +569,7 @@ namespace Coflnet.Sky.Core
         {
             return GetLookupKey(name);
         }
-        public static short GetLookupKey(string name)
+        public short GetLookupKey(string name)
         {
             lock (Cache)
             {
@@ -589,7 +589,7 @@ namespace Coflnet.Sky.Core
             {
                 using var context = new HypixelContext();
                 id = context.NBTKeys.Where(k => k.Slug == name).Select(k => k.Id).FirstOrDefault();
-                if (id != 0)
+                if (id != 0 || !CanWriteToDb)
                     return id;
                 try
                 {
