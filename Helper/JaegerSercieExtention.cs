@@ -19,7 +19,9 @@ public static class JaegerSercieExtention
 {
     public static void AddJaeger(this IServiceCollection services, IConfiguration config, double samplingRate = 0.03, double lowerBoundInSeconds = 60)
     {
-        services.AddOpenTelemetryTracing((builder) => builder
+
+        services.AddOpenTelemetry()
+            .WithTracing((builder) => builder
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddSqlClientInstrumentation()
