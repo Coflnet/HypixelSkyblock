@@ -29,8 +29,11 @@ public class HypixelItemService
             return _items;
 
         if (File.Exists("items.json"))
-            return JsonSerializer.Deserialize<Root>(await File.ReadAllTextAsync("items.json"))
+        {
+            _items = JsonSerializer.Deserialize<Root>(await File.ReadAllTextAsync("items.json"))
                 .Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
+            return _items;
+        }
         var response = await _httpClient.GetAsync("https://api.hypixel.net/resources/skyblock/items");
         if (response.IsSuccessStatusCode)
         {
@@ -85,15 +88,18 @@ public class HypixelItemService
         return costs;
     }
 
-    public bool BoolHasUnlockableSlots(string itemId)
+    public IEnumerable<string> GetUnlockableSlots(string itemId)
     {
         var items = _items;
         if (items == null)
-            return false;
+            return new List<string>();
         var item = items[itemId];
-        if(item.GemstoneSlots == null)
-            return false;
-        return item.GemstoneSlots.Any(x => x.Costs != null);
+        if (item.GemstoneSlots == null)
+            return new List<string>();
+        var allSlots = item.GemstoneSlots.Where(x => x.Costs != null).Select(x => x.SlotType);
+        // index distinct types with _x
+        var distinctSlots = allSlots.Distinct().SelectMany(x => Enumerable.Range(0, allSlots.Count(y => y == x)).Select(y => $"{x}_{y}"));
+        return distinctSlots;
     }
 
     public async Task<IEnumerable<DungeonUpgradeCost>> GetStarCost(string itemId, int baseTier, int tier)
