@@ -221,6 +221,54 @@ namespace Coflnet.Sky.Core
             { Enchantment.EnchantmentType.hecatomb, ("hecatomb_s_runs", 200_000, 100)}
         };
 
+        
+        /// <summary>
+        /// compare to https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/blob/master/constants/enchants.json#L1473
+        /// </summary>
+        public static readonly Dictionary<Enchantment.EnchantmentType, int> MaxEnchantmentTableLevel = new()
+        {
+            { Enchantment.EnchantmentType.sharpness, 5 },
+            { Enchantment.EnchantmentType.smite, 5 },
+            { Enchantment.EnchantmentType.bane_of_arthropods, 5 },
+            { Enchantment.EnchantmentType.looting, 3 },
+            { Enchantment.EnchantmentType.cubism, 5 },
+            { Enchantment.EnchantmentType.cleave, 5 },
+            { Enchantment.EnchantmentType.life_steal, 3 },
+            { Enchantment.EnchantmentType.giant_killer, 5 },
+            { Enchantment.EnchantmentType.critical, 5 },
+            { Enchantment.EnchantmentType.first_strike, 4 },
+            { Enchantment.EnchantmentType.triple_strike, 4 },
+            { Enchantment.EnchantmentType.ender_slayer, 5 },
+            { Enchantment.EnchantmentType.execute, 5 },
+            { Enchantment.EnchantmentType.thunderlord, 5 },
+            { Enchantment.EnchantmentType.lethality, 5 },
+            { Enchantment.EnchantmentType.syphon, 3 },
+            { Enchantment.EnchantmentType.vampirism, 5 },
+            { Enchantment.EnchantmentType.venomous, 5 },
+            { Enchantment.EnchantmentType.thunderbolt, 5 },
+            { Enchantment.EnchantmentType.PROSECUTE, 5 },
+            { Enchantment.EnchantmentType.titan_killer, 5 },
+            { Enchantment.EnchantmentType.luck, 5 },
+            { Enchantment.EnchantmentType.protection, 5 },
+            { Enchantment.EnchantmentType.blast_protection, 5 },
+            { Enchantment.EnchantmentType.projectile_protection, 5 },
+            { Enchantment.EnchantmentType.fire_protection, 5 },
+            { Enchantment.EnchantmentType.thorns, 3 },
+            { Enchantment.EnchantmentType.growth, 5 },
+            { Enchantment.EnchantmentType.frost_walker, 2 },
+            { Enchantment.EnchantmentType.feather_falling, 5 },
+            { Enchantment.EnchantmentType.depth_strider, 3 },
+            { Enchantment.EnchantmentType.aqua_affinity, 1 },
+            { Enchantment.EnchantmentType.respiration, 3 },
+            { Enchantment.EnchantmentType.silk_touch, 1 },
+            { Enchantment.EnchantmentType.smelting_touch, 1 },
+            { Enchantment.EnchantmentType.fortune, 3 },
+            { Enchantment.EnchantmentType.experience, 3 },
+            { Enchantment.EnchantmentType.efficiency, 5 },
+            { Enchantment.EnchantmentType.harvesting, 5 },
+            { Enchantment.EnchantmentType.piscary, 5 }
+        };
+
         public static Enchantment SelectBest(IEnumerable<Enchantment> enchants)
         {
             if (enchants == null)
@@ -258,5 +306,7 @@ namespace Coflnet.Sky.Core
                 }
             }
         }
+
+        
     }
 }
