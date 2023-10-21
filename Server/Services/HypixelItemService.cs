@@ -51,15 +51,15 @@ public class HypixelItemService
         // slots can be called the same but be more expensive
         // e.g. "COMBAT_0" and "COMBAT_1"
         var items = await GetItemsAsync();
-        return await GetSlotCostSync(itemId, pexiting, result, items);
+        return GetSlotCostSync(itemId, pexiting, result, items);
     }
 
-    private async Task<IEnumerable<Cost>> GetSlotCostSync(string itemId, List<string> pexiting, List<string> result, Dictionary<string, Item> items = null)
+    private IEnumerable<Cost> GetSlotCostSync(string itemId, List<string> pexiting, List<string> result, Dictionary<string, Item> items = null)
     {
         items = items ?? _items;
-        if(items == null)
+        if (items == null)
             return new List<Cost>();
-        
+
         var item = items[itemId];
         var costs = new List<Cost>();
         var newSlots = result.Except(pexiting);
@@ -80,10 +80,20 @@ public class HypixelItemService
             catch (Exception e)
             {
                 _logger.LogError(e, $"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
-                await Task.Delay(20000);
             }
         }
         return costs;
+    }
+
+    public bool BoolHasUnlockableSlots(string itemId)
+    {
+        var items = _items;
+        if (items == null)
+            return false;
+        var item = items[itemId];
+        if(item.GemstoneSlots == null)
+            return false;
+        return item.GemstoneSlots.Any(x => x.Costs != null);
     }
 
     public async Task<IEnumerable<DungeonUpgradeCost>> GetStarCost(string itemId, int baseTier, int tier)
@@ -156,7 +166,7 @@ public record Item(
     [property: JsonPropertyName("stats")] Stats Stats,
     [property: JsonPropertyName("gemstone_slots")] IReadOnlyList<GemstoneSlot> GemstoneSlots,
     [property: JsonPropertyName("durability")] int? Durability,
-    [property: JsonPropertyName("skin")] string Skin,
+    //[property: JsonPropertyName("skin")] string Skin, not needed, save ram
     [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("unstackable")] bool? Unstackable,
     [property: JsonPropertyName("dungeon_item_conversion_cost")] DungeonItemConversionCost DungeonItemConversionCost,
