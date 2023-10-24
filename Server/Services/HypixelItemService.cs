@@ -91,9 +91,8 @@ public class HypixelItemService
     public IEnumerable<string> GetUnlockableSlots(string itemId)
     {
         var items = _items;
-        if (items == null)
+        if (items == null || !items.TryGetValue(itemId, out var item))
             return new List<string>();
-        var item = items[itemId];
         if (item.GemstoneSlots == null)
             return new List<string>();
         var allSlots = item.GemstoneSlots.Where(x => x.Costs != null).Select(x => x.SlotType);
