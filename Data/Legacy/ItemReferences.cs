@@ -161,7 +161,16 @@ namespace Coflnet.Sky.Core
             Fang_tastic_chocolate_chip,
             bubba_blister,
             fanged,
-            blood_soaked
+            blood_soaked,
+            stained,
+            menacing,
+            hefty,
+            soft,
+            honored,
+            blended,
+            astute,
+            colossal,
+            brilliant,
         }
 
 
