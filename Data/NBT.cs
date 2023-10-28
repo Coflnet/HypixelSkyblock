@@ -326,8 +326,9 @@ namespace Coflnet.Sky.Core
             return CreateLookup(auction.Tag, data, flatList);
         }
 
-        public static NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList)
+        public static NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList = null)
         {
+            flatList ??= FlattenNbtData(data);
             return flatList.Select(attr =>
             {
                 var key = attr.Key;

@@ -107,6 +107,17 @@ public class HypixelItemService
         return GetStarCostSync(itemId, baseTier, tier);
     }
 
+    public IEnumerable<(string itemId, int amount)> GetStarIngredients(string itemId, int tier)
+    {
+        foreach (var item in GetStarCostSync(itemId, 0, tier))
+        {
+            if (item.Type == "ESSENCE")
+                yield return ($"ESSENCE_{item.EssenceType}", item.Amount);
+            else if (item.Type == "ITEM")
+                yield return (item.ItemId, item.Amount);
+        }
+    }
+
     private IEnumerable<DungeonUpgradeCost> GetStarCostSync(string itemId, int baseTier, int tier)
     {
         var items = _items;

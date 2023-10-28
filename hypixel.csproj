@@ -10,20 +10,20 @@
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="1.0.1" />
     <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.13.1" />
-    <PackageReference Include="Confluent.Kafka" Version="2.2.0" />
+    <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
     <!--Package doesn't work with .net 5 so the source is cloned-->
     <PackageReference Include="fNbt" Version="0.6.4" />
     <PackageReference Include="Jaeger.Core" Version="1.0.3" />
     <PackageReference Include="Jaeger.Senders.Thrift" Version="1.0.3" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.12" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.23">
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.24">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.23" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.24" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.13" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="16.11.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.6.0" />
