@@ -57,13 +57,12 @@ public class HypixelItemService
         return GetSlotCostSync(itemId, pexiting, result, items);
     }
 
-    private IEnumerable<Cost> GetSlotCostSync(string itemId, List<string> pexiting, List<string> result, Dictionary<string, Item> items = null)
+    public IEnumerable<Cost> GetSlotCostSync(string itemId, List<string> pexiting, List<string> result, Dictionary<string, Item> items = null)
     {
         items = items ?? _items;
-        if (items == null)
+        if (items == null || itemId == null || !items.TryGetValue(itemId, out var item))
             return new List<Cost>();
 
-        var item = items[itemId];
         var costs = new List<Cost>();
         var newSlots = result.Except(pexiting);
         foreach (var slot in newSlots)
