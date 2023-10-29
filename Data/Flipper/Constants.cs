@@ -58,7 +58,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.overload,2),
             //new Enchantment(Enchantment.EnchantmentType.true_protection,1), cost alsmot 1m but is mostly useless
             new Enchantment(Enchantment.EnchantmentType.smite,7),
-            new Enchantment(Enchantment.EnchantmentType.critical,8),
+            new Enchantment(Enchantment.EnchantmentType.critical,7),
             new Enchantment(Enchantment.EnchantmentType.giant_killer,7),
             new Enchantment(Enchantment.EnchantmentType.luck,7),
             new Enchantment(Enchantment.EnchantmentType.angler,7), // doesn't exist but generally worth nothing
