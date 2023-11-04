@@ -106,6 +106,13 @@ public class PropertyMapper
             { ItemReferences.Reforge.headstrong, ("SALMON_OPAL",250000)},
             { ItemReferences.Reforge.mossy, ("OVERGROWN_GRASS",300000)},
             { ItemReferences.Reforge.rooted, ("BURROWING_SPORES",300000)},
+            { ItemReferences.Reforge.festive, ("FROZEN_BAUBLE", 400000)},
+            { ItemReferences.Reforge.snowy, ("TERRY_SNOWGLOBE", 200000)},
+            { ItemReferences.Reforge.chomp, ("KUUDRA_MANDIBLE", 300000)},
+            { ItemReferences.Reforge.fanged, ("FULL_JAW_FANGING_KIT", 100000)},
+            { ItemReferences.Reforge.blood_soaked, ("PRESUMED_GALLON_OF_RED_PAINT", 150000)},
+            { ItemReferences.Reforge.Fang_tastic_chocolate_chip, ("CHOCOLATE_CHIP", 0)},
+            { ItemReferences.Reforge.bubba_blister, ("BUBBA_BLISTER", 0)},
         };
 
     public (string, int) GetReforgeCost(ItemReferences.Reforge reforge, Tier tier = Tier.LEGENDARY)
