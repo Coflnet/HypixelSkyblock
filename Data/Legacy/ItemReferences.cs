@@ -171,6 +171,7 @@ namespace Coflnet.Sky.Core
             astute,
             colossal,
             brilliant,
+            greater_spook,
         }
 
 
