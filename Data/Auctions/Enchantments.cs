@@ -100,7 +100,7 @@ namespace Coflnet.Sky.Core
             turbo_warts,
             turbo_wheat,
             chance,
-            PROSECUTE,
+            prosecute,
             syphon,
             respite,
             thunderbolt,
