@@ -69,12 +69,12 @@ namespace Coflnet.Sky.Core
         [IgnoreDataMember]
         public int HitCount { get; set; }
         /// <summary>
-        /// <see cref="true"/> if there has been at least one auction with a reforge for this item
+        /// true if there has been at least one auction with a reforge for this item
         /// </summary>
         [DataMember(Name = "reforgeable")]
         public bool Reforgeable { get; set; }
         /// <summary>
-        /// <see cref="true"/> if there has been at least one auction with enchantments for this item
+        /// true if there has been at least one auction with enchantments for this item
         /// </summary>
         [DataMember(Name = "enchantable")]
         public bool Enchantable { get; set; }
