@@ -111,14 +111,14 @@ namespace Coflnet.Sky.Core
             public Player Auctioneer {get;set;} */
 
         /// <summary>
-        /// is <see cref="null"/> if it is the same as the <see cref="Auctioneer"/>
+        /// null if it is the same as the <see cref="AuctioneerId"/>
         /// </summary>
         [Key(12)]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
         [JsonProperty("profileId")]
         public string ProfileId { get; set; }
         /// <summary>
-        /// All ProfileIds of the coop members without the <see cref="Auctioneer"/> because it would be redundant
+        /// All ProfileIds of the coop members without the <see cref="AuctioneerId"/> because it would be redundant
         /// </summary>
         [Key(13)]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
