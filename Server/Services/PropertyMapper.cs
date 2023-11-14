@@ -37,9 +37,9 @@ public class PropertyMapper
 
     public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
     {
-        if(property == "ability_scroll")
+        if (property == "ability_scroll")
         {
-            ingredients = value.Split(' ').Except(baseValue?.Split(' ') ?? new string [0]).ToList();
+            ingredients = value.Split(' ').Except(baseValue?.Split(' ') ?? new string[0]).ToList();
             return true;
         }
         if (!propertyToItem.TryGetValue((property, value), out var result))
@@ -179,10 +179,15 @@ public class PropertyMapper
     public long EnchantValue(Enchantment enchant, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices)
     {
         var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
+        var lvl1Key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_1";
         if (enchant.Type == Enchantment.EnchantmentType.ultimate_duplex)
+        {
             key = $"ENCHANTMENT_ULTIMATE_REITERATE_{enchant.Level}".ToUpper();
-
-        if (bazaarPrices.TryGetValue(key, out var matchingPrice) && matchingPrice > 0 && matchingPrice < 500_000_000)
+            lvl1Key = $"ENCHANTMENT_ULTIMATE_REITERATE_1";
+        }
+        if (bazaarPrices.TryGetValue(key, out var matchingPrice) && matchingPrice > 0 && matchingPrice < 500_000_000
+            && (!bazaarPrices.TryGetValue(lvl1Key, out var lvl1Price) || lvl1Price <= matchingPrice)
+        )
             return (long)matchingPrice;
         else if (enchant.Type == Enchantment.EnchantmentType.efficiency && enchant.Level >= 6)
         {
@@ -192,17 +197,16 @@ public class PropertyMapper
         else
         {
             // from lvl 1 ench
-            key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_1";
-            if (bazaarPrices.ContainsKey(key) && bazaarPrices[key] > 0)
+            if (bazaarPrices.ContainsKey(lvl1Key) && bazaarPrices[lvl1Key] > 0)
                 if (Constants.EnchantToAttribute.TryGetValue(enchant.Type, out (string attrName, double factor, int max) attrData))
                 {
                     if (flatNbt == null)
-                        return (long)(bazaarPrices[key] + attrData.factor * attrData.max * enchant.Level / 10);
+                        return (long)(bazaarPrices[lvl1Key] + attrData.factor * attrData.max * enchant.Level / 10);
                     var stringValue = flatNbt.GetValueOrDefault(attrData.attrName) ?? "0";
-                    return (long)(bazaarPrices[key] + Math.Min(float.Parse(stringValue), attrData.max) * attrData.factor);
+                    return (long)(bazaarPrices[lvl1Key] + Math.Min(float.Parse(stringValue), attrData.max) * attrData.factor);
                 }
                 else
-                    return (long)(bazaarPrices[key] * Math.Pow(2, enchant.Level - 1));
+                    return (long)(bazaarPrices[lvl1Key] * Math.Pow(2, enchant.Level - 1));
         }
         return -1;
     }
