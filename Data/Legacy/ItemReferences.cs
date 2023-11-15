@@ -172,6 +172,7 @@ namespace Coflnet.Sky.Core
             colossal,
             brilliant,
             greater_spook,
+            beady,
         }
 
 

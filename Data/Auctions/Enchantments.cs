@@ -144,7 +144,8 @@ namespace Coflnet.Sky.Core
             transylvanian = -120,
             reflection,
             ultimate_the_one,
-            quantum
+            quantum,
+            pesterminator
         }
 
         [System.ComponentModel.DataAnnotations.Key]
