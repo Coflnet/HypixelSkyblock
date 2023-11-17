@@ -146,7 +146,7 @@ namespace Coflnet.Sky.Core
             ultimate_the_one,
             quantum,
             pesterminator,
-            greater_spook
+            great_spook
         }
 
         [System.ComponentModel.DataAnnotations.Key]
