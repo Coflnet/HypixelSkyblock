@@ -173,6 +173,7 @@ namespace Coflnet.Sky.Core
             brilliant,
             greater_spook,
             beady,
+            buzzing
         }
 
 
