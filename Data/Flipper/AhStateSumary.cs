@@ -20,5 +20,17 @@ namespace Coflnet.Sky.Core
         public int Part;
         [DataMember(Name = "partCount")]
         public int PartCount;
+
+        public AhStateSumary Clone()
+        {
+            return new AhStateSumary()
+            {
+                ActiveAuctions = new ConcurrentDictionary<long, long>(ActiveAuctions),
+                ItemCount = new ConcurrentDictionary<string, short>(ItemCount),
+                Time = Time,
+                Part = Part,
+                PartCount = PartCount
+            };
+        }
     }
 }
