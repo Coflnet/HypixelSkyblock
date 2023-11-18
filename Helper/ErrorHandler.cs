@@ -22,6 +22,7 @@ namespace Coflnet.Sky.Core
         static string prefix = "api";
         static Prometheus.Counter errorCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_error", "Counts the amount of error responses handed out");
         static Prometheus.Counter badRequestCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_bad_request", "Counts the responses for invalid requests");
+        static Prometheus.Counter forwardCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_error_forward", "Counts the responses for invalid requests");
         static JsonSerializerSettings converter = new JsonSerializerSettings() { ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver() };
         public static void Add(IApplicationBuilder errorApp, string serviceName)
         {
@@ -38,13 +39,21 @@ namespace Coflnet.Sky.Core
 
                 var exceptionHandlerPathFeature =
                     context.Features.Get<IExceptionHandlerPathFeature>();
-
-                if (exceptionHandlerPathFeature?.Error is CoflnetException ex)
+                var error = exceptionHandlerPathFeature?.Error;
+                if (error is CoflnetException ex)
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     await context.Response.WriteAsync(
                                     JsonConvert.SerializeObject(new ErrorResponse() { Slug = ex.Slug, Message = ex.Message }, converter));
                     badRequestCount.Inc();
+                }
+                // CoflnetExceptions are forwarded
+                else if(error.Message.StartsWith("Error calling ") && error.Message.Contains("trace\":"))
+                {
+                    // Json error response after first :
+                    var split = error.Message.Split(":", 2);
+                    await context.Response.WriteAsync(split[1]);
+                    forwardCount.Inc();
                 }
                 else
                 {
@@ -55,11 +64,23 @@ namespace Coflnet.Sky.Core
                         logger.LogError("Could not start activity");
                         return;
                     }
+                    var body = "not loadable";
+                    try
+                    {
+                        using var reader = new StreamReader(context.Request.Body);
+                        body = await reader.ReadToEndAsync();
+                    }
+                    catch (System.Exception e)
+                    {
+                        logger.LogError(e, "Could not read body");
+                    }
                     activity.AddTag("host", Dns.GetHostName());
                     activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
                         new ("error", exceptionHandlerPathFeature?.Error?.Message),
+                        new ("type", exceptionHandlerPathFeature?.Error?.GetType().Name),
                         new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace),
                         new ("path", context.Request.Path),
+                        new ("body", body),
                         new ("query", context.Request.QueryString) })));
                     var traceId = Dns.GetHostName().Replace(serviceName, "").Trim('-') + "." + activity.Context.TraceId;
                     await context.Response.WriteAsync(
