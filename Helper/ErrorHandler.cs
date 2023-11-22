@@ -76,9 +76,8 @@ namespace Coflnet.Sky.Core
                     }
                     activity.AddTag("host", Dns.GetHostName());
                     activity.AddEvent(new ActivityEvent("error", default, new ActivityTagsCollection(new KeyValuePair<string, object>[] {
-                        new ("error", exceptionHandlerPathFeature?.Error?.Message),
+                        new ("error", exceptionHandlerPathFeature?.Error),
                         new ("type", exceptionHandlerPathFeature?.Error?.GetType().Name),
-                        new ("stack", exceptionHandlerPathFeature?.Error?.StackTrace),
                         new ("path", context.Request.Path),
                         new ("body", body),
                         new ("query", context.Request.QueryString) })));
