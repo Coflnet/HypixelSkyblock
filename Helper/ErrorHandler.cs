@@ -48,7 +48,7 @@ namespace Coflnet.Sky.Core
                     badRequestCount.Inc();
                 }
                 // CoflnetExceptions are forwarded
-                else if(error.Message.StartsWith("Error calling ") && error.Message.Contains("trace\":"))
+                else if(error != null && error.Message.StartsWith("Error calling ") && error.Message.Contains("trace\":"))
                 {
                     // Json error response after first :
                     var split = error.Message.Split(":", 2);
