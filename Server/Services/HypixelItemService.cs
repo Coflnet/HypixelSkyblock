@@ -77,6 +77,10 @@ public class HypixelItemService
                     _logger.LogWarning($"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
                     continue;
                 }
+                if(slots.Costs == null)
+                {
+                    continue;
+                }
                 costs.AddRange(slots.Costs);
             }
             catch (Exception e)
