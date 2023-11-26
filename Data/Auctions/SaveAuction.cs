@@ -17,7 +17,7 @@ namespace Coflnet.Sky.Core
     {
         string ItemName { get; set; }
         string Tag { get; set; }
-        int Count { get; set; }
+        long Count { get; set; }
         IEnumerable<NBTLookup> NBTLookup { get; set; }
     }
     [MessagePackObject]
@@ -269,6 +269,7 @@ namespace Coflnet.Sky.Core
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public Dictionary<string, string> Context { get; set; }
+        long IDbItem.Count { get => Count; set => Count = (int)value; }
 
         public SaveAuction() { }
 
