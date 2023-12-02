@@ -100,6 +100,11 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.tabasco,3),
             new Enchantment(Enchantment.EnchantmentType.fire_aspect,3),
             new Enchantment(Enchantment.EnchantmentType.power,7),
+            new Enchantment(Enchantment.EnchantmentType.pesterminator,1),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_refrigerate,1),
+            new Enchantment(Enchantment.EnchantmentType.quantum,5),
+            new Enchantment(Enchantment.EnchantmentType.ultimate_the_one,4),
+            new Enchantment(Enchantment.EnchantmentType.reflection,5)
         };
 
         /// <summary>
@@ -147,6 +152,7 @@ namespace Coflnet.Sky.Core
             {Enchantment.EnchantmentType.green_thumb, 3},
             {Enchantment.EnchantmentType.prosperity, 4},
             {Enchantment.EnchantmentType.dedication, 4},
+            {Enchantment.EnchantmentType.pesterminator,4 },
         };
 
         private static List<int> WorthOrder = new List<int>()
@@ -223,7 +229,7 @@ namespace Coflnet.Sky.Core
             { Enchantment.EnchantmentType.expertise, ("expertise_kills", 1000, 15_000)}
         };
 
-        
+
         /// <summary>
         /// compare to https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/blob/master/constants/enchants.json#L1473
         /// </summary>
@@ -309,6 +315,6 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        
+
     }
 }
