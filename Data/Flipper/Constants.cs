@@ -133,7 +133,7 @@ namespace Coflnet.Sky.Core
             {Enchantment.EnchantmentType.venomous, 6},
             {Enchantment.EnchantmentType.ferocious_mana, 6},
             {Enchantment.EnchantmentType.power, 7},
-            {Enchantment.EnchantmentType.ultimate_bobbin_time, 5},
+            {Enchantment.EnchantmentType.ultimate_bobbin_time, 3},
             {Enchantment.EnchantmentType.first_strike, 5},
             {Enchantment.EnchantmentType.ultimate_flash, 5},
             {Enchantment.EnchantmentType.ultimate_fatal_tempo, 1},
