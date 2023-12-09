@@ -52,7 +52,8 @@ namespace Coflnet.Sky.Core
             {
                 if (value == null)
                     return;
-                Tier = (Tier)Enum.Parse(typeof(Tier), value, true);
+                Enum.TryParse<Tier>(value, true, out var tier);
+                Tier = tier;
             }
         }
 

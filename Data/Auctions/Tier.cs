@@ -12,7 +12,7 @@ namespace Coflnet.Sky.Core
         VERY_SPECIAL,
         MYTHIC,
         SUPREME,
-        DIVINE = 9
-
+        DIVINE = 9,
+        ULTIMATE
     }
 }
