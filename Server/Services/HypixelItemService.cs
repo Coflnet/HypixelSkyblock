@@ -74,7 +74,7 @@ public class HypixelItemService
                 var slots = item.GemstoneSlots.Where(x => x.SlotType == type).Skip(index).FirstOrDefault();
                 if (slots == null)
                 {
-                    if (index <= 2)
+                    if (index <= 2 && Random.Shared.NextDouble() < 0.05)
                         _logger.LogWarning($"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
                     continue;
                 }
