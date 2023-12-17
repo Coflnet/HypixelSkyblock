@@ -366,27 +366,6 @@ namespace Coflnet.Sky.Core
         private static async Task UpdateBazaarFor(DateTime start, DateTime end, DateTime removeBefore)
         {
             return; // handled by bazaar service
-            foreach (var item in await AvgBazzarHistory(start, end))
-            {
-                await CacheService.Instance.ModifyInRedis<ItemLookup>(GetIntradayKey(item.ItemId), hoursList =>
-                {
-                    if (hoursList == null)
-                        hoursList = new ItemLookup();
-
-                    try
-                    {
-                        hoursList.AddNew(item);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(hoursList));
-                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
-                        throw e;
-                    }
-                    hoursList.Discard(removeBefore);
-                    return hoursList;
-                });
-            }
         }
 
         public async Task BackfillPrices()
