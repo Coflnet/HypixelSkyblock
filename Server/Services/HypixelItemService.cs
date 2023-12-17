@@ -54,16 +54,17 @@ public class HypixelItemService
         // slots can be called the same but be more expensive
         // e.g. "COMBAT_0" and "COMBAT_1"
         var items = await GetItemsAsync();
-        return GetSlotCostSync(itemId, pexiting, result, items);
+        return GetSlotCostSync(itemId, pexiting, result, items).Item1;
     }
 
-    public IEnumerable<Cost> GetSlotCostSync(string itemId, List<string> pexiting, List<string> result, Dictionary<string, Item> items = null)
+    public (IEnumerable<Cost>, List<string> unavailable) GetSlotCostSync(string itemId, List<string> pexiting, List<string> result, Dictionary<string, Item> items = null)
     {
         items = items ?? _items;
         if (items == null || itemId == null || !items.TryGetValue(itemId, out var item))
-            return new List<Cost>();
+            return (new List<Cost>(), new List<string>());
 
         var costs = new List<Cost>();
+        var unavailable = new List<string>();
         var newSlots = result.Except(pexiting);
         foreach (var slot in newSlots)
         {
@@ -76,6 +77,7 @@ public class HypixelItemService
                 {
                     if (index <= 2 && Random.Shared.NextDouble() < 0.05)
                         _logger.LogWarning($"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
+                    unavailable.Add(slot);
                     continue;
                 }
                 if (slots.Costs == null)
@@ -89,7 +91,7 @@ public class HypixelItemService
                 _logger.LogError(e, $"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
             }
         }
-        return costs;
+        return (costs, unavailable);
     }
 
     public IEnumerable<string> GetUnlockableSlots(string itemId)
