@@ -88,22 +88,6 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        public void SaveNameForPlayer(string name, string uuid)
-        {
-            //Console.WriteLine($"Saving {name} ({uuid})");
-            var index = name.Substring(0, 3).ToLower();
-            string path = "players/" + index;
-            lock (path)
-            {
-                HashSet<PlayerResult> list = null;
-                if (FileController.Exists(path))
-                    list = FileController.LoadAs<HashSet<PlayerResult>>(path);
-                if (list == null)
-                    list = new HashSet<PlayerResult>();
-                list.Add(new PlayerResult(name, uuid));
-                FileController.SaveAs(path, list);
-            }
-        }
 
         public async Task<PlayerResult> FindDirect(string search)
         {
