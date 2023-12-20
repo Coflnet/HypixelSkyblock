@@ -102,7 +102,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.power,7),
             new Enchantment(Enchantment.EnchantmentType.pesterminator,1),
             new Enchantment(Enchantment.EnchantmentType.ultimate_refrigerate,1),
-            new Enchantment(Enchantment.EnchantmentType.quantum,5),
+            // new Enchantment(Enchantment.EnchantmentType.quantum,5), https://discord.com/channels/267680588666896385/1184721061900734604/1187048778339983440
             new Enchantment(Enchantment.EnchantmentType.ultimate_the_one,4),
             new Enchantment(Enchantment.EnchantmentType.reflection,5)
         };
