@@ -49,5 +49,42 @@ namespace Coflnet.Sky.Core
 
             return total;
         }
+
+        // Max is 10
+        public static string To(int normal)
+        {
+            StringBuilder roman = new StringBuilder();
+
+            // also prepend for 4 and 9
+            if (normal == 4)
+            {
+                return "IV";
+            }
+            if (normal == 9)
+            {
+                return "IX";
+            }
+
+            while (normal >= 10)
+            {
+                roman.Append("X");
+                normal -= 10;
+            }
+
+            if (normal >= 5)
+            {
+                roman.Append("V");
+                normal -= 5;
+            }
+
+            while (normal >= 1)
+            {
+                roman.Append("I");
+                normal -= 1;
+            }
+
+
+            return roman.ToString();
+        }
     }
 }
