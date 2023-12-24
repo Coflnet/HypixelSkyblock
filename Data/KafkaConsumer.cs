@@ -141,7 +141,7 @@ namespace Coflnet.Kafka
             using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build())
             {
                 c.Subscribe(topics);
-                var key = "kafka_offset_" + string.Join('_', topics.Select(k=> System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
+                var key = "kafka_lag_" + string.Join('_', topics.Select(k=> System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
                 try
                 {
                     // reset all offsets
@@ -171,7 +171,8 @@ namespace Coflnet.Kafka
                                 try
                                 {
                                     c.Commit(batch.Select(b => b.TopicPartitionOffset));
-                                    consumerOffsets.GetOrAdd(key, Metrics.CreateGauge(key, "offset of kafka topic")).Set(batch.Last().Offset.Value);
+                                    var lag = c.Assignment.Select(a => c.GetWatermarkOffsets(a).High - c.Position(a)).Sum();
+                                    consumerOffsets.GetOrAdd(key, Metrics.CreateGauge(key, "offset of kafka topic")).Set(lag);
                                 }
                                 catch (KafkaException e)
                                 {
