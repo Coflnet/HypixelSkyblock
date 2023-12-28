@@ -88,7 +88,7 @@ public class HypixelItemService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
+                _logger?.LogError(e, $"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
             }
         }
         return (costs, unavailable);
