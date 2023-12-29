@@ -80,6 +80,8 @@ public class PropertyMapper
             if (int.TryParse(value, out var count) && count - baseCount > 1)
                 ingredients.AddRange(Enumerable.Repeat(result.needed, count - baseCount - 1).SelectMany(x => x));
         }
+        else if (result.previousLevel == String.Empty)
+            return true; // done
         else if (baseValue != string.Empty && result.previousLevel != baseValue && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
             ingredients.AddRange(previousLevelIngredients);
         return true;
