@@ -8,6 +8,7 @@ namespace Coflnet.Sky.Core;
 /// </summary>
 public class PropertyMapper
 {
+    private const string UseCount = "use_count_the-count";
     private Dictionary<(string, string), (List<string> needed, string previousLevel)> propertyToItem = new()
         {
             { ("upgrade_level", "10"), (new(){"FIFTH_MASTER_STAR"}, "9")},
@@ -20,11 +21,18 @@ public class PropertyMapper
             { ("artOfPeaceApplied", "1"), (new(){"THE_ART_OF_PEACE"}, string.Empty)},
             { ("art_of_war_count", "1"), (new(){"THE_ART_OF_WAR"}, string.Empty)},
             { ("wood_singularity_count", "1"), (new(){"WOOD_SINGULARITY"}, string.Empty)},
+            { ("jalapeno_count", "1"), (new(){"JALAPENO_BOOK"}, string.Empty) },
+            { ("stats_book", "*"), (new(){"BOOK_OF_STATS"}, string.Empty) },
+            { ("tuned_transmission", "*"), (new(){"TRANSMISSION_TUNER"}, UseCount) },
+            { ("mana_disintegrator_count", "*"), (new(){"MANA_DISINTEGRATOR"}, UseCount) },
+            { ("polarvoid", "*"), (new(){"POLARVOID_BOOK"}, UseCount) },
+            { ("bookworm_books", "*"), (new(){"BOOKWORM_BOOK"}, UseCount) },
             {("hpc", "15"), (new(){"FUMING_POTATO_BOOK"}, "14") },
             {("hpc", "14"), (new(){"FUMING_POTATO_BOOK"}, "13") },
             {("hpc", "13"), (new(){"FUMING_POTATO_BOOK"}, "12") },
             {("hpc", "12"), (new(){"FUMING_POTATO_BOOK"}, "11") },
-            {("hpc", "11"), (new(){"FUMING_POTATO_BOOK"}, string.Empty) },
+            {("hpc", "11"), (new(){"FUMING_POTATO_BOOK"}, "10") },
+            {("hpc", "*"), (new(){"HOT_POTATO_BOOK"}, UseCount)},
             {("hotpc", "1"), (new(){"FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK"}, "0") },
             // 0 is > 10 (including one or more fummings)
             {("hotpc", "0"), (new(){"FUMING_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK"}, String.Empty)},
@@ -34,21 +42,45 @@ public class PropertyMapper
             {("farming_for_dummies", "2"), (new(){"FARMING_FOR_DUMMIES"}, "1") },
             {("farming_for_dummies", "1"), (new(){"FARMING_FOR_DUMMIES"}, string.Empty) },
         };
+    private HashSet<string> ContainsItemId = new HashSet<string>(NBT.KeysWithItem)
+    {
+    };
 
     public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
     {
+        if (ContainsItemId.Contains(property) && value != string.Empty)
+        {
+            ingredients = new() { value.Trim('"') };
+            return true;
+        }
         if (property == "ability_scroll")
         {
             ingredients = value.Split(' ').Except(baseValue?.Split(' ') ?? new string[0]).ToList();
             return true;
         }
-        if (!propertyToItem.TryGetValue((property, value), out var result))
+        if (property == "talisman_enrichment")
+        {
+            if (string.IsNullOrEmpty(value))
+                ingredients = new() { "TALISMAN_ENRICHMENT_" + value.ToUpper() };
+            else
+                // was swapped
+                ingredients = new() { "TALISMAN_ENRICHMENT_SWAPPER" };
+            return true;
+        }
+        if (!propertyToItem.TryGetValue((property, value), out var result)
+         && !propertyToItem.TryGetValue((property, "*"), out result))
         {
             ingredients = null;
             return false;
         }
         ingredients = new(result.needed);
-        if (baseValue != string.Empty && result.previousLevel != baseValue && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
+        if (result.previousLevel == UseCount)
+        {
+            int.TryParse(baseValue, out var baseCount);
+            if (int.TryParse(value, out var count) && count - baseCount > 1)
+                ingredients.AddRange(Enumerable.Repeat(result.needed, count - baseCount - 1).SelectMany(x => x));
+        }
+        else if (baseValue != string.Empty && result.previousLevel != baseValue && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
             ingredients.AddRange(previousLevelIngredients);
         return true;
     }
@@ -192,6 +224,7 @@ public class PropertyMapper
         else if (enchant.Type == Enchantment.EnchantmentType.efficiency && enchant.Level >= 6)
         {
             var singleLevelPrice = bazaarPrices.GetValueOrDefault("SIL_EX", 8_000_000);
+            // adding to stonk would only need 4 levels
             return (long)(singleLevelPrice * (enchant.Level - 5));
         }
         else
@@ -209,5 +242,14 @@ public class PropertyMapper
                     return (long)(bazaarPrices[lvl1Key] * Math.Pow(2, enchant.Level - 1));
         }
         return -1;
+    }
+
+    public long CraftCostSum(Dictionary<string, string> attributes, List<string>? formatted)
+    {
+        long sum = 0;
+
+
+
+        return sum;
     }
 }

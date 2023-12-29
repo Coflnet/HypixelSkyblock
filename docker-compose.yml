@@ -3,7 +3,7 @@
 version: '3.7'
 services:
   mariadb:
-    image: 'docker.io/bitnami/mariadb:10.3-debian-10'
+    image: 'docker.io/bitnami/mariadb:10.11-debian-11'
     volumes:
       - 'skyblockdb_data:/bitnami/mariadb'
     ports:
@@ -39,7 +39,8 @@ services:
     restart: always 
     ports:
     - '1234:8000'
-    environment: 
+    environment:
+      ITEMS_BASE_URL: http://items:8000
       DBCONNECTION: server=mariadb;database=test;user=root;password=takenfrombitnami; convert zero datetime=True;Charset=utf8; Connect Timeout=30
   commands:
     build: SkyCommands
@@ -168,6 +169,8 @@ services:
       SLOWDOWN_MS: 800
   flipper:
     build: SkyFlipper
+    environment:
+      - ITEMS_BASE_URL=http://items:8000
   payment:
     build: Payments
     depends_on:

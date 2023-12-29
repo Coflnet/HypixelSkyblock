@@ -277,7 +277,7 @@ namespace Coflnet.Sky.Core
             "noMove"
         };
 
-        static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
+        internal static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
         {
             "heldItem",
             "personal_compact_0",
@@ -312,7 +312,10 @@ namespace Coflnet.Sky.Core
             "last_potion_ingredient",
             "power_ability_scroll",
             "skin",
-            "dye_item"
+            "dye_item",
+            "drill_part_engine",
+            "drill_part_fuel_tank",
+            "drill_part_upgrade_module",
         };
 
         public static NBTLookup[] CreateLookup(SaveAuction auction)
@@ -370,7 +373,7 @@ namespace Coflnet.Sky.Core
                     ColorFiller.Add(auctionTag, attr.Value as string);
                     return new NBTLookup(Instance.GetKeyId(key), GetColor(attr));
                 }
-                if(IgnoreIndexing.Contains(key))
+                if (IgnoreIndexing.Contains(key))
                     return null;
                 Console.WriteLine("unknown id " + JSON.Stringify(attr));
                 // just save it as strings
