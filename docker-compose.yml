@@ -118,6 +118,7 @@ services:
       - JAEGER_AGENT_HOST=jaeger
       - KAFKA_HOST=kafka:9092
       - DBConnection=server=mariadb;database=test;user=read;password=read; convert zero datetime=True;Charset=utf8; Connect Timeout=30; SslMode=none
+      - CASSANDRA__HOSTS=scylla
     ports:
     - "8009:8008"
     restart: always
@@ -127,6 +128,7 @@ services:
      - fliptracker
      - kafka
      - items
+     - scylla
   items:
     build: SkyItems
     restart: always 
@@ -134,7 +136,15 @@ services:
      - '5014:8000'
   fliptracker:
     build: SkyFlipTracker
-    restart: always
+    restart: always 
+    environment:
+      - CASSANDRA__HOSTS=scylla
+    ports:
+      - "5017:8000"
+    depends_on:
+      - scylla
+      - kafka
+      - crafts
   crafts:
     build: SkyCrafts
   profile:

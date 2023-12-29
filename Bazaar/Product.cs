@@ -20,9 +20,15 @@ namespace dev
         [JsonProperty("product_id")]
         [System.ComponentModel.DataAnnotations.MaxLength(40)]
         public string ProductId { get; set; }
+        /// <summary>
+        /// Sell orders
+        /// </summary>
         [Key(1)]
         [JsonProperty("buy_summary")]
         public List<BuyOrder> BuySummery { get; set; }
+        /// <summary>
+        /// Buy orders
+        /// </summary>
         [Key(2)]
         [JsonProperty("sell_summary")]
         public List<SellOrder> SellSummary { get; set; }
