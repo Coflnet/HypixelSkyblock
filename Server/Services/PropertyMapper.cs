@@ -53,6 +53,12 @@ public class PropertyMapper
             ingredients = new() { value.Trim('"') };
             return true;
         }
+        if (property.StartsWith("RUNE_"))
+        {
+            // either exact level match for music rune from sniper or general match for the rune
+            ingredients = new() { property, $"{property}_{value}" };
+            return true;
+        }
         if (property == "ability_scroll")
         {
             ingredients = value.Split(' ').Except(baseValue?.Split(' ') ?? new string[0]).ToList();
@@ -80,8 +86,8 @@ public class PropertyMapper
             if (int.TryParse(value, out var count) && count - baseCount > 1)
                 ingredients.AddRange(Enumerable.Repeat(result.needed, count - baseCount - 1).SelectMany(x => x));
         }
-        else if (baseValue != string.Empty 
-            && result.previousLevel != baseValue 
+        else if (baseValue != string.Empty
+            && result.previousLevel != baseValue
             && result.previousLevel != value // safeguard break recurision
             && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
             ingredients.AddRange(previousLevelIngredients);
