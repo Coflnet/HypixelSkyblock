@@ -439,6 +439,14 @@ namespace Coflnet.Sky.Core
                         }
                     }
                 }
+                if(data.TryGetValue("runes", out object runesObj) && runesObj is Dictionary<string, object> runes)
+                {
+                    foreach (var item in runes.Keys.ToList())
+                    {
+                        data["RUNE_" + item] = runes[item];
+                        runes.Remove(item);
+                    }
+                }
             }
             catch (Exception e)
             {
