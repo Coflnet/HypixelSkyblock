@@ -209,7 +209,7 @@ namespace Coflnet.Sky.Core
         /// <summary>
         /// Keys of attributes - only two out of these exist on any given item at the same time
         /// </summary>
-        public static readonly string[] AttributeKeys = new string[]{
+        public static readonly HashSet<string> AttributeKeys = new (){
                 "lifeline", "breeze", "speed", "experience", "mana_pool",
                 "life_regeneration", "blazing_resistance", "arachno_resistance",
                 "undead_resistance",
