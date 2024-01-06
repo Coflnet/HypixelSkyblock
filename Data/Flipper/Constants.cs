@@ -224,7 +224,7 @@ namespace Coflnet.Sky.Core
         public static readonly Dictionary<Enchantment.EnchantmentType, (string, double, int)> EnchantToAttribute = new(){
             { Enchantment.EnchantmentType.cultivating, ("farmed_cultivating",0.1, 100_000_000)},
             { Enchantment.EnchantmentType.champion, ("champion_combat_xp",1,3_000_000)},
-            { Enchantment.EnchantmentType.compact, ("compact_blocks", 2, 1_000_000)},
+            { Enchantment.EnchantmentType.compact, ("compact_blocks", 6, 1_000_000)},
             { Enchantment.EnchantmentType.hecatomb, ("hecatomb_s_runs", 200_000, 100)},
             { Enchantment.EnchantmentType.expertise, ("expertise_kills", 1000, 15_000)}
         };
