@@ -185,7 +185,11 @@ public class PropertyMapper
                 costs.Add(tier, cost.Value);
             }
             if (!Enum.TryParse<ItemReferences.Reforge>(reforge.Value.internalName.Replace("-", "_"), true, out var reforgeEnum))
-                reforgeEnum = Enum.Parse<ItemReferences.Reforge>(reforge.Value.reforgeName.Replace("-", "_").Replace("'", ""), true);
+                if (!Enum.TryParse<ItemReferences.Reforge>(reforge.Value.reforgeName.Replace("-", "_").Replace("'", ""), true, out reforgeEnum))
+                {
+                    Console.WriteLine($"Could not parse reforge {reforge.Value.internalName} or {reforge.Value.reforgeName}");
+                    continue;
+                }
             NeuReforgeLookup.Add(reforgeEnum, (costs, reforge.Key));
         }
 

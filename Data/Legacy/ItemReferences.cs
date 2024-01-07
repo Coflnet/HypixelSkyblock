@@ -175,6 +175,9 @@ namespace Coflnet.Sky.Core
             beady,
             buzzing,
             jerry_stone,
+            hyper,
+            coldfused,
+            Earthly
         }
 
 
