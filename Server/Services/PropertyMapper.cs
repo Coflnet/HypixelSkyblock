@@ -158,6 +158,8 @@ public class PropertyMapper
 
     public (string, int) GetReforgeCost(ItemReferences.Reforge reforge, Tier tier = Tier.LEGENDARY)
     {
+        if (NeuReforgeLookup.TryGetValue(reforge, out var neucost))
+            return (neucost.itemTag, neucost.Item1.GetValueOrDefault(tier));
         var cost = ReforgeCosts.GetValueOrDefault(reforge);
         if (cost == default)
             return (string.Empty, 0);
@@ -166,6 +168,34 @@ public class PropertyMapper
         if (tier < Tier.LEGENDARY)
             return (cost.Item1, cost.Item2 / 2);
         return (cost.Item1, cost.Item2);
+    }
+
+    public Dictionary<ItemReferences.Reforge, (Dictionary<Tier, int>, string itemTag)> NeuReforgeLookup = new();
+
+    public async System.Threading.Tasks.Task LoadNeuConstants()
+    {
+        var json = await System.IO.File.ReadAllTextAsync("NEU-REPO/constants/reforgestones.json");
+        var reforgeCosts = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, ReforgeElement>>(json);
+        foreach (var reforge in reforgeCosts)
+        {
+            var costs = new Dictionary<Tier, int>();
+            foreach (var cost in reforge.Value.reforgeCosts)
+            {
+                var tier = Enum.Parse<Tier>(cost.Key.Replace(" ", "_"), true);
+                costs.Add(tier, cost.Value);
+            }
+            if (!Enum.TryParse<ItemReferences.Reforge>(reforge.Value.internalName.Replace("-", "_"), true, out var reforgeEnum))
+                reforgeEnum = Enum.Parse<ItemReferences.Reforge>(reforge.Value.reforgeName.Replace("-", "_").Replace("'", ""), true);
+            NeuReforgeLookup.Add(reforgeEnum, (costs, reforge.Key));
+        }
+
+    }
+
+    public class ReforgeElement
+    {
+        public string reforgeName;
+        public string internalName;
+        public Dictionary<string, int> reforgeCosts;
     }
 
     /// <summary>
