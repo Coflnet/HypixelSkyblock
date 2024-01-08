@@ -726,17 +726,21 @@ namespace Coflnet.Sky.Core
         public static DateTime GetDateTime(NbtCompound file)
         {
             var extra = GetExtraTag(file);
-            if (extra == null || !extra.TryGet<NbtString>("timestamp", out NbtString timestamp))
+            if (extra == null || !extra.TryGet("timestamp", out var timestamp))
             {
                 return new DateTime();
             }
 
-            if (DateTime.TryParseExact(
-                    timestamp.StringValue,
+            if (timestamp is NbtString nbtString && DateTime.TryParseExact(
+                    nbtString.StringValue,
                     new String[] { "M/d/yy h:mm tt", "M/d/yy h:mm" },
                     CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
             {
                 return result;
+            }
+            else if (timestamp is NbtLong nbtLong)
+            {
+                return DateTimeOffset.FromUnixTimeMilliseconds(nbtLong.LongValue).DateTime;
             }
 
             return new DateTime();
