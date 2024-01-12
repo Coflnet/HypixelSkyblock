@@ -66,7 +66,7 @@ public class PropertyMapper
         }
         if (property == "talisman_enrichment")
         {
-            if (string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(baseValue))
                 ingredients = new() { "TALISMAN_ENRICHMENT_" + value.ToUpper() };
             else
                 // was swapped
