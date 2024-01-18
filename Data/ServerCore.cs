@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Core
                 var result = await client.ExecuteAsync(request);
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    Console.WriteLine($"cache response: " + result.StatusCode);
+                    Console.WriteLine($"cache response for {client.BuildUri(request)}: " + result.StatusCode);
                     return default(TRes);
 
                 }
