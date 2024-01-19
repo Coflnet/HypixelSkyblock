@@ -516,7 +516,7 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                if (!data.TryGetValue(key, out var content) || content is not NbtString)
+                if (!data.TryGetValue(key, out var content))
                     return;
                 var innterData = JsonConvert.DeserializeObject<Dictionary<string, object>>(content.ToString());
                 innterData.Remove("uuid");
