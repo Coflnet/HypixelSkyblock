@@ -439,7 +439,7 @@ namespace Coflnet.Sky.Core
                         }
                     }
                 }
-                if(data.TryGetValue("runes", out object runesObj) && runesObj is Dictionary<string, object> runes)
+                if (data.TryGetValue("runes", out object runesObj) && runesObj is Dictionary<string, object> runes)
                 {
                     foreach (var item in runes.Keys.ToList())
                     {
@@ -516,9 +516,9 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                if (!data.ContainsKey(key))
+                if (!data.TryGetValue(key, out var content) || content is not NbtString)
                     return;
-                var innterData = JsonConvert.DeserializeObject<Dictionary<string, object>>(data[key].ToString());
+                var innterData = JsonConvert.DeserializeObject<Dictionary<string, object>>(content.ToString());
                 innterData.Remove("uuid");
                 data[key] = innterData;
             }
@@ -864,10 +864,17 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                var tag = nbt.Get<NbtString>("petInfo");
-                PetInfo info = JsonConvert.DeserializeObject<PetInfo>(tag.StringValue);
-                var petType = info.Type;
-                id += $"_{petType}";
+                if (nbt.TryGet<NbtString>("petInfo", out NbtString petInfo))
+                {
+                    PetInfo info = JsonConvert.DeserializeObject<PetInfo>(petInfo.StringValue);
+                    var petType = info.Type;
+                    id += $"_{petType}";
+                    return id;
+                }
+                var compound = nbt.Get<NbtCompound>("petInfo");
+                var type = compound.Get<NbtString>("type");
+                id += $"_{type.StringValue}";
+                Console.WriteLine("Pet type extracted " + type.StringValue);
                 return id;
             }
             catch (Exception)
