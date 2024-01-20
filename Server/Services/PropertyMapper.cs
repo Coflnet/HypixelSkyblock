@@ -36,11 +36,7 @@ public class PropertyMapper
             {("hotpc", "1"), (new(){"FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK"}, "0") },
             // 0 is > 10 (including one or more fummings)
             {("hotpc", "0"), (new(){"FUMING_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK"}, String.Empty)},
-            {("farming_for_dummies", "5"), (new(){"FARMING_FOR_DUMMIES"}, "4")},
-            {("farming_for_dummies", "4"), (new(){"FARMING_FOR_DUMMIES"}, "3") },
-            {("farming_for_dummies", "3"), (new(){"FARMING_FOR_DUMMIES"}, "2") },
-            {("farming_for_dummies", "2"), (new(){"FARMING_FOR_DUMMIES"}, "1") },
-            {("farming_for_dummies", "1"), (new(){"FARMING_FOR_DUMMIES"}, string.Empty) },
+            {("farming_for_dummies_count", "5"), (new(){"FARMING_FOR_DUMMIES"}, UseCount)}
         };
     private HashSet<string> ContainsItemId = new HashSet<string>(NBT.KeysWithItem)
     {
