@@ -421,9 +421,8 @@ namespace Coflnet.Sky.Core
                         }
                         petInfo.Remove("extraData");
                     }
-                if (data.TryGetValue("gems", out object gems))
+                if (data.TryGetValue("gems", out object gems) && gems is Dictionary<string, object> dict)
                 {
-                    var dict = (gems as Dictionary<string, object>);
                     var keys = dict?.Keys;
                     foreach (var item in keys)
                     {
@@ -451,7 +450,7 @@ namespace Coflnet.Sky.Core
             catch (Exception e)
             {
                 Logger.Instance.Error(e, "Error in flattening nbt data " + JSON.Stringify(data));
-                throw e;
+                throw;
             }
 
             var flatList = flatten(data).ToList();
