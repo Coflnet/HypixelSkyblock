@@ -396,10 +396,20 @@ namespace Coflnet.Sky.Core
             Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
 
             flatten = dict => dict.SelectMany(kv =>
-                                    kv.Value is Dictionary<string, object>
-                                        ? flatten((Dictionary<string, object>)kv.Value)
-                                        : new List<KeyValuePair<string, object>>() { kv }
-                                   );
+            {
+                if (kv.Value is Dictionary<string, object>)
+                    return flatten((Dictionary<string, object>)kv.Value);
+                if(kv.Value is Newtonsoft.Json.Linq.JObject obj)
+                {
+                    var res = new Dictionary<string, object>();
+                    foreach (var item in obj)
+                    {
+                        res[item.Key] = item.Value;
+                    }
+                    return flatten(res);
+                }
+                return new List<KeyValuePair<string, object>>() { kv };
+            });
 
             try
             {
