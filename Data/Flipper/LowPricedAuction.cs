@@ -50,6 +50,7 @@ namespace Coflnet.Sky.Core
             STONKS = 64,
             EXTERNAL = 128,
             BINMASTER = 256,
+            LEIKO = 512,
             ALL_EXCEPT_USER = FLIPPER_AND_SNIPERS | AI | TFM | STONKS | EXTERNAL | BINMASTER,
         }
     }
