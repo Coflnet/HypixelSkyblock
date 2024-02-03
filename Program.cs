@@ -102,9 +102,9 @@ namespace Coflnet.Sky.Core
 
                 case 'n':
                     var af = new SaveAuction();
-                    NBT.FillDetails(af, "H4sIAAAAAAAAAE1Ry26bUBAdP9JiNl120yosKnXlCptglyWysY1jrmOCH7CJLnB5OBdswSUx/od+h7f9Bn9Y1ZuqqirNZuacmXNmRgToQCMVAaDRhGYaNn404GZ0qHLWEKHFcNyCziwNyYTiuOSsXyKIj88VpcvXnBQCNM0QvgTEx+pd1OtGfVXpKpoadbEiy11F9Yd337VADvwe73soDkdSsJSUHRAYObGqIOUfaQFuNphWBH6Sei57u0QOd3Ma1OaA586jTJfm/jg0803tj8yBmXF8pg8WtfYfV2V4q1JXmSdevqr8bCMvFJuSmd0LsvWL59iJu0XpcmqcUbaurX34vBy7J29ryGhs9VGGqNU3z8gxXr3tWnHPpmLt53s03STImaRW5taeE5/ReaW6mXuy9qs02vU07l6E92FaHimuO9BeHAoi8GIbbq+XIQ9dmhQ4zkjOpJDvfySh5NcSSwh85ig91JhKJSlecM5K6RBJeoGDJCff3gZfL9r1Qm3dNgRoI5wR+MRLfxlfS+meEH7QfwLcyQfjxAqsM1akfsVIKbz9FD7qtj6aIePp3jAeDPtpYutTy0AOQBPejXGGYwItgN8ILuLQDQIAAA\u003d\u003d", true);
-                    Console.WriteLine(af.Tier);
-                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAI1T227rRBTdac/hOEGi4gEh3owpT8Q9Thw7F4mHqk2pS+30kl4ShNDEs21PMrYje9wTF/EJPHP+oK98Qz+FD0HsFA7iEcuWZ61Ze60943ELoAkN0QKAxg7sCN74tQGvj/IqU40W7CoW70LzVHA8kSwuSfVnC1rXq0rKybsMCw12PA77LuOc9fjCdIbITZuHjsnCDjctm3XDnh31Obeo7qLI11gogWUTNIUbVRVYvkRr8PqWyQrhd6zPrPl9YvH7MxnWnkt4em3Jibdc973stl4cea6X0vzpoXteD/+jdRS7c+TMPkvm2WW1SG+tc/tK4ulVJ0xvHvxpsJwvk9VsGVuT40N79nhp+3eX9J45/tJ79I+9OlieJLPHExHcjTfBo0wn0/nKn44dejpBekv1gfTvvM38OFjOrs+G0b31LXXfgjdclGvJ6ia8Os8L1Ij8BPaenwYnecFikcX6BSoiiepfrxH5SH9+Yt+48DkRXqZQShFjFuLffMch7cfPT+60QFzkRQZfk47u7wqWqfIfzYFDA/eP9+/1DynwFREEVJUhqdv6u0SEiS6ysEBWYqnXeVXAFzQVJozSdKZ0nlcLibrM4/KAUvdfgvBKxIkyQynCla5ynT6vrhJR6mtUhOFTkmy9XnCKWfXldsXU1vOTvAmOJr4/CTR4FbAU4TNy/OH8Qep258dt536erbCmTdsbb1TBDpUqxKJSWGrwhuy8LMrht58NVa/RGBlk9P14ZrQNFirxQEzEZIltAzdrY9Qd9rruwaDTG1jba9BvG3S4Cir70AQVJnR4t6b/loYs4/VNidwYWW2jqgQNjKjroo2Ra3b7zDV7gwjNgR0uzNDqI+850YBH3PhFg2ZeCNrqKYtBuxhPf/LHwY22/W9glyCteesH+//HjsyUSLFULF3D3vBtd/C229GdkTXUL3yAHfjomKUsRtgF+AvZCYDnpwMAAA\u003d\u003d"));
+                    NBT.FillDetails(af, "H4sIAAAAAAAAAD2STZKaQBTHn18ZZJNFKvtOKpWqLKxCUXEWWTjoRCyBiaIou1ZaaW3AQDMOHCC7rHMEL5ATeJQcJJUmi/Tu9fv9X/3fhwzQhAqVAaBShSr1Kz8q0NDjLOJVGWocH5pQJ9EugPLVoDmhPnlk+JCK8I8M8uKUMWZfIpJIUDV8+KCoO62LtX5L7fv3LVXtb1sYE7XV0zoDRWt3dr7SFrqnJD6ThFOSNkHi5IVnCUn/2ZCgscIsI/CL5FPFWweKv56yXW70RewsFGYbx7NmRKt8qxt9IxT5yUNh08Gz/2XV9Ser3Fub2dZlmeda+cb1lFnYY75+/7/WrBgrpmP2bHep2s5jaBWn9iacHq3RrrM5Lju2452sYnmxikPHcjZda+QH1pFRwVCzGKtmsQpN92vPHAm96x290bBt0en9fq18Fh3IcOfT9MxwLmY3ixMiQTnlN7frYE6+ZVQ0ihh5Jgz14E58PsSXcpqfbldtiFIBpEGOeIIpQzxG+5ix+ILyOEsQThLBvhPwxxI+n5kAA5qiJItICW9FGsUJ2mepiC8xvBccjw+EB0TIuaAJmmcR3aEn4pOUY1ZWe3u77m9XptumaVtItxfm2DF0CeoWDklpHP/++R0tGA3zUk2QIZp8PX4RJoecJ3Sb8XJ5jdJGWoPGYmaYm3KXIJU3BfX50hoDVOHVCIf4QMQhwV9sJ18cegIAAA\u003d\u003d", true);
+                    Console.WriteLine(JsonConvert.SerializeObject(af, Formatting.Indented));
+                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAE1Sy3LaQBAcsB0LDnb5kEtOmypfciCWBMKQm8zLkpEwWIDFhVppV2hBD0paBcv/kO/gB/IFfFgqm1QOOcxherunZ7a6DlCDCqsDQKUKVUYqPypw0UuLhFfqcMbx5gxqj4zQYYQ3uWD9qkP9ZVdE0eSQ0EyCqkHgttXFakv2SaND1U6jGWi00fFIs+G1u3IQKD72Al/onrN0TzPOaF4DidM3XmQ0/2stwcUCRwWFn7Q05dVrKJNXM/JLoy1650WOJsZ2f28ki9LrGW0jFu+Pentcdv/jahwvtchtmuEqmRZevJDHzVlEH2eKH8+/W0u3Zfd1xXIGqvs+3LnLQdNV5+Vqq79Z27lmOVNlMpoqVt+Q7Xh6cJ2paqvm1t3uFNdZhFZsHax3O1wtVzt7qx8mI0O1SrMbvMpP4oI6XBKW7yNc1uB8nGZUEuAFfDkd73Xk4Q06MB6i0xG3NAGhPEp5jg4h80Pk4wR5FD4LXOh9ShBLUJkWGXrhaYY3FFk0KRBP4ZOg5AKjCBPCOEsTHCHGaZx/FW7Xp2P7dIzGg9FAHDpzJTi3cUzhRuBmEXspesD+bi9KbHs9eOMZ1jnPmFdwmktQSzO2YYmDN/CxN9OHjmGP1qOZ0V/3JuPxoOdIf+IBV+bcepisH/Te07MoCa68f1PXfhqlGVz2B0N9Phb086IQgluPtoncEeFoEdpstIJAxIRo7YYqi3gERFPvPSLsOYtpznG8hxtFvlNad6qMFOWbpiLdAqjChz6OxWfAGcBvNWftcrUCAAA\u003d"));
                     //Console.WriteLine (JsonConvert.SerializeObject (.Instance.Items.Where (item => item.Value.AltNames != null && item.Value.AltNames.Count > 3 && !item.Key.Contains("DRAGON")).Select((item)=>new P(item.Value))));
                     break;
                 default:
@@ -491,7 +491,9 @@ namespace Coflnet.Sky.Core
             }
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content}");
+                Logger.Instance.Info(client.BuildUri(request) + $" returned {response.StatusCode} {response.Content.Truncate(100)}");
+                await Task.Delay(5000); // backoff
+                RequestsSinceStart += 50;
                 return null;
             }
             if (response.Content == "")
