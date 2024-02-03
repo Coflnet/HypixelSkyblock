@@ -119,6 +119,12 @@ namespace Coflnet.Sky.Core
                 }
             }
             var name = GetName(f);
+            if (auction.Tier == Tier.UNKNOWN)
+                auction.Tier = name.Substring(0, 2) switch
+                {
+                    "§c" => Tier.SPECIAL, // god potions don't have it in lore
+                    _ => Tier.UNKNOWN
+                };
             if (auction.Context != null)
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
@@ -399,7 +405,7 @@ namespace Coflnet.Sky.Core
             {
                 if (kv.Value is Dictionary<string, object>)
                     return flatten((Dictionary<string, object>)kv.Value);
-                if(kv.Value is Newtonsoft.Json.Linq.JObject obj)
+                if (kv.Value is Newtonsoft.Json.Linq.JObject obj)
                 {
                     var res = new Dictionary<string, object>();
                     foreach (var item in obj)
