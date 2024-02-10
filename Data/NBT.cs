@@ -123,6 +123,7 @@ namespace Coflnet.Sky.Core
                 auction.Tier = name.Substring(0, 2) switch
                 {
                     "§c" => Tier.SPECIAL, // god potions don't have it in lore
+                    "§4" => Tier.ULTIMATE, // skins are sometimes missing the tag
                     _ => Tier.UNKNOWN
                 };
             if (auction.Context != null)
@@ -646,6 +647,7 @@ namespace Coflnet.Sky.Core
             { Tier.SPECIAL, "SPECIAL" },
             { Tier.UNKNOWN, "UNKNOWN" },
             { Tier.DIVINE, "DIVINE" },
+            { Tier.ULTIMATE, "ULTIMATE" },
         };
 
         public NBT()
