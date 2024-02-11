@@ -30,7 +30,7 @@ public static class JaegerSercieExtention
             {
                 j.Protocol = JaegerExportProtocol.UdpCompactThrift;
                 j.AgentHost = config["JAEGER_AGENT_HOST"];
-                j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 2000, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 1000 };
+                j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { MaxQueueSize = 4096, MaxExportBatchSize = 1000, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 800 };
             })
             .SetSampler(new RationOrTimeBasedSampler(samplingRate, lowerBoundInSeconds))
         );
