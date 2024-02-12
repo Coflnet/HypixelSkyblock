@@ -197,7 +197,7 @@ services:
     image: scylladb/scylla
     container_name: some-scylla
     volumes:
-      - './scylla_data:/var/lib/scylla'
+      - 'scylla_data:/var/lib/scylla'
     ports:
       - '7000:7000'
       - '9042:9042'
@@ -236,5 +236,5 @@ volumes:
     driver: local
   mongodb_data:
     driver: local
-  cassandra_data:
+  scylla_data:
     driver: local
