@@ -69,8 +69,12 @@ public class PropertyMapper
                 ingredients = new() { "TALISMAN_ENRICHMENT_SWAPPER" };
             return true;
         }
-        if (!propertyToItem.TryGetValue((property, value), out var result)
-         && !propertyToItem.TryGetValue((property, "*"), out result))
+        if(propertyToItem.TryGetValue((property, "*"), out var singleItem) && string.IsNullOrEmpty(baseValue))
+        {
+            ingredients = new(singleItem.needed);
+            return true;
+        }
+        if (!propertyToItem.TryGetValue((property, value), out var result))
         {
             ingredients = null;
             return false;
