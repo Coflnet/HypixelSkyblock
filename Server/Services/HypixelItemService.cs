@@ -135,7 +135,6 @@ public class HypixelItemService
         var cost = item.UpgradeCosts;
         if (cost == null)
         {
-            _logger.LogWarning($"Failed to get salvage costs for {itemId} {tier}");
             return new List<DungeonUpgradeCost>();
         }
 
