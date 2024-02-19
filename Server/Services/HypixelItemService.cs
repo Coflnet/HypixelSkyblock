@@ -131,7 +131,8 @@ public class HypixelItemService
             return new List<DungeonUpgradeCost>();
         if (baseTier >= 5) // master stars
             return new List<DungeonUpgradeCost>();
-        var item = items[itemId];
+        if(!items.TryGetValue(itemId, out var item))
+            return new List<DungeonUpgradeCost>();
         var cost = item.UpgradeCosts;
         if (cost == null)
         {
