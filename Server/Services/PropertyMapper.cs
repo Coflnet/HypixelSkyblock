@@ -57,7 +57,7 @@ public class PropertyMapper
         }
         if (property == "ability_scroll")
         {
-            ingredients = value.Split(' ').Except(baseValue?.Split(' ') ?? new string[0]).ToList();
+            ingredients = value.Split(' ', ',').Except(baseValue?.Split(' ') ?? new string[0]).ToList();
             return true;
         }
         if (property == "talisman_enrichment")
