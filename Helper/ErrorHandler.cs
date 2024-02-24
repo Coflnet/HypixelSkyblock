@@ -14,11 +14,20 @@ using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Coflnet.Sky.Core
 {
     public class ErrorHandler
     {
+        public interface IBody
+        {
+            string Body { get; }
+        }
+        public class BodyCache : IBody
+        {
+            public string Body { get; set; }
+        }
         static string prefix = "api";
         static Prometheus.Counter errorCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_error", "Counts the amount of error responses handed out");
         static Prometheus.Counter badRequestCount = Prometheus.Metrics.CreateCounter($"sky_{prefix}_bad_request", "Counts the responses for invalid requests");
@@ -31,6 +40,19 @@ namespace Coflnet.Sky.Core
         }
         public static void Add(ILogger logger, IApplicationBuilder errorApp, string serviceName)
         {
+            errorApp.Use(async (context, next) =>
+            {
+                // store incomming request body as feature
+                if (context.Request.Method != "GET" && context.Request.ContentLength < 300)
+                {
+                    context.Request.EnableBuffering();
+                    var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
+                    logger.LogInformation($"Request: {context.Request.Method} {context.Request.Path} {context.Request.QueryString} {body}");
+                    context.Request.Body.Position = 0;
+                    context.Features.Set<ErrorHandler.IBody>(new ErrorHandler.BodyCache() { Body = body });
+                }
+                await next.Invoke();
+            });
             prefix = serviceName;
             errorApp.Run(async context =>
             {
@@ -48,7 +70,7 @@ namespace Coflnet.Sky.Core
                     badRequestCount.Inc();
                 }
                 // CoflnetExceptions are forwarded
-                else if(error != null && error.Message.StartsWith("Error calling ") && error.Message.Contains("trace\":"))
+                else if (error != null && error.Message.StartsWith("Error calling ") && error.Message.Contains("trace\":"))
                 {
                     // Json error response after first :
                     var split = error.Message.Split(":", 2);
@@ -67,8 +89,9 @@ namespace Coflnet.Sky.Core
                     var body = "not loadable";
                     try
                     {
-                        using var reader = new StreamReader(context.Request.Body);
-                        body = await reader.ReadToEndAsync();
+                        //context.Request.Body.Seek(0, SeekOrigin.Begin);
+                        body = context.Features.Get<IBody>()?.Body ?? body;
+                        Console.WriteLine("body:\n" + body);
                     }
                     catch (System.Exception e)
                     {
