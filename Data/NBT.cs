@@ -9,6 +9,7 @@ using System.Text;
 using dev;
 using fNbt;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Coflnet.Sky.Core
 {
@@ -484,6 +485,10 @@ namespace Coflnet.Sky.Core
                     .Replace("\"", ""))
                     .OrderBy(a => a);
                 data[stringArrayKey] = String.Join(" ", list);
+            }
+            else if (abilityScroll is JArray jArray)
+            {
+                data[stringArrayKey] = String.Join(" ", jArray.Select(a => a.ToString()));
             }
         }
 
