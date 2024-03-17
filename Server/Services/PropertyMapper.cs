@@ -64,12 +64,14 @@ public class PropertyMapper
         {
             if (string.IsNullOrEmpty(baseValue))
                 ingredients = new() { "TALISMAN_ENRICHMENT_" + value.ToUpper() };
+            else if (baseValue == "yes") // set by sniper to group "any", returning highest volume enrichment
+                ingredients = new() { "TALISMAN_ENRICHMENT_FEROCITY" };
             else
                 // was swapped
                 ingredients = new() { "TALISMAN_ENRICHMENT_SWAPPER" };
             return true;
         }
-        if(propertyToItem.TryGetValue((property, "*"), out var singleItem) && string.IsNullOrEmpty(baseValue))
+        if (propertyToItem.TryGetValue((property, "*"), out var singleItem) && string.IsNullOrEmpty(baseValue))
         {
             ingredients = new(singleItem.needed);
             return true;
