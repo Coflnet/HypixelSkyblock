@@ -148,6 +148,7 @@ namespace Coflnet.Sky.Core
             pesterminator,
             great_spook,
             ultimate_refrigerate,
+            paleontologist,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
