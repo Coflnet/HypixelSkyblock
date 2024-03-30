@@ -899,9 +899,9 @@ namespace Coflnet.Sky.Core
                 Console.WriteLine("Pet type extracted " + type.StringValue);
                 return id;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Logger.Instance.Error($"Could not get itemId from nbt {nbt?.ToString()}");
+                Logger.Instance.Error(e, $"Could not get itemId from nbt {nbt?.ToString()}");
                 return "PET_unkown";
             }
         }
