@@ -149,6 +149,7 @@ namespace Coflnet.Sky.Core
             great_spook,
             ultimate_refrigerate,
             paleontologist,
+            ice_cold,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
