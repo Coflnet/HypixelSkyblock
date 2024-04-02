@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Coflnet;
-using Newtonsoft.Json;
 using dev;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -114,6 +111,11 @@ namespace Coflnet.Sky.Core
                 return 0;
             if (TagLookup == null || TagLookup.Count == 0)
                 LoadLookup().GetAwaiter().GetResult();
+            if(tag.StartsWith("RUNE_") && TagLookup.ContainsKey("UNIQUE_" + tag))
+            {
+                // extend to unique rune as that prefix is not present on the rune item
+                tag = "UNIQUE_" + tag;
+            }
             if (TagLookup.TryGetValue(tag, out int value))
                 return value;
 
