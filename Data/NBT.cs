@@ -121,12 +121,14 @@ namespace Coflnet.Sky.Core
             }
             var name = GetName(f);
             if (auction.Tier == Tier.UNKNOWN)
-                auction.Tier = name.Substring(0, 2) switch
+                auction.Tier = name.Replace("§f", "").Substring(0, 2) switch
                 {
-                    "§c" => Tier.SPECIAL, // god potions don't have it in lore
+                    "§c" => Tier.SPECIAL, // god potions don't have it in lore, also they start with two §f
                     "§4" => Tier.ULTIMATE, // skins are sometimes missing the tag
                     _ => Tier.UNKNOWN
                 };
+            if (auction.Tier == Tier.UNKNOWN)
+                Console.WriteLine("Unknown tier " + f);
             if (auction.Context != null)
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
