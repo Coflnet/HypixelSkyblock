@@ -127,8 +127,6 @@ namespace Coflnet.Sky.Core
                     "§4" => Tier.ULTIMATE, // skins are sometimes missing the tag
                     _ => Tier.UNKNOWN
                 };
-            if (auction.Tier == Tier.UNKNOWN)
-                Console.WriteLine("Unknown tier " + f);
             if (auction.Context != null)
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
