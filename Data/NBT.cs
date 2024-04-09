@@ -901,7 +901,8 @@ namespace Coflnet.Sky.Core
             }
             catch (Exception e)
             {
-                Logger.Instance.Error(e, $"Could not get itemId from nbt {nbt?.ToString()}");
+                var base64 = Convert.ToBase64String(Bytes(nbt));
+                Logger.Instance.Error(e, $"Could not get itemId from nbt {nbt?.ToString()}\n{base64}");
                 return "PET_unkown";
             }
         }
