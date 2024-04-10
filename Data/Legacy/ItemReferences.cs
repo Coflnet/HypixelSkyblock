@@ -177,7 +177,8 @@ namespace Coflnet.Sky.Core
             jerry_stone,
             hyper,
             coldfused,
-            Earthly
+            Earthly,
+            glacial
         }
 
 
