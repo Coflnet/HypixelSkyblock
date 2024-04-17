@@ -36,7 +36,7 @@ public class PropertyMapper
             {("hotpc", "1"), (new(){"FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK"}, "0") },
             // 0 is > 10 (including one or more fummings)
             {("hotpc", "0"), (new(){"FUMING_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK"}, String.Empty)},
-            {("farming_for_dummies_count", "5"), (new(){"FARMING_FOR_DUMMIES"}, UseCount)}
+            {("farming_for_dummies_count", "*"), (new(){"FARMING_FOR_DUMMIES"}, UseCount)}
         };
     private HashSet<string> ContainsItemId = new HashSet<string>(NBT.KeysWithItem)
     {
@@ -76,19 +76,23 @@ public class PropertyMapper
             ingredients = new(singleItem.needed);
             return true;
         }
+
+        if (singleItem.previousLevel == UseCount)
+        {
+            int.TryParse(baseValue, out var baseCount);
+            if (int.TryParse(value, out var count) && count - baseCount > 1)
+            {
+                ingredients = new (Enumerable.Repeat(singleItem.needed, count - baseCount - 1).SelectMany(x => x));
+                return true;
+            }
+        }
         if (!propertyToItem.TryGetValue((property, value), out var result))
         {
             ingredients = null;
             return false;
         }
         ingredients = new(result.needed);
-        if (result.previousLevel == UseCount)
-        {
-            int.TryParse(baseValue, out var baseCount);
-            if (int.TryParse(value, out var count) && count - baseCount > 1)
-                ingredients.AddRange(Enumerable.Repeat(result.needed, count - baseCount - 1).SelectMany(x => x));
-        }
-        else if (baseValue != string.Empty
+        if (baseValue != string.Empty
             && result.previousLevel != baseValue
             && result.previousLevel != value // safeguard break recurision
             && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
