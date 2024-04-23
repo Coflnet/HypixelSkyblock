@@ -1,4 +1,5 @@
 using fNbt;
+using fNbt.Tags;
 using MessagePack;
 using Newtonsoft.Json;
 using System.Collections.Generic;
