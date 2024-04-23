@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -67,7 +68,7 @@ namespace Coflnet.Sky.Core
             RedisConnection.IncludePerformanceCountersInExceptions = true;
             RedisConnection.GetSubscriber().Subscribe("cofl-cache-update", (channel, message) =>
             {
-                var prefix =  GetHostprefix();
+                var prefix = GetHostprefix();
                 if (message.StartsWith(prefix))
                     return;
                 message = message.ToString().Substring(prefix.Length);
@@ -217,7 +218,7 @@ namespace Coflnet.Sky.Core
             var lifetime = (responses.Expires - responses.Created).TotalSeconds;
             if (lifetime / 2 > maxAgeLeft)
             {
-                OpenTracing.Util.GlobalTracer.Instance.ActiveSpan?.Log($"refresh stale {lifetime} {request.Type.Truncate(10)}");
+                Activity.Current?.AddEvent(new ActivityEvent($"refresh stale {lifetime} {request.Type.Truncate(10)}"));
                 RefreshResponse(request);
                 return CacheStatus.REFRESH;
             }

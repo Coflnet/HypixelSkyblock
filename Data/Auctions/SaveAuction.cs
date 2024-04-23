@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Coflnet.Tracing;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -258,10 +257,11 @@ namespace Coflnet.Sky.Core
         [JsonIgnore]
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public DateTime FindTime { get; set; } = DateTime.UtcNow;
-        [Key(28)]
-        [JsonIgnore]
-        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-        public TextMap TraceContext { get; set; }
+        //[Key(28)]
+        //[JsonIgnore]
+        //[System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        //public TextMap TraceContext { get; set; }
+
         /// <summary>
         /// General context for this auction (additional fields)
         /// </summary>
@@ -306,7 +306,6 @@ namespace Coflnet.Sky.Core
             NBTLookup = auction.NBTLookup;
             UId = auction.UId;
             FindTime = auction.FindTime;
-            TraceContext = auction.TraceContext;
             Context = Context;
         }
 
