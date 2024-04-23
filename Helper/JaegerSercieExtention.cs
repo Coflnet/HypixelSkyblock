@@ -34,32 +34,6 @@ public static class JaegerSercieExtention
             })
             .SetSampler(new RationOrTimeBasedSampler(samplingRate, lowerBoundInSeconds))
         );
-
-
-        services.AddSingleton<ITracer>(serviceProvider =>
-        {
-            ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-            IConfiguration iConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
-
-            var traceProvider = serviceProvider.GetRequiredService<TracerProvider>();
-
-            // Instantiate the OpenTracing shim. The underlying OpenTelemetry tracer will create
-            // spans using the "MyCompany.MyProduct.MyWebServer" source.
-            var tracer = new TracerShim(
-                TracerProvider.Default.GetTracer("MyCompany.MyProduct.MyWebServer"),
-                Propagators.DefaultTextMapPropagator);
-
-            try
-            {
-                GlobalTracer.Register(tracer);
-            }
-            catch (Exception e)
-            {
-                loggerFactory.CreateLogger("jager").LogError("Could not register new tracer \n" + e);
-            }
-
-            return tracer;
-        });
     }
 
 

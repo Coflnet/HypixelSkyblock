@@ -57,10 +57,6 @@ namespace Coflnet.Sky.Core
 
             if (args.Length > 0)
             {
-                FileController.dataPaht = args[0];
-                Directory.CreateDirectory(FileController.dataPaht);
-                Directory.CreateDirectory(FileController.dataPaht + "/users");
-                Directory.CreateDirectory(FileController.dataPaht + "/auctions");
 
                 if (args.Length > 1)
                 {
@@ -104,7 +100,7 @@ namespace Coflnet.Sky.Core
                     var af = new SaveAuction();
                     NBT.FillDetails(af, "H4sIAAAAAAAAAD2STZKaQBTHn18ZZJNFKvtOKpWqLKxCUXEWWTjoRCyBiaIou1ZaaW3AQDMOHCC7rHMEL5ATeJQcJJUmi/Tu9fv9X/3fhwzQhAqVAaBShSr1Kz8q0NDjLOJVGWocH5pQJ9EugPLVoDmhPnlk+JCK8I8M8uKUMWZfIpJIUDV8+KCoO62LtX5L7fv3LVXtb1sYE7XV0zoDRWt3dr7SFrqnJD6ThFOSNkHi5IVnCUn/2ZCgscIsI/CL5FPFWweKv56yXW70RewsFGYbx7NmRKt8qxt9IxT5yUNh08Gz/2XV9Ser3Fub2dZlmeda+cb1lFnYY75+/7/WrBgrpmP2bHep2s5jaBWn9iacHq3RrrM5Lju2452sYnmxikPHcjZda+QH1pFRwVCzGKtmsQpN92vPHAm96x290bBt0en9fq18Fh3IcOfT9MxwLmY3ixMiQTnlN7frYE6+ZVQ0ihh5Jgz14E58PsSXcpqfbldtiFIBpEGOeIIpQzxG+5ix+ILyOEsQThLBvhPwxxI+n5kAA5qiJItICW9FGsUJ2mepiC8xvBccjw+EB0TIuaAJmmcR3aEn4pOUY1ZWe3u77m9XptumaVtItxfm2DF0CeoWDklpHP/++R0tGA3zUk2QIZp8PX4RJoecJ3Sb8XJ5jdJGWoPGYmaYm3KXIJU3BfX50hoDVOHVCIf4QMQhwV9sJ18cegIAAA\u003d\u003d", true);
                     Console.WriteLine(JsonConvert.SerializeObject(af, Formatting.Indented));
-                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAE1Sy3LaQBAcsB0LDnb5kEtOmypfciCWBMKQm8zLkpEwWIDFhVppV2hBD0paBcv/kO/gB/IFfFgqm1QOOcxherunZ7a6DlCDCqsDQKUKVUYqPypw0UuLhFfqcMbx5gxqj4zQYYQ3uWD9qkP9ZVdE0eSQ0EyCqkHgttXFakv2SaND1U6jGWi00fFIs+G1u3IQKD72Al/onrN0TzPOaF4DidM3XmQ0/2stwcUCRwWFn7Q05dVrKJNXM/JLoy1650WOJsZ2f28ki9LrGW0jFu+Pentcdv/jahwvtchtmuEqmRZevJDHzVlEH2eKH8+/W0u3Zfd1xXIGqvs+3LnLQdNV5+Vqq79Z27lmOVNlMpoqVt+Q7Xh6cJ2paqvm1t3uFNdZhFZsHax3O1wtVzt7qx8mI0O1SrMbvMpP4oI6XBKW7yNc1uB8nGZUEuAFfDkd73Xk4Q06MB6i0xG3NAGhPEp5jg4h80Pk4wR5FD4LXOh9ShBLUJkWGXrhaYY3FFk0KRBP4ZOg5AKjCBPCOEsTHCHGaZx/FW7Xp2P7dIzGg9FAHDpzJTi3cUzhRuBmEXspesD+bi9KbHs9eOMZ1jnPmFdwmktQSzO2YYmDN/CxN9OHjmGP1qOZ0V/3JuPxoOdIf+IBV+bcepisH/Te07MoCa68f1PXfhqlGVz2B0N9Phb086IQgluPtoncEeFoEdpstIJAxIRo7YYqi3gERFPvPSLsOYtpznG8hxtFvlNad6qMFOWbpiLdAqjChz6OxWfAGcBvNWftcrUCAAA\u003d"));
+                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAI1UTW/jVBR9aTtMGoEGwQxsAD2i6Ugw8ciJPxJXmkVI0sZRnGaSfgaNRs/2je3EH8F+busiVqxnh1jwB7Jgy4INm/yUrvgViOtkWiGxGcnS8zvvnnvPObJfiZBdUvBKhJDCFtny7MLbAnnQitKQF0pkmzNnm+x2PRsOfOYkWPVPiZTG89T3j65CiItkS7fJU0liqgbMFmSZWYJU16qCJtcUQalVRY0xy2ZMRd4wjhYQcw+SXVLkcM3TGJL16CJ5cMr8FMgfkPXEybkr2uc938p0FffHY9E/0meLuh6eZmZLV/UAz7tNtZ9p/6lVODtT/Aup507CV6kZnIp9aeRDd1S1gpPLSWCIxuzi5qhtiYP2PDMCvToJBsFg1ptN2r43menS5OzUvZjNry9mPX9w05sPAkMyDk/kvGpwduAaN45s3MwVo3aiTNqOqIdVbfrq5Ut0UCIPbS9Z+CzbJTv9KIYigl+Sj1bLRisKTMbpEDhCn66W9TGPIXS4u09XS+t5VSGfIdiKPU5bLgst2ODKHvn8Dm+zgDl3uLhHvsKD76IwTWiTc2bN6XgBYG/OJSTmUw4gjiyPZznKntcUHP7JaqkaEFueD0lCx1feAsgzLMXnkHnhhi7u5evt73/Ruw54/ALZ6EXtQhDFsYtiSGVDNMAHoGwtI6Ex2KkF1AXme6FDzQx7qQoqeowrVk+jOJdTFZN3TT9GvLmAazpEKuNRTIRN3za22OQjrhXV7XUGlDmoNOGUs9gBnqzLrzzu0jCiEXchpkFkJjSH1o5YVcnZph+hvnzis7UN36Y6hyAPR2mhTRc4PfYcpA/9NHE9IN/mqcQs5AnWAMZ6+9sv9P+hv/PxaLU0V0vfaJ7Tfue0088NN25//ZNKYkWT5IpUrdHzIRZ+s7YHI89xuWD5HvbhEWW2TVFwQheoA/dZlMbkQ6zL9wGE6debGZih3+8cdgbt5uiiSHYGLADyBFt+37/0KUb1Og98bQQ/yUedax4zVBt7ZsohKZKH2E8Pp1HhyY9lni2gvF8+1g87o3KlzCzuXSIwZX4ClTJcL8r70gsRxaN2sabURKXRkDv1Shl/4BiJ9zqQ7OINkfe9p7uYcB4w1rVGR61u5/jNetCbYf9k3NU7yLFYaGcnCdjlfbFSTlMPX8rTqQSybGqCKJl4ndSsusC0Wl2omrKqqqJmKlMLuWno/ZCCnjOURk2qg60Jat2SBHla0wSmNKaCZgPTQJU0BSdsFK5Db+WZ3+sMIyO6d/1TMb8Byfawc4zZ5orI0/cRtEN2uRdAwlmwwMvs7d/Nn78gZIt8sPlvyTYh/wIXh8R1aAUAAA\u003d\u003d"));
                     //Console.WriteLine (JsonConvert.SerializeObject (.Instance.Items.Where (item => item.Value.AltNames != null && item.Value.AltNames.Count > 3 && !item.Key.Contains("DRAGON")).Select((item)=>new P(item.Value))));
                     break;
                 default:

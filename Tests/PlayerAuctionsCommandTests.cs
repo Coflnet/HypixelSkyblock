@@ -33,7 +33,7 @@ namespace Tests
         [Test]
         public void Two()
         {
-            Assert.AreEqual(2, Roman.From("II"));
+            Assert.That(Roman.From("II"), Is.EqualTo(2));
         }
     }
 }
