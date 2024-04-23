@@ -1,13 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
-using OpenTelemetry.Shims.OpenTracing;
 using OpenTelemetry.Trace;
 using OpenTelemetry;
-using OpenTracing;
-using OpenTracing.Util;
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 using System.Globalization;
