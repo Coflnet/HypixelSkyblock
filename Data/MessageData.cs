@@ -82,7 +82,7 @@ namespace Coflnet.Sky.Core
                 return default(T);
             try
             {
-                return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.FromJson(Data));
+                return MessagePackSerializer.Deserialize<T>(MessagePackSerializer.ConvertFromJson(Data));
             }
             catch (Exception)
             {
@@ -103,7 +103,7 @@ namespace Coflnet.Sky.Core
 
         public virtual MessageData Create<T>(string type, T data, int maxAge = 0)
         {
-            var d = new MessageData(type, MessagePackSerializer.ToJson(data), maxAge);
+            var d = new MessageData(type, MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(data)), maxAge);
             return d;
         }
 

@@ -104,7 +104,6 @@ namespace Coflnet.Sky.Core.Prediction
         public void ExportBatch(int page)
         {
             var path = System.IO.Path.Combine("export",page.ToString());
-            FileController.SaveAs(path,GetBatch(page));
         }
 
         public async Task<List<PreditionInput>> GetBatch(int page, int count = 1000)

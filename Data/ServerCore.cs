@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Core
                 }
                 var source = new TaskCompletionSource<TRes>();
                 var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
-                var request = new RestRequest($"/command/{command}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ToJson(reqdata)))}");
+                var request = new RestRequest($"/command/{command}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(reqdata))))}");
                 request.Timeout = 10000;
                 var result = await client.ExecuteAsync(request);
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
@@ -54,7 +54,7 @@ namespace Coflnet.Sky.Core
                 catch (Exception e)
                 {
                     dev.Logger.Instance.Error(e, "deserialize command response \n" + result.Content);
-                    return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(result.Content));
+                    return MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.ConvertFromJson(result.Content));
                 }
             }
             catch (Exception e)
@@ -84,7 +84,7 @@ namespace Coflnet.Sky.Core
             this.request = request;
             Type = type;
             this.source = source;
-            Data = MessagePackSerializer.ToJson<Treq>(request);
+            Data = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(request));
         }
 
         public override T GetAs<T>()
@@ -96,7 +96,7 @@ namespace Coflnet.Sky.Core
         {
             source.TrySetResult((TRes)(object)a);
             var d = base.Create<T>(type, a, maxAge);
-            d.Data = MessagePackSerializer.ToJson(a);
+            d.Data = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(a));
             return d;
         }
 
@@ -105,7 +105,7 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                if (source.TrySetResult(MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.FromJson(data.Data))))
+                if (source.TrySetResult(MessagePackSerializer.Deserialize<TRes>(MessagePackSerializer.ConvertFromJson(data.Data))))
                 { /* nothing to do, already set */ }
             }
             catch (Exception)
