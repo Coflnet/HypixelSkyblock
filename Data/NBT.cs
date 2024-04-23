@@ -399,6 +399,11 @@ namespace Coflnet.Sky.Core
             return id;
         }
 
+        public static bool IsPet(string tag)
+        {
+            return tag != null && tag.StartsWith("PET_") && !tag.StartsWith("PET_SKIN") && !tag.StartsWith("PET_ITEM") && tag != "PET_CAKE";
+        }
+
         public static List<KeyValuePair<string, object>> FlattenNbtData(Dictionary<string, object> data)
         {
             Func<Dictionary<string, object>, IEnumerable<KeyValuePair<string, object>>> flatten = null;
