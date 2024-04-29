@@ -42,8 +42,9 @@ namespace Coflnet.Sky.Core
                         context.SaveChanges();
                     }
                 }
-                else if (user.Email == null)
+                else if (email != null && user.Email != email)
                 {
+                    Console.WriteLine($"Updating email for {user.Id} from {user.Email} to {email}");
                     user.Email = email;
                     context.SaveChanges();
                 }
