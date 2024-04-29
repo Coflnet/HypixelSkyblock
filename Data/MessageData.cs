@@ -185,7 +185,7 @@ namespace Coflnet.Sky.Core
             await context.WriteAsync(json);
             source.TrySetResult(true);
 
-            Span.SetTag("result", data.Type);
+            Span?.SetTag("result", data.Type);
 
             if (cache)
                 CacheService.Instance.Save(this, data, 0);
