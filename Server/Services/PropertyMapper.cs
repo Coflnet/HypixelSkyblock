@@ -217,7 +217,8 @@ public class PropertyMapper
     public string GetCorrectGemType(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
     {
         var type = gem.Key.Split("_")[0];
-        if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE" || type == "MINING" || type == "OFFENSIVE")
+        if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE" 
+            || type == "MINING" || type == "OFFENSIVE" || type == "CHISEL")
             type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
         return type;
     }
