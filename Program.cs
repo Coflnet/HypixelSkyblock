@@ -173,8 +173,6 @@ namespace Coflnet.Sky.Core
                 redisInit = MakeSureRedisIsInitialized();
 
                 Console.WriteLine("booting db dependend stuff");
-                var bazaar = new BazaarIndexer();
-                RunIsolatedForever(bazaar.ProcessBazaarQueue, "bazaar queue");
                 //NameUpdater.Run();
                 Task.Run(async () =>
                 {
