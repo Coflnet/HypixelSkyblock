@@ -51,8 +51,8 @@ public class PropertyMapper
         }
         if (property.StartsWith("RUNE_"))
         {
-            // either exact level match for music rune from sniper or general match for the rune
-            ingredients = new() { property, $"{property}_{value}" };
+            // either exact level match for music rune from sniper, general match for the rune or unique rune prefix ommited when parsing
+            ingredients = new() { property, $"{property}_{value}", "UNIQUE_" + property };
             return true;
         }
         if (property == "ability_scroll")
