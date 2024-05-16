@@ -319,11 +319,8 @@ namespace Coflnet.Sky.Core
         {
             if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES)
                 return true;
-            string[] endings = [ "CLOAK", "NECKLACE", "BELT", "GLOVES", "HOE", "PICKAXE", "GAUNTLET", "_WAND", "_ROD", "DRILL" ];
-            if (endings.Any(e => tag.Contains(e)))
-                return true;
-
-            return false;
+            string[] endings = ["CLOAK", "NECKLACE", "BELT", "GLOVES", "HOE", "PICKAXE", "GAUNTLET", "_WAND", "_ROD", "DRILL", "INFINI_VACUMM", "POWER_ORB"];
+            return endings.Any(tag.Contains);
         }
 
 
