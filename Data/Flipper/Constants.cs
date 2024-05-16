@@ -209,7 +209,7 @@ namespace Coflnet.Sky.Core
         /// <summary>
         /// Keys of attributes - only two out of these exist on any given item at the same time
         /// </summary>
-        public static readonly HashSet<string> AttributeKeys = new (){
+        public static readonly HashSet<string> AttributeKeys = new(){
                 "lifeline", "breeze", "speed", "experience", "mana_pool",
                 "life_regeneration", "blazing_resistance", "arachno_resistance",
                 "undead_resistance",
@@ -313,6 +313,17 @@ namespace Coflnet.Sky.Core
                         RelevantEnchants.Add(new Enchantment(item, 1));
                 }
             }
+        }
+
+        public static bool DoesRecombMatter(Category category, string tag)
+        {
+            if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES)
+                return true;
+            string[] endings = [ "CLOAK", "NECKLACE", "BELT", "GLOVES", "HOE", "PICKAXE", "GAUNTLET", "_WAND", "_ROD", "DRILL" ];
+            if (endings.Any(e => tag.Contains(e)))
+                return true;
+
+            return false;
         }
 
 
