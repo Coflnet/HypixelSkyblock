@@ -317,7 +317,8 @@ namespace Coflnet.Sky.Core
 
         public static bool DoesRecombMatter(Category category, string tag)
         {
-            if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES || tag == null)
+            if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES 
+                || category == Category.UNKNOWN || tag == null) // the description doesn't know the category
                 return true;
             string[] endings = ["CLOAK", "NECKLACE", "BELT", "GLOVES", "HOE", "PICKAXE", "GAUNTLET", "WAND", "ROD", "DRILL", "INFINI_VACUMM", "POWER_ORB"];
             return endings.Any(tag.Contains);
