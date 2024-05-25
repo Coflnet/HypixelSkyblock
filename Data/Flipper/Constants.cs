@@ -104,7 +104,8 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.ultimate_refrigerate,1),
             // new Enchantment(Enchantment.EnchantmentType.quantum,5), https://discord.com/channels/267680588666896385/1184721061900734604/1187048778339983440
             new Enchantment(Enchantment.EnchantmentType.ultimate_the_one,4),
-            new Enchantment(Enchantment.EnchantmentType.reflection,5)
+            new Enchantment(Enchantment.EnchantmentType.reflection,5),
+            new Enchantment(Enchantment.EnchantmentType.expertise,10),
         };
 
         /// <summary>
@@ -317,7 +318,7 @@ namespace Coflnet.Sky.Core
 
         public static bool DoesRecombMatter(Category category, string tag)
         {
-            if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES 
+            if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES
                 || category == Category.UNKNOWN || tag == null) // the description doesn't know the category
                 return true;
             string[] endings = ["CLOAK", "NECKLACE", "BELT", "GLOVES", "BRACELET", "HOE", "PICKAXE", "GAUNTLET", "WAND", "ROD", "DRILL", "INFINI_VACUMM", "POWER_ORB", "GRIFFIN_UPGRADE_STONE_EPIC"];
