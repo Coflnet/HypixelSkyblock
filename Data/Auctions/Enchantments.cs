@@ -150,6 +150,7 @@ namespace Coflnet.Sky.Core
             ultimate_refrigerate,
             paleontologist,
             ice_cold,
+            toxophilite,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
