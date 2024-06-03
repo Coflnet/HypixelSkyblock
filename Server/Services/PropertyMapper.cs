@@ -74,6 +74,11 @@ public class PropertyMapper
         if (propertyToItem.TryGetValue((property, "*"), out var singleItem) && string.IsNullOrEmpty(baseValue))
         {
             ingredients = new(singleItem.needed);
+            if (int.TryParse(value, out var count) && count > 1)
+            {
+                ingredients = new(Enumerable.Repeat(singleItem.needed, count).SelectMany(x => x));
+                return true;
+            }
             return true;
         }
 
@@ -82,7 +87,7 @@ public class PropertyMapper
             int.TryParse(baseValue, out var baseCount);
             if (int.TryParse(value, out var count) && count - baseCount > 1)
             {
-                ingredients = new (Enumerable.Repeat(singleItem.needed, count - baseCount - 1).SelectMany(x => x));
+                ingredients = new(Enumerable.Repeat(singleItem.needed, count - baseCount).SelectMany(x => x));
                 return true;
             }
         }
@@ -217,7 +222,7 @@ public class PropertyMapper
     public string GetCorrectGemType(KeyValuePair<string, string> gem, Dictionary<string, string> flat)
     {
         var type = gem.Key.Split("_")[0];
-        if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE" 
+        if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE"
             || type == "MINING" || type == "OFFENSIVE" || type == "CHISEL")
             type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
         return type;
