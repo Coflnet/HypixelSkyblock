@@ -51,6 +51,7 @@ namespace Coflnet.Sky.Core
             EXTERNAL = 128,
             BINMASTER = 256,
             LEIKO = 512,
+            MedianBased = SNIPER_MEDIAN | FLIPPER,
             ALL_EXCEPT_USER = FLIPPER_AND_SNIPERS | AI | TFM | STONKS | EXTERNAL | BINMASTER,
         }
     }
