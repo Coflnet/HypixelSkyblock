@@ -178,7 +178,8 @@ namespace Coflnet.Sky.Core
             hyper,
             coldfused,
             Earthly,
-            glacial
+            glacial,
+            lustrous,
         }
 
 
