@@ -74,7 +74,7 @@ public class PropertyMapper
         if (propertyToItem.TryGetValue((property, "*"), out var singleItem) && string.IsNullOrEmpty(baseValue))
         {
             ingredients = new(singleItem.needed);
-            if (int.TryParse(value, out var count) && count > 1)
+            if (int.TryParse(value, out var count) && count > 1 && singleItem.previousLevel == UseCount)
             {
                 ingredients = new(Enumerable.Repeat(singleItem.needed, count).SelectMany(x => x));
                 return true;
