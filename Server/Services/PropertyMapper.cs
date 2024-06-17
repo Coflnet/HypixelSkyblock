@@ -52,7 +52,10 @@ public class PropertyMapper
         if (property.StartsWith("RUNE_"))
         {
             // either exact level match for music rune from sniper, general match for the rune or unique rune prefix ommited when parsing
-            ingredients = new() { property, $"{property}_{value}", "UNIQUE_" + property };
+            ingredients = new() { $"{property}_{value}" };
+            var level = int.Parse(value);
+            ingredients.AddRange(Enumerable.Repeat(property, (int)Math.Pow(3.5, level - 1)));
+            ingredients.AddRange(Enumerable.Repeat("UNIQUE_" + property, (int)Math.Pow(3.5, level - 1)));
             return true;
         }
         if (property == "ability_scroll")
