@@ -132,6 +132,18 @@ namespace Coflnet.Sky.Core
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
                 auction.ItemName = name;
+            var minecraftId = f?.Get<NbtShort>("id")?.ShortValue;
+            if (minecraftId >= 298 && minecraftId <= 301)
+            {
+                var intColor = GetColor(f);
+                // to rrr:ggg:bbb
+                if (auction.FlatenedNBT.ContainsKey("color") && intColor.HasValue)
+                {
+                    return;
+                }
+                var converted = $"{intColor >> 16 & 0xFF}:{intColor >> 8 & 0xFF}:{intColor & 0xFF}";
+                auction.FlatenedNBT["color"] = converted;
+            }
         }
 
         private static string Uuid(NbtCompound f)
