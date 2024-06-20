@@ -132,8 +132,7 @@ namespace Coflnet.Sky.Core
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
                 auction.ItemName = name;
-            var minecraftId = f?.Get<NbtShort>("id")?.ShortValue;
-            if (minecraftId >= 298 && minecraftId <= 301)
+            if ((f?.TryGet<NbtTag>("id", out var result) ?? false ) && result.TagType == NbtTagType.Short && result.ShortValue >= 298 && result.ShortValue <= 301)
             {
                 var intColor = GetColor(f);
                 // to rrr:ggg:bbb
