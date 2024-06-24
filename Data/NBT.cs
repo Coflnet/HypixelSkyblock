@@ -132,7 +132,7 @@ namespace Coflnet.Sky.Core
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
                 auction.ItemName = name;
-            if ((f?.TryGet<NbtTag>("id", out var result) ?? false ) && result.TagType == NbtTagType.Short && result.ShortValue >= 298 && result.ShortValue <= 301)
+            if ((f?.TryGet<NbtTag>("id", out var result) ?? false) && result.TagType == NbtTagType.Short && result.ShortValue >= 298 && result.ShortValue <= 301)
             {
                 var intColor = GetColor(f);
                 // to rrr:ggg:bbb
@@ -587,7 +587,8 @@ namespace Coflnet.Sky.Core
             int result = 0;
             foreach (var item in parts)
             {
-                result += int.Parse(item);
+                if (!string.IsNullOrEmpty(item))
+                    result += int.Parse(item);
                 result = result << 8;
             }
             return result;
