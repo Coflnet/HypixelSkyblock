@@ -136,8 +136,13 @@ namespace Coflnet.Sky.Core
             {
                 var intColor = GetColor(f);
                 // to rrr:ggg:bbb
-                if (auction.FlatenedNBT.ContainsKey("color") && intColor.HasValue)
+                if (auction.FlatenedNBT.ContainsKey("color"))
                 {
+                    return;
+                }
+                if (intColor == null)
+                {
+                    Console.WriteLine("Color not found for " + f);
                     return;
                 }
                 var converted = $"{intColor >> 16 & 0xFF}:{intColor >> 8 & 0xFF}:{intColor & 0xFF}";
