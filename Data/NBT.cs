@@ -909,7 +909,7 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                if (nbt.TryGet<NbtString>("petInfo", out NbtString petInfo))
+                if (nbt.TryGet("petInfo", out NbtTag petInfo) && petInfo.TagType == NbtTagType.String)
                 {
                     PetInfo info = JsonConvert.DeserializeObject<PetInfo>(petInfo.StringValue);
                     var petType = info.Type;
