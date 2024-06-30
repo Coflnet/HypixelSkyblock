@@ -107,6 +107,9 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.ultimate_the_one,4),
             new Enchantment(Enchantment.EnchantmentType.reflection,5),
             new Enchantment(Enchantment.EnchantmentType.expertise,10),
+            new (Enchantment.EnchantmentType.paleontologist, 1),
+            new (Enchantment.EnchantmentType.ice_cold, 1),
+            new (Enchantment.EnchantmentType.toxophilite, 1),
         };
 
         /// <summary>
@@ -155,6 +158,7 @@ namespace Coflnet.Sky.Core
             {Enchantment.EnchantmentType.prosperity, 4},
             {Enchantment.EnchantmentType.dedication, 4},
             {Enchantment.EnchantmentType.pesterminator,4 },
+            {Enchantment.EnchantmentType.ultimate_the_one,4}
         };
 
         private static List<int> WorthOrder = new List<int>()
