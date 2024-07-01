@@ -65,10 +65,10 @@ public class PropertyMapper
         }
         if (property == "talisman_enrichment")
         {
-            if (string.IsNullOrEmpty(baseValue))
-                ingredients = new() { "TALISMAN_ENRICHMENT_" + value.ToUpper() };
-            else if (baseValue == "yes") // set by sniper to group "any", returning highest volume enrichment
+            if (value == "yes") // set by sniper to group "any", returning highest volume enrichment
                 ingredients = new() { "TALISMAN_ENRICHMENT_FEROCITY" };
+            else if (string.IsNullOrEmpty(baseValue))
+                ingredients = new() { "TALISMAN_ENRICHMENT_" + value.ToUpper() };
             else
                 // was swapped
                 ingredients = new() { "TALISMAN_ENRICHMENT_SWAPPER" };
