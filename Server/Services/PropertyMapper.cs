@@ -285,6 +285,10 @@ public class PropertyMapper
             // adding to stonk would only need 4 levels
             return (long)(singleLevelPrice * (enchant.Level - 5));
         }
+        else if (enchant.Type == Enchantment.EnchantmentType.scavenger && enchant.Level == 6)
+        {
+            return (long)bazaarPrices.GetValueOrDefault("GOLDEN_BOUNTY", 1_000_000);
+        }
         else
         {
             // from lvl 1 ench
