@@ -374,46 +374,12 @@ namespace Coflnet.Sky.Core
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(3600);
-                // bazzar
-                DateTime start = new DateTime();
-                /*var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
-                var end = new DateTime(2020, 5, 1);
-                while (
-                    end < DateTime.Now - TimeSpan.FromDays(1))
-                {
-                    start = end;
-                    var size = 1d;
-
-                    // a lot of data in between these
-                    if (start >= new DateTime(2020, 05, 25) && start < new DateTime(2020, 6, 1))
-                        size = 0.25;
-
-                    end = start + TimeSpan.FromDays(size);
-                    // only requery if lava has no price
-                    if (context.Prices.Where(p => p.Date >= start - TimeSpan.FromSeconds(1) && p.Date <= end && p.ItemId == idOfLava).Any())
-                        continue;
-
-                    try
-                    {
-                        var data = await AvgBazzarHistory(start, end);
-                        if (data.Count() == 0)
-                            continue;
-                        await context.Prices.AddRangeAsync(data);
-                        await context.SaveChangesAsync();
-                        if (data.Count() != 0)
-                            Console.WriteLine("Saved bazaar prices for day " + start);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Backfill failed :( for day {start} \n{e.Message}\n {e.InnerException?.Message} {e.StackTrace}");
-                    }
-                    await Task.Delay(1000);
-                } */
-
-                var skyblockStart = new DateTime(2019, 5, 1);
+                
+                var startAt = new DateTime(2024, 4, 1);
                 foreach (var itemId in ItemDetails.Instance.TagLookup.Values.ToList())
                 {
-                    await BackfillAuctions(context, skyblockStart, itemId);
+                    Console.WriteLine($"backfilling {itemId}");
+                    await BackfillAuctions(context, startAt, itemId);
                 }
             }
             Console.WriteLine("## Backfill completed :)");
