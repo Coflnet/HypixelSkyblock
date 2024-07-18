@@ -16,6 +16,7 @@ public class HypixelItemService
     private readonly HttpClient _httpClient;
     private readonly ILogger<HypixelItemService> _logger;
     private Dictionary<string, Item> _items;
+    private HashSet<string> IsDungeonItem = new ();
 
     public HypixelItemService(HttpClient httpClient, ILogger<HypixelItemService> logger)
     {
@@ -40,6 +41,11 @@ public class HypixelItemService
             var responseStream = await response.Content.ReadAsStreamAsync();
             var data = await JsonSerializer.DeserializeAsync<Root>(responseStream);
             _items = data.Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
+            foreach (var item in _items)
+            {
+                if(item.Value.DungeonItem)
+                    IsDungeonItem.Add(item.Key);
+            }
             return _items;
         }
         else
@@ -47,6 +53,16 @@ public class HypixelItemService
             _logger.LogError("Something went wrong while fetching the items from the hypixel api");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Check if the item is a dungeon item
+    /// </summary>
+    /// <param name="itemId"></param>
+    /// <returns></returns>
+    public bool IsDungeonItemSync(string itemId)
+    {
+        return IsDungeonItem.Contains(itemId);
     }
 
     public async Task<IEnumerable<Cost>> GetSlotCost(string itemId, List<string> pexiting, List<string> result)
