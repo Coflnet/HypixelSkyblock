@@ -29,6 +29,13 @@ public class HypixelItemService
         if (_items != null)
             return _items;
 
+        _items = await LoadItems();
+        IsDungeonItem = new HashSet<string>(_items.Values.Where(x => x.DungeonItem).Select(x => x.Id));
+        return _items;
+    }
+
+    private async Task<Dictionary<string, Item>> LoadItems()
+    {
         if (File.Exists("items.json"))
         {
             _items = JsonSerializer.Deserialize<Root>(await File.ReadAllTextAsync("items.json"))
@@ -41,11 +48,6 @@ public class HypixelItemService
             var responseStream = await response.Content.ReadAsStreamAsync();
             var data = await JsonSerializer.DeserializeAsync<Root>(responseStream);
             _items = data.Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
-            foreach (var item in _items)
-            {
-                if(item.Value.DungeonItem)
-                    IsDungeonItem.Add(item.Key);
-            }
             return _items;
         }
         else
