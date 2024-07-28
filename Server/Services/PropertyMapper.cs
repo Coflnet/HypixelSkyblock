@@ -54,8 +54,11 @@ public class PropertyMapper
             // either exact level match for music rune from sniper, general match for the rune or unique rune prefix ommited when parsing
             ingredients = new() { $"{property}_{value}" };
             var level = int.Parse(value);
-            ingredients.AddRange(Enumerable.Repeat(property, (int)Math.Pow(3.5, level - 1)));
-            ingredients.AddRange(Enumerable.Repeat("UNIQUE_" + property, (int)Math.Pow(3.5, level - 1)));
+            var requiredCount = (int)Math.Pow(3.5, level - 1);
+            if (new string[] { "RUNE_GOLDEN_CARPET", "RUNE_BARK_TUNES", "RUNE_MEOW_MUSIC", "RUNE_PRIMAL_FEAR", "RUNE_GRAND_FREEZING", "RUNE_SPELLBOUND", "RUNE_GRAND_SEARING" }.Contains(property))
+                requiredCount = 1;
+            ingredients.AddRange(Enumerable.Repeat(property, requiredCount));
+            ingredients.AddRange(Enumerable.Repeat("UNIQUE_" + property, 1)); // unique runes from firesales always have level 3
             return true;
         }
         if (property == "ability_scroll")
