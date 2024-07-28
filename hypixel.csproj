@@ -9,8 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="2.0.0" />
-    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.16.1" />
-    <PackageReference Include="Confluent.Kafka" Version="2.4.0" />
+    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.17.0" />
+    <PackageReference Include="Confluent.Kafka" Version="2.5.0" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
     <PackageReference Include="MessagePack" Version="2.5.171" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.7" />
@@ -40,7 +40,7 @@
     <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
 
 
-    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageReference Include="NUnit" Version="4.1.0" />
 
     <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
