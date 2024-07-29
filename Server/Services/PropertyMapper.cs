@@ -77,6 +77,12 @@ public class PropertyMapper
                 ingredients = new() { "TALISMAN_ENRICHMENT_SWAPPER" };
             return true;
         }
+        if (propertyToItem.TryGetValue((property, value), out var result))
+        {
+            ingredients = MapIngredients(property, value, baseValue, result);
+            return true;
+        }
+
         if (propertyToItem.TryGetValue((property, "*"), out var singleItem) && string.IsNullOrEmpty(baseValue))
         {
             ingredients = new(singleItem.needed);
@@ -97,18 +103,24 @@ public class PropertyMapper
                 return true;
             }
         }
-        if (!propertyToItem.TryGetValue((property, value), out var result))
+        if (!propertyToItem.TryGetValue((property, value), out result))
         {
             ingredients = null;
             return false;
         }
-        ingredients = new(result.needed);
-        if (baseValue != string.Empty
-            && result.previousLevel != baseValue
-            && result.previousLevel != value // safeguard break recurision
-            && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
-            ingredients.AddRange(previousLevelIngredients);
+        ingredients = MapIngredients(property, value, baseValue, result);
         return true;
+
+        List<string> MapIngredients(string property, string value, string baseValue, (List<string> needed, string previousLevel) result)
+        {
+            List<string> ingredients = new(result.needed);
+            if (baseValue != string.Empty
+                            && result.previousLevel != baseValue
+                            && result.previousLevel != value // safeguard break recurision
+                            && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
+                ingredients.AddRange(previousLevelIngredients);
+            return ingredients;
+        }
     }
 
     public Dictionary<ItemReferences.Reforge, (string, int)> ReforgeCosts { get; set; } = new(){
