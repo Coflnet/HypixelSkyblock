@@ -171,7 +171,7 @@ namespace Coflnet.Sky.Core
         public NbtData NbtData { get; set; }
         [IgnoreMember]
         [JsonIgnore]
-        public int NbtDataId { get; set; }
+        public int? NbtDataId { get; set; }
         [Key(20)]
         [JsonProperty("itemCreatedAt")]
         public DateTime ItemCreatedAt { get; set; }
