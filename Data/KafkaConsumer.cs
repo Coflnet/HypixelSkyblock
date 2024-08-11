@@ -9,7 +9,7 @@ using Prometheus;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 
-namespace Coflnet.Kafka
+namespace Coflnet.Sky.Kafka
 {
     public class KafkaConsumer
     {

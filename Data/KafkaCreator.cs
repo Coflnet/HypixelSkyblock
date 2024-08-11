@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Coflnet.Kafka
+namespace Coflnet.Sky.Kafka
 {
     public class KafkaCreator
     {
