@@ -20,6 +20,7 @@ public class PropertyMapper
             { ("ethermerge", "1"), (new(){"ETHERWARP_CONDUIT", "ETHERWARP_MERGER"}, string.Empty)},
             { ("artOfPeaceApplied", "1"), (new(){"THE_ART_OF_PEACE"}, string.Empty)},
             { ("art_of_war_count", "1"), (new(){"THE_ART_OF_WAR"}, string.Empty)},
+            { ("divan_powder_coating", "1"), (["DIVAN_POWDER_COATING"], string.Empty)},
             { ("wood_singularity_count", "1"), (new(){"WOOD_SINGULARITY"}, string.Empty)},
             { ("jalapeno_count", "1"), (new(){"JALAPENO_BOOK"}, string.Empty) },
             { ("stats_book", "*"), (new(){"BOOK_OF_STATS"}, string.Empty) },
