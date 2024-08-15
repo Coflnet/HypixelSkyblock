@@ -140,6 +140,7 @@ namespace Coflnet.Sky.Core
                     var converted = $"{intColor >> 16 & 0xFF}:{intColor >> 8 & 0xFF}:{intColor & 0xFF}";
                     var extra = GetExtraTag(f);
                     extra.Add(new NbtString("color", converted));
+                    extra.Add(new NbtByte("cc", 1)); // "copied color"
                 }
             }
             auction.NbtData = new NbtData(f);
