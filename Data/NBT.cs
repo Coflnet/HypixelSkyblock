@@ -111,7 +111,6 @@ namespace Coflnet.Sky.Core
             if (auction.Context == null)
                 auction.Context = new();
             auction.Context["itemUuid"] = Uuid(f);
-            auction.NbtData = new NbtData(f);
             if (includeTier)
             {
                 foreach (var line in GetLore(f).Reverse())
@@ -136,18 +135,14 @@ namespace Coflnet.Sky.Core
             {
                 var intColor = GetColor(f);
                 // to rrr:ggg:bbb
-                if (auction.FlatenedNBT.ContainsKey("color"))
+                if (!auction.FlatenedNBT.ContainsKey("color"))
                 {
-                    return;
+                    var converted = $"{intColor >> 16 & 0xFF}:{intColor >> 8 & 0xFF}:{intColor & 0xFF}";
+                    var extra = GetExtraTag(f);
+                    extra.Add(new NbtString("color", converted));
                 }
-                if (intColor == null)
-                {
-                    Console.WriteLine("Color not found for " + f);
-                    return;
-                }
-                var converted = $"{intColor >> 16 & 0xFF}:{intColor >> 8 & 0xFF}:{intColor & 0xFF}";
-                auction.FlatenedNBT["color"] = converted;
             }
+            auction.NbtData = new NbtData(f);
         }
 
         private static string Uuid(NbtCompound f)
@@ -291,6 +286,8 @@ namespace Coflnet.Sky.Core
             "DEFENSIVE_0_gem", // type of gem
             "UNIVERSAL_0", // rarity of gem
             "UNIVERSAL_0_gem", // type of gem
+            "MINING_0",
+            "MINING_0_gem",
             "unlocked_slots",
 
             "hideRightClick" // looks like it is always false
