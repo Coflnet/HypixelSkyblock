@@ -9,14 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Core.Services;
-
 public class HypixelItemService
 {
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<HypixelItemService> _logger;
     private Dictionary<string, Item> _items;
-    private HashSet<string> IsDungeonItem = new ();
+    private HashSet<string> IsDungeonItem = new();
 
     public HypixelItemService(HttpClient httpClient, ILogger<HypixelItemService> logger)
     {
@@ -112,6 +111,14 @@ public class HypixelItemService
         return (costs, unavailable);
     }
 
+    public (string color,string category) GetDefaultColorAndCategory(string itemId)
+    {
+        var items = _items;
+        if (items == null || itemId == null || !items.TryGetValue(itemId, out var item))
+            return (null, null);
+        return (item.Color, item.Category);
+    }
+
     public IEnumerable<string> GetUnlockableSlots(string itemId)
     {
         var items = _items;
@@ -149,7 +156,7 @@ public class HypixelItemService
             return new List<DungeonUpgradeCost>();
         if (baseTier >= 5) // master stars
             return new List<DungeonUpgradeCost>();
-        if(!items.TryGetValue(itemId, out var item))
+        if (!items.TryGetValue(itemId, out var item))
             return new List<DungeonUpgradeCost>();
         var cost = item.UpgradeCosts;
         if (cost == null)
