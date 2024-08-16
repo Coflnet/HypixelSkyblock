@@ -133,14 +133,14 @@ namespace Coflnet.Sky.Core
                 auction.ItemName = name;
             if ((f?.TryGet<NbtTag>("id", out var result) ?? false) && (
                 result.TagType == NbtTagType.Short && result.ShortValue >= 298 && result.ShortValue <= 301
-                || result.TagType == NbtTagType.String && result.StringValue.StartsWith("minecraft:leather")))
+                || result.TagType == NbtTagType.String && result.StringValue.StartsWith("minecraft:leather_")))
             {
                 var intColor = GetColor(f);
+                    var extra = GetExtraTag(f);
                 // to rrr:ggg:bbb
-                if (!auction.FlatenedNBT.ContainsKey("color"))
+                if (!extra.Contains("color"))
                 {
                     var converted = $"{intColor >> 16 & 0xFF}:{intColor >> 8 & 0xFF}:{intColor & 0xFF}";
-                    var extra = GetExtraTag(f);
                     extra.Add(new NbtString("color", converted));
                     extra.Add(new NbtByte("cc", 1)); // "copied color"
                 }
