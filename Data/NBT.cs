@@ -131,7 +131,9 @@ namespace Coflnet.Sky.Core
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
                 auction.ItemName = name;
-            if ((f?.TryGet<NbtTag>("id", out var result) ?? false) && result.TagType == NbtTagType.Short && result.ShortValue >= 298 && result.ShortValue <= 301)
+            if ((f?.TryGet<NbtTag>("id", out var result) ?? false) && (
+                result.TagType == NbtTagType.Short && result.ShortValue >= 298 && result.ShortValue <= 301
+                || result.TagType == NbtTagType.String && result.StringValue.StartsWith("minecraft:leather")))
             {
                 var intColor = GetColor(f);
                 // to rrr:ggg:bbb
