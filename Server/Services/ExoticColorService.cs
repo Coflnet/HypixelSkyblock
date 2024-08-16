@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Core.Services;
@@ -22,7 +23,7 @@ public class ExoticColorService
     public static readonly ImmutableHashSet<string> crystalColours = [
             "1F0030", "46085E", "54146E", "5D1C78", "63237D", "6A2C82", "7E4196", "8E51A6", "9C64B3", "A875BD",
             "B88BC9", "C6A3D4", "D9C1E3", "E5D1ED", "EFE1F5", "FCF3FF"];
-    public bool IsOriginal(string itemId, string hexCode, string originalHex)
+    public bool IsOriginal(string itemId, string hexCode, string originalColor)
     {
         if (itemId.StartsWith("GREAT_SPOOK"))
         {
@@ -32,7 +33,14 @@ public class ExoticColorService
         {
             return true;
         }
-        return hexCode.Equals(originalHex);
+        var ogHex = FormatHex(originalColor);
+        return hexCode.Equals(ogHex);
+    }
+    public static string FormatHex(string separated)
+    {
+        // 0:0:0 to hex
+        var parts = separated.Split(':', ',').Select(int.Parse).ToArray();
+        return string.Join("", parts.Select(p => p.ToString("X2")));
     }
     public ExoticColorType GetExoticColorType(string itemId, string hexCode, long creationTime)
     {
@@ -73,7 +81,7 @@ public class ExoticColorService
         return ExoticColorType.EXOTIC;
     }
 
-   
+
 
     public enum ExoticColorType
     {
