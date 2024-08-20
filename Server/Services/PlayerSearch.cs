@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +25,8 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
-                var uid = AuctionService.Instance.GetId(uuid);
                 return await context.Players
-                    .Where(player => player.UId == uid)
+                    .Where(player => player.UuId == uuid)
                     .Select(player => player.Name)
                     .FirstOrDefaultAsync();
             }
@@ -52,9 +52,8 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
-                var uid = AuctionService.Instance.GetId(uuid);
                 return await context.Players
-                    .Where(player => player.UId == uid || player.UuId == uuid)
+                    .Where(player => player.UuId == uuid)
                     .FirstOrDefaultAsync();
             }
         }
@@ -126,15 +125,13 @@ namespace Coflnet.Sky.Core
                     .Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%"));
                 if (search.Length > 15)
                 {
-                    var uid = AuctionService.Instance.GetId(search);
-                    baseSelect = baseSelect.Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%") || e.UId == uid);
+                    baseSelect = context.Players.Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%") || e.UuId == search);
                 }
                 result = await baseSelect
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search || p.UuId == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)
                     .ToListAsync();
-
                 if (result.Count() == 0)
                 {
                     await LoadPlayerName(search, forceResolution, result);
