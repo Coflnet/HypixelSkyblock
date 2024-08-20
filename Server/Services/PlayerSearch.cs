@@ -110,8 +110,9 @@ namespace Coflnet.Sky.Core
 
             using (var context = new HypixelContext())
             {
+                var uid = AuctionService.Instance.GetId(search);
                 result = await context.Players
-                    .Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%") || e.UuId == search)
+                    .Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%") || e.UId == uid)
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search || p.UuId == search ? 10000000 : 0))
                     .Select(p => new PlayerResult(p.Name, p.UuId, p.HitCount))
                     .Take(count)

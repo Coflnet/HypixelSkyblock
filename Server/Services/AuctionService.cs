@@ -33,7 +33,7 @@ namespace Coflnet.Sky.Core
 
         public long GetId(string uuid)
         {
-            if (uuid == null)
+            if (uuid == null || uuid.Length < 16)
                 return -1;
             if (uuid.Length > 17)
                 uuid = uuid.Replace("-", "").Substring(0, 17);
