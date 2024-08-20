@@ -24,8 +24,9 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
+                var uid = AuctionService.Instance.GetId(uuid);
                 return await context.Players
-                    .Where(player => player.UuId == uuid)
+                    .Where(player => player.UId == uid)
                     .Select(player => player.Name)
                     .FirstOrDefaultAsync();
             }
