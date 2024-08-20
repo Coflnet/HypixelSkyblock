@@ -48,6 +48,17 @@ namespace Coflnet.Sky.Core
             }
         }
 
+        public async Task<Player> GetPlayerAsync(string uuid)
+        {
+            using (var context = new HypixelContext())
+            {
+                var uid = AuctionService.Instance.GetId(uuid);
+                return await context.Players
+                    .Where(player => player.UId == uid || player.UuId == uuid)
+                    .FirstOrDefaultAsync();
+            }
+        }
+
         /// <summary>
         /// Uses the <see cref="CacheService"/> to cache db queries
         /// </summary>
