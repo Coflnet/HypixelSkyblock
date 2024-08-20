@@ -127,7 +127,7 @@ namespace Coflnet.Sky.Core
                 if (search.Length > 15)
                 {
                     var uid = AuctionService.Instance.GetId(search);
-                    baseSelect = baseSelect.Where(e => e.UId == uid);
+                    baseSelect = baseSelect.Where(e => EF.Functions.Like(e.Name, $"{searchPattern}%") || e.UId == uid);
                 }
                 result = await baseSelect
                     .OrderBy(p => p.Name.Length - p.HitCount - (p.Name == search || p.UuId == search ? 10000000 : 0))
