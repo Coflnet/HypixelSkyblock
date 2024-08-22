@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,16 +19,26 @@ public class CoinParser
     private static long ParseCoinAmount(string stringAmount)
     {
         double parsed;
-        if (stringAmount.EndsWith("B"))
-            parsed = double.Parse(stringAmount.Trim('B'), CultureInfo.InvariantCulture) * 1_000_000_000;
-        else if (stringAmount.EndsWith("M"))
-            parsed = double.Parse(stringAmount.Trim('M'), CultureInfo.InvariantCulture) * 1_000_000;
-        else if (stringAmount.EndsWith("k"))
-            parsed = double.Parse(stringAmount.Trim('k'), CultureInfo.InvariantCulture) * 1_000;
-        else
-            parsed = double.Parse(stringAmount, CultureInfo.InvariantCulture);
+        stringAmount = stringAmount.Trim();
+        try
+        {
+            if (stringAmount.EndsWith("B"))
+                parsed = double.Parse(stringAmount.Trim('B'), CultureInfo.InvariantCulture) * 1_000_000_000;
+            else if (stringAmount.EndsWith("M"))
+                parsed = double.Parse(stringAmount.Trim('M'), CultureInfo.InvariantCulture) * 1_000_000;
+            else if (stringAmount.EndsWith("k"))
+                parsed = double.Parse(stringAmount.Trim('k'), CultureInfo.InvariantCulture) * 1_000;
+            else
+                parsed = double.Parse(stringAmount, CultureInfo.InvariantCulture);
 
-        return (long)(parsed * 10);
+            return (long)(parsed * 10);
+        }
+        catch (System.Exception)
+        {
+            Console.WriteLine($"Failed to parse coins:`{stringAmount}`");
+            throw;
+        }
+
     }
 
     public long GetInventoryCoinSum(IEnumerable<Item> items)
@@ -35,7 +46,13 @@ public class CoinParser
         var withSumary = items.Where(i => i.Description?.Contains("Total Coins Offered:") ?? false).FirstOrDefault();
         if (withSumary != null)
         {
-            return ParseCoinAmount(withSumary.Description!.Substring(withSumary.Description.IndexOf("Total Coins Offered:") + 2));
+            // parse number from §8(1,500,000)
+            var detailed = withSumary.Description.Split('\n').Last().Substring(2).Trim('(', ')').Replace(",", "");
+            if (long.TryParse(detailed, out var detailedAmount))
+            {
+                return detailedAmount;
+            }
+            return ParseCoinAmount(withSumary.Description.Split('\n').Skip(1).First().Substring(2));
         }
         return items.Sum(GetCoinAmount);
     }

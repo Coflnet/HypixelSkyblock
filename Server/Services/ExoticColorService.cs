@@ -38,6 +38,8 @@ public class ExoticColorService
     }
     public static string FormatHex(string separated)
     {
+        if (separated == null)
+            return "";
         // 0:0:0 to hex
         var parts = separated.Split(':', ',').Select(int.Parse).ToArray();
         return string.Join("", parts.Select(p => p.ToString("X2")));
