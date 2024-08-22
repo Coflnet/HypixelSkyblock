@@ -40,7 +40,7 @@ public class CoinParser
         return items.Sum(GetCoinAmount);
     }
 
-    internal bool IsCoins(Item item)
+    public bool IsCoins(Item item)
     {
         return item.ItemName?.EndsWith(" coins") ?? false;
     }
