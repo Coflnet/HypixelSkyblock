@@ -242,7 +242,7 @@ public class PropertyMapper
     {
         var type = gem.Key.Split("_")[0];
         if (type == "UNIVERSAL" || type == "COMBAT" || type == "DEFENSIVE"
-            || type == "MINING" || type == "OFFENSIVE" || type == "CHISEL")
+            || type == "MINING" || type == "OFFENSIVE" || type == "CHISEL" || type == "quality")
             type = flat.Where(f => f.Key == gem.Key + "_gem").FirstOrDefault().Value;
         return type;
     }
