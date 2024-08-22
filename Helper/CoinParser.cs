@@ -16,7 +16,7 @@ public class CoinParser
         return 0;
     }
 
-    private static long ParseCoinAmount(string stringAmount)
+    public static long ParseCoinAmount(string stringAmount)
     {
         double parsed;
         stringAmount = stringAmount.Trim();
@@ -43,18 +43,31 @@ public class CoinParser
 
     public long GetInventoryCoinSum(IEnumerable<Item> items)
     {
-        var withSumary = items.Where(i => i.Description?.Contains("Total Coins Offered:") ?? false).FirstOrDefault();
-        if (withSumary != null)
+        var descriptions = items.Select(i => i.Description);
+        if (TryParseFromDescription(descriptions, out var result))
         {
-            // parse number from §8(1,500,000)
-            var detailed = withSumary.Description.Split('\n').Last().Substring(2).Trim('(', ')').Replace(",", "");
-            if (long.TryParse(detailed, out var detailedAmount))
-            {
-                return detailedAmount;
-            }
-            return ParseCoinAmount(withSumary.Description.Split('\n').Skip(1).First().Substring(2));
+            return result;
         }
         return items.Sum(GetCoinAmount);
+    }
+
+    public static bool TryParseFromDescription(IEnumerable<string> descriptions, out long result)
+    {
+        var withSumary = descriptions.Where(i => i?.Contains("Total Coins Offered:") ?? false).FirstOrDefault();
+        if (withSumary == null)
+        {
+            result = 0;
+            return false;
+        }
+        // parse number from §8(1,500,000)
+        var detailed = withSumary.Split('\n').Last().Substring(2).Trim('(', ')').Replace(",", "");
+        if (long.TryParse(detailed, out var detailedAmount))
+        {
+            result = detailedAmount;
+            return true;
+        }
+        result = ParseCoinAmount(withSumary.Split('\n').Skip(1).First().Substring(2));
+        return true;
     }
 
     public bool IsCoins(Item item)
