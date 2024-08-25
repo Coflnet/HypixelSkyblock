@@ -136,7 +136,7 @@ namespace Coflnet.Sky.Core
                 || result.TagType == NbtTagType.String && result.StringValue.StartsWith("minecraft:leather_")))
             {
                 var intColor = GetColor(f);
-                    var extra = GetExtraTag(f);
+                var extra = GetExtraTag(f);
                 // to rrr:ggg:bbb
                 if (!extra.Contains("color"))
                 {
@@ -419,6 +419,31 @@ namespace Coflnet.Sky.Core
         public static bool IsPet(string tag)
         {
             return tag != null && tag.StartsWith("PET_") && !tag.StartsWith("PET_SKIN") && !tag.StartsWith("PET_ITEM") && tag != "PET_CAKE";
+        }
+
+        private static object FromJson(object requestObject)
+        {
+            switch (requestObject)
+            {
+                case JObject jObject: // objects become Dictionary<string,object>
+                    return ((IEnumerable<KeyValuePair<string, JToken>>)jObject).ToDictionary(j => j.Key, j => FromJson(j.Value));
+                case JArray jArray: // arrays become List<object>
+                    return jArray.Select(FromJson).ToList();
+                case JValue jValue: // values just become the value
+                    return jValue.Value;
+                case Int64 jValue:
+                    return jValue;
+                case string jValue:
+                    return jValue;
+                default: // don't know what to do here
+                    throw new Exception($"Unsupported type: {requestObject.GetType()}");
+            }
+        }
+
+
+        public static Dictionary<string, object> FromDeserializedJson(Dictionary<string, object> requestObject)
+        {
+            return requestObject.ToDictionary(kv => kv.Key, kv => FromJson(kv.Value));
         }
 
         public static List<KeyValuePair<string, object>> FlattenNbtData(Dictionary<string, object> data)
