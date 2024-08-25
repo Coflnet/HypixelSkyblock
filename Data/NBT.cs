@@ -431,12 +431,8 @@ namespace Coflnet.Sky.Core
                     return jArray.Select(FromJson).ToList();
                 case JValue jValue: // values just become the value
                     return jValue.Value;
-                case Int64 jValue:
-                    return jValue;
-                case string jValue:
-                    return jValue;
-                default: // don't know what to do here
-                    throw new Exception($"Unsupported type: {requestObject.GetType()}");
+                default: // no special handling
+                    return requestObject;
             }
         }
 
