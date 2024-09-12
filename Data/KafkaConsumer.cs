@@ -136,71 +136,77 @@ namespace Coflnet.Sky.Kafka
 
             if (deserializer == null)
                 deserializer = SerializerFactory.GetDeserializer<T>();
-            var currentChunkSize = 1;
-
-            using (var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build())
+            // wrap in long running thread
+            await Task.Factory.StartNew(async () =>
             {
-                c.Subscribe(topics);
-                var key = "kafka_lag_" + string.Join('_', topics.Select(k=> System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
-                try
+                await ConsumeBatchThread<T>(config, topics, action, maxChunkSize, deserializer, batch, conf, cancleToken);
+            }, TaskCreationOptions.LongRunning);
+        }
+
+        private static async Task ConsumeBatchThread<T>(ConsumerConfig config, string[] topics, Func<IEnumerable<T>, Task> action, int maxChunkSize, IDeserializer<T> deserializer, Queue<ConsumeResult<Ignore, T>> batch, ConsumerConfig conf, CancellationToken cancleToken)
+        {
+            var currentChunkSize = 1;
+            using var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build();
+            c.Subscribe(topics);
+            var key = "kafka_lag_" + string.Join('_', topics.Select(k => System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
+            try
+            {
+                // reset all offsets
+                while (!cancleToken.IsCancellationRequested)
                 {
-                    // reset all offsets
-                    while (!cancleToken.IsCancellationRequested)
+                    try
                     {
-                        try
+                        var extraLog = currentChunkSize < 2 && maxChunkSize > 2;
+                        if (extraLog)
+                            Console.WriteLine($"Polling for {currentChunkSize} messages from {string.Join(',', topics)}, config: {config.BootstrapServers}");
+                        var cr = c.Consume(cancleToken);
+                        batch.Enqueue(cr);
+                        if (extraLog)
+                            Console.WriteLine($"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
+                        while (batch.Count < currentChunkSize)
                         {
-                            var extraLog = currentChunkSize < 2 && maxChunkSize > 2;
-                            if (extraLog)
-                                Console.WriteLine($"Polling for {currentChunkSize} messages from {string.Join(',', topics)}, config: {config.BootstrapServers}");
-                            var cr = c.Consume(cancleToken);
-                            batch.Enqueue(cr);
-                            if (extraLog)
-                                Console.WriteLine($"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
-                            while (batch.Count < currentChunkSize)
+                            cr = c.Consume(TimeSpan.Zero);
+                            if (cr == null)
                             {
-                                cr = c.Consume(TimeSpan.Zero);
-                                if (cr == null)
-                                {
-                                    break;
-                                }
-                                batch.Enqueue(cr);
+                                break;
                             }
-                            await action(batch.Select(a => a.Message.Value)).ConfigureAwait(false);
-                            // tell kafka that we stored the batch
-                            if (!config.EnableAutoCommit ?? true)
-                                try
-                                {
-                                    c.Commit(batch.Select(b => b.TopicPartitionOffset));
-                                    var lag = c.Assignment.Select(a => c.GetWatermarkOffsets(a).High - c.Position(a)).Sum();
-                                    consumerOffsets.GetOrAdd(key, Metrics.CreateGauge(key, "offset of kafka topic")).Set(lag);
-                                }
-                                catch (KafkaException e)
-                                {
-                                    dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
-                                }
-                            batch.Clear();
-                            if (currentChunkSize < maxChunkSize)
-                                currentChunkSize++;
+                            batch.Enqueue(cr);
                         }
-                        catch (ConsumeException e)
-                        {
-                            dev.Logger.Instance.Error(e, $"On consume {string.Join(',', topics)}");
-                        }
+                        await action(batch.Select(a => a.Message.Value)).ConfigureAwait(false);
+                        // tell kafka that we stored the batch
+                        if (!config.EnableAutoCommit ?? true)
+                            try
+                            {
+                                c.Commit(batch.Select(b => b.TopicPartitionOffset));
+                                var lag = c.Assignment.Select(a => c.GetWatermarkOffsets(a).High - c.Position(a)).Sum();
+                                consumerOffsets.GetOrAdd(key, Metrics.CreateGauge(key, "offset of kafka topic")).Set(lag);
+                            }
+                            catch (KafkaException e)
+                            {
+                                dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
+                            }
+                        batch.Clear();
+                        if (currentChunkSize < maxChunkSize)
+                            currentChunkSize++;
+                    }
+                    catch (ConsumeException e)
+                    {
+                        dev.Logger.Instance.Error(e, $"On consume {string.Join(',', topics)}");
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    dev.Logger.Instance.Info($"Consumer for {string.Join(',', topics)} canceled");
-                }
-                catch (Exception e)
-                {
-                    dev.Logger.Instance.Error(e, $"On consume {string.Join(',', topics)}");
-                }
-                finally
-                {
-                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
-                    c.Close();
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                dev.Logger.Instance.Info($"Consumer for {string.Join(',', topics)} canceled");
+            }
+            catch (Exception e)
+            {
+                dev.Logger.Instance.Error(e, $"On consume {string.Join(',', topics)}");
+            }
+            finally
+            {
+                // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                c.Close();
             }
         }
     }
