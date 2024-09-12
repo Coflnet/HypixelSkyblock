@@ -137,10 +137,14 @@ namespace Coflnet.Sky.Kafka
             if (deserializer == null)
                 deserializer = SerializerFactory.GetDeserializer<T>();
             // wrap in long running thread
+            var completion = new TaskCompletionSource<bool>();
             await Task.Factory.StartNew(async () =>
             {
                 await ConsumeBatchThread<T>(config, topics, action, maxChunkSize, deserializer, batch, conf, cancleToken);
+                completion.SetResult(true);
             }, TaskCreationOptions.LongRunning);
+            Console.WriteLine($"Started consumer for {string.Join(',', topics)}");
+            await completion.Task;
         }
 
         private static async Task ConsumeBatchThread<T>(ConsumerConfig config, string[] topics, Func<IEnumerable<T>, Task> action, int maxChunkSize, IDeserializer<T> deserializer, Queue<ConsumeResult<Ignore, T>> batch, ConsumerConfig conf, CancellationToken cancleToken)
