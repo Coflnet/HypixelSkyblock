@@ -7,8 +7,8 @@
         //ws = new WebSocket("wss://sky-commands.coflnet.com/skyblock?id=aaaaaaaaaaaaaaaaaaaaaaaaaa");
         //ws = new WebSocket("wss://sky-commands.coflnet.com/modsocket?sid=nicer&version=1.2-Alpha&uuid=ekwav");
         //ws = new WebSocket("ws://localhost:8008/skyblock?id=nicede");
-        ws = new WebSocket("ws://sky-mod.coflnet.com/modsocket?sid=niced&version=1.2-Alpha&uuid=ekwav");
-        //ws = new WebSocket("ws://localhost:8009/modsocket?sid=nidxcefdks&version=1.2-Alpha&uuid=ekwav");
+        ws = new WebSocket("ws://sky-mod.coflnet.com/modsocket?sid=niced&version=1.5.4-Alpha&uuid=Technoblade");
+        //ws = new WebSocket("ws://localhost:8009/modsocket?sid=nidxcefdks&version=1.5.6-Alpha&uuid=Technoblade");
 
 
         ws.onmessage = function (evt) {
@@ -19,7 +19,7 @@
                 console.log(JSON.parse(received_msg.data).IconUrl)
             } else if(received_msg.type == "chatMessage") {
                 var msg = "";
-                last.forEach(el=>{msg+=el.text});
+                last.forEach(el=>{msg+=el.text+"("+el.onClick+") "});
                 console.log(msg + last[0].onClick);
             } else {
                 
