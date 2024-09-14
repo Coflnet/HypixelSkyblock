@@ -324,6 +324,23 @@ public class PropertyMapper
         return -1;
     }
 
+    public IEnumerable<(Enchantment.EnchantmentType,int level)> IrrelevantOn(string itemTag)
+    {
+        if (itemTag.Contains("GAUNTLET") || itemTag.Contains("DRILL"))
+            yield return (Enchantment.EnchantmentType.ultimate_wise, 10);
+        if (itemTag.StartsWith("DIVAN_"))
+        {
+            yield return (Enchantment.EnchantmentType.ultimate_legion, 10);
+            yield return (Enchantment.EnchantmentType.ultimate_wisdom, 10);
+        }
+        if (!itemTag.EndsWith("KATANA"))
+            yield return (Enchantment.EnchantmentType.ender_slayer, 6);
+        if (itemTag == "STONK_PICKAXE")
+            yield return (Enchantment.EnchantmentType.efficiency, 6);
+        if (itemTag.StartsWith("PROMISING_"))
+            yield return (Enchantment.EnchantmentType.efficiency, 10);
+    }
+
     public long CraftCostSum(Dictionary<string, string> attributes, List<string>? formatted)
     {
         long sum = 0;
