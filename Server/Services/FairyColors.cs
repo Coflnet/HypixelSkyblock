@@ -40,6 +40,9 @@ public class FairyColors {
 
     public static bool IsOgFairy(string itemId, string category, string hex) {
         hex = hex.ToUpper();
+        if(category == null || itemId == null) {
+            return false;
+        }
         if (ogFairyColourConstants.Contains(hex)) {
             return true;
         }
