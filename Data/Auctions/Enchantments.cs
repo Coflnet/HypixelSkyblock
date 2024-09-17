@@ -151,6 +151,7 @@ namespace Coflnet.Sky.Core
             paleontologist,
             ice_cold,
             toxophilite,
+            ultimate_flowstate,
         }
 
         [System.ComponentModel.DataAnnotations.Key]

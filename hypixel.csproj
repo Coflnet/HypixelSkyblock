@@ -11,7 +11,7 @@
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="2.0.0" />
     <PackageReference Include="Coflnet.Core" Version="0.2.0" />
     <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.17.0" />
-    <PackageReference Include="Confluent.Kafka" Version="2.5.2" />
+    <PackageReference Include="Confluent.Kafka" Version="2.5.3" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
     <PackageReference Include="MessagePack" Version="2.5.172" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.8" />
@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.10.0" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.11.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
@@ -35,14 +35,14 @@
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
     <PackageReference Include="RateLimiter" Version="2.2.0" />
     <PackageReference Include="SimplerConfig" Version="1.0.4" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.7.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.7.3" />
     <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
 
 
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
-    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="NUnit" Version="4.2.2" />
 
     <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <None Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
