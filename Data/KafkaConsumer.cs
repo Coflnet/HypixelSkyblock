@@ -8,6 +8,7 @@ using Coflnet.Sky.Core;
 using Prometheus;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Kafka
 {
@@ -188,6 +189,7 @@ namespace Coflnet.Sky.Kafka
                             catch (KafkaException e)
                             {
                                 dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
+                                dev.Logger.Instance.Info($"Assigned partitions: {string.Join(',', JsonConvert.SerializeObject(c.Assignment.Select(a => new { a.Topic, a.Partition })))}");
                             }
                         batch.Clear();
                         if (currentChunkSize < maxChunkSize)
