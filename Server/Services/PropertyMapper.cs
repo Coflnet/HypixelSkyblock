@@ -220,9 +220,8 @@ public class PropertyMapper
                     Console.WriteLine($"Could not parse reforge {reforge.Value.internalName} or {reforge.Value.reforgeName}");
                     continue;
                 }
-            NeuReforgeLookup.Add(reforgeEnum, (costs, reforge.Key));
+            NeuReforgeLookup[reforgeEnum] = (costs, reforge.Key);
         }
-
     }
 
     public class ReforgeElement
@@ -324,7 +323,7 @@ public class PropertyMapper
         return -1;
     }
 
-    public IEnumerable<(Enchantment.EnchantmentType,int level)> IrrelevantOn(string itemTag)
+    public IEnumerable<(Enchantment.EnchantmentType, int level)> IrrelevantOn(string itemTag)
     {
         if (itemTag.Contains("GAUNTLET") || itemTag.Contains("DRILL"))
             yield return (Enchantment.EnchantmentType.ultimate_wise, 10);
@@ -339,14 +338,5 @@ public class PropertyMapper
             yield return (Enchantment.EnchantmentType.efficiency, 6);
         if (itemTag.StartsWith("PROMISING_"))
             yield return (Enchantment.EnchantmentType.efficiency, 10);
-    }
-
-    public long CraftCostSum(Dictionary<string, string> attributes, List<string>? formatted)
-    {
-        long sum = 0;
-
-
-
-        return sum;
     }
 }
