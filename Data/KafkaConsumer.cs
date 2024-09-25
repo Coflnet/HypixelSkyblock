@@ -189,7 +189,7 @@ namespace Coflnet.Sky.Kafka
                             catch (KafkaException e)
                             {
                                 dev.Logger.Instance.Error(e, $"On commit {string.Join(',', topics)} {e.Error.IsFatal}");
-                                dev.Logger.Instance.Info($"Assigned partitions: {string.Join(',', JsonConvert.SerializeObject(c.Assignment.Select(a => new { a.Topic, a.Partition })))}");
+                                dev.Logger.Instance.Info($"Assigned partitions: {string.Join(',', JsonConvert.SerializeObject(c.Assignment.Select(a => new { a.Topic, a.Partition, c.GetWatermarkOffsets(a).High, pos = c.Position(a) })))}");
                             }
                         batch.Clear();
                         if (currentChunkSize < maxChunkSize)
