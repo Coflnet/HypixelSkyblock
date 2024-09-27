@@ -110,10 +110,11 @@ public class MappingCenter
                 columns.Add(($"!ench{e.Type}:{e.Level}", item));
                 continue;
             }
-            await GetPriceForItemOn($"ENCHANTMENT_{e.Type}_{e.Level}".ToUpper(), date);
+            var key = $"ENCHANTMENT_{e.Type}_{e.Level}".ToUpper();
+            var sum = await GetPriceForItemOn(key, date);
             await GetPriceForItemOn($"GOLDEN_BOUNTY".ToUpper(), date);
             await GetPriceForItemOn($"SIL_EX".ToUpper(), date);
-            Console.WriteLine($"Enchantment value for {e.Type} {e.Level} was {item}");
+            Console.WriteLine($"Enchantment value for {e.Type} {e.Level} was {item} vs {sum} from {key}");
             var value = Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new()));
             columns.Add(($"!ench{e.Type}:{e.Level}", value));
             continue;
