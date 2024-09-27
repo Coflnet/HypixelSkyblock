@@ -60,8 +60,8 @@ public class MappingCenter
     {
         if (date.Date != date)
             date = date.Date;
-        if (cachedPrices.TryGetValue(date, out var prices))
-            return (long)prices.GetValueOrDefault(itemTag, 0);
+        if (cachedPrices.TryGetValue(date, out var prices) && prices.TryGetValue(itemTag, out var priceOnDay))
+            return (long)priceOnDay;
 
         var history = await priceGetter(itemTag);
         foreach (var item in history)
