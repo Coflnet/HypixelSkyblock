@@ -81,7 +81,7 @@ public class MappingCenter
             var median = values.OrderBy(v => v).ElementAt(values.Count / 2);
             cachedPrices[item.Key][itemTag] = median;
         }
-        if(history.TryGetValue(date, out var price))
+        if (history.TryGetValue(date, out var price))
         {
             return price;
         }
@@ -105,9 +105,18 @@ public class MappingCenter
         }
         foreach (var (e, item) in auction.Enchantments.Select(e => (e, Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new())))))
         {
-            if (item <= 0)
-                Console.WriteLine($"Enchantment value for {e.Type} {e.Level} was {item}");
-            columns.Add(($"!ench{e.Type}:{e.Level}", item));
+            if (item > 0)
+            {
+                columns.Add(($"!ench{e.Type}:{e.Level}", item));
+                continue;
+            }
+            await GetPriceForItemOn($"ENCHANTMENT_{e.Type}_{e.Level}".ToUpper(), date);
+            await GetPriceForItemOn($"GOLDEN_BOUNTY".ToUpper(), date);
+            await GetPriceForItemOn($"SIL_EX".ToUpper(), date);
+            Console.WriteLine($"Enchantment value for {e.Type} {e.Level} was {item}");
+            var value = Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new()));
+            columns.Add(($"!ench{e.Type}:{e.Level}", value));
+            continue;
         }
         var reforgeCost = Mapper.GetReforgeCost(auction.Reforge);
         var coinValue = await GetPriceForItemOn(reforgeCost.Item1, date);
