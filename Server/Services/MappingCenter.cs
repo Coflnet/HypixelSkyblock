@@ -101,7 +101,7 @@ public class MappingCenter
             {
                 priceSum += count * await GetPriceForItemOn(tag, date);
             }
-            columns.Add((item.Item1.Key, priceSum));
+            columns.Add(($"{item.Item1.Key}:{item.Item1.Value}", priceSum));
         }
         foreach (var (e, item) in auction.Enchantments.Select(e => (e, Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new())))))
         {
