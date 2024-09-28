@@ -81,6 +81,22 @@ public class MappingCenter
             var median = values.OrderBy(v => v).ElementAt(values.Count / 2);
             cachedPrices[item.Key][itemTag] = median;
         }
+        var lastFew = history.OrderBy(kv => kv.Key).Take(5).ToList();
+        for (int i = 0; i < 401; i++)
+        {
+            // fill in days without sales
+            var day = date.AddDays(-400 + i);
+            if (!history.ContainsKey(day))
+            {
+                history.Add(day, lastFew.Last().Value);
+                history.Remove(lastFew.First().Key);
+            }
+            else
+            {
+                var median = lastFew.Select(kv => kv.Value).OrderBy(v => v).ElementAt(lastFew.Count / 2);
+                history.Add(day, median);
+            }
+        }
         if (history.TryGetValue(date, out var price))
         {
             return price;
