@@ -86,10 +86,10 @@ public class MappingCenter
         {
             // fill in days without sales
             var day = date.AddDays(-400 + i);
-            if (!history.ContainsKey(day))
+            if (history.ContainsKey(day))
             {
-                history.Add(day, lastFew.Last().Value);
-                history.Remove(lastFew.First().Key);
+                lastFew.Add(new(day, history[day]));
+                lastFew.RemoveAt(0);
             }
             else
             {
