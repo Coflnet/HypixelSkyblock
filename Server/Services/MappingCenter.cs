@@ -89,11 +89,12 @@ public class MappingCenter
             if (history.ContainsKey(day))
             {
                 lastFew.Add(new(day, history[day]));
-                lastFew.RemoveAt(0);
+                if (lastFew.Count > 5)
+                    lastFew.Remove(lastFew.OrderBy(kv => kv.Key).First());
             }
             else
             {
-                var median = lastFew.Select(kv => kv.Value).OrderBy(v => v).ElementAt(lastFew.Count / 2);
+                var median = lastFew.Select(kv => kv.Value).OrderBy(v => v).Skip(lastFew.Count / 2).FirstOrDefault();
                 history.Add(day, median);
             }
         }
