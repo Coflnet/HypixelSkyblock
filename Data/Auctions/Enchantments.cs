@@ -152,7 +152,7 @@ namespace Coflnet.Sky.Core
             ice_cold,
             toxophilite,
             ultimate_flowstate,
-            labidary,
+            lapidary,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
