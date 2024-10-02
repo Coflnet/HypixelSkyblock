@@ -180,7 +180,7 @@ namespace Coflnet.Sky.Core
             Earthly,
             glacial,
             lustrous,
-            balzing,
+            blazing,
             scraped,
             royal,
             dimensional,
