@@ -110,6 +110,7 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.paleontologist, 1),
             new (Enchantment.EnchantmentType.ice_cold, 1),
             new (Enchantment.EnchantmentType.toxophilite, 1),
+            new (Enchantment.EnchantmentType.lapidary, 2),
         };
 
         /// <summary>
