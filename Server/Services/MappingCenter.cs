@@ -79,6 +79,8 @@ public class MappingCenter
                 }
             }
             var median = values.OrderBy(v => v).ElementAt(values.Count / 2);
+            if (median == 0)
+                median = 1;
             cachedPrices[item.Key][itemTag] = median;
         }
         var lastFew = history.OrderBy(kv => kv.Key).Take(5).ToList();
@@ -95,6 +97,8 @@ public class MappingCenter
             else
             {
                 var median = lastFew.Select(kv => kv.Value).OrderBy(v => v).Skip(lastFew.Count / 2).FirstOrDefault();
+                if(median == 0)
+                    median = 1;
                 history.Add(day, median);
             }
         }
