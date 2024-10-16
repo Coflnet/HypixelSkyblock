@@ -36,8 +36,8 @@
     <PackageReference Include="RateLimiter" Version="2.2.0" />
     <PackageReference Include="SimplerConfig" Version="1.0.4" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.8.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.9.0" />
     <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
 
 
