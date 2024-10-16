@@ -218,12 +218,21 @@ public record Item(
     [property: JsonPropertyName("unstackable")] bool? Unstackable,
     [property: JsonPropertyName("dungeon_item_conversion_cost")] DungeonItemConversionCost DungeonItemConversionCost,
     [property: JsonPropertyName("catacombs_requirements")] IReadOnlyList<CatacombsRequirement> CatacombsRequirements,
-    [property: JsonPropertyName("museum")] bool? Museum,
+    [property: JsonPropertyName("museum_data")] MuseumData MuseumData,
     [property: JsonPropertyName("can_have_attributes")] bool? CanHaveAttributes,
     [property: JsonPropertyName("salvages")] IReadOnlyList<Salvage> Salvages,
     [property: JsonPropertyName("soulbound")] string Soulbound,
     [property: JsonPropertyName("furniture")] string Furniture,
     [property: JsonPropertyName("enchantments")] Enchantments Enchantments
+);
+
+public record MuseumData(
+    [property: JsonPropertyName("donation_xp")] int DonationXp,
+    [property: JsonPropertyName("type")] string Type,
+    [property: JsonPropertyName("parent")] Dictionary<string, string> Parent,
+    [property: JsonPropertyName("mapped_item_ids")] IReadOnlyList<string> MappedItemIds,
+    [property: JsonPropertyName("armor_set_donation_xp")] Dictionary<string, int> ArmorSetDonationXp,
+    [property: JsonPropertyName("game_stage")] string GameStage
 );
 
 public record Requirement(
