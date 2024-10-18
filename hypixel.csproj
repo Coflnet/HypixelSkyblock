@@ -13,7 +13,7 @@
     <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.17.0" />
     <PackageReference Include="Confluent.Kafka" Version="2.5.3" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
-    <PackageReference Include="MessagePack" Version="2.5.172" />
+    <PackageReference Include="MessagePack" Version="2.5.187" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
