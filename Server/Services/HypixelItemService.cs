@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Core.Services;
-public class HypixelItemService
+public interface IHypixelItemStore
+{
+    Task<Dictionary<string, Item>> GetItemsAsync();
+}
+
+public class HypixelItemService : IHypixelItemStore
 {
 
     private readonly HttpClient _httpClient;
