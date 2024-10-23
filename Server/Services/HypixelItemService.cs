@@ -116,7 +116,32 @@ public class HypixelItemService : IHypixelItemStore
         return (costs, unavailable);
     }
 
-    public (string color,string category) GetDefaultColorAndCategory(string itemId)
+    private static readonly Dictionary<string, string[]> ExtraItemsRequired = new()
+    {
+        { "CRIMSON_HUNTER", [ "BLAZE_BELT"] },
+        // ^ items with multiple sets
+        {"SNOW_SUIT", ["SNOW_NECKLACE", "SNOW_CLOAK", "SNOW_BELT", "SNOW_GLOVES"] },
+    };
+
+    public Dictionary<string, HashSet<string>> GetArmorSets()
+    {
+        var general = _items.Values.Where(i => i.MuseumData?.ArmorSetDonationXp != null && i.MuseumData.ArmorSetDonationXp?.Count != 0)
+                .SelectMany(i => i.MuseumData.ArmorSetDonationXp.Select(aset => (i.Id, aset.Key)))
+                .GroupBy(i => i.Key) // there are 14 items that are part of multiple sets
+                .ToDictionary(i => i.Key,
+                    i => i.Select(i => i.Id).ToHashSet(), StringComparer.OrdinalIgnoreCase);
+        foreach (var (item, sets) in ExtraItemsRequired)
+        {
+            if(general.TryGetValue(item, out var set))
+                foreach (var toAdd in sets)
+                {
+                    set.Add(toAdd);
+                }
+        }
+        return general;
+    }
+
+    public (string color, string category) GetDefaultColorAndCategory(string itemId)
     {
         var items = _items;
         if (items == null || itemId == null || !items.TryGetValue(itemId, out var item))
