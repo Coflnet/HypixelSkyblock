@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="2.0.0" />
     <PackageReference Include="Coflnet.Core" Version="0.2.0" />
-    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.17.0" />
+    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.17.1" />
     <PackageReference Include="Confluent.Kafka" Version="2.5.3" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
     <PackageReference Include="MessagePack" Version="2.5.187" />

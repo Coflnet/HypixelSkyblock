@@ -38,7 +38,7 @@ namespace Coflnet.Sky.Core
                 var source = new TaskCompletionSource<TRes>();
                 var data = new ProxyMessageData<TReq, TRes>(command, reqdata, source);
                 var request = new RestRequest($"/command/{command}/{Convert.ToBase64String(Encoding.UTF8.GetBytes(MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(reqdata))))}");
-                request.Timeout = 10000;
+                request.Timeout = TimeSpan.FromSeconds(10);
                 var result = await client.ExecuteAsync(request);
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
