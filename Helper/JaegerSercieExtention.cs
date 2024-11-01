@@ -22,12 +22,12 @@ public static class JaegerSercieExtention
             .AddHttpClientInstrumentation()
             .AddSqlClientInstrumentation()
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(config["JAEGER_SERVICE_NAME"] ?? "default"))
-            .AddJaegerExporter(j =>
-            {
-                j.Protocol = JaegerExportProtocol.UdpCompactThrift;
-                j.AgentHost = config["JAEGER_AGENT_HOST"];
-                j.MaxPayloadSizeInBytes = 4096 * 8;
-                j.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { 
+            .AddOtlpExporter(c=> {
+                var v = config["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"];
+                if (string.IsNullOrEmpty(v))
+                    throw new ArgumentException("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT is not set");
+                c.Endpoint = new Uri(v);
+                c.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { 
                     MaxQueueSize = 4096 * 2, MaxExportBatchSize = 1024, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 800 };
             })
             .SetSampler(new RationOrTimeBasedSampler(samplingRate, lowerBoundInSeconds))
