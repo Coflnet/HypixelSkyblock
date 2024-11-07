@@ -111,6 +111,7 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.ice_cold, 1),
             new (Enchantment.EnchantmentType.toxophilite, 1),
             new (Enchantment.EnchantmentType.lapidary, 2),
+            new (Enchantment.EnchantmentType.growth, 6),
         };
 
         /// <summary>
