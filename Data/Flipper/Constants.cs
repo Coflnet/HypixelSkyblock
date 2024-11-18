@@ -58,7 +58,6 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.snipe,4),
             new Enchantment(Enchantment.EnchantmentType.pristine,2), // maybe 1 as well
             new Enchantment(Enchantment.EnchantmentType.overload,2),
-            //new Enchantment(Enchantment.EnchantmentType.true_protection,1), cost alsmot 1m but is mostly useless
             new Enchantment(Enchantment.EnchantmentType.smite,7),
             new Enchantment(Enchantment.EnchantmentType.critical,7),
             new Enchantment(Enchantment.EnchantmentType.giant_killer,7),
@@ -68,7 +67,6 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.caster,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.magnet,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.luck_of_the_sea,7), // doesn't exist but generally worth nothing
-            new Enchantment(Enchantment.EnchantmentType.vampirism,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.thunderlord,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.lethality,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
@@ -112,6 +110,19 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.toxophilite, 1),
             new (Enchantment.EnchantmentType.lapidary, 2),
             new (Enchantment.EnchantmentType.ultimate_habanero_tactics, 4),
+            new (Enchantment.EnchantmentType.replenish, 1),
+            // <1m enchants, can be handeled since sniper knows bazaar values
+            new (Enchantment.EnchantmentType.sugar_rush, 3),
+            new (Enchantment.EnchantmentType.delicate, 5),
+            new (Enchantment.EnchantmentType.quantum, 5),
+            new (Enchantment.EnchantmentType.rejuvenate, 5),
+            new (Enchantment.EnchantmentType.transylvanian, 5),
+            new (Enchantment.EnchantmentType.true_protection, 1),
+            new (Enchantment.EnchantmentType.vampirism, 5),
+            new (Enchantment.EnchantmentType.turbo_potato, 5),
+            new (Enchantment.EnchantmentType.turbo_cactus, 5),
+            new (Enchantment.EnchantmentType.turbo_coco, 5),
+            new (Enchantment.EnchantmentType.turbo_pumpkin, 5),
         };
 
         /// <summary>
