@@ -184,6 +184,7 @@ namespace Coflnet.Sky.Core
             scraped,
             royal,
             dimensional,
+            squeaky,
         }
 
 
