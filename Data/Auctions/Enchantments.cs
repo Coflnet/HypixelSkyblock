@@ -114,6 +114,10 @@ namespace Coflnet.Sky.Core
             mana_steal,
             smarty_pants,
             pristine,
+            /// <summary>
+            /// Was renamed on sep 17th 2024 update 20.6
+            /// </summary>
+            prismatic = 103,
             // nether update
             ultimate_fatal_tempo,
             ultimate_inferno,
