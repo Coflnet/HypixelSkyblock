@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.chance,5),
             new Enchantment(Enchantment.EnchantmentType.dragon_hunter,2),
             new Enchantment(Enchantment.EnchantmentType.snipe,4),
-            new Enchantment(Enchantment.EnchantmentType.pristine,2), // maybe 1 as well
+            new Enchantment(Enchantment.EnchantmentType.pristine,1),
             new Enchantment(Enchantment.EnchantmentType.overload,2),
             new Enchantment(Enchantment.EnchantmentType.smite,7),
             new Enchantment(Enchantment.EnchantmentType.critical,7),
