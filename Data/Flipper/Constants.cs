@@ -39,6 +39,10 @@ namespace Coflnet.Sky.Core
             ItemReferences.Reforge.mossy,
             ItemReferences.Reforge.rooted,
             ItemReferences.Reforge.festive,
+            ItemReferences.Reforge.lustrous,
+            ItemReferences.Reforge.glacial,
+            ItemReferences.Reforge.coldfused,
+            //ItemReferences.Reforge.scraped // with apply cost above 1m
         };
         // include pet items lucky clover, shemlet, quick clow, golden clow, buble gum, text book
         // include gemstone (just add the bazaar price)
