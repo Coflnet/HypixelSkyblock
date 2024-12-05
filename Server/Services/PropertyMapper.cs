@@ -43,12 +43,19 @@ public class PropertyMapper
     {
     };
 
-    public bool TryGetIngredients(string property, string value, string baseValue, out List<string> ingredients)
+    private string[] CrisonArmor = new string[] { "CRIMSON", "TERROR", "AURORA", "FERVOR", "HOLLOW" };
+
+    public bool TryGetIngredients(string itemTag, string property, string value, string baseValue, out List<string> ingredients)
     {
         if (ContainsItemId.Contains(property) && value != string.Empty)
         {
             ingredients = new() { value.Trim('"') };
             return true;
+        }
+        if(property == "upgrade_level" && CrisonArmor.Contains(itemTag.Split("_").Reverse().Skip(1).FirstOrDefault("none")))
+        {
+            ingredients = [];
+            return false;
         }
         if (property.StartsWith("RUNE_"))
         {
@@ -80,7 +87,7 @@ public class PropertyMapper
         }
         if (propertyToItem.TryGetValue((property, value), out var result))
         {
-            ingredients = MapIngredients(property, value, baseValue, result);
+            ingredients = MapIngredients(itemTag, property, value, baseValue, result);
             return true;
         }
 
@@ -109,16 +116,16 @@ public class PropertyMapper
             ingredients = null;
             return false;
         }
-        ingredients = MapIngredients(property, value, baseValue, result);
+        ingredients = MapIngredients(itemTag, property, value, baseValue, result);
         return true;
 
-        List<string> MapIngredients(string property, string value, string baseValue, (List<string> needed, string previousLevel) result)
+        List<string> MapIngredients(string tag, string property, string value, string baseValue, (List<string> needed, string previousLevel) result)
         {
             List<string> ingredients = new(result.needed);
             if (baseValue != string.Empty
                             && result.previousLevel != baseValue
                             && result.previousLevel != value // safeguard break recurision
-                            && TryGetIngredients(property, result.previousLevel, baseValue, out var previousLevelIngredients))
+                            && TryGetIngredients(tag, property, result.previousLevel, baseValue, out var previousLevelIngredients))
                 ingredients.AddRange(previousLevelIngredients);
             return ingredients;
         }

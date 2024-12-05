@@ -33,7 +33,7 @@ public class MappingCenter
 
     public async Task<IEnumerable<(string, long count)>> GetItemsForProperty(string tag, string property, string value, Dictionary<string, string> flatNbt)
     {
-        if (Mapper.TryGetIngredients(property, value, string.Empty, out var ingredients))
+        if (Mapper.TryGetIngredients(tag, property, value, string.Empty, out var ingredients))
         {
             return ingredients.GroupBy(i => i).Select(g => (g.Key, (long)g.Count()));
         }
