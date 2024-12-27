@@ -122,7 +122,6 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.rejuvenate, 5),
             new (Enchantment.EnchantmentType.transylvanian, 5),
             new (Enchantment.EnchantmentType.true_protection, 1),
-            new (Enchantment.EnchantmentType.vampirism, 5),
             new (Enchantment.EnchantmentType.turbo_potato, 5),
             new (Enchantment.EnchantmentType.turbo_cactus, 5),
             new (Enchantment.EnchantmentType.turbo_coco, 5),
