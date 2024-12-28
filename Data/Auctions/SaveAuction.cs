@@ -309,7 +309,8 @@ namespace Coflnet.Sky.Core
             NBTLookup = auction.NBTLookup;
             UId = auction.UId;
             FindTime = auction.FindTime;
-            Context = Context;
+            Context = auction.Context;
+            FlatenedNBT = auction.FlatenedNBT;
         }
 
         public override bool Equals(object obj)
