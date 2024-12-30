@@ -141,17 +141,17 @@ namespace Coflnet.Sky.Kafka
             var completion = new TaskCompletionSource<bool>();
             await Task.Factory.StartNew(async () =>
             {
-                await ConsumeBatchThread<T>(config, topics, action, maxChunkSize, deserializer, batch, conf, cancleToken);
+                await ConsumeBatchThread<Ignore,T>(config, topics, (message)=>action(message.Select(m=>m.Value)), maxChunkSize, deserializer, batch, conf, cancleToken);
                 completion.SetResult(true);
             }, TaskCreationOptions.LongRunning);
             Console.WriteLine($"Started consumer for {string.Join(',', topics)}");
             await completion.Task;
         }
 
-        private static async Task ConsumeBatchThread<T>(ConsumerConfig config, string[] topics, Func<IEnumerable<T>, Task> action, int maxChunkSize, IDeserializer<T> deserializer, Queue<ConsumeResult<Ignore, T>> batch, ConsumerConfig conf, CancellationToken cancleToken)
+        private static async Task ConsumeBatchThread<TKey,TVal>(ConsumerConfig config, string[] topics, Func<IEnumerable<Message<Ignore, TVal>>, Task> action, int maxChunkSize, IDeserializer<TVal> deserializer, Queue<ConsumeResult<Ignore, TVal>> batch, ConsumerConfig conf, CancellationToken cancleToken)
         {
             var currentChunkSize = 1;
-            using var c = new ConsumerBuilder<Ignore, T>(conf).SetValueDeserializer(deserializer).Build();
+            using var c = new ConsumerBuilder<Ignore, TVal>(conf).SetValueDeserializer(deserializer).Build();
             c.Subscribe(topics);
             var key = "kafka_lag_" + string.Join('_', topics.Select(k => System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
             try
@@ -177,7 +177,7 @@ namespace Coflnet.Sky.Kafka
                             }
                             batch.Enqueue(cr);
                         }
-                        await action(batch.Select(a => a.Message.Value)).ConfigureAwait(false);
+                        await action(batch.Select(a => a.Message)).ConfigureAwait(false);
                         // tell kafka that we stored the batch
                         if (!config.EnableAutoCommit ?? true)
                             try
