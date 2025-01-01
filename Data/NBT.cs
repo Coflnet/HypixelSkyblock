@@ -482,8 +482,19 @@ namespace Coflnet.Sky.Core
                         }
                         petInfo.Remove("extraData");
                     }
-                if (data.TryGetValue("gems", out object gems) && gems is Dictionary<string, object> dict)
+                if (data.TryGetValue("gems", out object gems))
                 {
+                    var type = gems.GetType();
+                    if (gems is not Dictionary<string, object> dict)
+                    {
+                        if (gems is JObject jObject)
+                        {
+                            dict = jObject.ToObject<Dictionary<string, object>>();
+                        }
+                        else
+                            dict = new();
+                    }
+
                     var keys = dict?.Keys;
                     foreach (var item in keys)
                     {
@@ -496,8 +507,13 @@ namespace Coflnet.Sky.Core
                             data[item + ".uuid"] = gemInfo["uuid"];
                             gemInfo.Remove("uuid");
                             dict.Remove(item);
+                            if (gems is JObject ob)
+                            {
+                                ob.Remove(item);
+                            }
                         }
                     }
+
                 }
                 if (data.TryGetValue("runes", out object runesObj) && runesObj is Dictionary<string, object> runes)
                 {
