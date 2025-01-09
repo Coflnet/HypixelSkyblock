@@ -28,7 +28,7 @@ public static class JaegerSercieExtention
                     throw new ArgumentException("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT is not set");
                 c.Endpoint = new Uri(v);
                 c.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity> { 
-                    MaxQueueSize = 4096 * 8, MaxExportBatchSize = 1024, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 500 };
+                    MaxQueueSize = 4096 * 8, MaxExportBatchSize = 1024, ExporterTimeoutMilliseconds = 10000, ScheduledDelayMilliseconds = 800 };
             })
             .SetSampler(new RationOrTimeBasedSampler(samplingRate, lowerBoundInSeconds))
         );
