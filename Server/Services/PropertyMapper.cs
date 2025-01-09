@@ -52,7 +52,7 @@ public class PropertyMapper
             ingredients = new() { value.Trim('"') };
             return true;
         }
-        if(property == "upgrade_level" && CrisonArmor.Contains(itemTag.Split("_").Reverse().Skip(1).FirstOrDefault("none")))
+        if (property == "upgrade_level" && CrisonArmor.Contains(itemTag.Split("_").Reverse().Skip(1).FirstOrDefault("none")))
         {
             ingredients = [];
             return false;
@@ -315,17 +315,26 @@ public class PropertyMapper
         }
         else
         {
+            var lvl5Key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_5";
+            if (enchant.Level > 7 && bazaarPrices.TryGetValue(lvl5Key, out var lvl5Price) && lvl5Price > 0)
+            {
+                // try to scale from lvl 5
+                if(!Constants.EnchantToAttribute.TryGetValue(enchant.Type, out _))
+                    return (long)(lvl5Price * Math.Pow(2, enchant.Level - 5));
+            }
             // from lvl 1 ench
-            if (bazaarPrices.ContainsKey(lvl1Key) && bazaarPrices[lvl1Key] > 0)
+            if (bazaarPrices.TryGetValue(lvl1Key, out lvl1Price) && lvl1Price > 0)
+            {
                 if (Constants.EnchantToAttribute.TryGetValue(enchant.Type, out (string attrName, double factor, int max) attrData))
                 {
                     if (flatNbt == null)
-                        return (long)(bazaarPrices[lvl1Key] + attrData.factor * attrData.max * enchant.Level / 10);
+                        return (long)(lvl1Price + attrData.factor * attrData.max * enchant.Level / 10);
                     var stringValue = flatNbt.GetValueOrDefault(attrData.attrName) ?? "0";
-                    return (long)(bazaarPrices[lvl1Key] + Math.Min(float.Parse(stringValue), attrData.max) * attrData.factor);
+                    return (long)(lvl1Price + Math.Min(float.Parse(stringValue), attrData.max) * attrData.factor);
                 }
                 else
-                    return (long)(bazaarPrices[lvl1Key] * Math.Pow(2, enchant.Level - 1));
+                    return (long)(lvl1Price * Math.Pow(2, enchant.Level - 1));
+            }
         }
         return -1;
     }
