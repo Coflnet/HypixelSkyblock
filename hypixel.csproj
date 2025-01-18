@@ -9,40 +9,40 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="2.0.0" />
-    <PackageReference Include="Coflnet.Core" Version="0.3.0" />
+    <PackageReference Include="Coflnet.Core" Version="0.4.5" />
     <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.18.0" />
-    <PackageReference Include="Confluent.Kafka" Version="2.6.1" />
+    <PackageReference Include="Confluent.Kafka" Version="2.8.0" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
     <PackageReference Include="MessagePack" Version="2.5.192" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.12" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.12.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.10.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.11.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.0" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.9.0-beta.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.10.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.10.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.10.0-beta.1" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
     <PackageReference Include="prometheus-net" Version="8.2.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
     <PackageReference Include="RateLimiter" Version="2.2.0" />
     <PackageReference Include="SimplerConfig" Version="1.0.4" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.22" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="7.0.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="9.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="7.2.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="9.0.1" />
 
 
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
-    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
 
     <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <None Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
