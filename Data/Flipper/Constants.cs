@@ -73,6 +73,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.luck_of_the_sea,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.thunderlord,7), // doesn't exist but generally worth nothing
             new Enchantment(Enchantment.EnchantmentType.lethality,7), // doesn't exist but generally worth nothing
+            new (Enchantment.EnchantmentType.thunderbolt, 8 ), // doesn't exist but 7 is worth below 500k
             new Enchantment(Enchantment.EnchantmentType.infinite_quiver,11),
             new Enchantment(Enchantment.EnchantmentType.feather_falling,11),
             new Enchantment(Enchantment.EnchantmentType.ultimate_last_stand,3), // 1 and 2 are worth nothing,
