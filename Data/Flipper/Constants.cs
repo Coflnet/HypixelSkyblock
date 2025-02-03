@@ -126,6 +126,7 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.turbo_cactus, 5),
             new (Enchantment.EnchantmentType.turbo_coco, 5),
             new (Enchantment.EnchantmentType.turbo_pumpkin, 5),
+            new (Enchantment.EnchantmentType.small_brain, 5),
         };
 
         /// <summary>

@@ -157,6 +157,7 @@ namespace Coflnet.Sky.Core
             toxophilite,
             ultimate_flowstate,
             lapidary,
+            small_brain,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
