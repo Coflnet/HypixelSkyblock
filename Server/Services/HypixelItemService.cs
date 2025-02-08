@@ -34,7 +34,7 @@ public class HypixelItemService : IHypixelItemStore
             return _items;
 
         _items = await LoadItems();
-        IsDungeonItem = new HashSet<string>(_items.Values.Where(x => x.DungeonItem).Select(x => x.Id));
+        IsDungeonItem = new HashSet<string>(_items.Values.Where(x => x.DungeonItem || x.DungeonItemConversionCost != null).Select(x => x.Id));
         return _items;
     }
 
@@ -132,7 +132,7 @@ public class HypixelItemService : IHypixelItemStore
                     i => i.Select(i => i.Id).ToHashSet(), StringComparer.OrdinalIgnoreCase);
         foreach (var (item, sets) in ExtraItemsRequired)
         {
-            if(general.TryGetValue(item, out var set))
+            if (general.TryGetValue(item, out var set))
                 foreach (var toAdd in sets)
                 {
                     set.Add(toAdd);
