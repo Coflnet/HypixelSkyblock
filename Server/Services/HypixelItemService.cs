@@ -97,10 +97,18 @@ public class HypixelItemService : IHypixelItemStore
                 var slots = item.GemstoneSlots.Where(x => x.SlotType == type).Skip(index).FirstOrDefault();
                 if (slots == null)
                 {
-                    if (index <= 2 && Random.Shared.NextDouble() < 0.05)
-                        _logger.LogWarning($"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)}");
-                    unavailable.Add(slot);
-                    continue;
+                    var starredId = "STARRED_" + itemId;
+                    if (items.TryGetValue(starredId, out var starredItem))
+                    {
+                        slots = starredItem.GemstoneSlots.Where(x => x.SlotType == type).Skip(index).FirstOrDefault();
+                    }
+                    else
+                    {
+                        if (index <= 2 && Random.Shared.NextDouble() < 0.05)
+                            _logger.LogWarning($"Failed to get slot costs for {itemId} {slot} {string.Join(", ", result)} i {index} t {type}");
+                        unavailable.Add(slot);
+                        continue;
+                    }
                 }
                 if (slots.Costs == null)
                 {
