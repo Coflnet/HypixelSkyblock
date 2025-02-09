@@ -158,6 +158,7 @@ namespace Coflnet.Sky.Core
             ultimate_flowstate,
             lapidary,
             small_brain,
+            tidal,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
