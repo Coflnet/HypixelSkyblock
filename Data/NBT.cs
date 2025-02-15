@@ -94,6 +94,10 @@ namespace Coflnet.Sky.Core
         {
             var f = File(Convert.FromBase64String(itemBytes)).RootTag?.Get<NbtList>("i")
                 ?.Get<NbtCompound>(0);
+            if(f == null)
+            {
+                f = File(Convert.FromBase64String(itemBytes)).RootTag;
+            }
             FillFromTag(auction, f, includeTier);
         }
 
