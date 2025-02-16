@@ -90,7 +90,7 @@ namespace Coflnet.Sky.Core
             return result.textures.SKIN.url;
         }
 
-        public static void FillDetails(SaveAuction auction, string itemBytes, bool includeTier = false)
+        public static NbtCompound FillDetails(SaveAuction auction, string itemBytes, bool includeTier = false)
         {
             var f = File(Convert.FromBase64String(itemBytes)).RootTag?.Get<NbtList>("i")
                 ?.Get<NbtCompound>(0);
@@ -99,6 +99,7 @@ namespace Coflnet.Sky.Core
                 f = File(Convert.FromBase64String(itemBytes)).RootTag;
             }
             FillFromTag(auction, f, includeTier);
+            return f;
         }
 
         public static void FillFromTag(SaveAuction auction, NbtCompound f, bool includeTier)
