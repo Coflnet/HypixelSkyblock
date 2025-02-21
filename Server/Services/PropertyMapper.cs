@@ -36,7 +36,8 @@ public class PropertyMapper
             {("hpc", "*"), (new(){"HOT_POTATO_BOOK"}, UseCount)},
             {("hotpc", "1"), (new(){"FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK","FUMING_POTATO_BOOK"}, "0") },
             // 0 is > 10 (including one or more fummings)
-            {("hotpc", "0"), (new(){"FUMING_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK"}, String.Empty)},
+            {("hotpc", "0.1"), (new(){"FUMING_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK"}, String.Empty)},
+            {("hotpc", "0"), (new(){"HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK","HOT_POTATO_BOOK"}, String.Empty)},
             {("farming_for_dummies_count", "*"), (new(){"FARMING_FOR_DUMMIES"}, UseCount)}
         };
     private HashSet<string> ContainsItemId = new HashSet<string>(NBT.KeysWithItem)
