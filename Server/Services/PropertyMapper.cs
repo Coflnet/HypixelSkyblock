@@ -291,7 +291,7 @@ public class PropertyMapper
         return AttribDefinitions.TryGetValue((String.Empty, attr), out def);
     }
 
-    public long EnchantValue(Enchantment enchant, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices)
+    public long EnchantValue(Enchantment enchant, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices, string itemTag)
     {
         var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
         var lvl1Key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_1";
@@ -328,6 +328,8 @@ public class PropertyMapper
             {
                 if (Constants.EnchantToAttribute.TryGetValue(enchant.Type, out (string attrName, double factor, int max) attrData))
                 {
+                    if(itemTag == "FUNGI_CUTTER" && enchant.Type == Enchantment.EnchantmentType.cultivating) // worth more on fungi cutter
+                        attrData.factor = 0.3;
                     if (flatNbt == null)
                         return (long)(lvl1Price + attrData.factor * attrData.max * enchant.Level / 10);
                     var stringValue = flatNbt.GetValueOrDefault(attrData.attrName) ?? "0";

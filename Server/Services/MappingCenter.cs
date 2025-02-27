@@ -124,7 +124,7 @@ public class MappingCenter
             }
             columns.Add(($"{item.Item1.Key}:{item.Item1.Value}", priceSum));
         }
-        foreach (var (e, item) in auction.Enchantments.Select(e => (e, Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new())))))
+        foreach (var (e, item) in auction.Enchantments.Select(e => (e, Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new()), auction.Tag))))
         {
             if (item > 0)
             {
@@ -136,7 +136,7 @@ public class MappingCenter
             await GetPriceForItemOn($"GOLDEN_BOUNTY".ToUpper(), date);
             await GetPriceForItemOn($"SIL_EX".ToUpper(), date);
             Console.WriteLine($"Enchantment value for {e.Type} {e.Level} was {item} vs {sum} from {key}");
-            var value = Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new()));
+            var value = Mapper.EnchantValue(e, auction.FlatenedNBT, cachedPrices.GetValueOrDefault(date, new()), auction.Tag);
             columns.Add(($"!ench{e.Type}:{e.Level}", value));
             continue;
         }
