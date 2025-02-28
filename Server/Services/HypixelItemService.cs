@@ -94,7 +94,7 @@ public class HypixelItemService : IHypixelItemStore
             {
                 var index = slot.Last() - '0';
                 var type = slot.Substring(0, slot.Length - 2);
-                var slots = item.GemstoneSlots.Where(x => x.SlotType == type).Skip(index).FirstOrDefault();
+                var slots = item.GemstoneSlots?.Where(x => x.SlotType == type).Skip(index).FirstOrDefault();
                 if (slots == null)
                 {
                     var starredId = "STARRED_" + itemId;
