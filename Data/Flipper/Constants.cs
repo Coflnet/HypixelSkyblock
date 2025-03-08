@@ -109,7 +109,7 @@ namespace Coflnet.Sky.Core
             // new Enchantment(Enchantment.EnchantmentType.quantum,5), https://discord.com/channels/267680588666896385/1184721061900734604/1187048778339983440
             new Enchantment(Enchantment.EnchantmentType.ultimate_the_one,4),
             new Enchantment(Enchantment.EnchantmentType.reflection,5),
-            new Enchantment(Enchantment.EnchantmentType.expertise,10),
+            new Enchantment(Enchantment.EnchantmentType.expertise,1),
             new (Enchantment.EnchantmentType.paleontologist, 1),
             new (Enchantment.EnchantmentType.ice_cold, 1),
             new (Enchantment.EnchantmentType.toxophilite, 1),
