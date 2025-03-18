@@ -159,6 +159,7 @@ namespace Coflnet.Sky.Core
             lapidary,
             small_brain,
             tidal,
+            quick_bite,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
