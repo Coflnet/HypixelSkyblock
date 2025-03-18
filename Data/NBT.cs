@@ -94,7 +94,7 @@ namespace Coflnet.Sky.Core
         {
             var f = File(Convert.FromBase64String(itemBytes)).RootTag?.Get<NbtList>("i")
                 ?.Get<NbtCompound>(0);
-            if(f == null)
+            if (f == null)
             {
                 f = File(Convert.FromBase64String(itemBytes)).RootTag;
             }
@@ -487,6 +487,13 @@ namespace Coflnet.Sky.Core
                         }
                         petInfo.Remove("extraData");
                     }
+                if (data.ContainsKey("sinker"))
+                {
+                    Console.WriteLine("sinker");
+                }
+                UnwrapRodPart(data, "sinker");
+                UnwrapRodPart(data, "line");
+                UnwrapRodPart(data, "hook");
                 if (data.TryGetValue("gems", out object gems))
                 {
                     var type = gems.GetType();
@@ -537,6 +544,28 @@ namespace Coflnet.Sky.Core
 
             var flatList = flatten(data).ToList();
             return flatList;
+        }
+
+        private static void UnwrapRodPart(Dictionary<string, object> data, string part)
+        {
+            if (data.TryGetValue(part, out object sinker))
+            {
+                if (sinker is not Dictionary<string, object> dict)
+                {
+                    if (sinker is JObject jObject)
+                    {
+                        dict = jObject.ToObject<Dictionary<string, object>>();
+                    }
+                    else
+                        dict = new();
+                }
+                if (dict.TryGetValue("uuid", out object uuid))
+                {
+                    data[part + ".uuid"] = uuid;
+                    data[part + ".part"] = dict["part"];
+                    data.Remove(part);
+                }
+            }
         }
 
         private static void UnwarpStringArray(Dictionary<string, object> data, string stringArrayKey)
