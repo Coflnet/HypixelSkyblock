@@ -185,6 +185,8 @@ namespace Coflnet.Sky.Core
             royal,
             dimensional,
             squeaky,
+            trashy,
+            calcified,
         }
 
 
