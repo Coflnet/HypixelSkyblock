@@ -346,6 +346,9 @@ namespace Coflnet.Sky.Core
             "drill_part_engine",
             "drill_part_fuel_tank",
             "drill_part_upgrade_module",
+            "hook.part",
+            "line.part",
+            "sinker.part",
         };
 
         public static NBTLookup[] CreateLookup(SaveAuction auction)
