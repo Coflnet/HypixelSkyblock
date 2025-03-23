@@ -490,10 +490,6 @@ namespace Coflnet.Sky.Core
                         }
                         petInfo.Remove("extraData");
                     }
-                if (data.ContainsKey("sinker"))
-                {
-                    Console.WriteLine("sinker");
-                }
                 UnwrapRodPart(data, "sinker");
                 UnwrapRodPart(data, "line");
                 UnwrapRodPart(data, "hook");
