@@ -64,8 +64,8 @@ namespace Coflnet.Sky.Core
             lastReconnect = DateTime.Now;
             var conName = SimplerConfig.SConfig.Instance["REDIS_HOST"] ?? SimplerConfig.SConfig.Instance["redisCon"];
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
+            options.IncludePerformanceCountersInExceptions = true;
             RedisConnection = ConnectionMultiplexer.Connect(options);
-            RedisConnection.IncludePerformanceCountersInExceptions = true;
             RedisConnection.GetSubscriber().Subscribe("cofl-cache-update", (channel, message) =>
             {
                 var prefix = GetHostprefix();

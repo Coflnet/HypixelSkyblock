@@ -54,6 +54,7 @@ namespace Coflnet.Sky.Core
                 Enum.TryParse<Tier>(value, true, out var tier);
                 Tier = tier;
             }
+            get => Tier.ToString();
         }
 
 
@@ -67,6 +68,7 @@ namespace Coflnet.Sky.Core
                     return;
                 Category = (Category)Enum.Parse(typeof(Category), value, true);
             }
+            get => Category.ToString();
         }
 
         private string _tag;
@@ -145,6 +147,10 @@ namespace Coflnet.Sky.Core
             set
             {
                 ClaimedBids = value?.Select(s => new UuId((string)s)).ToList();
+            }
+            get
+            {
+                return ClaimedBids?.Select(s => (object)s.value).ToList();
             }
         }
         [IgnoreMember]

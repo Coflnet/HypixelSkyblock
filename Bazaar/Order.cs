@@ -3,11 +3,13 @@ using Newtonsoft.Json;
 
 namespace dev
 {
+    [MessagePackObject]
     public class BuyOrder : Order 
     {
         public BuyOrder() { }
     }
 
+    [MessagePackObject]
     public class SellOrder : Order 
     {
         public SellOrder() { }
