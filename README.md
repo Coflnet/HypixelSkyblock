@@ -70,4 +70,5 @@ git clone --depth=1 https://github.com/Coflnet/SkySettings
 git clone --depth=1 https://github.com/Coflnet/SkyPlayerName
 git clone --depth=1 https://github.com/Coflnet/SkyFilter
 git clone --depth=1 https://github.com/Coflnet/SkyCrafts
+git clone --depth=1 https://github.com/Coflnet/SkyFlipTracker
 ```
