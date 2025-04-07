@@ -1062,8 +1062,7 @@ namespace Coflnet.Sky.Core
             var f = new NbtFile();
             if (input != null)
             {
-                var stream = new MemoryStream(input);
-                f.LoadFromStream(stream, compression);
+                f.LoadFromBuffer(input,0,input.Length, compression);
             }
 
             return f;
