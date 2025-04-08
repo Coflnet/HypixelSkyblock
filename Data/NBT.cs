@@ -5,7 +5,9 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using Coflnet.Sky.Commands.MC;
 using dev;
 using fNbt;
 using fNbt.Tags;
@@ -835,7 +837,17 @@ namespace Coflnet.Sky.Core
             ?.Get<NbtCompound>("tag")
             ?.Get<NbtCompound>("display")
             ?.Get<NbtString>("Name")
-            ?.StringValue;
+            ?.StringValue
+            ?? Get121Name(rootTag);
+
+            static string Get121Name(NbtCompound rootTag)
+            {
+                var value = rootTag.Get<NbtCompound>("components")?
+                            .Get<NbtString>("minecraft:custom_name")?.StringValue;
+                if (value == null)
+                    return null;
+                return JsonConvert.DeserializeObject<TextLine>(value).To1_08();
+            }
         }
 
         public static DateTime GetDateTime(NbtCompound file)
@@ -883,17 +895,21 @@ namespace Coflnet.Sky.Core
             return hotPotatoCount.ShortValue;
         }
 
-        public static byte Count(NbtCompound rootTag)
+        public static int Count(NbtCompound rootTag)
         {
             return rootTag
-                ?.Get<NbtByte>("Count")?.ByteValue ?? 0;
+                ?.Get<NbtByte>("Count")?.ByteValue
+                ?? rootTag
+                ?.Get<NbtInt>("count")?.IntValue ?? 0;
         }
 
         public static NbtCompound GetExtraTag(NbtCompound rootTag)
         {
             return rootTag
                 ?.Get<NbtCompound>("tag")
-                ?.Get<NbtCompound>("ExtraAttributes");
+                ?.Get<NbtCompound>("ExtraAttributes")
+                ?? rootTag.Get<NbtCompound>("components")? // 1.21 position
+                .Get<NbtCompound>("minecraft:custom_data");
         }
 
         public static Dictionary<string, byte> GetEnchants(NbtCompound data)
@@ -1062,7 +1078,7 @@ namespace Coflnet.Sky.Core
             var f = new NbtFile();
             if (input != null)
             {
-                f.LoadFromBuffer(input,0,input.Length, compression);
+                f.LoadFromBuffer(input, 0, input.Length, compression);
             }
 
             return f;
@@ -1080,6 +1096,34 @@ namespace Coflnet.Sky.Core
             using var outStream = new MemoryStream();
             file.SaveToStream(outStream, NbtCompression.None);
             return outStream.ToArray();
+        }
+    }
+
+    public class TextElement
+    {
+        public string Text { get; set; }
+        public bool Bold { get; set; }
+        public bool Italic { get; set; }
+        public string Color { get; set; }
+    }
+    public class TextLine
+    {
+        private static Dictionary<string, string> colorList;
+        static TextLine()
+        {
+            colorList = typeof(McColorCodes)
+              .GetFields(BindingFlags.Public | BindingFlags.Static)
+              .Where(f => f.FieldType == typeof(string))
+              .ToDictionary(f => f.Name.ToLower(),
+                            f => (string)f.GetValue(null));
+        }
+        public List<TextElement> Extra { get; set; }
+
+        public string To1_08()
+        {
+            if (Extra == null)
+                return string.Empty;
+            return string.Join("", Extra.Select(e => $"{(e.Bold ? McColorCodes.BOLD : String.Empty)}{(e.Italic ? McColorCodes.ITALIC : String.Empty)}{(e.Color != null && colorList.TryGetValue(e.Color, out var c) ? c : String.Empty)}{e.Text}"));
         }
     }
 }
