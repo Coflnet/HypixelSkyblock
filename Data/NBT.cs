@@ -813,14 +813,19 @@ namespace Coflnet.Sky.Core
             var loreLines = rootTag
             ?.Get<NbtCompound>("tag")
             ?.Get<NbtCompound>("display")
-            ?.Get<NbtList>("Lore");
+            ?.Get<NbtList>("Lore")
+            ?? rootTag?.Get<NbtCompound>("components")
+            ?.Get<NbtList>("minecraft:lore");
 
             if (loreLines == null)
                 yield break;
 
             foreach (var item in loreLines)
             {
-                yield return item.StringValue;
+                if (item.StringValue.StartsWith("{\""))
+                    yield return JsonConvert.DeserializeObject<TextLine>(item.StringValue).To1_08();
+                else
+                    yield return item.StringValue;
             }
         }
 
