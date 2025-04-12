@@ -320,7 +320,7 @@ public class PropertyMapper
             if (enchant.Level > 7 && bazaarPrices.TryGetValue(lvl5Key, out var lvl5Price) && lvl5Price > 0)
             {
                 // try to scale from lvl 5
-                if(!Constants.EnchantToAttribute.TryGetValue(enchant.Type, out _))
+                if (!Constants.EnchantToAttribute.TryGetValue(enchant.Type, out _))
                     return (long)(lvl5Price * Math.Pow(2, enchant.Level - 5));
             }
             // from lvl 1 ench
@@ -328,7 +328,7 @@ public class PropertyMapper
             {
                 if (Constants.EnchantToAttribute.TryGetValue(enchant.Type, out (string attrName, double factor, int max) attrData))
                 {
-                    if(itemTag == "FUNGI_CUTTER" && enchant.Type == Enchantment.EnchantmentType.cultivating) // worth more on fungi cutter
+                    if (itemTag == "FUNGI_CUTTER" && enchant.Type == Enchantment.EnchantmentType.cultivating) // worth more on fungi cutter
                         attrData.factor = 0.3;
                     if (flatNbt == null)
                         return (long)(lvl1Price + attrData.factor * attrData.max * enchant.Level / 10);
@@ -342,20 +342,74 @@ public class PropertyMapper
         return -1;
     }
 
+    private static HashSet<string> IgnoreWise10 = new(){
+        "AMETHYST_GAUNTLET",
+        "DEMONLORD_GAUNTLET",
+        "ENDER_GAUNTLET",
+        "GAUNTLET_OF_CONTAGION",
+        "GEMSTONE_GAUNTLET",
+        "GLOWSTONE_GAUNTLET",
+        "MAGMA_LORD_GAUNTLET",
+        "MITHRIL_GAUNTLET",
+        "TITANIUM_GAUNTLET",
+        "VANQUISHED_GLOWSTONE_GAUNTLET",
+        "AMBER_POLISHED_DRILL_ENGINE",
+        "DIVAN_DRILL",
+        "DRILL_ENGINE",
+        "GEMSTONE_DRILL_1",
+        "GEMSTONE_DRILL_2",
+        "GEMSTONE_DRILL_3",
+        "GEMSTONE_DRILL_4",
+        "MITHRIL_DRILL_1",
+        "MITHRIL_DRILL_2",
+        "MITHRIL_DRILL_ENGINE",
+        "RUBY_POLISHED_DRILL_ENGINE",
+        "SAPPHIRE_POLISHED_DRILL_ENGINE",
+        "TITANIUM_DRILL_1",
+        "TITANIUM_DRILL_2",
+        "TITANIUM_DRILL_3",
+        "TITANIUM_DRILL_4",
+        "TITANIUM_DRILL_ENGINE"
+    };
+
+    private static HashSet<string> DivanPieces = new() {
+        "DIVAN_ALLOY",
+        "DIVAN_BOOTS",
+        "DIVAN_CHESTPLATE",
+        "DIVAN_DRILL",
+        "DIVAN_FRAGMENT",
+        "DIVAN_HELMET",
+        "DIVAN_LEGGINGS",
+        "DIVAN_PENDANT",
+        "DIVAN_POWDER_COATING",
+    };
+    private static HashSet<string> Katana = new() {
+        "ATOMSPLIT_KATANA",
+        "VOIDEDGE_KATANA",
+        "VOIDWALKER_KATANA",
+        "VORPAL_KATANA"
+    };
+    private static HashSet<string> Promising = new() {
+        "PROMISING_AXE",
+        "PROMISING_HOE",
+        "PROMISING_PICKAXE",
+        "PROMISING_SPADE"
+    };
+
     public IEnumerable<(Enchantment.EnchantmentType, int level)> IrrelevantOn(string itemTag)
     {
-        if (itemTag.Contains("GAUNTLET") || itemTag.Contains("DRILL"))
+        if (IgnoreWise10.Contains(itemTag))
             yield return (Enchantment.EnchantmentType.ultimate_wise, 10);
-        if (itemTag.StartsWith("DIVAN_"))
+        if (DivanPieces.Contains(itemTag))
         {
             yield return (Enchantment.EnchantmentType.ultimate_legion, 10);
             yield return (Enchantment.EnchantmentType.ultimate_wisdom, 10);
         }
-        if (!itemTag.EndsWith("KATANA"))
+        if (!Katana.Contains(itemTag))
             yield return (Enchantment.EnchantmentType.ender_slayer, 6);
         if (itemTag == "STONK_PICKAXE")
             yield return (Enchantment.EnchantmentType.efficiency, 6);
-        if (itemTag.StartsWith("PROMISING_"))
+        if (Promising.Contains(itemTag))
             yield return (Enchantment.EnchantmentType.efficiency, 10);
     }
 }
