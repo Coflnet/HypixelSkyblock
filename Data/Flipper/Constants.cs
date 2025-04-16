@@ -350,7 +350,7 @@ namespace Coflnet.Sky.Core
             if (category == Category.WEAPON || category == Category.ARMOR || category == Category.ACCESSORIES
                 || category == Category.UNKNOWN || tag == null) // the description doesn't know the category
                 return true;
-            string[] endings = ["CLOAK", "NECKLACE", "BELT", "GLOVES", "BRACELET", "HOE", "PICKAXE", "GAUNTLET", "WAND", "ROD", "DRILL", "INFINI_VACUMM", "POWER_ORB", "GRIFFIN_UPGRADE_STONE_EPIC"];
+            string[] endings = ["CLOAK", "NECKLACE", "BELT", "GLOVES", "BRACELET", "HOE", "PICKAXE", "GAUNTLET", "WAND", "ROD", "DRILL", "INFINI_VACUUM", "POWER_ORB", "GRIFFIN_UPGRADE_STONE_EPIC"];
             return endings.Any(tag.Contains);
         }
     }
