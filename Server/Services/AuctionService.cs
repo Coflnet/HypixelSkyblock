@@ -27,6 +27,10 @@ namespace Coflnet.Sky.Core
                 if (includeFunc != null)
                     select = includeFunc(select);
                 var auction = await select.Where(a => a.UId == uId).FirstOrDefaultAsync();
+                if(auction == null && long.TryParse(uuid, out long id))
+                {
+                    auction = await select.Where(a => a.UId == id).FirstOrDefaultAsync();
+                }
                 return auction;
             }
         }
