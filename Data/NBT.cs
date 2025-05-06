@@ -224,9 +224,9 @@ namespace Coflnet.Sky.Core
                 return false;
             foreach (var item in TierNames)
             {
-                if (lastLine.Contains(item.Value))
+                if (lastLine.Contains(item.Key))
                 {
-                    tier = item.Key;
+                    tier = item.Value;
                     return true;
                 }
             }
@@ -735,19 +735,20 @@ namespace Coflnet.Sky.Core
             }, (K, v) => v);
         }
         private static ConcurrentDictionary<(short, string), int> ValueCache = new ConcurrentDictionary<(short, string), int>();
-        private static readonly Dictionary<Tier, string> TierNames = new Dictionary<Tier, string>()
+        private static readonly Dictionary<string, Tier> TierNames = new Dictionary<string, Tier>()
         {
-            { Tier.LEGENDARY, "LEGENDARY" },
-            { Tier.UNCOMMON, "UNCOMMON" },
-            { Tier.COMMON, "COMMON" },
-            { Tier.RARE, "RARE" },
-            { Tier.EPIC, "EPIC" },
-            { Tier.MYTHIC, "MYTHIC" },
-            { Tier.VERY_SPECIAL, "VERY SPECIAL" },
-            { Tier.SPECIAL, "SPECIAL" },
-            { Tier.UNKNOWN, "UNKNOWN" },
-            { Tier.DIVINE, "DIVINE" },
-            { Tier.ULTIMATE, "ULTIMATE" },
+            { "LEGENDARY", Tier.LEGENDARY },
+            { "UNCOMMON", Tier.UNCOMMON },
+            { "COMMON", Tier.COMMON },
+            { "RARE", Tier.RARE },
+            { "EPIC", Tier.EPIC },
+            { "MYTHIC", Tier.MYTHIC },
+            { "VERY SPECIAL", Tier.VERY_SPECIAL },
+            { "SPECIAL", Tier.SPECIAL },
+            { "UNKNOWN", Tier.UNKNOWN },
+            { "DIVINE", Tier.DIVINE },
+            { "ULTIMATE", Tier.ULTIMATE },
+            { "SUPREME", Tier.DIVINE },
         };
 
         public NBT()
