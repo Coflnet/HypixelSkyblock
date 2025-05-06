@@ -398,6 +398,8 @@ public class PropertyMapper
 
     public IEnumerable<(Enchantment.EnchantmentType, int level)> IrrelevantOn(string itemTag)
     {
+        if (itemTag == null)
+            yield break;
         if (IgnoreWise10.Contains(itemTag))
             yield return (Enchantment.EnchantmentType.ultimate_wise, 10);
         if (DivanPieces.Contains(itemTag))
