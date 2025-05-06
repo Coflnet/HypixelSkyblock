@@ -249,6 +249,7 @@ public record Item(
     [property: JsonPropertyName("stats")] Stats Stats,
     [property: JsonPropertyName("gemstone_slots")] IReadOnlyList<GemstoneSlot> GemstoneSlots,
     [property: JsonPropertyName("durability")] int? Durability,
+    [property: JsonPropertyName("prestige")] Prestige prestige,
     //[property: JsonPropertyName("skin")] string Skin, not needed, save ram
     [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("unstackable")] bool? Unstackable,
@@ -260,6 +261,11 @@ public record Item(
     [property: JsonPropertyName("soulbound")] string Soulbound,
     [property: JsonPropertyName("furniture")] string Furniture,
     [property: JsonPropertyName("enchantments")] Enchantments Enchantments
+);
+
+public record Prestige(
+    [property: JsonPropertyName("item_id")] string item_id,
+    [property: JsonPropertyName("costs")] IReadOnlyList<DungeonUpgradeCost> costs
 );
 
 public record MuseumData(
