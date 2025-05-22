@@ -26,6 +26,10 @@ namespace Coflnet.Sky.Core
         public static int From(string roman)
         {
             int total = 0;
+            if(int.TryParse(roman, out total))
+            {
+                return total;
+            }
 
             int current, previous = 0;
             char currentRoman, previousRoman = '\0';
