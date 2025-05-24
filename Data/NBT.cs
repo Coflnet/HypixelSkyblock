@@ -944,6 +944,11 @@ namespace Coflnet.Sky.Core
                 {
                     if (!Enum.TryParse("ultimate_" + item, true, out type))
                         Logger.Instance.Error("Did not find Enchantment " + item + " in " + extra.ToString());
+                    if(Constants.AttributeKeys.Contains(item))
+                    {
+                        // skip attributes
+                        continue;
+                    }
                 }
                 var level = elements.Get<NbtInt>(item).IntValue;
                 result.Add(new Enchantment(type, (byte)level));
