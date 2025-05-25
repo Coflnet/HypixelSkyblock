@@ -98,9 +98,10 @@ namespace Coflnet.Sky.Core
 
                 case 'n':
                     var af = new SaveAuction();
-                    NBT.FillDetails(af, "H4sIAAAAAAAAAG1VUW8bRRAex0nquIUGKpAgCG2BoFiO04sb++yIF8dxk6hRFMVOESBk7d2tfafs3Vp3axx4461PPIGEEJF4QFj8B578H3hHkfoH+sYLYmbvQl3Uk+zbnZmd+b6Z2bkiwArkgiIA5BZgIfBy5RwstdU40rki5DUfrsCiiFwf6MnB7fPIiQW/4I4UuTysHAaeeCT5MEHtP0W45QXJSPKv8dCxikUBpZvw3mxqd3UsoqH2d9ls6pZrFr6aG+VqrQT3UduOA83aPo9ckRpsV9dTC1zMmezzkA8zk2o9M8FFCT5Ek0PBZRqBlx9aVXyLjfKOVUrN7NRoXwxElIjUqmmnRtU5Iwp2FGkhZTAUGSBerto3kK0S3MVl4wv8Xf/0Pf5/iSzfQuVs6s2m8pgnmnU1jzz2BCx0dsCDKPVRI8T8+uopy1Dg1p74ImI+kpv4gRTwNoocIdWESO5Y69dXv6Jki+TNPUm+T2OlhasDFbEnR1CmCDGPdGJibDesV8TgQ8SQaHgd1+JyJFWCp5MtuI1OD2I10T5i/eBlT3aNEGB4lubVoHgND/R8FUcJOzo6gsqLI5wO1SxiaLumkkwrFgsHW8kjXXOdsHJUqwHzTCGZR56Zw90LxjXTvsCXxp2ItzCn67Np/dFYStYVmu2paJzssk4U00GsGqa6e9JpPYZP0GUmHqiYQtWJgU2cg2iIy8G2ZV3//BvrjoTAEtmbxIxkV9/CBi7TtjIKbsBmSnbTtYb7PSx1WynpqUlkmqJao65/8AqUvVhh+2DsHlI6E3wkCJe9YT14mDYYpZT0n2K8hPm4MznH/JlQH8+3jcHydK6M7HMVOoHA+jVQaHranHfJ1BQgSy8W4JvUlDljbXgZtVbwJrlD0AqTHrNQOQll/H3kchoIrF1GJI3E9sZywuMLqoj9OMBjGQKKwF13HI4l11RO03GwOocV/Ydb8C5KXnJs7kOdiMEu6k7EpWbno2HMvZsL18hYNzYo1fZmo0lUMdtuzdq0LLxZjRJCXptNqz0/SFigRcjwfR5hV3nsrz9+uI9qhNJsRW4goqw4UPrfhaFrff3jL2xuwFCOsGTwjkmv2+bYk0jYdJUUXwlJuUJKdbrunYPOyX7r7DPWPux0e6fHrV4nD0uukiqGtbW1Aiye8FDQEKzfAMk6ou2LRI8oc1CEu51LHfOW1nGAtRJJHu6ktetfYMKx0eTfeVj1le6PlOZa9V2a0YijWIBCqLxgECDiWzwNUaBRDm+cdVqnnbP+C2RFuEPDHNmHaIVB7o2lDkKE0KfZ0k9obqHTpTwsa3PPcZPHzdBMiVSz6hjb0X9zCMXLgETHYwz6kd2o7Tg1m1fcuicqO3azXnHsplPx6tVBFecoPvVFWMGwSJ+HI/ysfPf7n8+eAyzAcloA+tb8C7sqykCaBgAA", true);
+                    NBT.FillDetails(af, "H4sIAAAAAAAAAFVTW27aQBS91EDBJI3Uh5SvatI2atOKihICSb5CgFAkSlIgfXyhsT22R7Fn6HicNBvoFip1A+yDpXQhVe9goqr8cH187j33cWwDlOAe92Az5oK5ivr62JE3OSh0ZCp0zgZL06AMeSbcEMwvB5VL4ShGr6gTsZwF5ffcY2cRDRJ8+8eG+x5P5hG9xaShVKyE6DY8XC5aXRrTgB2T5cJ9865Zg0eITbRiItBhhh7UYAfBjuKadEIq3DW7XtvF/6NXJtj7R/mv4MGagsEeYNgaCM2iiAdsXYZi9l2VPWxqE+NMhAwGA6iYx9ThSUw+mXaPuooGUpCpoi5TiNmI4Zgx0uExxgPhc8E1Ix9Tfr1imIoXnCmXiwBJJuFC3qxebWA8EXyeaYGZvf775w/SZzEZp+IO3l4umm2HR1zfHqMyn0eMTEKpCTw3ywql1AnZJ1QpeZMQqgklmsdsh0xDRuqwiyT2XSt6x/AYjczojdUCW9InOmTwFENvtTtChUdCiTNpSTRVAdPJW+zj2XJxuFxErzHpsCOrck4mMo0ctIRH1q/MCE0Mhr1+b9Rtj7+S0/PPJciPcENmP80xd0MzG6XiZUJO5Q3YsNUz3bW1VtxJNUtsKCicPrHA6vc+oLCFdizF0uM+7hFKCmvM0I8lKEvFAy6mNIAnnXH7bDoY9Wf98aA765wPh73ONLNxZXw5ardHkxk2Y8OGcS0VOmZCo0bRXZ3byKDOfH0p42kLtvj6nLNvq3MiWrCgMDf3y+IK2old4VeS8CTLKSTmolm5gm+skeFFd+WjLK1IeZypFHC2fJpily9q9Ybve0es6jOnVm0cuLR62Gg1q7Vm06l7eLV6a98Cm4prHs3ShBnBezl44ElBNfNmMWJpnMtD2Zw/0TSeo3J88uvLCRKhmH0ZmPQXz6UveuADAAA=", true);
                     Console.WriteLine(JsonConvert.SerializeObject(af, Formatting.Indented));
-                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAAAG1VUW8bRRAex0nquIUGKpAgCG2BoFiO04sb++yIF8dxk6hRFMVOESBk7d2tfafs3Vp3axx4461PPIGEEJF4QFj8B578H3hHkfoH+sYLYmbvQl3Uk+zbnZmd+b6Z2bkiwArkgiIA5BZgIfBy5RwstdU40rki5DUfrsCiiFwf6MnB7fPIiQW/4I4UuTysHAaeeCT5MEHtP0W45QXJSPKv8dCxikUBpZvw3mxqd3UsoqH2d9ls6pZrFr6aG+VqrQT3UduOA83aPo9ckRpsV9dTC1zMmezzkA8zk2o9M8FFCT5Ek0PBZRqBlx9aVXyLjfKOVUrN7NRoXwxElIjUqmmnRtU5Iwp2FGkhZTAUGSBerto3kK0S3MVl4wv8Xf/0Pf5/iSzfQuVs6s2m8pgnmnU1jzz2BCx0dsCDKPVRI8T8+uopy1Dg1p74ImI+kpv4gRTwNoocIdWESO5Y69dXv6Jki+TNPUm+T2OlhasDFbEnR1CmCDGPdGJibDesV8TgQ8SQaHgd1+JyJFWCp5MtuI1OD2I10T5i/eBlT3aNEGB4lubVoHgND/R8FUcJOzo6gsqLI5wO1SxiaLumkkwrFgsHW8kjXXOdsHJUqwHzTCGZR56Zw90LxjXTvsCXxp2ItzCn67Np/dFYStYVmu2paJzssk4U00GsGqa6e9JpPYZP0GUmHqiYQtWJgU2cg2iIy8G2ZV3//BvrjoTAEtmbxIxkV9/CBi7TtjIKbsBmSnbTtYb7PSx1WynpqUlkmqJao65/8AqUvVhh+2DsHlI6E3wkCJe9YT14mDYYpZT0n2K8hPm4MznH/JlQH8+3jcHydK6M7HMVOoHA+jVQaHranHfJ1BQgSy8W4JvUlDljbXgZtVbwJrlD0AqTHrNQOQll/H3kchoIrF1GJI3E9sZywuMLqoj9OMBjGQKKwF13HI4l11RO03GwOocV/Ydb8C5KXnJs7kOdiMEu6k7EpWbno2HMvZsL18hYNzYo1fZmo0lUMdtuzdq0LLxZjRJCXptNqz0/SFigRcjwfR5hV3nsrz9+uI9qhNJsRW4goqw4UPrfhaFrff3jL2xuwFCOsGTwjkmv2+bYk0jYdJUUXwlJuUJKdbrunYPOyX7r7DPWPux0e6fHrV4nD0uukiqGtbW1Aiye8FDQEKzfAMk6ou2LRI8oc1CEu51LHfOW1nGAtRJJHu6ktetfYMKx0eTfeVj1le6PlOZa9V2a0YijWIBCqLxgECDiWzwNUaBRDm+cdVqnnbP+C2RFuEPDHNmHaIVB7o2lDkKE0KfZ0k9obqHTpTwsa3PPcZPHzdBMiVSz6hjb0X9zCMXLgETHYwz6kd2o7Tg1m1fcuicqO3azXnHsplPx6tVBFecoPvVFWMGwSJ+HI/ysfPf7n8+eAyzAcloA+tb8C7sqykCaBgAA"));
+                    Console.WriteLine(NBT.Pretty("H4sIAAAAAAAA/1VUyY7r1hFl93vP6W4YcLzIXgFsIIEgi4NIigGyICmJIsVBEieRG+OSvOI8iIMo6h+yySLIH/QmW/9Af4o/JAi7bRjOqoBzTp06BRTqBUGekYf4BUGQh0fkMQ4e/vGAfOHLrmgfXpBPLQg/Ic/bOICbDITNqPrvC/Kip12WaX0B6yfkUQyQ73wa8ykUX85wgiFnBKTIGRMw3gwjiQVkIA3wAHtA/hgNVXyD2b6sugy0MBgnvOzrsoJ1G8PmGXlq4a3tath8xHlCnvU4LMA78vgfYzmnJc/XNokCphFRJFkbnqwq27f7kBNOantkKoOUWRxQN7XCB04KnOG0SqpddXGS8yWRmtg4JtjQUEt7cPKE1yksLMyBy4rhMDcxnXdPTR2FpGq1u7vQQqe9LRcp7Too1h4c69ioxLLFrHzRXSthF/D+btPQpnQ52L66II/L5M6G8VRz6r1Eln5628hVq061ltblLh5KU9Yk/xzRkQlptieJebJhFSZO10vq1BnyGiQ9t7htQeSI1jFfz9X0cLEPt8BhzEFV6QCvBM8i5CUWq21o48S+9iBmYGtsmWZHsZcgFTq04q13952ZKw09JRc5KuV8LDiUtyTn6k5pOlUEG7LUFYU4HPA01vakfsw1Pz3XqCtvra3Nq8oevyeVlKh5T9peyQP9pMv+KW8MsEILv7evrebSorDsudQnSJwFDunpe/letKDzp5ttYKqy0w2Qcedc3EfDyusy1vdN91LY5TSiCfyqtAPeHfm42VxvgRbinkELsmCzps6ChZcPczu5bndF47ZnUzCdq3ydStawuRhofyBU4xbISbJGBW9R2PoeEjF6sOhhb0oc72tDO1+biyFgWOJ4pNx9k11KTQCNMeemzFpy0J6aUky1thJ+o1hCFDncihG86XWdXYvxhFzphO/2m0XTdt7qmF0v/uJa1JmosONe/iH3xCV0eZXzik6+y/P+dqHwu9djqrEs6etGl8y/PyFfLJB18OHfsC9DkZdQYGOZTxwj78TG4qoMFcO/qSsRVQxx0IwUU/V+J/Js7G+lq5tnjWtmqRizlMiLhCusB8cW746R3h18jWqClWkrpVdXUeTmyt1Jwt41nIWriw0fs6FYcIOHu5UnWJozzv3FR9p6+C11Tlzu2n0ssx+57sAOOud0xPzc0t3TBgMnKXN5MdRiDvULK/tVh7qnCA1Gzh8+OPpjzpjXRFvJiP8Pe9ePfv3HnmI+9m1ZSh6Y33mQLbDJzCGkyC0OnZdbqEwcM7h9z2FeFXtNuolCKrhDKoIVufZm3JJLlMQflFWKKis1cfPDTTV8QhPEm2KEhJqkmJtEmWNwkWarkWqYhGJsMtfYRNoqjX/JxjHv9XyomPG/vCB/COKmysDwjHyWyxo+jeAX5Pu3V8qIYQ2DCVcWXfO3CQ/qIr6CbMLX4A4nf8Hm5F+R2dsrLYC4mLy9guni+7HQ+egxVvib3ihTWDQj88Po/K54e10aUdxM4hbmEx8UEw9Oangu6xAGf0b+NFq9vWamymuKoqkTQdastf6EfFZBDpFvRnYP6naYCFl5hc2Y/5v1ra0B27Z17HUtbJ7e/zfy9Z49Gs6Pv3V33Qh+t1ieAYQYmJ19QM0WiwCfLRmSmJ1phkLRgILBAvuMPLdxDpsW5NX4f//17U8//xNBHpGvViAHIUQ+Icj/AFl18ncvBgAA"));
+                    Console.WriteLine(NBT.Pretty("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"));
                     //Console.WriteLine (JsonConvert.SerializeObject (.Instance.Items.Where (item => item.Value.AltNames != null && item.Value.AltNames.Count > 3 && !item.Key.Contains("DRAGON")).Select((item)=>new P(item.Value))));
                     break;
                 default:
@@ -164,47 +165,15 @@ namespace Coflnet.Sky.Core
             }
 
 
-            Task redisInit = null;
-            // bring the db up to date
-            if (modes.Contains("indexer"))
-            {
-                GetDBToDesiredState();
-                ItemDetails.Instance.LoadFromDB();
-                redisInit = MakeSureRedisIsInitialized();
-
-                Console.WriteLine("booting db dependend stuff");
-                //NameUpdater.Run();
-                Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(3));
-                    await ItemPrices.Instance.BackfillPrices();
-                }).ConfigureAwait(false);
-
-                try
-                {
-                    CleanDB();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Cleaning failed {e.Message}");
-                }
-            }
-
-
             onStop += () =>
             {
                 Console.WriteLine("stopped");
             };
-
-
-            redisInit?.GetAwaiter().GetResult();
-
             Thread.Sleep(Timeout.Infinite);
-
         }
 
         static CancellationTokenSource fillRedisCacheTokenSource;
-        public static void FillRedisCache()
+        private static void FillRedisCache()
         {
             fillRedisCacheTokenSource?.Cancel();
             fillRedisCacheTokenSource = new CancellationTokenSource();
@@ -212,7 +181,7 @@ namespace Coflnet.Sky.Core
             {
                 try
                 {
-                    await ItemPrices.Instance.FillHours(fillRedisCacheTokenSource.Token);
+                 //   await ItemPrices.Instance.FillHours(fillRedisCacheTokenSource.Token);
                 }
                 catch (Exception e)
                 {
@@ -221,7 +190,7 @@ namespace Coflnet.Sky.Core
             }, fillRedisCacheTokenSource.Token).ConfigureAwait(false); ;
         }
 
-        public static async Task MakeSureRedisIsInitialized()
+        private static async Task MakeSureRedisIsInitialized()
         {
             var Key = "LastbazaarUpdate";
             try

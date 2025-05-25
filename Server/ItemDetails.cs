@@ -11,7 +11,12 @@ namespace Coflnet.Sky.Core
 {
     public partial class ItemDetails
     {
-        public static ItemDetails Instance;
+        Items.Client.Api.ItemsApi client;
+
+        public ItemDetails(Items.Client.Api.ItemsApi client)
+        {
+            this.client = client;
+        }
 
         public ConcurrentDictionary<string, Item> Items = new ConcurrentDictionary<string, Item>();
         /// <summary>
@@ -25,11 +30,6 @@ namespace Coflnet.Sky.Core
         /// <returns></returns>
         public ConcurrentDictionary<string, int> TagLookup = new ConcurrentDictionary<string, int>();
 
-        static ItemDetails()
-        {
-            Instance = new ItemDetails();
-
-        }
 
         public Task LoadFromDB()
         {
@@ -40,9 +40,11 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                var client = new Items.Client.Api.ItemsApi(SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
-                var ids = await client.ItemsIdsGetWithHttpInfoAsync() ?? throw new Exception("no items found");
-                TagLookup = new(ids.Data);
+                var data = await client.ItemsIdsGetAsync();
+                if (data.TryOk(out var ids))
+                    TagLookup = new(ids);
+                else 
+                    throw new Exception("no items found in response from items service " + SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
                 Logger.Instance.Info("loaded item tag lookup " + TagLookup.Count + " items");
             }
             catch (Exception e)
@@ -111,7 +113,7 @@ namespace Coflnet.Sky.Core
                 return 0;
             if (TagLookup == null || TagLookup.Count == 0)
                 LoadLookup().GetAwaiter().GetResult();
-            if(tag.StartsWith("RUNE_") && TagLookup.ContainsKey("UNIQUE_" + tag))
+            if (tag.StartsWith("RUNE_") && TagLookup.ContainsKey("UNIQUE_" + tag))
             {
                 // extend to unique rune as that prefix is not present on the rune item
                 tag = "UNIQUE_" + tag;
@@ -121,18 +123,16 @@ namespace Coflnet.Sky.Core
 
             try
             {
-                var client = new Items.Client.Api.ItemsApi(SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
-                var response = client.ItemsSearchTermIdGetWithHttpInfo(tag);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                    throw new Exception("response from items service " + response.StatusCode + " " + response.RawContent.Truncate(100));
-                var id = response.Data;
+                var data = client.ItemsSearchTermIdGetAsync(tag).Result;
+                if (!data.TryOk(out var id))
+                    throw new Exception("response from items service " + data.StatusCode + " " + data.RawContent.Truncate(100));
                 if (id == 0 && forceGet)
                 {
                     throw new CoflnetException("item_not_found", $"could not find the item with the tag `{tag}`");
                 }
-                if (id != 0)
-                    TagLookup[tag] = id;
-                return id;
+                if (id != null && id != 0)
+                    TagLookup[tag] = id.Value;
+                return id ?? 0;
             }
             catch (Exception e)
             {

@@ -10,7 +10,12 @@ namespace Coflnet.Sky.Core
 {
     public partial class ItemPrices
     {
-        public static ItemPrices Instance;
+        private readonly ItemDetails itemDetails;
+
+        public ItemPrices(ItemDetails itemDetails)
+        {
+            this.itemDetails = itemDetails;
+        }
 
         /// <summary>
         /// Filterhook for the commands module
@@ -35,7 +40,7 @@ namespace Coflnet.Sky.Core
 
         public async Task<Resonse> GetPriceFor(ItemSearchQuery details)
         {
-            var itemId = ItemDetails.Instance.GetItemIdForTag(details.name, false);
+            var itemId = itemDetails.GetItemIdForTag(details.name, false);
             var itemTag = details.name;
 
             if (details.Reforge != ItemReferences.Reforge.Any
@@ -117,7 +122,7 @@ namespace Coflnet.Sky.Core
 
         private Resonse FromList(IEnumerable<AveragePrice> prices, string itemTag)
         {
-            var isBazaar = IsBazaar(ItemDetails.Instance.GetItemIdForTag(itemTag));
+            var isBazaar = IsBazaar(itemDetails.GetItemIdForTag(itemTag));
             return new Resonse()
             {
                 Filterable = true,
@@ -125,12 +130,6 @@ namespace Coflnet.Sky.Core
                 // exclude high moving 
                 Prices = isBazaar ? prices.Where(p => p.Max < prices.Average(pi => pi.Min) * 1000).ToList() : prices.ToList()
             };
-        }
-
-
-        static ItemPrices()
-        {
-            Instance = new ItemPrices();
         }
 
 
@@ -148,7 +147,7 @@ namespace Coflnet.Sky.Core
 
         private async Task AddAuction(TimeSpan aDay, TimeSpan oneHour, DateTime lastHour, DateTime startYesterday, SaveAuction auction)
         {
-            var id = ItemDetails.Instance.GetItemIdForTag(auction.Tag);
+            var id = itemDetails.GetItemIdForTag(auction.Tag);
             var res = await GetHourlyLookup(id);
             if (res == null)
                 res = new ItemLookup();
@@ -164,19 +163,19 @@ namespace Coflnet.Sky.Core
             ComputeTimes(out aDay, out oneHour, out lastHour, out startYesterday);
             foreach (var item in pull.Products)
             {
-                var id = ItemDetails.Instance.GetOrCreateItemByTag(item.ProductId);
+                var id = itemDetails.GetOrCreateItemByTag(item.ProductId);
                 //await CacheService.Instance.ModifyInRedis(GetIntraHourKey(id),)
                 var res = await GetHourlyLookup(id);
                 if (res == null)
                     res = new ItemLookup();
-                res.AddNew(item, pull.Timestamp);
+                res.AddNew(item, pull.Timestamp,itemDetails.GetItemIdForTag(item.ProductId, false));
                 await CacheService.Instance.SaveInRedis(GetIntraHourKey(id), res);
                 await DropYesterDay(aDay, oneHour, lastHour, startYesterday, id, res);
             }
 
             if (BazzarItem.Count() == 0)
             {
-                BazzarItem = pull.Products.ToDictionary(p => ItemDetails.Instance.GetOrCreateItemByTag(p.ProductId), p => true);
+                BazzarItem = pull.Products.ToDictionary(p => itemDetails.GetOrCreateItemByTag(p.ProductId), p => true);
             }
 
         }
@@ -215,7 +214,7 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
-                var itemId = ItemDetails.Instance.GetItemIdForTag(details.name);
+                var itemId = itemDetails.GetItemIdForTag(details.name);
                 IQueryable<SaveAuction> select = CreateSelect(details, context, itemId);
                 IEnumerable<AveragePrice> response = await AvgFromAuctions(itemId, select, details.Start > DateTime.Now.Subtract(TimeSpan.FromDays(1.1)));
 
@@ -271,7 +270,7 @@ namespace Coflnet.Sky.Core
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(3600);
-                foreach (var itemId in ItemDetails.Instance.TagLookup.Values.ToList())
+                foreach (var itemId in itemDetails.TagLookup.Values.ToList())
                 {
                     var select = AuctionSelect(DateTime.Now - TimeSpan.FromDays(1), DateTime.Now, context, itemId);
                     await UpdateAuctionsInRedis(itemId, select);
@@ -282,7 +281,7 @@ namespace Coflnet.Sky.Core
 
             /*
                 DateTime start;
-                var bucket = await GetLookupForToday(ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET"));
+                var bucket = await GetLookupForToday(itemDetails.GetItemIdForTag("ENCHANTED_LAVA_BUCKET"));
                 Console.WriteLine("----------\nyoungest lava bucket is " + bucket.Youngest.Date);
                 var end = DateTime.Now - TimeSpan.FromDays(1);
                 if (bucket != null)
@@ -303,7 +302,7 @@ namespace Coflnet.Sky.Core
                 return;
         }
 
-        public static async Task FillLastHourIfDue()
+        public async Task FillLastHourIfDue()
         {
             // determine if due
             if (DateTime.Now.Minute != 0)
@@ -329,14 +328,14 @@ namespace Coflnet.Sky.Core
 
         }
 
-        private static async Task FillLastHour()
+        private async Task FillLastHour()
         {
             var end = DateTime.Now.RoundDown(TimeSpan.FromHours(1));
             var start = end - TimeSpan.FromMinutes(60);
             var removeBefore = start - TimeSpan.FromDays(1);
             using (var context = new HypixelContext())
             {
-                foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
+                foreach (var itemId in itemDetails.TagLookup.Values)
                 {
                     var select = AuctionSelect(start, end, context, itemId);
                     await UpdateAuctionsInRedis(itemId, select, removeBefore);
@@ -376,7 +375,7 @@ namespace Coflnet.Sky.Core
                 context.Database.SetCommandTimeout(3600);
                 
                 var startAt = new DateTime(2024, 4, 1);
-                foreach (var itemId in ItemDetails.Instance.TagLookup.Values.ToList())
+                foreach (var itemId in itemDetails.TagLookup.Values.ToList())
                 {
                     Console.WriteLine($"backfilling {itemId}");
                     await BackfillAuctions(context, startAt, itemId);
@@ -422,7 +421,7 @@ namespace Coflnet.Sky.Core
                     using (var context = new HypixelContext())
                     {
                         context.Database.SetCommandTimeout(3600);
-                        /*var idOfLava = ItemDetails.Instance.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
+                        /*var idOfLava = itemDetails.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
                         if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
                         {
                             var interval = (end - start) / 4;
@@ -435,7 +434,7 @@ namespace Coflnet.Sky.Core
                         }*/
 
 
-                        foreach (var itemId in ItemDetails.Instance.TagLookup.Values)
+                        foreach (var itemId in itemDetails.TagLookup.Values)
                         {
                             await Task.Delay(200);
                             if (context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == itemId).Any())
@@ -457,7 +456,7 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        public static async Task<List<AveragePrice>> AvgBazzarHistory(DateTime start, DateTime end)
+        public async Task<List<AveragePrice>> AvgBazzarHistory(DateTime start, DateTime end)
         {
             var hours = (end - start).TotalHours;
             using (var context = new HypixelContext())
@@ -480,7 +479,7 @@ namespace Coflnet.Sky.Core
                             Max = (float)item.Max(a => a.QuickStatus.BuyPrice),
                             Min = (float)item.Min(a => a.QuickStatus.SellPrice),
                             Date = start,
-                            ItemId = ItemDetails.Instance.GetOrCreateItemByTag(item.Key)
+                            ItemId = itemDetails.GetOrCreateItemByTag(item.Key)
                         };
                     }).ToList();
 
@@ -576,7 +575,7 @@ namespace Coflnet.Sky.Core
         {
             using (var context = new HypixelContext())
             {
-                var itemId = ItemDetails.Instance.GetItemIdForTag(query.name);
+                var itemId = itemDetails.GetItemIdForTag(query.name);
 
                 var result = CreateSelect(query, context, itemId, amount)
                             .OrderByDescending(a => a.End).Take(amount).Select(a => new
@@ -603,7 +602,7 @@ namespace Coflnet.Sky.Core
             query.Start = DateTime.Now.Subtract(TimeSpan.FromDays(14)).RoundDown(TimeSpan.FromDays(1));
             using (var context = new HypixelContext())
             {
-                var itemId = ItemDetails.Instance.GetItemIdForTag(query.name);
+                var itemId = itemDetails.GetItemIdForTag(query.name);
                 var dbselect = context.Auctions.Where(a => a.ItemId == itemId && a.End > DateTime.Now && (!a.Bin || a.Bids.Count == 0));
 
                 var select = CreateSelect(query, context, itemId, amount, dbselect)

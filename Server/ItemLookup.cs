@@ -82,11 +82,11 @@ namespace Coflnet.Sky.Core
                 return complete;
             }
 
-            internal void AddNew(ProductInfo item, DateTime time)
+            internal void AddNew(ProductInfo item, DateTime time, int itemId)
             {
                 AddNew(new AveragePrice()
                 {
-                    ItemId = ItemDetails.Instance.GetItemIdForTag(item.ProductId, false),
+                    ItemId = itemId,
                     Max = (float)item.QuickStatus.BuyPrice,
                     Min = (float)item.QuickStatus.SellPrice,
                     Avg = (float)(item.QuickStatus.BuyPrice + item.QuickStatus.SellPrice) / 2,

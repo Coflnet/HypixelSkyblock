@@ -20,11 +20,18 @@ namespace Coflnet.Sky.Core
     {
         short GetKeyId(string name);
         int GetValueId(short key, string value);
+        NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList = null);
+        NBTLookup[] CreateLookup(SaveAuction auction);
     }
 
     public class NBT : INBT
     {
-        public static INBT Instance = new NBT();
+        private ItemDetails itemDetails;
+
+        public NBT(ItemDetails itemDetails)
+        {
+            this.itemDetails = itemDetails;
+        }
         public bool CanWriteToDb { get; set; } = false;
 
         public static string SkullUrl(string data)
@@ -353,7 +360,7 @@ namespace Coflnet.Sky.Core
             "sinker.part",
         };
 
-        public static NBTLookup[] CreateLookup(SaveAuction auction)
+        public NBTLookup[] CreateLookup(SaveAuction auction)
         {
             if (auction.NbtData == null)
                 return Array.Empty<NBTLookup>();
@@ -365,7 +372,7 @@ namespace Coflnet.Sky.Core
             return CreateLookup(auction.Tag, data, flatList);
         }
 
-        public static NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList = null)
+        public NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList = null)
         {
             flatList ??= FlattenNbtData(data);
             return flatList.Select(attr =>
@@ -385,44 +392,44 @@ namespace Coflnet.Sky.Core
                     return res;
 
                 if (key == "uid" || key == "uuid" || key.EndsWith(".uuid"))
-                    return new NBTLookup(Instance.GetKeyId(key), UidToLong(attr));
+                    return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
-                    return new NBTLookup(Instance.GetKeyId(key), UidToLong(attr));
+                    return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if ((key == "hideInfo" || key == "active") && !((bool)attr.Value))
                     return null; // always false
                 if (key == "tier" || key == "type") // both already save on auctions table
                     return null;
                 if (key == "skin" && data.ContainsKey("petInfo")) // pet skins are prefixed
-                    return new NBTLookup(Instance.GetKeyId(key), GetItemIdForSkin(attr.Value as string));
+                    return new NBTLookup(GetKeyId(key), GetItemIdForSkin(attr.Value as string));
                 if (KeysWithItem.Contains(key))
-                    return new NBTLookup(Instance.GetKeyId(key), ItemDetails.Instance.GetItemIdForTag(attr.Value as string));
+                    return new NBTLookup(GetKeyId(key), itemDetails.GetItemIdForTag(attr.Value as string));
                 if (ValidKeys.Contains(key))
                 {
-                    var keyId = Instance.GetKeyId(key);
+                    var keyId = GetKeyId(key);
                     if (!(attr.Value is string value))
                         value = JsonConvert.SerializeObject(attr.Value);
-                    return new NBTLookup(keyId, Instance.GetValueId(keyId, value));
+                    return new NBTLookup(keyId, GetValueId(keyId, value));
                 }
                 if (key == "color")
                 {
                     ColorFiller.Add(auctionTag, attr.Value as string);
-                    return new NBTLookup(Instance.GetKeyId(key), GetColor(attr));
+                    return new NBTLookup(GetKeyId(key), GetColor(attr));
                 }
                 if (IgnoreIndexing.Contains(key))
                     return null;
                 Console.WriteLine("unknown id " + JSON.Stringify(attr));
                 // just save it as strings
 
-                var lookupKey = Instance.GetKeyId(key);
-                return new NBTLookup(lookupKey, Instance.GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
+                var lookupKey = GetKeyId(key);
+                return new NBTLookup(lookupKey, GetValueId(lookupKey, JsonConvert.SerializeObject(attr.Value)));
             }).Where(a => a != null).ToArray();
         }
 
-        public static long GetItemIdForSkin(string name)
+        public long GetItemIdForSkin(string name)
         {
-            var id = ItemDetails.Instance.GetItemIdForTag("PET_SKIN_" + name, false);
+            var id = itemDetails.GetItemIdForTag("PET_SKIN_" + name, false);
             if (id == 0)
-                id = ItemDetails.Instance.GetItemIdForTag(name);
+                id = itemDetails.GetItemIdForTag(name);
             return id;
         }
 
@@ -643,12 +650,12 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        private static bool TryAs<T>(KeyValuePair<string, object> attr, out NBTLookup value) where T : IComparable, IConvertible, IFormattable
+        private bool TryAs<T>(KeyValuePair<string, object> attr, out NBTLookup value) where T : IComparable, IConvertible, IFormattable
         {
             value = null;
             if (!(attr.Value is T))
                 return false;
-            value = new NBTLookup(Instance.GetKeyId(attr.Key), Convert.ToInt64(attr.Value));
+            value = new NBTLookup(GetKeyId(attr.Key), Convert.ToInt64(attr.Value));
             return true;
         }
 
@@ -944,7 +951,7 @@ namespace Coflnet.Sky.Core
                 {
                     if (!Enum.TryParse("ultimate_" + item, true, out type))
                         Logger.Instance.Error("Did not find Enchantment " + item + " in " + extra.ToString());
-                    if(Constants.AttributeKeys.Contains(item))
+                    if (Constants.AttributeKeys.Contains(item))
                     {
                         // skip attributes
                         continue;
