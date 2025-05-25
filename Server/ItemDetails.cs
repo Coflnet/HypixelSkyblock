@@ -40,10 +40,8 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                var data = await client.ItemsIdsGetAsync();
-                if (data.TryOk(out var ids))
-                    TagLookup = new(ids);
-                else 
+                var ids = await client.ItemsIdsGetAsync();
+                if (ids == null)
                     throw new Exception("no items found in response from items service " + SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
                 Logger.Instance.Info("loaded item tag lookup " + TagLookup.Count + " items");
             }
@@ -123,16 +121,14 @@ namespace Coflnet.Sky.Core
 
             try
             {
-                var data = client.ItemsSearchTermIdGetAsync(tag).Result;
-                if (!data.TryOk(out var id))
-                    throw new Exception("response from items service " + data.StatusCode + " " + data.RawContent.Truncate(100));
+                var id = client.ItemsSearchTermIdGetAsync(tag).Result;
                 if (id == 0 && forceGet)
                 {
                     throw new CoflnetException("item_not_found", $"could not find the item with the tag `{tag}`");
                 }
-                if (id != null && id != 0)
-                    TagLookup[tag] = id.Value;
-                return id ?? 0;
+                if (id != 0)
+                    TagLookup[tag] = id;
+                return id;
             }
             catch (Exception e)
             {
