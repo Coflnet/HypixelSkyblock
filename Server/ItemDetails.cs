@@ -11,9 +11,9 @@ namespace Coflnet.Sky.Core
 {
     public partial class ItemDetails
     {
-        Items.Client.Api.ItemsApi client;
+        Items.Client.Api.IItemsApi client;
 
-        public ItemDetails(Items.Client.Api.ItemsApi client)
+        public ItemDetails(Items.Client.Api.IItemsApi client)
         {
             this.client = client;
         }
