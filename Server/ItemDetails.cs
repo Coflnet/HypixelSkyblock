@@ -43,6 +43,10 @@ namespace Coflnet.Sky.Core
                 var ids = await client.ItemsIdsGetAsync();
                 if (ids == null)
                     throw new Exception("no items found in response from items service " + SimplerConfig.SConfig.Instance["ITEMS_BASE_URL"]);
+                foreach (var item in ids)
+                {
+                    TagLookup.TryAdd(item.Key, item.Value);
+                }
                 Logger.Instance.Info("loaded item tag lookup " + TagLookup.Count + " items");
             }
             catch (Exception e)
