@@ -859,7 +859,17 @@ namespace Coflnet.Sky.Core
                             .Get<NbtString>("minecraft:custom_name")?.StringValue;
                 if (value == null)
                     return null;
-                return JsonConvert.DeserializeObject<TextLine>(value).To1_08();
+                if (value.StartsWith("extra\":[\""))
+                    return "";
+                try
+                {
+                    return JsonConvert.DeserializeObject<TextLine>(value).To1_08();
+                }
+                catch (Exception e)
+                {
+                    dev.Logger.Instance.Error(e, $"Could not parse name {value} in {rootTag}");
+                    return "!unavailable";
+                }
             }
         }
 
