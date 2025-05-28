@@ -959,13 +959,13 @@ namespace Coflnet.Sky.Core
             {
                 if (!Enum.TryParse(item, true, out Enchantment.EnchantmentType type))
                 {
-                    if (!Enum.TryParse("ultimate_" + item, true, out type))
-                        Logger.Instance.Error("Did not find Enchantment " + item + " in " + extra.ToString());
                     if (Constants.AttributeKeys.Contains(item))
                     {
                         // skip attributes
                         continue;
                     }
+                    if (!Enum.TryParse("ultimate_" + item, true, out type))
+                        Logger.Instance.Error("Did not find Enchantment " + item + " in " + extra.ToString());
                 }
                 var level = elements.Get<NbtInt>(item).IntValue;
                 result.Add(new Enchantment(type, (byte)level));
