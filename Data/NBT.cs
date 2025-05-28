@@ -859,7 +859,7 @@ namespace Coflnet.Sky.Core
                             .Get<NbtString>("minecraft:custom_name")?.StringValue;
                 if (value == null)
                     return null;
-                if (value.StartsWith("extra\":[\""))
+                if (value.StartsWith("{\"extra\":[\""))
                     return "";
                 try
                 {
