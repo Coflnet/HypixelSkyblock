@@ -831,7 +831,10 @@ namespace Coflnet.Sky.Core
             foreach (var item in loreLines)
             {
                 if (item.StringValue.StartsWith("{\""))
-                    yield return JsonConvert.DeserializeObject<TextLine>(item.StringValue).To1_08();
+                    if (item.StringValue.StartsWith("{\"extra\":[\""))
+                        yield break;
+                    else
+                        yield return JsonConvert.DeserializeObject<TextLine>(item.StringValue).To1_08();
                 else
                     yield return item.StringValue;
             }
