@@ -117,6 +117,7 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.lapidary, 2),
             new (Enchantment.EnchantmentType.ultimate_habanero_tactics, 4),
             new (Enchantment.EnchantmentType.replenish, 1),
+            new (Enchantment.EnchantmentType.quick_bite, 1),
             // <1m enchants, can be handeled since sniper knows bazaar values
             new (Enchantment.EnchantmentType.sugar_rush, 3),
             new (Enchantment.EnchantmentType.delicate, 5),
