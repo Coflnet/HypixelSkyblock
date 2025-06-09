@@ -118,6 +118,10 @@ namespace Coflnet.Sky.Core
             auction.Enchantments = Enchantments(f);
             if (string.IsNullOrEmpty(auction.Tag))
                 TryAssignTagForBazaarBooks(auction, f);
+            if(auction.Tag == "ENCHANTED_BOOK" && auction.Enchantments.Count == 1)
+            {
+                auction.Tag = "ENCHANTMENT_" + auction.Enchantments.First().Type.ToString().ToUpper() + '_' + auction.Enchantments.First().Level;
+            }
             auction.AnvilUses = AnvilUses(f);
             auction.Count = Count(f);
             auction.ItemCreatedAt = GetDateTime(f);
@@ -134,11 +138,6 @@ namespace Coflnet.Sky.Core
                 }
             }
             var name = GetName(f);
-
-            if (f?.Get<NbtString>("id").StringValue == "minecraft:enchanted_book" && (name.Contains("BUY") || name.Contains("SELL")))
-            {
-                Console.WriteLine("book:" + f);
-            }
             if (auction.Tier == Tier.UNKNOWN)
                 auction.Tier = name.Replace("§f", "").Substring(0, 2) switch
                 {
