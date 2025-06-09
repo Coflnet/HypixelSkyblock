@@ -197,7 +197,6 @@ namespace Coflnet.Sky.Core
                     // first clear potential buy or sell order prefix
                     name = name.Replace("§a§lBUY ", "")
                         .Replace("§6§lSELL ", "");
-                    Console.WriteLine("Parsing book name " + name);
                     var lastSpace = name.LastIndexOf(' ');
                     var levelString = name.Substring(lastSpace + 1).Split('-').First();
                     if (!int.TryParse(levelString, out int level))
