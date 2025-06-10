@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Coflnet.Sky.Commands.MC;
 using dev;
 using fNbt;
@@ -207,8 +208,10 @@ namespace Coflnet.Sky.Core
                             level = 1;
                             lastSpace = name.Length + 2;
                         }
-                        else
+                        else if (Regex.IsMatch(levelString, @"[IVXLCDM]+"))
                             level = Roman.From(levelString);
+                        else
+                            return; // not a number at the end must be some other book
                     var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
                     while (enchantName.StartsWith("§"))
                         enchantName = enchantName.Substring(2);
