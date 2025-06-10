@@ -189,6 +189,8 @@ namespace Coflnet.Sky.Core
             Console.WriteLine("book:" + f);
             if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
                 return;
+            if (name == "§aEnchanted Book")
+                return; // nothing to parse
             if (!string.IsNullOrEmpty(name))
             {
                 try
