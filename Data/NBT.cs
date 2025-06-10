@@ -187,7 +187,6 @@ namespace Coflnet.Sky.Core
             var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
             if (name == "§9Stacking Enchants")
                 return; // does not have a real enchantment
-            Console.WriteLine("book:" + f);
             if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
                 return;
             if (name == "§aEnchanted Book")
@@ -222,7 +221,7 @@ namespace Coflnet.Sky.Core
                 }
                 catch (Exception e)
                 {
-                    Logger.Instance.Error(e, "Parsing book name " + name);
+                    Logger.Instance.Error(e, "Parsing book with nbt: " + f);
                 }
             }
         }
