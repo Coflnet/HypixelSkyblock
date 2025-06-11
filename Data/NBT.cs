@@ -849,22 +849,33 @@ namespace Coflnet.Sky.Core
                         yield return JsonConvert.DeserializeObject<TextLine>(item.StringValue).To1_08();
                 else if (item.TagType == NbtTagType.Compound) // 1.21.5 format
                 {
-                    if ((item as NbtCompound).TryGet<NbtString>("text", out NbtString text))
-                        yield return text.StringValue;
-                    else if ((item as NbtCompound).TryGet<NbtList>("extra", out NbtList extraList))
-                    {
-                        foreach (var extraItem in extraList)
-                        {
-                            if (extraItem.TagType == NbtTagType.String)
-                                yield return extraItem.StringValue;
-                            else if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtString>("text", out NbtString extraText))
-                                yield return extraText.StringValue;
-                        }
-                    }
+                    StringBuilder builder = ConvertTextCompound(item);
+                    yield return builder.ToString();
                 }
                 else
                     yield return item.StringValue;
             }
+        }
+
+        private static StringBuilder ConvertTextCompound(NbtTag item)
+        {
+            var builder = new StringBuilder();
+            if ((item as NbtCompound).TryGet<NbtString>("text", out NbtString text))
+                builder.Append(text.StringValue);
+            if ((item as NbtCompound).TryGet<NbtList>("extra", out NbtList extraList))
+            {
+                foreach (var extraItem in extraList)
+                {
+                    if (extraItem.TagType == NbtTagType.String)
+                        builder.Append(extraItem.StringValue);
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtString>("color", out NbtString color))
+                        builder.Append(TextLine.GetColorCode(color.StringValue));
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtString>("text", out NbtString extraText))
+                        builder.Append(extraText.StringValue);
+                }
+            }
+
+            return builder;
         }
 
         public static int? GetColor(NbtCompound compound)
@@ -885,8 +896,18 @@ namespace Coflnet.Sky.Core
 
             static string Get121Name(NbtCompound rootTag)
             {
-                var value = rootTag.Get<NbtCompound>("components")?
-                            .Get<NbtString>("minecraft:custom_name")?.StringValue;
+                var components = rootTag.Get<NbtCompound>("components");
+                if (components == null)
+                    return null;
+                if (components.TryGet("minecraft:custom_name", out var nameelem) && nameelem.TagType == NbtTagType.Compound)
+                {
+                    return NBT.ConvertTextCompound(nameelem as NbtCompound).ToString();
+                }
+                if (!components.TryGet<NbtString>("minecraft:custom_name", out var nbtString))
+                {
+                    return null;
+                }
+                var value = nbtString.StringValue;
                 if (value == null)
                     return null;
                 if (value.StartsWith("{\"extra\":[\""))
@@ -1165,6 +1186,12 @@ namespace Coflnet.Sky.Core
     public class TextLine
     {
         private static Dictionary<string, string> colorList;
+        public static string GetColorCode(string color)
+        {
+            if (colorList.TryGetValue(color.ToLower(), out var code))
+                return code;
+            return String.Empty;
+        }
         static TextLine()
         {
             colorList = typeof(McColorCodes)
