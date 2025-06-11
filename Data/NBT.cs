@@ -842,11 +842,26 @@ namespace Coflnet.Sky.Core
 
             foreach (var item in loreLines)
             {
-                if (item.StringValue.StartsWith("{\""))
+                if (item.TagType == NbtTagType.String && item.StringValue.StartsWith("{\""))
                     if (item.StringValue.StartsWith("{\"extra\":[\""))
                         yield break;
                     else
                         yield return JsonConvert.DeserializeObject<TextLine>(item.StringValue).To1_08();
+                else if (item.TagType == NbtTagType.Compound) // 1.21.5 format
+                {
+                    if ((item as NbtCompound).TryGet<NbtString>("text", out NbtString text))
+                        yield return text.StringValue;
+                    else if ((item as NbtCompound).TryGet<NbtList>("extra", out NbtList extraList))
+                    {
+                        foreach (var extraItem in extraList)
+                        {
+                            if (extraItem.TagType == NbtTagType.String)
+                                yield return extraItem.StringValue;
+                            else if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtString>("text", out NbtString extraText))
+                                yield return extraText.StringValue;
+                        }
+                    }
+                }
                 else
                     yield return item.StringValue;
             }
