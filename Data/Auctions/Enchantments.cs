@@ -165,7 +165,7 @@ namespace Coflnet.Sky.Core
             drain,
             ultimate_first_impression,
             forest_pledge,
-            missile,
+            ultimate_missile,
             raspiration,
             scuba,
             stealth
