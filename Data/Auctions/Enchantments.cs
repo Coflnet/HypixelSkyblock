@@ -69,7 +69,7 @@ namespace Coflnet.Sky.Core
             luck_of_the_sea,
             true_protection,
             sugar_rush,
-             // invalid enchant, may be reasigned
+            // invalid enchant, may be reasigned
             replenish = 60,
             rejuvenate,
             ultimate_bank,
@@ -142,7 +142,7 @@ namespace Coflnet.Sky.Core
             prosperity,
             sunder,
             dedication,
-            
+
             Any = 126,
             green_thumb,
             transylvanian = -120,
@@ -160,6 +160,15 @@ namespace Coflnet.Sky.Core
             small_brain,
             tidal,
             quick_bite,
+            absorb,
+            arcane,
+            drain,
+            ultimate_first_impression,
+            forest_pledge,
+            missile,
+            raspiration,
+            scuba,
+            stealth
         }
 
         [System.ComponentModel.DataAnnotations.Key]

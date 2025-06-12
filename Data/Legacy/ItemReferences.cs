@@ -187,6 +187,7 @@ namespace Coflnet.Sky.Core
             squeaky,
             trashy,
             calcified,
+            mangrove
         }
 
 
