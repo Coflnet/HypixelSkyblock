@@ -117,8 +117,9 @@ namespace Coflnet.Sky.Core
             auction.Tag = ItemID(f).Truncate(40);
 
             auction.Enchantments = Enchantments(f);
+            var name = GetName(f);
             if (string.IsNullOrEmpty(auction.Tag))
-                TryAssignTagForBazaarBooks(auction, f);
+                TryAssignTagForBazaarBooks(auction,name, f);
             if (auction.Tag == "ENCHANTED_BOOK" && auction.Enchantments.Count == 1)
             {
                 auction.Tag = "ENCHANTMENT_" + auction.Enchantments.First().Type.ToString().ToUpper() + '_' + auction.Enchantments.First().Level;
@@ -138,7 +139,6 @@ namespace Coflnet.Sky.Core
                         break;
                 }
             }
-            var name = GetName(f);
             if (auction.Tier == Tier.UNKNOWN)
                 auction.Tier = name.Replace("§f", "").Substring(0, 2) switch
                 {
@@ -177,14 +177,13 @@ namespace Coflnet.Sky.Core
             return tag.Get<NbtString>("uuid").StringValue;
         }
 
-        private static void TryAssignTagForBazaarBooks(SaveAuction auction, NbtCompound f)
+        private static void TryAssignTagForBazaarBooks(SaveAuction auction, string name, NbtCompound f)
         {
             var mcId = f?.Get<NbtString>("id").StringValue;
             if (mcId != "minecraft:enchanted_book")
             {
                 return;
             }
-            var name = f?.Get<NbtCompound>("tag")?.Get<NbtCompound>("display")?.Get<NbtString>("Name")?.StringValue;
             if (name == "§9Stacking Enchants")
                 return; // does not have a real enchantment
             if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
@@ -197,8 +196,7 @@ namespace Coflnet.Sky.Core
                 {
                     // try to get enchantment for bazaar
                     // first clear potential buy or sell order prefix
-                    name = name.Replace("§a§lBUY ", "")
-                        .Replace("§6§lSELL ", "");
+                    name = Regex.Replace(name, "§[0-9a-f]|SELL |BUY ","");
                     var lastSpace = name.LastIndexOf(' ');
                     var levelString = name.Substring(lastSpace + 1).Split('-').First();
                     if (!int.TryParse(levelString, out int level))
@@ -211,9 +209,7 @@ namespace Coflnet.Sky.Core
                             level = Roman.From(levelString);
                         else
                             return; // not a number at the end must be some other book
-                    var enchantName = name.Substring(2, lastSpace - 2).Replace(' ', '_').Replace('-', '_');
-                    while (enchantName.StartsWith("§"))
-                        enchantName = enchantName.Substring(2);
+                    var enchantName = name.Substring(0, lastSpace).Trim().Replace(' ', '_').Replace('-', '_');
                     if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
                         if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
                             Console.WriteLine("unkown enchant " + enchantName);
