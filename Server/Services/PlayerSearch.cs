@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Coflnet;
 using Microsoft.EntityFrameworkCore;
@@ -163,21 +164,47 @@ namespace Coflnet.Sky.Core
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
 
-            client = new RestClient("https://mc-heads.net/");
-            request = new RestRequest($"/minecraft/profile/{name}", Method.Get);
+            client = new RestClient("https://playerdb.co/");
+            request = new RestRequest($"/api/player/minecraft/{name}", Method.Get);
             response = await client.ExecuteAsync(request);
+            Console.WriteLine($"PlayerDB response: {response.StatusCode} - {response.Content}");
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 return null;
-            return JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
+            var responseData = JsonConvert.DeserializeObject<PlayerDbResponse>(response.Content).Data;
+            Console.WriteLine($"PlayerDB response: {responseData.Player.RawId} - {responseData.Player.Username}");
+            return new MinecraftProfile
+            {
+                Id = responseData.Player.RawId,
+                Name = responseData.Player.Username
+            };
+        }
+
+        public class PlayerDbResponse
+        {
+            [JsonProperty("data")]
+            public PlayerDbData Data { get; set; }
+        }
+        public class PlayerDbData
+        {
+            [JsonProperty("player")]
+            public PlayerDbPlayer Player { get; set; }
+        }
+        public class PlayerDbPlayer
+        {
+            [JsonProperty("raw_id")]
+            public string RawId { get; set; }
+
+            [JsonProperty("username")]
+            public string Username { get; set; }
         }
 
         public class MinecraftProfile
         {
             [JsonProperty("id")]
-            public string Id { get; private set; }
+            public string Id { get; init; }
 
             [JsonProperty("name")]
-            public string Name { get; private set; }
+            public string Name { get; init; }
         }
     }
 }
