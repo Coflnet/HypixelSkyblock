@@ -207,7 +207,7 @@ namespace Coflnet.Sky.Core
                             level = 1;
                             lastSpace = name.Length + 2;
                         }
-                        else if (Regex.IsMatch(levelString, @"[IVXLCDM]+"))
+                        else if (Regex.IsMatch(levelString, @"[IVXLCDM]+$"))
                             level = Roman.From(levelString);
                         else
                             return; // not a number at the end must be some other book
