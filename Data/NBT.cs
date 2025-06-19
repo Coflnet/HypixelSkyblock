@@ -198,6 +198,8 @@ namespace Coflnet.Sky.Core
                     // first clear potential buy or sell order prefix
                     name = Regex.Replace(name, "§[0-9a-f]|SELL |BUY ","");
                     var lastSpace = name.LastIndexOf(' ');
+                    if (lastSpace < 0)
+                        return; // has no level
                     var levelString = name.Substring(lastSpace + 1).Split('-').First();
                     if (!int.TryParse(levelString, out int level))
                         if (lastSpace < 0)
