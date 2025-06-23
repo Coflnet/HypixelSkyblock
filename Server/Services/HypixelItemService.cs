@@ -50,7 +50,12 @@ public class HypixelItemService : IHypixelItemStore
         if (response.IsSuccessStatusCode)
         {
             var responseStream = await response.Content.ReadAsStreamAsync();
-            var data = await JsonSerializer.DeserializeAsync<Root>(responseStream);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new IntFromStringJsonConverter() }
+            };
+            var data = await JsonSerializer.DeserializeAsync<Root>(responseStream, options);
             _items = data.Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
             return _items;
         }
@@ -58,6 +63,23 @@ public class HypixelItemService : IHypixelItemStore
         {
             _logger.LogError("Something went wrong while fetching the items from the hypixel api");
             return null;
+        }
+    }
+
+    public class IntFromStringJsonConverter : JsonConverter<int>
+    {
+        public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.String && int.TryParse(reader.GetString(), out var value))
+            {
+                return value;
+            }
+            return reader.GetInt32();
+        }
+
+        public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
+        {
+            writer.WriteNumberValue(value);
         }
     }
 
