@@ -43,6 +43,7 @@ namespace Coflnet.Sky.Core
             ItemReferences.Reforge.glacial,
             ItemReferences.Reforge.coldfused,
             ItemReferences.Reforge.Renowned,
+            ItemReferences.Reforge.moonglade,
             //ItemReferences.Reforge.scraped // with apply cost above 1m
         };
         // include pet items lucky clover, shemlet, quick clow, golden clow, buble gum, text book
@@ -258,6 +259,7 @@ namespace Coflnet.Sky.Core
             { Enchantment.EnchantmentType.toxophilite, ("toxophilite_combat_xp",1,3_000_000)},
             { Enchantment.EnchantmentType.compact, ("compact_blocks", 6, 1_000_000)},
             { Enchantment.EnchantmentType.hecatomb, ("hecatomb_s_runs", 200_000, 100)},
+            { Enchantment.EnchantmentType.absorb, ("absorb_logs_chopped", 0.1, 50_000_000)},
             { Enchantment.EnchantmentType.expertise, ("expertise_kills", 1000, 15_000)}
         }.ToImmutableDictionary();
 
