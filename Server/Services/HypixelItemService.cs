@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Core.Services;
+
 public interface IHypixelItemStore
 {
     Task<Dictionary<string, Item>> GetItemsAsync();
@@ -40,9 +41,14 @@ public class HypixelItemService : IHypixelItemStore
 
     private async Task<Dictionary<string, Item>> LoadItems()
     {
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new IntFromStringJsonConverter() }
+        };
         if (File.Exists("items.json"))
         {
-            _items = JsonSerializer.Deserialize<Root>(await File.ReadAllTextAsync("items.json"))
+            _items = JsonSerializer.Deserialize<Root>(await File.ReadAllTextAsync("items.json"), options)
                 .Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
             return _items;
         }
@@ -50,11 +56,6 @@ public class HypixelItemService : IHypixelItemStore
         if (response.IsSuccessStatusCode)
         {
             var responseStream = await response.Content.ReadAsStreamAsync();
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                Converters = { new IntFromStringJsonConverter() }
-            };
             var data = await JsonSerializer.DeserializeAsync<Root>(responseStream, options);
             _items = data.Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
             return _items;
