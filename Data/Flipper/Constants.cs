@@ -254,7 +254,7 @@ namespace Coflnet.Sky.Core
                 }.ToImmutableHashSet();
 
         public static readonly ImmutableDictionary<Enchantment.EnchantmentType, (string, double, int)> EnchantToAttribute = new Dictionary<Enchantment.EnchantmentType, (string, double, int)>(){
-            { Enchantment.EnchantmentType.cultivating, ("farmed_cultivating",0.1, 100_000_000)},
+            { Enchantment.EnchantmentType.cultivating, ("farmed_cultivating",0.13, 100_000_000)},
             { Enchantment.EnchantmentType.champion, ("champion_combat_xp",1,3_000_000)},
             { Enchantment.EnchantmentType.toxophilite, ("toxophilite_combat_xp",1,3_000_000)},
             { Enchantment.EnchantmentType.compact, ("compact_blocks", 6, 1_000_000)},
