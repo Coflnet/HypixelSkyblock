@@ -23,6 +23,7 @@ namespace Coflnet.Sky.Core
         int GetValueId(short key, string value);
         NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList = null);
         NBTLookup[] CreateLookup(SaveAuction auction);
+        long GetItemIdForSkin(string name);
     }
 
     public class NBT : INBT
