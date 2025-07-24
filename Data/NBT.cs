@@ -882,7 +882,10 @@ namespace Coflnet.Sky.Core
             return compound
                 ?.Get<NbtCompound>("tag")
                 ?.Get<NbtCompound>("display")
-                ?.Get<NbtInt>("color")?.IntValue;
+                ?.Get<NbtInt>("color")?.IntValue
+                ?? compound
+                ?.Get<NbtCompound>("components")
+                ?.Get<NbtInt>("minecraft:dyed_color")?.IntValue;
         }
         public static string GetName(NbtCompound rootTag)
         {
