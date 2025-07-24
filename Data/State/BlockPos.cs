@@ -22,4 +22,9 @@ public class BlockPos
     /// </summary>
     [Key(2)]
     public double Z { get; set; }
+
+    public override string ToString()
+    {
+        return $"BlockPos(X: {X}, Y: {Y}, Z: {Z})";
+    }
 }
