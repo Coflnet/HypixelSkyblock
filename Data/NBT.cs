@@ -140,11 +140,12 @@ namespace Coflnet.Sky.Core
                         break;
                 }
             }
-            if (auction.Tier == Tier.UNKNOWN)
+            if (auction.Tier <= Tier.UNKNOWN)
                 auction.Tier = name.Replace("§f", "").Substring(0, 2) switch
                 {
                     "§c" => Tier.SPECIAL, // god potions don't have it in lore, also they start with two §f
                     "§4" => Tier.ULTIMATE, // skins are sometimes missing the tag
+                    "§b" => Tier.DIVINE, // drills have issue to find tier (and the fact that tiers have been renamed)
                     _ => Tier.UNKNOWN
                 };
             if (auction.Context != null)
