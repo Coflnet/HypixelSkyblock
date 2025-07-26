@@ -222,8 +222,23 @@ public class HypixelItemService : IHypixelItemStore
         {
             return new List<DungeonUpgradeCost>();
         }
+        var extra = new List<DungeonUpgradeCost>();
+        if (tier > cost.Count)
+        {
+            // no tiers available to upgrade, assume master stars needed
+            if (tier == 10 && baseTier <= 9)
+                extra.Add(new DungeonUpgradeCost(null, 1, "FIFTH_MASTER_STAR", "ITEM"));
+            if (tier >= 9 && baseTier <= 8)
+                extra.Add(new DungeonUpgradeCost(null, 1, "FOURTH_MASTER_STAR", "ITEM"));
+            if (tier >= 8 && baseTier <= 7)
+                extra.Add(new DungeonUpgradeCost(null, 1, "THIRD_MASTER_STAR", "ITEM"));
+            if (tier >= 7 && baseTier <= 6)
+                extra.Add(new DungeonUpgradeCost(null, 1, "SECOND_MASTER_STAR", "ITEM"));
+            if (tier >= 6 && baseTier <= 5)
+                extra.Add(new DungeonUpgradeCost(null, 1, "FIRST_MASTER_STAR", "ITEM"));
+        }
 
-        return cost.Skip(baseTier).Take(tier - baseTier).SelectMany(x => x);
+        return cost.Skip(baseTier).Take(tier - baseTier).SelectMany(x => x).Concat(extra);
     }
 }
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
