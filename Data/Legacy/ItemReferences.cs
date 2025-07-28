@@ -189,6 +189,7 @@ namespace Coflnet.Sky.Core
             calcified,
             groovy,
             moonglade,
+            bloodshot
         }
 
 
