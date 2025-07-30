@@ -27,4 +27,13 @@ public class BlockPos
     {
         return $"BlockPos(X: {X}, Y: {Y}, Z: {Z})";
     }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is BlockPos other)
+        {
+            return X == other.X && Y == other.Y && Z == other.Z;
+        }
+        return false;
+    }
 }
