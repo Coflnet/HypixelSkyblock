@@ -198,7 +198,7 @@ namespace Coflnet.Sky.Core
                 {
                     // try to get enchantment for bazaar
                     // first clear potential buy or sell order prefix
-                    name = Regex.Replace(name, "§[0-9a-fklmnor]|SELL |BUY ","");
+                    name = Regex.Replace(name, "§[0-9a-fklmnor]|SELL |BUY |'","");
                     var lastSpace = name.LastIndexOf(' ');
                     if (lastSpace < 0)
                         return; // has no level
