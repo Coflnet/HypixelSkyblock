@@ -120,7 +120,7 @@ namespace Coflnet.Sky.Core
             auction.Enchantments = Enchantments(f);
             var name = GetName(f);
             if (string.IsNullOrEmpty(auction.Tag))
-                TryAssignTagForBazaarBooks(auction,name, f);
+                TryAssignTagForBazaarBooks(auction, name, f);
             if (auction.Tag == "ENCHANTED_BOOK" && auction.Enchantments.Count == 1)
             {
                 auction.Tag = "ENCHANTMENT_" + auction.Enchantments.First().Type.ToString().ToUpper() + '_' + auction.Enchantments.First().Level;
@@ -198,7 +198,7 @@ namespace Coflnet.Sky.Core
                 {
                     // try to get enchantment for bazaar
                     // first clear potential buy or sell order prefix
-                    name = Regex.Replace(name, "§[0-9a-fklmnor]|SELL |BUY |'","");
+                    name = Regex.Replace(name, "§[0-9a-fklmnor]|SELL |BUY |'", "");
                     var lastSpace = name.LastIndexOf(' ');
                     if (lastSpace < 0)
                         return; // has no level
@@ -870,6 +870,16 @@ namespace Coflnet.Sky.Core
                         builder.Append(extraItem.StringValue);
                     if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtString>("color", out NbtString color))
                         builder.Append(TextLine.GetColorCode(color.StringValue));
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtByte>("bold", out NbtByte isBold) && isBold.ByteValue == 1)
+                        builder.Append("§l");
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtByte>("italic", out NbtByte isItalic) && isItalic.ByteValue == 1)
+                        builder.Append("§o");
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtByte>("underlined", out NbtByte isUnderlined) && isUnderlined.ByteValue == 1)
+                        builder.Append("§n");
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtByte>("strikethrough", out NbtByte isStrikethrough) && isStrikethrough.ByteValue == 1)
+                        builder.Append("§m");
+                    if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtByte>("obfuscated", out NbtByte isObfuscated) && isObfuscated.ByteValue == 1)
+                        builder.Append("§k");
                     if (extraItem.TagType == NbtTagType.Compound && (extraItem as NbtCompound).TryGet<NbtString>("text", out NbtString extraText))
                         builder.Append(extraText.StringValue);
                 }
