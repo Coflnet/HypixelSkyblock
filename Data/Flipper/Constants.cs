@@ -540,6 +540,7 @@ namespace Coflnet.Sky.Core
             { "Salmon", "SALMON" },
             { "Hummingbird", "HUMMINGBIRD" },
             { "Abyssal Lanternfish", "ABYSSAL_LANTERN" },
+            { "Titanoboa", "TITANOBOA" },
         };
     }
 }
