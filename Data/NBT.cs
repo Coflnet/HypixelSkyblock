@@ -57,15 +57,21 @@ namespace Coflnet.Sky.Core
             {
                 base64 = root
                     .Get<NbtCompound>("tag")
-                    .Get<NbtCompound>("SkullOwner")?
-                    .Get<NbtCompound>("Properties")?
-                    .Get<NbtList>("textures")
+                    ?.Get<NbtCompound>("SkullOwner")
+                    ?.Get<NbtCompound>("Properties")
+                    ?.Get<NbtList>("textures")
                     .Get<NbtCompound>(0)
-                    .Get<NbtString>("Value").StringValue;
+                    .Get<NbtString>("Value").StringValue
+                    ?? root.Get<NbtCompound>("components")
+                    .Get<NbtCompound>("minecraft:profile")
+                    .Get<NbtList>("properties")
+                    .Get<NbtCompound>(0)
+                    .Get<NbtString>("value").StringValue;
+
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error in parsing {root.ToString()} {e.Message}");
+                Console.WriteLine($"Error in parsing {root.ToString()} {e}");
             }
             if (string.IsNullOrEmpty(base64))
                 return null;
