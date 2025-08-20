@@ -315,6 +315,11 @@ public class PropertyMapper
         {
             return (long)bazaarPrices.GetValueOrDefault("GOLDEN_BOUNTY", 1_000_000);
         }
+        else if (enchant.Type == Enchantment.EnchantmentType.ender_slayer && enchant.Level == 7)
+        {
+            return (long)bazaarPrices.GetValueOrDefault("ENDER_SLAYER_6", 1_000_000)
+                + (long)bazaarPrices.GetValueOrDefault("ENDSTONE_IDOL", 50_000_000);
+        }
         else
         {
             var lvl5Key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_5";
