@@ -933,6 +933,8 @@ namespace Coflnet.Sky.Core
                     return null;
                 if (value.StartsWith("{\"extra\":[\""))
                     return "";
+                if (!value.StartsWith('{'))
+                    return value; // assume its a litteral string
                 try
                 {
                     return JsonConvert.DeserializeObject<TextLine>(value).To1_08();
