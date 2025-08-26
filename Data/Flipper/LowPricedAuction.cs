@@ -8,13 +8,13 @@ namespace Coflnet.Sky.Core
     public class LowPricedAuction
     {
         [DataMember(Name = "target")]
-        public long TargetPrice;
+        public long TargetPrice { get; set; }
         [DataMember(Name = "vol")]
-        public float DailyVolume;
+        public float DailyVolume { get; set; }
         [DataMember(Name = "auc")]
-        public SaveAuction Auction;
+        public SaveAuction Auction { get; set; }
         [DataMember(Name = "finder")]
-        public FinderType Finder;
+        public FinderType Finder { get; set; }
         [DataMember(Name = "props")]
         public Dictionary<string, string> AdditionalProps = new();
         [IgnoreDataMember]
