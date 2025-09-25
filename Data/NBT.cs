@@ -26,7 +26,7 @@ namespace Coflnet.Sky.Core
         long GetItemIdForSkin(string name);
     }
 
-    public class NBT : INBT
+    public partial class NBT : INBT
     {
         private ItemDetails itemDetails;
 
@@ -534,13 +534,20 @@ namespace Coflnet.Sky.Core
                     }
 
                     var keys = dict?.Keys;
-                    foreach (var item in keys)
+                    if (keys != null)
                     {
-                        if (item.EndsWith("_1") || item.EndsWith("_0") || item.EndsWith("_2") || item.EndsWith("_3") || item.EndsWith("_4"))
+                        foreach (var item in keys.ToList())
                         {
+                            var m = MyRegex().Match(item);
+                            if (!m.Success)
+                                continue;
+                            if (!int.TryParse(m.Groups[1].Value, out int idx) || idx < 0 || idx >= 20)
+                                continue;
+
                             dynamic gemInfo = dict[item];
                             if (gemInfo is string)
                                 continue;
+
                             data[item] = gemInfo["quality"];
                             data[item + ".uuid"] = gemInfo["uuid"];
                             gemInfo.Remove("uuid");
@@ -1197,6 +1204,9 @@ namespace Coflnet.Sky.Core
             file.SaveToStream(outStream, NbtCompression.None);
             return outStream.ToArray();
         }
+
+        [GeneratedRegex(@"_(\d{1,2})$")]
+        private static partial Regex MyRegex();
     }
 
     public class TextElement
