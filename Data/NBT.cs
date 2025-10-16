@@ -408,9 +408,9 @@ namespace Coflnet.Sky.Core
                     return res;
                 if (TryAs<double>(attr, out res))
                     return res;
-
+                    
                 if (key == "uid" || key == "uuid" || key.EndsWith(".uuid"))
-                    return new NBTLookup(GetKeyId(key), UidToLong(attr));
+                        return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
                     return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if ((key == "hideInfo" || key == "active") && !((bool)attr.Value))
@@ -426,6 +426,8 @@ namespace Coflnet.Sky.Core
                     var keyId = GetKeyId(key);
                     if (!(attr.Value is string value))
                         value = JsonConvert.SerializeObject(attr.Value);
+                    if (key == "cake_owner")
+                        value = value.Replace("ዞ", "H"); // fix hypixel admin rank
                     return new NBTLookup(keyId, GetValueId(keyId, value));
                 }
                 if (key == "color")
