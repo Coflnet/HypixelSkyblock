@@ -65,7 +65,11 @@ namespace Coflnet.Sky.Core
             {
                 if (value == null)
                     return;
-                Category = (Category)Enum.Parse(typeof(Category), value, true);
+                if(Enum.TryParse<Category>(value, true, out var category))
+                {
+                    Category = category;
+                    return;
+                }
             }
         }
 
