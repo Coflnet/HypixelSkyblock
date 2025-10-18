@@ -89,6 +89,7 @@ namespace Coflnet.Sky.Core
             new Enchantment(Enchantment.EnchantmentType.ultimate_wisdom,3),
             new Enchantment(Enchantment.EnchantmentType.compact,1),
             new Enchantment(Enchantment.EnchantmentType.counter_strike,5),
+            new Enchantment(Enchantment.EnchantmentType.experience,5),
             new Enchantment(Enchantment.EnchantmentType.smarty_pants,2),
             new Enchantment(Enchantment.EnchantmentType.cultivating,1),
             new Enchantment(Enchantment.EnchantmentType.smoldering,1),
@@ -184,7 +185,8 @@ namespace Coflnet.Sky.Core
             {Enchantment.EnchantmentType.prosperity, 4},
             {Enchantment.EnchantmentType.dedication, 4},
             {Enchantment.EnchantmentType.pesterminator,4 },
-            {Enchantment.EnchantmentType.ultimate_the_one,4}
+            {Enchantment.EnchantmentType.ultimate_the_one,4},
+            {Enchantment.EnchantmentType.experience,5}
         };
 
         private static List<int> WorthOrder = new List<int>()
