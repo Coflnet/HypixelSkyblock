@@ -673,7 +673,7 @@ namespace Coflnet.Sky.Core
             }
             catch (Exception e)
             {
-                Console.WriteLine(e + $"\nCould not unwrap {JSON.Stringify(data[key])}");
+                Console.WriteLine(e + $"\nCould not unwrap {JSON.Stringify(data[key])} \nwhich is:{data[key].GetType().Name} {data[key]}");
             }
         }
 
