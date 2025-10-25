@@ -227,6 +227,7 @@ namespace Coflnet.Sky.Core
                         "Gravity" => "dragon_hunter",
                         "Dragon_Tracer" => "aiming",
                         "Turbo_Cocoa" => "TURBO_COCO",
+                        "Turbo_Cacti" => "TURBO_CACTUS",
                         _ => readname
                     };
                     if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
