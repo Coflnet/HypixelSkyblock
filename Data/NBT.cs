@@ -219,7 +219,16 @@ namespace Coflnet.Sky.Core
                             level = Roman.From(levelString);
                         else
                             return; // not a number at the end must be some other book
-                    var enchantName = name.Substring(0, lastSpace).Trim().Replace(' ', '_').Replace('-', '_');
+                    var readname = name.Substring(0, lastSpace).Trim().Replace(' ', '_').Replace('-', '_');
+                    var enchantName = readname switch
+                    {
+                        "Drain" => "syphon",
+                        "Woodsplitter" => "arcane",
+                        "Gravity" => "dragon_hunter",
+                        "Dragon_Tracer" => "aiming",
+                        "Turbo_Cocoa" => "TURBO_COCO",
+                        _ => readname
+                    };
                     if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
                         if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
                             Console.WriteLine("unkown enchant " + enchantName);
@@ -408,9 +417,9 @@ namespace Coflnet.Sky.Core
                     return res;
                 if (TryAs<double>(attr, out res))
                     return res;
-                    
+
                 if (key == "uid" || key == "uuid" || key.EndsWith(".uuid"))
-                        return new NBTLookup(GetKeyId(key), UidToLong(attr));
+                    return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
                     return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if ((key == "hideInfo" || key == "active") && !((bool)attr.Value))
