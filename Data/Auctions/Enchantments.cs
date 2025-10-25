@@ -101,6 +101,9 @@ namespace Coflnet.Sky.Core
             turbo_wheat,
             chance,
             prosecute,
+            /// <summary>
+            /// Renamed to drain in the Foraging update 2025
+            /// </summary>
             syphon,
             respite,
             thunderbolt,
@@ -162,8 +165,8 @@ namespace Coflnet.Sky.Core
             quick_bite,
             absorb,
             arcane,
-            drain,
-            ultimate_first_impression,
+            drainRenamed, // replaceable
+            ultimate_first_impression = -102,
             forest_pledge,
             ultimate_missile,
             raspiration,

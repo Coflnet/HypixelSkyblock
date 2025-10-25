@@ -121,7 +121,6 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.replenish, 1),
             new (Enchantment.EnchantmentType.quick_bite, 1),
             new (Enchantment.EnchantmentType.absorb, 1),
-            new (Enchantment.EnchantmentType.drain, 5),
             new (Enchantment.EnchantmentType.forest_pledge, 4),
             new (Enchantment.EnchantmentType.raspiration, 4),
             new (Enchantment.EnchantmentType.scuba, 3),
