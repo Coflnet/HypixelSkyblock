@@ -315,6 +315,11 @@ public class PropertyMapper
         {
             return (long)bazaarPrices.GetValueOrDefault("GOLDEN_BOUNTY", 1_000_000);
         }
+        else if (enchant.Type == Enchantment.EnchantmentType.venomous && enchant.Level == 7)
+        {
+            return (long)bazaarPrices.GetValueOrDefault("FATEFUL_STINGER", 5_000_000) +
+                (long)bazaarPrices.GetValueOrDefault("ENCHANTMENT_VENOMOUS_6", 2_000_000);
+        }
         else if (enchant.Type == Enchantment.EnchantmentType.ender_slayer && enchant.Level == 7)
         {
             return (long)bazaarPrices.GetValueOrDefault("ENDER_SLAYER_6", 1_000_000)
