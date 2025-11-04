@@ -190,7 +190,8 @@ namespace Coflnet.Sky.Core
             groovy,
             moonglade,
             bloodshot, // was glitched, same as next one but ignored in game now
-            blood_shot
+            blood_shot,
+            erudite
         }
 
 
