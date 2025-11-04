@@ -543,6 +543,10 @@ namespace Coflnet.Sky.Core
             { "Abyssal Lanternfish", "ABYSSAL_LANTERN" },
             { "Titanoboa", "TITANOBOA" },
             { "Scarf", "SCARF"},
+            { "Sphinx", "SPHINX" },
+            { "King Minos", "KING_MINOS" },
+            { "Cretan Bull", "CRETAN_BULL" },
+            { "Minotaur", "MINOTAUR" }
         };
     }
 }
