@@ -52,6 +52,21 @@ public class HypixelItemService : IHypixelItemStore
                 .Items.Where(x => x.Id != null).ToDictionary(x => x.Id);
             return _items;
         }
+        while (true)
+        {
+            try
+            {
+                return await FetchFromApi(options);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to fetch items from hypixel api, retrying in 10 seconds");
+                await Task.Delay(10000);
+            }
+        }
+    }
+    private async Task<Dictionary<string, Item>> FetchFromApi(JsonSerializerOptions options)
+    {
         var response = await _httpClient.GetAsync("https://api.hypixel.net/resources/skyblock/items");
         if (response.IsSuccessStatusCode)
         {
