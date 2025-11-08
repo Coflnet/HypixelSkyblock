@@ -67,6 +67,7 @@ public class HypixelItemService : IHypixelItemStore
     }
     private async Task<Dictionary<string, Item>> FetchFromApi(JsonSerializerOptions options)
     {
+        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("sky-us.coflnet.com/1.0 (hypixel item loader)");
         var response = await _httpClient.GetAsync("https://api.hypixel.net/resources/skyblock/items");
         if (response.IsSuccessStatusCode)
         {
