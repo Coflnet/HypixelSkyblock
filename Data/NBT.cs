@@ -940,7 +940,7 @@ namespace Coflnet.Sky.Core
                 if (components.TryGet("minecraft:custom_name", out var nameelem) && nameelem.TagType == NbtTagType.Compound)
                 {
                     if (components.TryGet<NbtString>("bazaarutils:custom_size", out var bazaarUtils))
-                        return "BazaarUtils " + nameelem.StringValue; // bazaar utils does not have any json formatting 
+                        return "BazaarUtils " + bazaarUtils.StringValue; // bazaar utils does not have any json formatting 
                     return NBT.ConvertTextCompound(nameelem as NbtCompound).ToString();
                 }
                 if (!components.TryGet<NbtString>("minecraft:custom_name", out var nbtString))
