@@ -192,7 +192,7 @@ public class PropertyMapper
             { ItemReferences.Reforge.blood_soaked, ("PRESUMED_GALLON_OF_RED_PAINT", 150000)},
             { ItemReferences.Reforge.Fang_tastic_chocolate_chip, ("CHOCOLATE_CHIP", 0)},
             { ItemReferences.Reforge.bubba_blister, ("BUBBA_BLISTER", 0)},
-            { ItemReferences.Reforge.bloodshot, ("SHRIVELED_CORNEA", 1_000_000)},
+            { ItemReferences.Reforge.blood_shot, ("SHRIVELED_CORNEA", 1_000_000)},
         };
 
     public (string, int) GetReforgeCost(ItemReferences.Reforge reforge, Tier tier = Tier.LEGENDARY)
