@@ -191,7 +191,9 @@ namespace Coflnet.Sky.Core
             moonglade,
             bloodshot, // was glitched, same as next one but ignored in game now
             blood_shot,
-            erudite
+            erudite,
+            lunar,
+            sunny,
         }
 
 
