@@ -171,24 +171,25 @@ namespace Coflnet.Sky.Core
             ultimate_missile,
             raspiration,
             scuba,
-            stealth
+            stealth,
+            ultimate_crop_fever,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
         [MessagePack.IgnoreMember]
         [JsonIgnore]
-        public int Id {get;set;}
+        public int Id { get; set; }
 
         [MessagePack.Key(0)]
         [JsonProperty("type")]
         [JsonConverter(typeof(StringEnumConverter))]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(3)")]
-        public EnchantmentType Type {get;set;}
+        public EnchantmentType Type { get; set; }
 
         [MessagePack.Key(1)]
         [JsonProperty("level")]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "TINYINT(3)")]
-        public byte Level {get;set;}
+        public byte Level { get; set; }
         /// <summary>
         /// ItemType is here for faster sorting
         /// </summary>
@@ -196,7 +197,7 @@ namespace Coflnet.Sky.Core
         [MessagePack.IgnoreMember]
         [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "MEDIUMINT(9)")]
         [JsonIgnore]
-        public int ItemType {get;set;}
+        public int ItemType { get; set; }
 
         /// <summary>
         /// The id of the auctions this coresponds to
@@ -204,17 +205,18 @@ namespace Coflnet.Sky.Core
         /// <value></value>
         [MessagePack.IgnoreMember]
         [JsonIgnore]
-        public int SaveAuctionId {get;set;}
+        public int SaveAuctionId { get; set; }
 
 
-        public Enchantment(EnchantmentType type, byte level,int itemType = 0)
+        public Enchantment(EnchantmentType type, byte level, int itemType = 0)
         {
             Type = type;
             Level = level;
             ItemType = itemType;
         }
 
-        public Enchantment() {
+        public Enchantment()
+        {
 
         }
 
