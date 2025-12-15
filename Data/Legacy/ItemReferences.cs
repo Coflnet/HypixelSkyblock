@@ -194,7 +194,7 @@ namespace Coflnet.Sky.Core
             erudite,
             lunar,
             sunny,
-            Mantid_Claw
+            mantid
         }
 
 
