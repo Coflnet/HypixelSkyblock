@@ -173,6 +173,9 @@ namespace Coflnet.Sky.Core
             scuba,
             stealth,
             ultimate_crop_fever,
+            turbo_sunflower,
+            turbo_moonflower,
+            turbo_rose,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
