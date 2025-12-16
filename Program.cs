@@ -385,6 +385,10 @@ namespace Coflnet.Sky.Core
 
         }
 
+        public static void ResetRequestsSinceStart()
+        {
+            RequestsSinceStart = 0;
+        }
 
         /// <summary>
         /// Downloads username for a given uuid from mojang.
