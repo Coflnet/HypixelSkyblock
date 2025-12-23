@@ -5,6 +5,7 @@ using MessagePack;
 namespace Coflnet.Sky.Core
 {
     [DataContract]
+    [MessagePackObject]
     public class AveragePrice
     {
         [IgnoreDataMember]

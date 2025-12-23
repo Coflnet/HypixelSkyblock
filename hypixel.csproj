@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
@@ -14,7 +14,7 @@
     <PackageReference Include="Confluent.Kafka" Version="2.12.0" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
     <PackageReference Include="MessagePack" Version="2.5.198" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.22" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.22" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.22" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.14.1" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.0.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
@@ -34,15 +34,15 @@
     <PackageReference Include="prometheus-net" Version="8.2.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
     <PackageReference Include="RateLimiter" Version="2.2.0" />
-    <PackageReference Include="RestSharp" Version="112.1.0" />
+    <PackageReference Include="RestSharp" Version="113.0.0" />
     <PackageReference Include="SimplerConfig" Version="1.0.4" />
     <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="7.3.2" />
-    <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="10.1.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="10.0.1" />
 
 
-    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="6.0.1" />
     <PackageReference Include="NUnit" Version="4.4.0" />
 
     <!--None Include="custom.conf.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
