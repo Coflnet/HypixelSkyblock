@@ -341,7 +341,8 @@ namespace Coflnet.Sky.Core
         static readonly HashSet<string> IgnoreIndexing = new()
         {
             "uniqueId", // unimportant id
-            "noMove"
+            "noMove",
+            "petSoulbound",
         };
 
         internal static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
