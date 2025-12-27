@@ -557,13 +557,32 @@ namespace Coflnet.Sky.Core
                             if (!int.TryParse(m.Groups[1].Value, out int idx) || idx < 0 || idx >= 20)
                                 continue;
 
-                            dynamic gemInfo = dict[item];
-                            if (gemInfo is string)
-                                continue;
+                                    var gemInfoObj = dict[item];
+                                    if (gemInfoObj is string)
+                                        continue;
 
-                            data[item] = gemInfo["quality"];
-                            data[item + ".uuid"] = gemInfo["uuid"];
-                            gemInfo.Remove("uuid");
+                                    // gemInfo can be a JObject, a Dictionary<string, object> or a JValue.
+                                    if (gemInfoObj is JObject gemJObject)
+                                    {
+                                        data[item] = gemJObject["quality"];
+                                        data[item + ".uuid"] = gemJObject["uuid"];
+                                        gemJObject.Remove("uuid");
+                                    }
+                                    else if (gemInfoObj is Dictionary<string, object> gemDict)
+                                    {
+                                        if (gemDict.TryGetValue("quality", out var q))
+                                            data[item] = q;
+                                        if (gemDict.TryGetValue("uuid", out var u))
+                                        {
+                                            data[item + ".uuid"] = u;
+                                            gemDict.Remove("uuid");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // unknown token type (e.g. JValue) - try to treat as simple value
+                                        continue;
+                                    }
                             dict.Remove(item);
                             if (gems is JObject ob)
                             {
