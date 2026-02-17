@@ -53,8 +53,9 @@ namespace Coflnet.Sky.Core
             LEIKO = 512,
             CraftCost = 1024,
             Rust = 2048,
+            Bazaar = 4096,
             MedianBased = SNIPER_MEDIAN | FLIPPER,
-            ALL_EXCEPT_USER = FLIPPER_AND_SNIPERS | AI | TFM | STONKS | EXTERNAL | BINMASTER,
+            ALL_EXCEPT_USER = FLIPPER_AND_SNIPERS | AI | TFM | STONKS | EXTERNAL,
         }
     }
 }
