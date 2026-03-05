@@ -197,7 +197,11 @@ public class HypixelItemService : IHypixelItemStore
         }
         return general;
     }
-
+    /// <summary>
+    /// Gets the removal cost for a pet item based on its rarity
+    /// </summary>
+    /// <param name="petItemTag">The tag of the pet item (e.g., BROWN_BANDANA, PET_ITEM_QUICK_CLAW)</param>
+    /// <returns>The removal cost in coins</returns>
     public long GetPetItemRemovalCost(string petItemTag)
     {
         var items = _items;
