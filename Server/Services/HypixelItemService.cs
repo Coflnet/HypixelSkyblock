@@ -22,6 +22,16 @@ public class HypixelItemService : IHypixelItemStore
     private readonly ILogger<HypixelItemService> _logger;
     private Dictionary<string, Item> _items;
     private HashSet<string> IsDungeonItem = new();
+    public static readonly Dictionary<Tier, long> PetItemRemovalCostByRarity = new()
+        {
+            { Tier.COMMON, 25_000 },
+            { Tier.UNCOMMON, 50_000 },
+            { Tier.RARE, 100_000 },
+            { Tier.EPIC, 250_000 },
+            { Tier.LEGENDARY, 500_000 },
+            { Tier.MYTHIC, 1_000_000 },
+            { Tier.DIVINE, 2_500_000 }
+        };
 
     public HypixelItemService(HttpClient httpClient, ILogger<HypixelItemService> logger)
     {
@@ -188,6 +198,28 @@ public class HypixelItemService : IHypixelItemStore
         return general;
     }
 
+    public long GetPetItemRemovalCost(string petItemTag)
+    {
+        var items = _items;
+        if (items == null)
+            return PetItemRemovalCostByRarity[Tier.UNCOMMON]; // default fallback
+
+        // Try with the tag as-is first, then try adding PET_ITEM_ prefix
+        if (!items.TryGetValue(petItemTag, out var item))
+        {
+            if (!items.TryGetValue("PET_ITEM_" + petItemTag, out item))
+                return PetItemRemovalCostByRarity[Tier.UNCOMMON]; // default fallback
+        }
+
+        if (item?.Tier == null)
+            return PetItemRemovalCostByRarity[Tier.UNCOMMON]; // default fallback
+
+        if (Enum.TryParse<Tier>(item.Tier, true, out var tier) && PetItemRemovalCostByRarity.TryGetValue(tier, out var cost))
+            return cost;
+
+        return PetItemRemovalCostByRarity[Tier.UNCOMMON]; // default fallback
+    }
+
     public (string color, string category) GetDefaultColorAndCategory(string itemId)
     {
         var items = _items;
@@ -238,6 +270,7 @@ public class HypixelItemService : IHypixelItemStore
         {
             return new List<DungeonUpgradeCost>();
         }
+        Console.WriteLine($"Getting star cost for {itemId} from {baseTier} to {tier} {cost.Count}");
         var extra = new List<DungeonUpgradeCost>();
         if (tier > cost.Count)
         {
