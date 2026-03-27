@@ -274,7 +274,6 @@ public class HypixelItemService : IHypixelItemStore
         {
             return new List<DungeonUpgradeCost>();
         }
-        Console.WriteLine($"Getting star cost for {itemId} from {baseTier} to {tier} {cost.Count}");
         var extra = new List<DungeonUpgradeCost>();
         if (tier > cost.Count)
         {
