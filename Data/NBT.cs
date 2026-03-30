@@ -60,13 +60,13 @@ namespace Coflnet.Sky.Core
                     ?.Get<NbtCompound>("SkullOwner")
                     ?.Get<NbtCompound>("Properties")
                     ?.Get<NbtList>("textures")
-                    .Get<NbtCompound>(0)
-                    .Get<NbtString>("Value").StringValue
+                    ?.Get<NbtCompound>(0)
+                    ?.Get<NbtString>("Value")?.StringValue
                     ?? root.Get<NbtCompound>("components")
-                    .Get<NbtCompound>("minecraft:profile")
-                    .Get<NbtList>("properties")
-                    .Get<NbtCompound>(0)
-                    .Get<NbtString>("value").StringValue;
+                    ?.Get<NbtCompound>("minecraft:profile")
+                    ?.Get<NbtList>("properties")
+                    ?.Get<NbtCompound>(0)
+                    ?.Get<NbtString>("value")?.StringValue;
 
             }
             catch (Exception e)
