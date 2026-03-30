@@ -45,6 +45,7 @@ namespace Coflnet.Sky.Core
 
         [Key(4)]
         [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string OldTier
         {
             get => null;
@@ -60,6 +61,7 @@ namespace Coflnet.Sky.Core
 
         [Key(5)]
         [JsonIgnore]
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string OldCategory
         {
             get => null;
