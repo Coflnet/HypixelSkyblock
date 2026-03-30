@@ -4,9 +4,11 @@ using MessagePack;
 
 namespace Coflnet.Sky.Core
 {
+    [MessagePackObject(true)]
     [DataContract]
     public class AveragePrice
     {
+        [IgnoreMember]
         [IgnoreDataMember]
         public int Id {get;set;}
         [DataMember(Name = "min")]
@@ -17,6 +19,7 @@ namespace Coflnet.Sky.Core
         public double Avg { get; set; }
         [DataMember(Name = "volume")]
         public int Volume { get; set; }
+        [IgnoreMember]
         [IgnoreDataMember]
         public virtual int ItemId { get; set; }
         [DataMember(Name = "time")]

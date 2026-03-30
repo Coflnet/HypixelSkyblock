@@ -47,6 +47,7 @@ namespace Coflnet.Sky.Core
         [JsonIgnore]
         public string OldTier
         {
+            get => null;
             set
             {
                 if (value == null)
@@ -61,6 +62,7 @@ namespace Coflnet.Sky.Core
         [JsonIgnore]
         public string OldCategory
         {
+            get => null;
             set
             {
                 if (value == null)
@@ -146,6 +148,7 @@ namespace Coflnet.Sky.Core
         [JsonIgnore]
         public List<object> ClaimedBidders
         {
+            get => null;
             set
             {
                 ClaimedBids = value?.Select(s => new UuId((string)s)).ToList();
