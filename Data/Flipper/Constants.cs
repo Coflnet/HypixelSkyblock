@@ -546,7 +546,9 @@ namespace Coflnet.Sky.Core
             { "Sphinx", "SPHINX" },
             { "King Minos", "KING_MINOS" },
             { "Cretan Bull", "CRETAN_BULL" },
-            { "Minotaur", "MINOTAUR" }
+            { "Minotaur", "MINOTAUR" },
+            { "Littlefoot", "LITTLEFOOT" },
+            { "Nessie", "NESSIE" },
         };
     }
 }
