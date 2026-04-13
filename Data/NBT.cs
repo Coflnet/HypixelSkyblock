@@ -420,7 +420,7 @@ namespace Coflnet.Sky.Core
                 if (TryAs<double>(attr, out res))
                     return res;
 
-                if (key == "uid" || key == "uuid" || key.EndsWith(".uuid"))
+                if (key == "uid" || key == "uuid" || key == "heldItemUuid" || key.EndsWith(".uuid"))
                     return new NBTLookup(GetKeyId(key), UidToLong(attr));
                 if (key == "spawnedFor" || key == "bossId")
                     return new NBTLookup(GetKeyId(key), UidToLong(attr));
