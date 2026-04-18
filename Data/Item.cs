@@ -229,27 +229,6 @@ public partial class ItemDetails
             return id;
 
         throw new Exception("item creation is handled by the item service now");
-        using (var context = new HypixelContext())
-        {
-            id = context.Items.Where(i => i.Tag == tag).Select(i => i.Id).FirstOrDefault();
-            if (id != 0)
-            {
-                TagLookup[tag] = id;
-                return id;
-            }
-        }
-        Console.WriteLine($"Adding Tag {tag}");
-        var name = TagToName(tag);
-        var newItem = new DBItem()
-        {
-            Tag = tag,
-            Name = name,
-            Names = new List<AlternativeName>()
-                        {new AlternativeName(){Name=name}}
-        };
-
-        return AddItemToDB(newItem);
-
     }
 
     public static string TagToName(string tag)
@@ -275,39 +254,6 @@ public partial class ItemDetails
         var clearedName = ItemReferences.RemoveReforgesAndLevel(auction.ItemName);
         var id = GetItemIdForTag(auction.Tag ?? clearedName);
         return id;
-
-        Console.WriteLine($"Creating item {clearedName} ({auction.ItemName},{auction.Tag})");
-        // doesn't exist yet, create it
-        var itemByTag = context.Items.Where(item => item.Tag == auction.Tag).FirstOrDefault();
-        if (itemByTag != null)
-        {
-            // new alternative name
-            if (clearedName != null)
-                ReverseNames[clearedName] = auction.Tag;
-            TagLookup.TryAdd(auction.Tag, itemByTag.Id);
-            var exists = context.AltItemNames
-                .Where(name => name.Name == clearedName && name.DBItemId == itemByTag.Id)
-                .Any();
-            if (!exists)
-                context.AltItemNames.Add(new AlternativeName() { DBItemId = itemByTag.Id, Name = clearedName });
-            return itemByTag.Id;
-        }
-        Console.WriteLine($"!! completely new !! {JsonConvert.SerializeObject(auction)}");
-        var item = new DBItem()
-        {
-            Tag = auction.Tag,
-            Name = auction.ItemName,
-            Names = new List<AlternativeName>() { new AlternativeName() { Name = auction.ItemName } }
-        };
-        if (item.Tag == null)
-        {
-            // unindexable item
-            return MAX_MEDIUM_INT;
-        }
-        // todo send this to an updater
-        //ToFillDetails[item.Tag] = item;
-        return AddItemToDB(item);
-        //throw new CoflnetException("can_add","can't add this item");
     }
 }
 
