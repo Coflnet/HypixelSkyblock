@@ -238,14 +238,12 @@ namespace Coflnet.Sky.Core
         {
             try
             {
-                bool isNew = false;
                 using (var context = new HypixelContext())
                 {
                     try
                     {
                         context.Database.ExecuteSqlRaw("CREATE TABLE `__EFMigrationsHistory` ( `MigrationId` nvarchar(150) NOT NULL, `ProductVersion` nvarchar(32) NOT NULL, PRIMARY KEY (`MigrationId`) );");
                         //context.Database.ExecuteSqlRaw("INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20201212165211_start', '3.1.6');");
-                        isNew = true;
                         //context.Database.ExecuteSqlRaw("DELETE FROM Enchantment where SaveAuctionId is null");
 
                     }
@@ -261,8 +259,6 @@ namespace Coflnet.Sky.Core
                     Console.WriteLine("\nmigrated :)\n");
 
                     context.SaveChanges();
-                    if (!context.Items.Any() || context.Players.Count() < 2_000_000)
-                        isNew = true;
                 }
                 Migrated = true;
             }

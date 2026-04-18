@@ -22,12 +22,12 @@ namespace Coflnet.Sky.Core
         [JsonProperty("bidder")]
         public string Bidder {get;set;}
 
-        [Key (2)]
-        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
-        [JsonProperty("profileId")]
         /// <summary>
         /// Will be null if it is the same as <see cref="Bidder"/>
         /// </summary>
+        [Key (2)]
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "char(32)")]
+        [JsonProperty("profileId")]
         public string ProfileId {get; set;}
         [Key (3)]
         [JsonProperty("amount")]

@@ -60,7 +60,7 @@ namespace Coflnet.Sky.Core
             catch (Exception e)
             {
                 dev.Logger.Instance.Error(e, "execute with cache");
-                throw e;
+                throw;
             }
         }
 

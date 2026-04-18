@@ -78,9 +78,9 @@ namespace Coflnet.Sky.Core
 
 
         /// <summary>
-        /// Registers that a specific player was looked up and modifies the search order acordingly
+        /// Registers that a specific player was looked up and modifies the search order acordingly.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="uuid">The UUID of the looked up player.</param>
         public void AddHitFor(string uuid)
         {
             playerHits.AddOrUpdate(uuid, 1, (key, value) => value + 1);

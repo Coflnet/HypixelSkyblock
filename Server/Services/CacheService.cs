@@ -64,9 +64,9 @@ namespace Coflnet.Sky.Core
             lastReconnect = DateTime.Now;
             var conName = SimplerConfig.SConfig.Instance["REDIS_HOST"] ?? SimplerConfig.SConfig.Instance["redisCon"];
             ConfigurationOptions options = ConfigurationOptions.Parse(conName);
+            options.IncludePerformanceCountersInExceptions = true;
             RedisConnection = ConnectionMultiplexer.Connect(options);
-            RedisConnection.IncludePerformanceCountersInExceptions = true;
-            RedisConnection.GetSubscriber().Subscribe("cofl-cache-update", (channel, message) =>
+            RedisConnection.GetSubscriber().Subscribe(RedisChannel.Literal("cofl-cache-update"), (channel, message) =>
             {
                 var prefix = GetHostprefix();
                 if (message.StartsWith(prefix))
@@ -136,7 +136,7 @@ namespace Coflnet.Sky.Core
                 HotCache.AddOrUpdate(key, data, (_, _) => data);
                 await RedisConnection.GetDatabase().StringSetAsync(key, data, timeout, When.Always, CommandFlags.FireAndForget);
                 string hostPrefix = GetHostprefix();
-                await RedisConnection.GetSubscriber().PublishAsync("cofl-cache-update", hostPrefix + key.ToString(), CommandFlags.FireAndForget);
+                await RedisConnection.GetSubscriber().PublishAsync(RedisChannel.Literal("cofl-cache-update"), hostPrefix + key.ToString(), CommandFlags.FireAndForget);
             }
             catch (Exception e)
             {
