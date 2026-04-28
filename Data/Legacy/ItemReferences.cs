@@ -194,7 +194,9 @@ namespace Coflnet.Sky.Core
             erudite,
             lunar,
             sunny,
-            mantid
+            mantid,
+            deep_fried,
+            overpriced,
         }
 
 

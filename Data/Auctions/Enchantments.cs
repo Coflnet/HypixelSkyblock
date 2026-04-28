@@ -176,6 +176,9 @@ namespace Coflnet.Sky.Core
             turbo_sunflower,
             turbo_moonflower,
             turbo_rose,
+            ultimate_sunset,
+            bug_blender,
+            feast,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
