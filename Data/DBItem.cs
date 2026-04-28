@@ -5,7 +5,6 @@ using System.Runtime.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Coflnet.Sky.Core
 {
