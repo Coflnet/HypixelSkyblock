@@ -533,6 +533,9 @@ namespace Coflnet.Sky.Core
                 UnwrapRodPart(data, "sinker");
                 UnwrapRodPart(data, "line");
                 UnwrapRodPart(data, "hook");
+                DenestNestedIdentifiers(data, "fuel_tank");
+                DenestNestedIdentifiers(data, "engine");
+                DenestNestedIdentifiers(data, "upgrade_module");
                 if (data.TryGetValue("gems", out object gems))
                 {
                     var type = gems.GetType();
@@ -609,6 +612,42 @@ namespace Coflnet.Sky.Core
 
             var flatList = flatten(data).ToList();
             return flatList;
+        }
+
+        private static void DenestNestedIdentifiers(Dictionary<string, object> data, string key)
+        {
+            if (!data.TryGetValue(key, out var nestedValue))
+                return;
+
+            if (nestedValue is Dictionary<string, object> dict)
+            {
+                DenestNestedIdentifierDictionary(data, key, dict);
+                return;
+            }
+
+            if (nestedValue is JObject jObject)
+            {
+                foreach (var nestedKey in new[] { "id", "uuid" })
+                {
+                    if (!jObject.TryGetValue(nestedKey, out var token))
+                        continue;
+
+                    data[$"{key}.{nestedKey}"] = token;
+                    jObject.Remove(nestedKey);
+                }
+            }
+        }
+
+        private static void DenestNestedIdentifierDictionary(Dictionary<string, object> data, string key, Dictionary<string, object> dict)
+        {
+            foreach (var nestedKey in new[] { "id", "uuid" })
+            {
+                if (!dict.TryGetValue(nestedKey, out var value))
+                    continue;
+
+                data[$"{key}.{nestedKey}"] = value;
+                dict.Remove(nestedKey);
+            }
         }
 
         private static void UnwrapRodPart(Dictionary<string, object> data, string part)
