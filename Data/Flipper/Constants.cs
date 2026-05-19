@@ -44,6 +44,9 @@ namespace Coflnet.Sky.Core
             ItemReferences.Reforge.coldfused,
             ItemReferences.Reforge.Renowned,
             ItemReferences.Reforge.moonglade,
+            ItemReferences.Reforge.erudite,
+            ItemReferences.Reforge.deep_fried,
+            ItemReferences.Reforge.overpriced,
             ItemReferences.Reforge.blood_shot
             //ItemReferences.Reforge.scraped // with apply cost above 1m
         };
