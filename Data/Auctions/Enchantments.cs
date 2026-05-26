@@ -179,6 +179,7 @@ namespace Coflnet.Sky.Core
             ultimate_sunset,
             bug_blender,
             feast,
+            magmarizer,
         }
 
         [System.ComponentModel.DataAnnotations.Key]
