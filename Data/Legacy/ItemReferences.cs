@@ -197,6 +197,7 @@ namespace Coflnet.Sky.Core
             mantid,
             deep_fried,
             overpriced,
+            geometric,
         }
 
 
@@ -218,7 +219,7 @@ namespace Coflnet.Sky.Core
         {
             if (fullItemName == null)
                 return fullItemName;
-            fullItemName = fullItemName.Trim('✪').Replace("⚚", "").Replace("✦","");
+            fullItemName = fullItemName.Trim('✪').Replace("⚚", "").Replace("✦", "");
             fullItemName = RemoveReforge(fullItemName);
             // remove pet level
             return Regex.Replace(fullItemName, @"\[Lvl \d{1,3}\] ", "").Trim();

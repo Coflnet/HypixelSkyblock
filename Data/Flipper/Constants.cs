@@ -47,6 +47,7 @@ namespace Coflnet.Sky.Core
             ItemReferences.Reforge.erudite,
             ItemReferences.Reforge.deep_fried,
             ItemReferences.Reforge.overpriced,
+            ItemReferences.Reforge.geometric,
             ItemReferences.Reforge.blood_shot
             //ItemReferences.Reforge.scraped // with apply cost above 1m
         };
@@ -366,7 +367,7 @@ namespace Coflnet.Sky.Core
             return endings.Any(tag.Contains);
         }
 
-        public static Dictionary<string,string> ShardNames = new(StringComparer.OrdinalIgnoreCase)
+        public static Dictionary<string, string> ShardNames = new(StringComparer.OrdinalIgnoreCase)
         {
             { "Tortoise", "TORTOISE" },
             { "Lapis Creeper", "LAPIS_CREEPER" },
