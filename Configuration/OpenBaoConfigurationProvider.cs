@@ -146,7 +146,8 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
             LogInfo("No CACertPath configured, using system trust store only");
         }
         using var client = new HttpClient(handler) { BaseAddress = new Uri(options.Address.TrimEnd('/') + "/") };
-        LogInfo($"HttpClient created with base={client.BaseAddress}");
+        client.Timeout = TimeSpan.FromSeconds(30);
+        LogInfo($"HttpClient created with base={client.BaseAddress} timeout={client.Timeout.TotalSeconds}s");
 
         // ── login ───────────────────────────────────────────────────
         LogInfo($"Logging in to OpenBao at v1/auth/{options.AuthPath.Trim('/')}/login with role={options.Role}");
