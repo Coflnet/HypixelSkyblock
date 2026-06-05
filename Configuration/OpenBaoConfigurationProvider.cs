@@ -48,9 +48,11 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
 
     public override void Load()
     {
+        LogInfo("Load() called");
         Reload();
         if (timer != null)
             timer.Change(options.ReloadInterval, options.ReloadInterval);
+        LogInfo("Load() completed");
     }
 
     public void Dispose() => timer?.Dispose();
@@ -60,6 +62,7 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
         try
         {
             Data = LoadAsync().GetAwaiter().GetResult();
+            LogInfo($"Reload succeeded ({Data.Count} keys)");
             OnReload();
         }
         catch (Exception ex)
@@ -90,8 +93,15 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
         Console.Error.WriteLine($"[OpenBao] {operation} failed: {ex}");
     }
 
+    private static void LogInfo(string message)
+    {
+        Console.Error.WriteLine($"[OpenBao] {message}");
+    }
+
     private async Task<IDictionary<string, string?>> LoadAsync()
     {
+        LogInfo($"Starting: addr={options.Address} role={options.Role} path={options.Path} mount={options.Mount} optional={options.Optional}");
+
         // ── validation ──────────────────────────────────────────────
         try { options.Validate(); }
         catch (Exception ex)
@@ -101,15 +111,19 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
                 $"Required: OPENBAO__ADDR, OPENBAO__ROLE, OPENBAO__PATH, and a valid OPENBAO__TOKEN_PATH. " +
                 $"Check your environment variables.", ex);
         }
+        LogInfo($"Validation passed. Reading JWT from {options.TokenPath}");
 
         var jwt = await File.ReadAllTextAsync(options.TokenPath).ConfigureAwait(false);
+        LogInfo($"JWT read ({jwt.Length} chars)");
 
         var handler = new HttpClientHandler();
         if (!string.IsNullOrWhiteSpace(options.CACertPath))
         {
             if (File.Exists(options.CACertPath))
             {
+                LogInfo($"Loading CA cert from {options.CACertPath}");
                 var caCert = X509CertificateLoader.LoadCertificateFromFile(options.CACertPath);
+                LogInfo($"CA cert loaded: subject={caCert.Subject} thumbprint={caCert.Thumbprint}");
                 handler.ServerCertificateCustomValidationCallback = (_, cert, chain, errors) =>
                 {
                     if (errors == System.Net.Security.SslPolicyErrors.None)
@@ -124,12 +138,19 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
             }
             else
             {
-                Console.Error.WriteLine($"[OpenBao] WARNING: OPENBAO__CACERT is set but file not found: {options.CACertPath}");
+                LogInfo($"WARNING: OPENBAO__CACERT is set but file not found: {options.CACertPath}");
             }
         }
+        else
+        {
+            LogInfo("No CACertPath configured, using system trust store only");
+        }
         using var client = new HttpClient(handler) { BaseAddress = new Uri(options.Address.TrimEnd('/') + "/") };
+        client.Timeout = TimeSpan.FromSeconds(15);
+        LogInfo($"HttpClient created with base={client.BaseAddress} timeout={client.Timeout.TotalSeconds}s");
 
         // ── login ───────────────────────────────────────────────────
+        LogInfo($"Logging in to OpenBao at v1/auth/{options.AuthPath.Trim('/')}/login with role={options.Role}");
         HttpResponseMessage loginResponse;
         try
         {
@@ -147,6 +168,7 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
                 $"OpenBao login failed at {options.Address}/v1/auth/{options.AuthPath.Trim('/')}/login " +
                 $"(role={options.Role}). Verify the OpenBao address, auth path, role, and service-account token.", ex);
         }
+        LogInfo("Login succeeded");
 
         string token;
         using (var loginDocument = JsonDocument.Parse(await loginResponse.Content.ReadAsStringAsync().ConfigureAwait(false)))
@@ -155,8 +177,10 @@ internal sealed class OpenBaoConfigurationProvider : ConfigurationProvider, IDis
             if (string.IsNullOrWhiteSpace(token))
                 throw new InvalidOperationException("OpenBao login response did not contain a client_token.");
         }
+        LogInfo($"Client token obtained ({token.Length} chars)");
 
         // ── fetch secret ────────────────────────────────────────────
+        LogInfo($"Fetching secret from v1/{options.Mount.Trim('/')}/data/{options.Path.Trim('/')}");
         HttpResponseMessage secretResponse;
         try
         {
