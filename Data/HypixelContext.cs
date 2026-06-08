@@ -1,5 +1,7 @@
 using dev;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Linq;
 
 namespace Coflnet.Sky.Core
@@ -34,39 +36,43 @@ namespace Coflnet.Sky.Core
     public class HypixelContext : DbContext
     {
         public DbSet<SaveAuction> Auctions { get; set; }
-
         public DbSet<SaveBids> Bids { get; set; }
-
         public DbSet<Player> Players { get; set; }
-
         public DbSet<ProductInfo> BazaarPrices { get; set; }
         public DbSet<BazaarPull> BazaarPull { get; set; }
         public DbSet<SubscribeItem> SubscribeItem { get; set; }
         public DbSet<DBItem> Items { get; set; }
         public DbSet<AlternativeName> AltItemNames { get; set; }
-
         public DbSet<AveragePrice> Prices { get; set; }
         public DbSet<Enchantment> Enchantment { get; set; }
-
         public DbSet<GoogleUser> Users { get; set; }
         public DbSet<NBTLookup> NBTLookups { get; set; }
         public DbSet<NBTKey> NBTKeys { get; set; }
         public DbSet<NBTValue> NBTValues { get; set; }
         public DbSet<Bonus> Boni { get; set; }
 
-        public static string DbContextId = SimplerConfig.SConfig.Instance["DBConnection"];
-        public static string DBVersion = SimplerConfig.SConfig.Instance["DBVersion"] ?? "10.3";
+        protected static IConfiguration? _config;
+
+        /// <summary>
+        /// Call once at startup to inject IConfiguration (includes OpenBao).
+        /// All HypixelContext instances will use this for connection strings.
+        /// </summary>
+        public static void SetConfiguration(IConfiguration config) => _config = config;
 
         public HypixelContext() { }
-
         public HypixelContext(DbContextOptions<HypixelContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var connStr = SimplerConfig.SConfig.Instance["DBConnection"] ?? "server=mariadb;port=3306";
-                optionsBuilder.UseMySql(connStr, new MariaDbServerVersion(DBVersion),
+                var connStr = _config?["DBConnection"]
+                    ?? Environment.GetEnvironmentVariable("DBConnection")
+                    ?? "server=mariadb;port=3306";
+                var version = _config?["DBVersion"]
+                    ?? Environment.GetEnvironmentVariable("DBVersion")
+                    ?? "10.3";
+                optionsBuilder.UseMySql(connStr, new MariaDbServerVersion(version),
                     opts => opts.CommandTimeout(60).MaxBatchSize(100)).EnableSensitiveDataLogging();
             }
         }

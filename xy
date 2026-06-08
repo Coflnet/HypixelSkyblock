@@ -1,0 +1,3407 @@
+TAG_Compound: 1 entries {
+  TAG_List("i"): 90 entries {
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 0
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 417845
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$10K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "NobleFish10"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 59m 32s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 3 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:checkcdown"): 1764801021553
+            TAG_String("minecraft:gownerctid"): "485b004e-815b-48b7-a1a3-ea9ce01cab21"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 1
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 417863
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$10K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "NobleFish10"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 47s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1764801031053
+            TAG_String("minecraft:gownerctid"): "485b004e-815b-48b7-a1a3-ea9ce01cab21"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 2
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 417879
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$10K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "NobleFish10"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 59m 24s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 3 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:checkcdown"): 1764801072875
+            TAG_String("minecraft:gownerctid"): "485b004e-815b-48b7-a1a3-ea9ce01cab21"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 3
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 417849
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$10K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "NobleFish10"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 51s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 2
+            TAG_Long("minecraft:checkcdown"): 1764801032753
+            TAG_String("minecraft:gownerctid"): "485b004e-815b-48b7-a1a3-ea9ce01cab21"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 4
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$13K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 59m 9s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 5
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m 58s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 6
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 8s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 7
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m 56s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 8
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 53m 12s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 9
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 38m 31s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 10
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 53m 25s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 11
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 11s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 12
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 51m 37s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 13
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 12s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 14
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 52m 55s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 15
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 52m 27s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 16
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 57m 47s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 17
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 57m"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 18
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 52m 25s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 19
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 51m 48s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 20
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$15K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Autoshotgun"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 46m 9s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 21
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 57m 48s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 22
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 23
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 55m 6s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 24
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 53m 9s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 25
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 52m 25s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 26
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m 45s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 27
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 57m 39s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 28
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 32s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 29
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$19K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".NinjasHypper997"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 59m 26s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 30
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$20K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Elcaripero"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 42s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 31
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 413271
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$20K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Elcaripero"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m 27s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764428623836
+            TAG_String("minecraft:gownerctid"): "485b004e-815b-48b7-a1a3-ea9ce01cab21"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 32
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 426907
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$20K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Elcaripero"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m 22s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_String("minecraft:gownerctid"): "cb738eab-1110-4851-927c-0b1c56714e5b"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 33
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 377769
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$20K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Elcaripero"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 56m 45s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 4
+            TAG_Long("minecraft:checkcdown"): 1765416563622
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 34
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 348683
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$20K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".cho3629175"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 51m 57s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [58 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1762686454124
+            TAG_String("minecraft:gownerctid"): "4971d7a5-2894-42d1-acff-98d35e875a00"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 35
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 23s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 36
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 26s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 37
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 321955
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 11s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1762284665858
+            TAG_String("minecraft:gownerctid"): "ad03d527-56eb-4fa9-9e17-0bb97f3a6e89"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 38
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): ".Tryme1969"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 39m 4s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 39
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 468985
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 6s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 5 entries {
+            TAG_Byte_Array("minecraft:mapdlocats"): [65 bytes]
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1764716286998
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 40
+      TAG_Compound("components"): 4 entries {
+        TAG_Compound("minecraft:item_name"): 1 entries {
+          TAG_String("translate"): "filled_map.buried_treasure"
+        }
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "xenox_999"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 58m 48s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Buried Treasure Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 1 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 41
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 39s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 42
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 385848
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 20m 35s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 4
+            TAG_Long("minecraft:checkcdown"): 1766431065594
+            TAG_String("minecraft:gownerctid"): "983c3d46-6b21-439a-94c6-dee51809d489"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 43
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 372361
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 34m 52s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 1
+            TAG_Long("minecraft:checkcdown"): 1766371652167
+            TAG_String("minecraft:gownerctid"): "ad23dc74-ef41-4f75-9740-bc1ece6b049a"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 44
+      TAG_Compound("components"): 4 entries {
+        TAG_Int("minecraft:map_id"): 321955
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Price: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "$25K"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Seller: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "Dylangaming780"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+          TAG_Compound: 3 entries {
+            TAG_List("extra"): 2 entries {
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "white"
+                TAG_String("text"): "Time Left: "
+              }
+              TAG_Compound: 2 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_String("text"): "23h 36m 14s"
+              }
+            }
+            TAG_String("text"): ""
+            TAG_Byte("italic"): 0
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_String("text"): "Map"
+          TAG_Byte("italic"): 0
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 4 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Int("minecraft:cnofw"): 3
+            TAG_Long("minecraft:checkcdown"): 1762284665858
+            TAG_String("minecraft:gownerctid"): "ad03d527-56eb-4fa9-9e17-0bb97f3a6e89"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 47
+      TAG_Compound("components"): 3 entries {
+        TAG_List("minecraft:lore"): 4 entries {
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Highest Price"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Lowest Price"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Last Listed"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Recently Listed"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_List("extra"): 1 entries {
+            TAG_Compound: 7 entries {
+              TAG_String("color"): "#00FC88"
+              TAG_Byte("underlined"): 0
+              TAG_String("text"): "ѕᴏʀᴛ"
+              TAG_Byte("strikethrough"): 0
+              TAG_Byte("bold"): 0
+              TAG_Byte("obfuscated"): 0
+              TAG_Byte("italic"): 0
+            }
+          }
+          TAG_String("text"): ""
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:wi"): 1764801176694
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:cauldron"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 48
+      TAG_Compound("components"): 3 entries {
+        TAG_List("minecraft:lore"): 9 entries {
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "#00FC88"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• All"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Blocks"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Tools"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Food"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Combat"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Potions"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Books"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Ingredients"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "• Utilities"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_List("extra"): 1 entries {
+            TAG_Compound: 7 entries {
+              TAG_String("color"): "#00FC88"
+              TAG_Byte("underlined"): 0
+              TAG_String("text"): "ꜰɪʟᴛᴇʀ"
+              TAG_Byte("strikethrough"): 0
+              TAG_Byte("bold"): 0
+              TAG_Byte("obfuscated"): 0
+              TAG_Byte("italic"): 0
+            }
+          }
+          TAG_String("text"): ""
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:wi"): 1764801176694
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:hopper"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 49
+      TAG_Compound("components"): 3 entries {
+        TAG_List("minecraft:lore"): 1 entries {
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "Click to refresh"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_List("extra"): 1 entries {
+            TAG_Compound: 7 entries {
+              TAG_String("color"): "#00FC88"
+              TAG_Byte("underlined"): 0
+              TAG_String("text"): "ᴀᴜᴄᴛɪᴏɴ"
+              TAG_Byte("strikethrough"): 0
+              TAG_Byte("bold"): 0
+              TAG_Byte("obfuscated"): 0
+              TAG_Byte("italic"): 0
+            }
+          }
+          TAG_String("text"): ""
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:wi"): 1764801176694
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:anvil"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 50
+      TAG_Compound("components"): 3 entries {
+        TAG_List("minecraft:lore"): 3 entries {
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "Click to search"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+          TAG_Compound: 1 entries {
+            TAG_String: ""
+          }
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "gray"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "(map)"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_List("extra"): 1 entries {
+            TAG_Compound: 7 entries {
+              TAG_String("color"): "#00FC88"
+              TAG_Byte("underlined"): 0
+              TAG_String("text"): "ѕᴇᴀʀᴄʜ"
+              TAG_Byte("strikethrough"): 0
+              TAG_Byte("bold"): 0
+              TAG_Byte("obfuscated"): 0
+              TAG_Byte("italic"): 0
+            }
+          }
+          TAG_String("text"): ""
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:wi"): 1764801176694
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:oak_sign"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 51
+      TAG_Compound("components"): 3 entries {
+        TAG_List("minecraft:lore"): 1 entries {
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "Click to view the items you have listed"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_List("extra"): 1 entries {
+            TAG_Compound: 7 entries {
+              TAG_String("color"): "#00FC88"
+              TAG_Byte("underlined"): 0
+              TAG_String("text"): "ʏᴏᴜʀ ɪᴛᴇᴍѕ"
+              TAG_Byte("strikethrough"): 0
+              TAG_Byte("bold"): 0
+              TAG_Byte("obfuscated"): 0
+              TAG_Byte("italic"): 0
+            }
+          }
+          TAG_String("text"): ""
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:wi"): 1764801176694
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:chest"
+    }
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 53
+      TAG_Compound("components"): 3 entries {
+        TAG_List("minecraft:lore"): 1 entries {
+          TAG_Compound: 2 entries {
+            TAG_List("extra"): 1 entries {
+              TAG_Compound: 7 entries {
+                TAG_String("color"): "white"
+                TAG_Byte("underlined"): 0
+                TAG_String("text"): "Click to go to the next page"
+                TAG_Byte("strikethrough"): 0
+                TAG_Byte("bold"): 0
+                TAG_Byte("obfuscated"): 0
+                TAG_Byte("italic"): 0
+              }
+            }
+            TAG_String("text"): ""
+          }
+        }
+        TAG_Compound("minecraft:custom_name"): 2 entries {
+          TAG_List("extra"): 1 entries {
+            TAG_Compound: 7 entries {
+              TAG_String("color"): "#00FC88"
+              TAG_Byte("underlined"): 0
+              TAG_String("text"): "ɴᴇхᴛ"
+              TAG_Byte("strikethrough"): 0
+              TAG_Byte("bold"): 0
+              TAG_Byte("obfuscated"): 0
+              TAG_Byte("italic"): 0
+            }
+          }
+          TAG_String("text"): ""
+        }
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 2 entries {
+            TAG_Int("minecraft:auctionsecurity"): 1
+            TAG_Long("minecraft:wi"): 1764801176694
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:arrow"
+    }
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 81
+      TAG_Compound("components"): 1 entries {
+        TAG_Int("minecraft:damage"): 14
+      }
+      TAG_String("id"): "minecraft:stone_sword"
+    }
+    TAG_Compound: 3 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 82
+      TAG_String("id"): "minecraft:egg"
+    }
+    TAG_Compound: 3 entries {
+      TAG_Int("count"): 2
+      TAG_Byte("Slot"): 83
+      TAG_String("id"): "minecraft:feather"
+    }
+    TAG_Compound: 3 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 84
+      TAG_String("id"): "minecraft:chicken"
+    }
+    TAG_Compound: 3 entries {
+      TAG_Int("count"): 3
+      TAG_Byte("Slot"): 85
+      TAG_String("id"): "minecraft:porkchop"
+    }
+    TAG_Compound: 3 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 86
+      TAG_String("id"): "minecraft:cooked_beef"
+    }
+    TAG_Compound: 4 entries {
+      TAG_Int("count"): 1
+      TAG_Byte("Slot"): 87
+      TAG_Compound("components"): 2 entries {
+        TAG_Int("minecraft:map_id"): 377706
+        TAG_Compound("minecraft:custom_data"): 1 entries {
+          TAG_Compound("PublicBukkitValues"): 3 entries {
+            TAG_Byte_Array("minecraft:mapdata"): [3557 bytes]
+            TAG_Long("minecraft:checkcdown"): 1763754274881
+            TAG_String("minecraft:gownerctid"): "21b1d113-3588-4995-a8c5-be697af1a87d"
+          }
+        }
+      }
+      TAG_String("id"): "minecraft:filled_map"
+    }
+    TAG_Compound: 0 entries {}
+    TAG_Compound: 0 entries {}
+  }
+}

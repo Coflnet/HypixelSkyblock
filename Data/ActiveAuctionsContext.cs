@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Coflnet.Sky.Core
 {
@@ -28,9 +29,14 @@ namespace Coflnet.Sky.Core
         /// This must be configured explicitly so the active projection can never write to
         /// the historic auction database by accident.
         /// </summary>
-        public static string ActiveDbContextId => SimplerConfig.SConfig.Instance["ActiveAuctionsDBConnection"];
+        public static string ActiveDbContextId => _config?["ActiveAuctionsDBConnection"]
+            ?? Environment.GetEnvironmentVariable("ActiveAuctionsDBConnection");
 
         public static bool IsConfigured => !string.IsNullOrWhiteSpace(ActiveDbContextId);
+
+        private static string DbVer => _config?["DBVersion"]
+            ?? Environment.GetEnvironmentVariable("DBVersion")
+            ?? "10.3";
 
         /// <inheritdoc />
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -40,7 +46,7 @@ namespace Coflnet.Sky.Core
 
             optionsBuilder.UseMySql(
                 ActiveDbContextId,
-                new MariaDbServerVersion(DBVersion),
+                new MariaDbServerVersion(DbVer),
                 opts => opts.CommandTimeout(60).MaxBatchSize(100))
                 .EnableSensitiveDataLogging();
         }
