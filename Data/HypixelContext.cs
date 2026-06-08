@@ -57,10 +57,18 @@ namespace Coflnet.Sky.Core
         public static string DbContextId = SimplerConfig.SConfig.Instance["DBConnection"];
         public static string DBVersion = SimplerConfig.SConfig.Instance["DBVersion"] ?? "10.3";
 
+        public HypixelContext() { }
+
+        public HypixelContext(DbContextOptions<HypixelContext> options) : base(options) { }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySql(DbContextId,new MariaDbServerVersion(DBVersion),
-            opts => opts.CommandTimeout(60).MaxBatchSize(100)).EnableSensitiveDataLogging();
+            if (!optionsBuilder.IsConfigured)
+            {
+                var connStr = SimplerConfig.SConfig.Instance["DBConnection"] ?? "server=mariadb;port=3306";
+                optionsBuilder.UseMySql(connStr, new MariaDbServerVersion(DBVersion),
+                    opts => opts.CommandTimeout(60).MaxBatchSize(100)).EnableSensitiveDataLogging();
+            }
         }
 
 
