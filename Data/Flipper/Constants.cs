@@ -415,7 +415,7 @@ namespace Coflnet.Sky.Core
             { "Etherdrake", "ETHERDRAKE" },
             { "Bambuleaf", "BAMBULEAF" },
             { "Arachne", "ARACHNE" },
-            { "Burningsoul", "BURNINGSOUL" },
+            { "Inferno Demonlord", "BURNINGSOUL" },
             { "Lapis Zombie", "LAPIS_ZOMBIE" },
             { "Grove", "GROVE" },
             { "Flaming Spider", "FLAMING_SPIDER" },
@@ -553,6 +553,14 @@ namespace Coflnet.Sky.Core
             { "Minotaur", "MINOTAUR" },
             { "Littlefoot", "LITTLEFOOT" },
             { "Nessie", "NESSIE" },
+            { "Lotusfish", "LOTUS_FISH" },
+            { "Inkling", "NIGHT_SQUID" },
+            { "Lotum", "LOTUM" },
+            { "Tewtil", "TEWTIL" },
+            { "Flipflopper", "FLIP_FLOPPER" },
+            { "Seashine", "SEA_SHINE" },
+            { "Cocoaleech", "COCOALEECH" },    
+            { "End Stone Protector", "ENDSTONE_PROTECTOR" },            
         };
     }
 }
