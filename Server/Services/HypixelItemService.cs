@@ -182,6 +182,8 @@ public class HypixelItemService : IHypixelItemStore
 
     public Dictionary<string, HashSet<string>> GetArmorSets()
     {
+        if (_items == null)
+            return null;
         var general = _items.Values.Where(i => i.MuseumData?.ArmorSetDonationXp != null && i.MuseumData.ArmorSetDonationXp?.Count != 0)
                 .SelectMany(i => i.MuseumData.ArmorSetDonationXp.Select(aset => (i.Id, aset.Key)))
                 .GroupBy(i => i.Key) // there are 14 items that are part of multiple sets
