@@ -12,17 +12,22 @@ namespace Coflnet.Sky.Core
         [IgnoreDataMember]
         public int Id {get;set;}
         [DataMember(Name = "min")]
+        [Key("min")]
         public float Min { get; set; }
         [DataMember(Name = "max")]
+        [Key("max")]
         public float Max { get; set; }
         [DataMember(Name = "avg")]
+        [Key("avg")]
         public double Avg { get; set; }
         [DataMember(Name = "volume")]
+        [Key("volume")]
         public int Volume { get; set; }
         [IgnoreMember]
         [IgnoreDataMember]
         public virtual int ItemId { get; set; }
         [DataMember(Name = "time")]
+        [Key("time")]
         public DateTime Date { get; set; }
 
         public override bool Equals(object obj)
