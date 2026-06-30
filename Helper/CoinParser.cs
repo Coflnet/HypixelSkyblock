@@ -2,43 +2,66 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Coflnet.Sky.Core;
 public class CoinParser
 {
+    private static readonly Regex MinecraftFormattingRegex = new("§.", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     public long GetCoinAmount(Item item)
     {
         if (IsCoins(item))
         {
-            var stringAmount = item.ItemName!.Substring(2, item.ItemName.Length - 8);
-            return ParseCoinAmount(stringAmount);
+            return ParseCoinAmount(ExtractAmountFromName(item.ItemName!));
         }
         return 0;
     }
 
+    /// <summary>
+    /// Extracts the numeric portion from a coin item name (e.g. "§67M coins" or "7M coins" => "7M").
+    /// Strips minecraft formatting codes and the trailing " coins" suffix instead of relying on
+    /// fixed offsets, which break when the color prefix is missing.
+    /// </summary>
+    private static string ExtractAmountFromName(string itemName)
+    {
+        var cleaned = MinecraftFormattingRegex.Replace(itemName, string.Empty);
+        if (cleaned.EndsWith(" coins", StringComparison.OrdinalIgnoreCase))
+            cleaned = cleaned[..^" coins".Length];
+        return cleaned.Trim();
+    }
+
     public static long ParseCoinAmount(string stringAmount)
     {
-        double parsed;
         stringAmount = stringAmount.Trim();
-        try
-        {
-            if (stringAmount.EndsWith("B"))
-                parsed = double.Parse(stringAmount.Trim('B'), CultureInfo.InvariantCulture) * 1_000_000_000;
-            else if (stringAmount.EndsWith("M"))
-                parsed = double.Parse(stringAmount.Trim('M'), CultureInfo.InvariantCulture) * 1_000_000;
-            else if (stringAmount.EndsWith("k"))
-                parsed = double.Parse(stringAmount.Trim('k'), CultureInfo.InvariantCulture) * 1_000;
-            else
-                parsed = double.Parse(stringAmount, CultureInfo.InvariantCulture);
+        if (string.IsNullOrEmpty(stringAmount))
+            return 0;
 
-            return (long)(parsed * 10);
+        double multiplier = 1;
+        if (stringAmount.EndsWith("B"))
+        {
+            multiplier = 1_000_000_000;
+            stringAmount = stringAmount[..^1];
         }
-        catch (System.Exception)
+        else if (stringAmount.EndsWith("M"))
+        {
+            multiplier = 1_000_000;
+            stringAmount = stringAmount[..^1];
+        }
+        else if (stringAmount.EndsWith("k"))
+        {
+            multiplier = 1_000;
+            stringAmount = stringAmount[..^1];
+        }
+
+        // a bare suffix ("M", "k") or otherwise non-numeric text must not crash the caller
+        if (!double.TryParse(stringAmount, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
         {
             Console.WriteLine($"Failed to parse coins:`{stringAmount}`");
-            throw;
+            return 0;
         }
 
+        return (long)(parsed * multiplier * 10);
     }
 
     public long GetInventoryCoinSum(IEnumerable<Item> items)
