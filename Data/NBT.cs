@@ -388,7 +388,7 @@ namespace Coflnet.Sky.Core
                         else
                             return; // not a number at the end must be some other book
                     var readname = name.Substring(0, lastSpace).Trim().Replace(' ', '_').Replace('-', '_');
-                    var enchantName = RenamedEnchants.TryGetValue(readname, out var mapped) ? mapped : readname;
+                    var enchantName = RenameEnchant(readname);
                     if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
                         if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
                             Console.WriteLine("unkown enchant " + enchantName);
@@ -1282,6 +1282,14 @@ namespace Coflnet.Sky.Core
             { "Turbo_Cacti", "TURBO_CACTUS" },
         };
 
+        /// <summary>
+        /// Maps an enchantment key that uses the current in-game (display) name to the internal
+        /// <see cref="Enchantment.EnchantmentType"/> enum name, or returns <paramref name="key"/>
+        /// unchanged when no rename applies. Lookups are case-insensitive.
+        /// </summary>
+        public static string RenameEnchant(string key)
+            => RenamedEnchants.TryGetValue(key, out var mapped) ? mapped : key;
+
         public static List<Enchantment> Enchantments(NbtCompound data)
         {
             var extra = GetExtraTag(data);
@@ -1294,7 +1302,7 @@ namespace Coflnet.Sky.Core
 
             foreach (var rawName in elements.Names)
             {
-                var item = RenamedEnchants.TryGetValue(rawName, out var mapped) ? mapped : rawName;
+                var item = RenameEnchant(rawName);
                 if (!Enum.TryParse(item, true, out Enchantment.EnchantmentType type))
                 {
                     if (Constants.AttributeKeys.Contains(item))
