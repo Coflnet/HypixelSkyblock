@@ -388,16 +388,7 @@ namespace Coflnet.Sky.Core
                         else
                             return; // not a number at the end must be some other book
                     var readname = name.Substring(0, lastSpace).Trim().Replace(' ', '_').Replace('-', '_');
-                    var enchantName = readname switch
-                    {
-                        "Drain" => "syphon",
-                        "Woodsplitter" => "arcane",
-                        "Gravity" => "dragon_hunter",
-                        "Dragon_Tracer" => "aiming",
-                        "Turbo_Cocoa" => "TURBO_COCO",
-                        "Turbo_Cacti" => "TURBO_CACTUS",
-                        _ => readname
-                    };
+                    var enchantName = RenamedEnchants.TryGetValue(readname, out var mapped) ? mapped : readname;
                     if (!Enum.TryParse<Enchantment.EnchantmentType>(enchantName, true, out Enchantment.EnchantmentType enchant))
                         if (!Enum.TryParse<Enchantment.EnchantmentType>("ultimate_" + enchantName, true, out enchant))
                             Console.WriteLine("unkown enchant " + enchantName);
@@ -1274,6 +1265,23 @@ namespace Coflnet.Sky.Core
             return elements.ToDictionary(e => e.Name, e => (byte)Math.Min(e.IntValue, 127));
         }
 
+        /// <summary>
+        /// Enchant keys that use the current in-game (display) name mapped back to the
+        /// internal <see cref="Enchantment.EnchantmentType"/> enum name. Covers both raw NBT
+        /// enchantment keys and display names parsed from bazaar book item names (lookups are
+        /// case-insensitive).
+        /// </summary>
+        private static readonly Dictionary<string, string> RenamedEnchants = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "pyroclasm", "magmarizer" },
+            { "Drain", "syphon" },
+            { "Woodsplitter", "arcane" },
+            { "Gravity", "dragon_hunter" },
+            { "Dragon_Tracer", "aiming" },
+            { "Turbo_Cocoa", "TURBO_COCO" },
+            { "Turbo_Cacti", "TURBO_CACTUS" },
+        };
+
         public static List<Enchantment> Enchantments(NbtCompound data)
         {
             var extra = GetExtraTag(data);
@@ -1284,8 +1292,9 @@ namespace Coflnet.Sky.Core
 
             var result = new List<Enchantment>();
 
-            foreach (var item in elements.Names)
+            foreach (var rawName in elements.Names)
             {
+                var item = RenamedEnchants.TryGetValue(rawName, out var mapped) ? mapped : rawName;
                 if (!Enum.TryParse(item, true, out Enchantment.EnchantmentType type))
                 {
                     if (Constants.AttributeKeys.Contains(item))
@@ -1296,7 +1305,7 @@ namespace Coflnet.Sky.Core
                     if (!Enum.TryParse("ultimate_" + item, true, out type))
                         Logger.Instance.Error("Did not find Enchantment " + item + " in " + extra.ToString());
                 }
-                var level = elements.Get<NbtInt>(item).IntValue;
+                var level = elements.Get<NbtInt>(rawName).IntValue;
                 result.Add(new Enchantment(type, (byte)level));
             }
 
