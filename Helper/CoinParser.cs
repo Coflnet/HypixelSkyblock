@@ -82,15 +82,28 @@ public class CoinParser
             result = 0;
             return false;
         }
-        // parse number from §8(1,500,000)
-        var detailed = withSumary.Split('\n').Last().Substring(2).Trim('(', ')').Replace(",", "");
-        if (long.TryParse(detailed, out var detailedAmount))
+        // The exact amount is listed in parentheses, e.g. "§8(18,000,000)" or "(18,000,000)" once the
+        // color codes have been stripped upstream. Match the parenthesised number directly instead of
+        // chopping a fixed-length color prefix with Substring(2) - without the "§8" prefix that dropped
+        // the first digit (18,000,000 -> 8,000,000).
+        var cleaned = MinecraftFormattingRegex.Replace(withSumary, string.Empty);
+        var exact = Regex.Match(cleaned, @"\(([\d,]+)\)");
+        if (exact.Success && long.TryParse(exact.Groups[1].Value.Replace(",", ""), out var detailedAmount))
         {
             result = detailedAmount;
             return true;
         }
-        result = ParseCoinAmount(withSumary.Split('\n').Skip(1).First().Substring(2));
-        return true;
+        // fall back to the abbreviated line right after the header (e.g. "18M"); ParseCoinAmount scales
+        // by 10 for the transaction domain, so divide back to the raw coin amount used here.
+        var lines = cleaned.Split('\n');
+        var headerIndex = Array.FindIndex(lines, l => l.Contains("Total Coins Offered:"));
+        if (headerIndex >= 0 && headerIndex + 1 < lines.Length)
+        {
+            result = ParseCoinAmount(lines[headerIndex + 1]) / 10;
+            return true;
+        }
+        result = 0;
+        return false;
     }
 
     public bool IsCoins(Item item)
