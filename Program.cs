@@ -35,6 +35,10 @@ namespace Coflnet.Sky.Core
 
         public static int RequestsSinceStart { get; private set; }
         public static bool Migrated { get; internal set; }
+        private static readonly System.Text.RegularExpressions.Regex MinecraftUsernamePattern = new(
+            @"^[A-Za-z0-9_]{1,16}$",
+            System.Text.RegularExpressions.RegexOptions.Compiled
+                | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
         public static event Action onStop;
 
@@ -386,6 +390,26 @@ namespace Coflnet.Sky.Core
             RequestsSinceStart = 0;
         }
 
+        public static string NormalizeMinecraftUsername(string username)
+        {
+            var normalized = username?.Trim();
+            return normalized != null && MinecraftUsernamePattern.IsMatch(normalized)
+                ? normalized
+                : null;
+        }
+
+        private static async Task<string> ValidatePlayerNameResponse(string playerName)
+        {
+            var normalized = NormalizeMinecraftUsername(playerName);
+            if (normalized != null)
+                return normalized;
+
+            Logger.Instance.Info($"Invalid Minecraft username response: {playerName?.Truncate(100) ?? "<null>"}");
+            await Task.Delay(5000);
+            RequestsSinceStart += 50;
+            return null;
+        }
+
         /// <summary>
         /// Downloads username for a given uuid from mojang.
         /// Will return null if rate limit reached.
@@ -468,17 +492,30 @@ namespace Coflnet.Sky.Core
 
             if (type == 2)
             {
-                if (response.Content == null)
-                    Console.WriteLine("content null");
-                return response.Content;
+                return await ValidatePlayerNameResponse(response.Content);
             }
             if (type == 3)
             {
-                var data = JsonConvert.DeserializeObject<PlayerSearch.PlayerDbResponse>(response.Content);
-                return data?.Data?.Player.Username ?? null;
+                try
+                {
+                    var data = JsonConvert.DeserializeObject<PlayerSearch.PlayerDbResponse>(response.Content);
+                    return await ValidatePlayerNameResponse(data?.Data?.Player.Username);
+                }
+                catch (JsonException)
+                {
+                    return await ValidatePlayerNameResponse(response.Content);
+                }
             }
 
-            dynamic responseDeserialized = JsonConvert.DeserializeObject(response.Content);
+            dynamic responseDeserialized;
+            try
+            {
+                responseDeserialized = JsonConvert.DeserializeObject(response.Content);
+            }
+            catch (JsonException)
+            {
+                return await ValidatePlayerNameResponse(response.Content);
+            }
 
             if (responseDeserialized == null || (responseDeserialized?.name == null) || responseDeserialized.name == null)
             {
@@ -487,18 +524,18 @@ namespace Coflnet.Sky.Core
 
             if (responseDeserialized == null)
             {
-                return null;
+                return await ValidatePlayerNameResponse(response.Content);
             }
 
             switch (type)
             {
                 case 0:
-                    return responseDeserialized[responseDeserialized.Count - 1]?.name;
+                    return await ValidatePlayerNameResponse(responseDeserialized[responseDeserialized.Count - 1]?.name);
                 case 1:
-                    return responseDeserialized.name;
+                    return await ValidatePlayerNameResponse(responseDeserialized.name);
             }
 
-            return responseDeserialized.name;
+            return await ValidatePlayerNameResponse(responseDeserialized.name);
         }
 
         public static bool IsRatelimited()
