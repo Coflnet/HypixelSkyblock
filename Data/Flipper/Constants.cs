@@ -48,7 +48,8 @@ namespace Coflnet.Sky.Core
             ItemReferences.Reforge.deep_fried,
             ItemReferences.Reforge.overpriced,
             ItemReferences.Reforge.geometric,
-            ItemReferences.Reforge.blood_shot
+            ItemReferences.Reforge.blood_shot,
+            ItemReferences.Reforge.thorny
             //ItemReferences.Reforge.scraped // with apply cost above 1m
         };
         // include pet items lucky clover, shemlet, quick clow, golden clow, buble gum, text book

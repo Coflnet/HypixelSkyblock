@@ -198,6 +198,7 @@ namespace Coflnet.Sky.Core
             deep_fried,
             overpriced,
             geometric,
+            thorny
         }
 
 
