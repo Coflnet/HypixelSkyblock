@@ -148,6 +148,167 @@ namespace Coflnet.Sky.Kafka
             await completion.Task;
         }
 
+        /// <summary>
+        /// Consumes and commits each Kafka partition independently. Records stay ordered within
+        /// their partition while different partitions can be processed concurrently.
+        /// </summary>
+        public static Task ConsumePartitionedParallelBatch<T>(
+                                                ConsumerConfig config,
+                                                string[] topics,
+                                                Func<TopicPartition, IEnumerable<T>, Task> action,
+                                                CancellationToken cancellationToken,
+                                                int maxChunkSizePerPartition = 500,
+                                                IDeserializer<T> deserializer = null,
+                                                Action<IEnumerable<TopicPartition>> partitionsRevoked = null)
+        {
+            if (maxChunkSizePerPartition < 1)
+                throw new ArgumentOutOfRangeException(nameof(maxChunkSizePerPartition));
+            var conf = new ConsumerConfig(config)
+            {
+                EnableAutoCommit = false
+            };
+            deserializer ??= SerializerFactory.GetDeserializer<T>();
+            return Task.Factory.StartNew(
+                () => ConsumePartitionedParallelBatchThread(conf, topics, action, maxChunkSizePerPartition, deserializer, partitionsRevoked, cancellationToken),
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+        }
+
+        private static void ConsumePartitionedParallelBatchThread<T>(
+                                                ConsumerConfig config,
+                                                string[] topics,
+                                                Func<TopicPartition, IEnumerable<T>, Task> action,
+                                                int maxChunkSizePerPartition,
+                                                IDeserializer<T> deserializer,
+                                                Action<IEnumerable<TopicPartition>> partitionsRevoked,
+                                                CancellationToken cancellationToken)
+        {
+            var pending = new Dictionary<TopicPartition, Queue<ConsumeResult<Ignore, T>>>();
+            var inFlight = new Dictionary<TopicPartition, (Task Task, List<ConsumeResult<Ignore, T>> Batch)>();
+            var builder = new ConsumerBuilder<Ignore, T>(config).SetValueDeserializer(deserializer);
+            void RemovePartitions(IEnumerable<TopicPartition> partitions)
+            {
+                var removed = partitions.ToList();
+                foreach (var partition in removed)
+                    pending.Remove(partition);
+                partitionsRevoked?.Invoke(removed);
+            }
+            builder.SetPartitionsRevokedHandler((_, revoked) =>
+                RemovePartitions(revoked.Select(offset => offset.TopicPartition)));
+            builder.SetPartitionsLostHandler((_, lost) =>
+                RemovePartitions(lost.Select(offset => offset.TopicPartition)));
+            using var consumer = builder.Build();
+            consumer.Subscribe(topics);
+            var metricKey = "kafka_lag_" + string.Join('_', topics.Select(
+                topic => System.Text.RegularExpressions.Regex.Replace(topic, "[^a-zA-Z0-9]", "_")));
+
+            void DispatchOrResume(TopicPartition partition)
+            {
+                if (!consumer.Assignment.Contains(partition))
+                {
+                    pending.Remove(partition);
+                    return;
+                }
+                if (pending.TryGetValue(partition, out var queue) && queue.Count > 0)
+                {
+                    consumer.Pause(new[] { partition });
+                    var partitionBatch = new List<ConsumeResult<Ignore, T>>(Math.Min(queue.Count, maxChunkSizePerPartition));
+                    while (partitionBatch.Count < maxChunkSizePerPartition && queue.TryDequeue(out var message))
+                        partitionBatch.Add(message);
+                    inFlight[partition] = (
+                        Task.Run(() => action(partition, partitionBatch.Select(message => message.Message.Value))),
+                        partitionBatch);
+                    return;
+                }
+                pending.Remove(partition);
+                consumer.Resume(new[] { partition });
+            }
+
+            void FinishCompleted()
+            {
+                foreach (var completed in inFlight.Where(worker => worker.Value.Task.IsCompleted).ToList())
+                {
+                    var partition = completed.Key;
+                    inFlight.Remove(partition);
+                    try
+                    {
+                        completed.Value.Task.GetAwaiter().GetResult();
+                    }
+                    catch (Exception error)
+                    {
+                        processFail.Inc();
+                        dev.Logger.Instance.Error(error, $"Kafka consumer process for {partition}");
+                        pending.Remove(partition);
+                        if (consumer.Assignment.Contains(partition))
+                            consumer.Seek(completed.Value.Batch[0].TopicPartitionOffset);
+                        DispatchOrResume(partition);
+                        continue;
+                    }
+                    try
+                    {
+                        var nextOffset = new TopicPartitionOffset(partition, completed.Value.Batch[^1].Offset + 1);
+                        consumer.Commit(new[] { nextOffset });
+                        var lag = consumer.Assignment.Select(assigned =>
+                            consumer.GetWatermarkOffsets(assigned).High - consumer.Position(assigned)).Sum();
+                        consumerOffsets.GetOrAdd(metricKey, Metrics.CreateGauge(metricKey, "offset of kafka topic")).Set(lag);
+                    }
+                    catch (KafkaException error)
+                    {
+                        dev.Logger.Instance.Error(error, $"On partition commit {partition} {error.Error.IsFatal}");
+                    }
+                    DispatchOrResume(partition);
+                }
+            }
+
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    FinishCompleted();
+                    var consumed = consumer.Consume(TimeSpan.FromMilliseconds(50));
+                    if (consumed == null)
+                        continue;
+
+                    var pullLimit = maxChunkSizePerPartition * Math.Max(1, consumer.Assignment.Count);
+                    var pulled = 0;
+                    do
+                    {
+                        if (!pending.TryGetValue(consumed.TopicPartition, out var partitionQueue))
+                        {
+                            partitionQueue = new Queue<ConsumeResult<Ignore, T>>();
+                            pending[consumed.TopicPartition] = partitionQueue;
+                        }
+                        partitionQueue.Enqueue(consumed);
+                        pulled++;
+                        consumed = pulled < pullLimit ? consumer.Consume(TimeSpan.Zero) : null;
+                    }
+                    while (consumed != null);
+
+                    foreach (var partition in pending.Keys.Where(partition => !inFlight.ContainsKey(partition)).ToList())
+                        DispatchOrResume(partition);
+                }
+
+                while (inFlight.Count > 0)
+                {
+                    consumer.Consume(TimeSpan.FromMilliseconds(50));
+                    FinishCompleted();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                dev.Logger.Instance.Info($"Partitioned consumer for {string.Join(',', topics)} canceled");
+            }
+            catch (Exception error)
+            {
+                dev.Logger.Instance.Error(error, $"Partitioned consumer for {string.Join(',', topics)}");
+            }
+            finally
+            {
+                consumer.Close();
+            }
+        }
+
         private static async Task ConsumeBatchThread<TKey,TVal>(ConsumerConfig config, string[] topics, Func<IEnumerable<Message<Ignore, TVal>>, Task> action, int maxChunkSize, IDeserializer<TVal> deserializer, Queue<ConsumeResult<Ignore, TVal>> batch, ConsumerConfig conf, CancellationToken cancleToken)
         {
             var currentChunkSize = 1;
