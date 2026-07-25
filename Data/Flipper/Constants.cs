@@ -465,7 +465,7 @@ namespace Coflnet.Sky.Core
             { "Chill", "CHILL" },
             { "Crow", "CROW" },
             { "Yog", "YOG" },
-            { "Endstone Protector", "ENDSTONE_PROTECTOR" },
+            { "End Stone Protector", "ENDSTONE_PROTECTOR" },
             { "Azure", "AZURE" },
             { "Viper", "VIPER" },
             { "Condor", "CONDOR" },
@@ -561,7 +561,6 @@ namespace Coflnet.Sky.Core
             { "Flipflopper", "FLIP_FLOPPER" },
             { "Seashine", "SEA_SHINE" },
             { "Cocoaleech", "COCOALEECH" },    
-            { "End Stone Protector", "ENDSTONE_PROTECTOR" },            
         };
     }
 }
