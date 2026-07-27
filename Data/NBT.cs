@@ -1278,6 +1278,13 @@ namespace Coflnet.Sky.Core
             { "Woodsplitter", "arcane" },
             { "Gravity", "dragon_hunter" },
             { "Dragon_Tracer", "aiming" },
+            { "Prismatic", "pristine" },
+            { "Duplex", "ultimate_reiterate" },
+            { "Bobbin'_Time", "ultimate_bobbin_time" },
+            { "Strong_Vitality", "strong_mana" },
+            { "Hardened_Vitality", "hardened_mana" },
+            { "Vivacious_Vitality", "ferocious_mana" },
+            { "Vampiric_Vitality", "mana_vampire" },
             { "Turbo_Cocoa", "TURBO_COCO" },
             { "Turbo_Cacti", "TURBO_CACTUS" },
         };
@@ -1289,6 +1296,22 @@ namespace Coflnet.Sky.Core
         /// </summary>
         public static string RenameEnchant(string key)
             => RenamedEnchants.TryGetValue(key, out var mapped) ? mapped : key;
+
+        /// <summary>
+        /// Returns the display name for an internal enchantment key, applying current renames.
+        /// </summary>
+        public static string GetEnchantmentDisplayName(string key)
+        {
+            var renamed = RenamedEnchants.FirstOrDefault(pair =>
+                pair.Value.Equals(key, StringComparison.OrdinalIgnoreCase)).Key;
+            var displayKey = renamed ?? key;
+            if (renamed == null
+                && displayKey.StartsWith("ultimate_", StringComparison.OrdinalIgnoreCase)
+                && !displayKey.Equals("ultimate_jerry", StringComparison.OrdinalIgnoreCase)
+                && !displayKey.Equals("ultimate_wise", StringComparison.OrdinalIgnoreCase))
+                displayKey = displayKey.Substring("ultimate_".Length);
+            return ItemDetails.TagToName(displayKey.ToLower());
+        }
 
         public static List<Enchantment> Enchantments(NbtCompound data)
         {
