@@ -530,12 +530,12 @@ namespace Coflnet.Sky.Core
             switch (type)
             {
                 case 0:
-                    return await ValidatePlayerNameResponse(responseDeserialized[responseDeserialized.Count - 1]?.name);
+                    return await ValidatePlayerNameResponse(((object)responseDeserialized[responseDeserialized.Count - 1]?.name)?.ToString());
                 case 1:
-                    return await ValidatePlayerNameResponse(responseDeserialized.name);
+                    return await ValidatePlayerNameResponse(((object)responseDeserialized.name)?.ToString());
             }
 
-            return await ValidatePlayerNameResponse(responseDeserialized.name);
+            return await ValidatePlayerNameResponse(((object)responseDeserialized.name)?.ToString());
         }
 
         public static bool IsRatelimited()
