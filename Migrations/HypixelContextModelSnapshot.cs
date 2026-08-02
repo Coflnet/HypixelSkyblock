@@ -374,11 +374,65 @@ namespace Coflnet.Sky.Core.Migrations
                     b.Property<int>("ReferedBy")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("TermsAcceptedAtUtc")
+                        .IsConcurrencyToken()
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TermsAcceptedHash")
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("TermsAcceptedVersion")
+                        .HasColumnType("varchar(64)")
+                        .HasMaxLength(64);
+
+                    b.Property<string>("TermsAcceptanceSource")
+                        .HasColumnType("varchar(32)")
+                        .HasMaxLength(32);
+
                     b.HasKey("Id");
 
                     b.HasIndex("GoogleId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Coflnet.Sky.Core.AgreementAcceptanceRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("AcceptedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Agreement")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)")
+                        .HasMaxLength(64);
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("varchar(32)")
+                        .HasMaxLength(32);
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)")
+                        .HasMaxLength(64);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Agreement", "Version", "Hash")
+                        .IsUnique();
+
+                    b.ToTable("AgreementAcceptances");
                 });
 
             modelBuilder.Entity("hypixel.NBTKey", b =>

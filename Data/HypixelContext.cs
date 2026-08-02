@@ -46,6 +46,7 @@ namespace Coflnet.Sky.Core
         public DbSet<AveragePrice> Prices { get; set; }
         public DbSet<Enchantment> Enchantment { get; set; }
         public DbSet<GoogleUser> Users { get; set; }
+        public DbSet<AgreementAcceptanceRecord> AgreementAcceptances { get; set; }
         public DbSet<NBTLookup> NBTLookups { get; set; }
         public DbSet<NBTKey> NBTKeys { get; set; }
         public DbSet<NBTValue> NBTValues { get; set; }
@@ -157,6 +158,11 @@ namespace Coflnet.Sky.Core
             modelBuilder.Entity<GoogleUser>(entity =>
             {
                 entity.HasIndex(e => e.GoogleId);
+            });
+
+            modelBuilder.Entity<AgreementAcceptanceRecord>(entity =>
+            {
+                entity.HasIndex(e => new { e.UserId, e.Agreement, e.Version, e.Hash }).IsUnique();
             });
 
             modelBuilder.Entity<NBTLookup>(entity =>

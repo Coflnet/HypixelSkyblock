@@ -144,5 +144,46 @@ namespace Coflnet.Sky.Core
                 return await context.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
             }
         }
+
+        public Task<GoogleUser> AcceptTerms(int userId, TermsAcceptance acceptance)
+            => AcceptAgreement(userId, "terms", acceptance);
+
+        public async Task<GoogleUser> AcceptAgreement(int userId, string agreement, TermsAcceptance acceptance)
+        {
+            agreement = AgreementAcceptanceRecord.NormalizeAgreement(agreement);
+            acceptance = acceptance.Validate();
+            using (var context = new HypixelContext())
+            {
+                var user = await context.Users.SingleOrDefaultAsync(u => u.Id == userId)
+                    ?? throw new UserNotFoundException(userId.ToString());
+                if (await context.AgreementAcceptances.AnyAsync(a => a.UserId == userId
+                    && a.Agreement == agreement && a.Version == acceptance.Version && a.Hash == acceptance.Hash))
+                    return user;
+
+                var ledgerAcceptance = acceptance;
+                if (agreement == "terms" && user.TermsAcceptedVersion == acceptance.Version
+                    && string.Equals(user.TermsAcceptedHash, acceptance.Hash, StringComparison.OrdinalIgnoreCase)
+                    && user.TermsAcceptedAtUtc.HasValue && !string.IsNullOrEmpty(user.TermsAcceptanceSource))
+                    ledgerAcceptance = new TermsAcceptance(
+                        acceptance.Version, acceptance.Hash, user.TermsAcceptedAtUtc.Value, user.TermsAcceptanceSource);
+
+                if (agreement == "terms")
+                    user.ApplyTermsAcceptance(acceptance);
+                context.AgreementAcceptances.Add(new AgreementAcceptanceRecord(userId, agreement, ledgerAcceptance));
+                try
+                {
+                    await context.SaveChangesAsync();
+                    return user;
+                }
+                catch (DbUpdateException)
+                {
+                    using var retryContext = new HypixelContext();
+                    if (!await retryContext.AgreementAcceptances.AnyAsync(a => a.UserId == userId
+                        && a.Agreement == agreement && a.Version == acceptance.Version && a.Hash == acceptance.Hash))
+                        throw;
+                    return await retryContext.Users.SingleAsync(u => u.Id == userId);
+                }
+            }
+        }
     }
 }
