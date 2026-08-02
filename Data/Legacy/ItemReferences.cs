@@ -200,6 +200,7 @@ namespace Coflnet.Sky.Core
             geometric,
             thorny,
             sticky,
+            majestic,
         }
 
 
