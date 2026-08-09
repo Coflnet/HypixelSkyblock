@@ -148,6 +148,28 @@ namespace Coflnet.Sky.Core
         public Task<GoogleUser> AcceptTerms(int userId, TermsAcceptance acceptance)
             => AcceptAgreement(userId, "terms", acceptance);
 
+        public async Task<AgreementAcceptanceRecord> GetAgreementAcceptance(
+            int userId,
+            string agreement,
+            string hash)
+        {
+            if (userId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(userId));
+            agreement = AgreementAcceptanceRecord.NormalizeAgreement(agreement);
+            if (hash?.Length != 64 || hash.Any(c => !Uri.IsHexDigit(c)))
+                throw new ArgumentException(
+                    "The agreement hash must be a SHA-256 hex digest",
+                    nameof(hash));
+            hash = hash.ToLowerInvariant();
+            using var context = new HypixelContext();
+            return await context.AgreementAcceptances
+                .Where(item => item.UserId == userId
+                    && item.Agreement == agreement
+                    && item.Hash == hash)
+                .OrderBy(item => item.AcceptedAtUtc)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<GoogleUser> AcceptAgreement(int userId, string agreement, TermsAcceptance acceptance)
         {
             agreement = AgreementAcceptanceRecord.NormalizeAgreement(agreement);
