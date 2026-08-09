@@ -12,6 +12,8 @@ namespace Coflnet.Sky.Core
 {
     public class UserService
     {
+        private static readonly DateTime SkyCoflAgreementEffectiveAtUtc =
+            new DateTime(2026, 8, 8, 8, 0, 0, DateTimeKind.Unspecified);
         public static UserService Instance { get; }
         Counter purchases = Metrics.CreateCounter("premiumPuchases", "How often a user purchased a premium plan");
         Counter newRegister = Metrics.CreateCounter("newRegister", "How many users logged in for the first time");
@@ -168,6 +170,19 @@ namespace Coflnet.Sky.Core
                     && item.Hash == hash)
                 .OrderBy(item => item.AcceptedAtUtc)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> CanSignInUnderPriorAgreement(GoogleUser user)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+            if (user.CreatedAt < SkyCoflAgreementEffectiveAtUtc)
+                return true;
+
+            using var context = new HypixelContext();
+            return await context.AgreementAcceptances.AnyAsync(item =>
+                item.UserId == user.Id
+                && item.Agreement == "skycofl");
         }
 
         public async Task<GoogleUser> AcceptAgreement(int userId, string agreement, TermsAcceptance acceptance)
