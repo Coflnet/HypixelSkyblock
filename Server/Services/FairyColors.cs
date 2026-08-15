@@ -72,6 +72,8 @@ public class GlitchedColours {
     private static readonly long GLITCHED_AFTER_DATE = 1605830400000L;
 
     public static readonly ImmutableDictionary<string, string> OTHER_GLITCHED = new Dictionary<string, string> {
+           { "FF0000", "FARM_SUIT"},
+           { "EDAA36", "PUMPKIN"},
            { "FFDC51", "SHARK_SCALE"},
            { "F7DA33", "FROZEN_BLAZE"},
            { "606060", "BAT_PERSON"}
