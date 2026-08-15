@@ -180,7 +180,8 @@ namespace Coflnet.Sky.Core
             bug_blender,
             feast,
             magmarizer,
-            petalfall
+            petalfall,
+            karma
         }
 
         [System.ComponentModel.DataAnnotations.Key]
