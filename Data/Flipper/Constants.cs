@@ -141,6 +141,10 @@ namespace Coflnet.Sky.Core
             new (Enchantment.EnchantmentType.turbo_coco, 5),
             new (Enchantment.EnchantmentType.turbo_pumpkin, 5),
             new (Enchantment.EnchantmentType.small_brain, 5),
+            new (Enchantment.EnchantmentType.feast, 1),
+            new (Enchantment.EnchantmentType.bug_blender, 3),
+            new (Enchantment.EnchantmentType.petalfall, 3),
+            new (Enchantment.EnchantmentType.karma, 3),
         };
 
         /// <summary>
