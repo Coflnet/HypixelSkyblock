@@ -353,7 +353,16 @@ public record Item(
     [property: JsonPropertyName("soulbound")] string Soulbound,
     [property: JsonPropertyName("furniture")] string Furniture,
     [property: JsonPropertyName("enchantments")] Enchantments Enchantments
-);
+)
+{
+    /// <summary>
+    /// Skill experience this item grants, keyed by skill and then by the action that grants it.
+    /// The <c>MINION_STORAGE</c> action is what a player collects from a minion, which is the only
+    /// published figure for how much experience a minion is actually worth per item.
+    /// </summary>
+    [JsonPropertyName("experience")]
+    public IReadOnlyDictionary<string, Dictionary<string, double>> Experience { get; init; }
+}
 
 public record Prestige(
     [property: JsonPropertyName("item_id")] string item_id,
