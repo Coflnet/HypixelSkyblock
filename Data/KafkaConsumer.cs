@@ -159,17 +159,20 @@ namespace Coflnet.Sky.Kafka
                                                 CancellationToken cancellationToken,
                                                 int maxChunkSizePerPartition = 500,
                                                 IDeserializer<T> deserializer = null,
-                                                Action<IEnumerable<TopicPartition>> partitionsRevoked = null)
+                                                Action<IEnumerable<TopicPartition>> partitionsRevoked = null,
+                                                TimeSpan? partitionStallTimeout = null)
         {
             if (maxChunkSizePerPartition < 1)
                 throw new ArgumentOutOfRangeException(nameof(maxChunkSizePerPartition));
+            if (partitionStallTimeout.HasValue && partitionStallTimeout.Value <= TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(partitionStallTimeout));
             var conf = new ConsumerConfig(config)
             {
                 EnableAutoCommit = false
             };
             deserializer ??= SerializerFactory.GetDeserializer<T>();
             return Task.Factory.StartNew(
-                () => ConsumePartitionedParallelBatchThread(conf, topics, action, maxChunkSizePerPartition, deserializer, partitionsRevoked, cancellationToken),
+                () => ConsumePartitionedParallelBatchThread(conf, topics, action, maxChunkSizePerPartition, deserializer, partitionsRevoked, partitionStallTimeout, cancellationToken),
                 CancellationToken.None,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -182,16 +185,29 @@ namespace Coflnet.Sky.Kafka
                                                 int maxChunkSizePerPartition,
                                                 IDeserializer<T> deserializer,
                                                 Action<IEnumerable<TopicPartition>> partitionsRevoked,
+                                                TimeSpan? partitionStallTimeout,
                                                 CancellationToken cancellationToken)
         {
             var pending = new Dictionary<TopicPartition, Queue<ConsumeResult<Ignore, T>>>();
             var inFlight = new Dictionary<TopicPartition, (Task Task, List<ConsumeResult<Ignore, T>> Batch)>();
+            var partitionProgress = new Dictionary<TopicPartition, (Offset Offset, DateTime At)>();
+            var restartForStall = false;
+            var nextStallCheck = DateTime.UtcNow;
             var builder = new ConsumerBuilder<Ignore, T>(config).SetValueDeserializer(deserializer);
+            builder.SetPartitionsAssignedHandler((_, assigned) =>
+            {
+                var now = DateTime.UtcNow;
+                foreach (var partition in assigned)
+                    partitionProgress[partition] = (Offset.Unset, now);
+            });
             void RemovePartitions(IEnumerable<TopicPartition> partitions)
             {
                 var removed = partitions.ToList();
                 foreach (var partition in removed)
+                {
                     pending.Remove(partition);
+                    partitionProgress.Remove(partition);
+                }
                 partitionsRevoked?.Invoke(removed);
             }
             builder.SetPartitionsRevokedHandler((_, revoked) =>
@@ -202,6 +218,46 @@ namespace Coflnet.Sky.Kafka
             consumer.Subscribe(topics);
             var metricKey = "kafka_lag_" + string.Join('_', topics.Select(
                 topic => System.Text.RegularExpressions.Regex.Replace(topic, "[^a-zA-Z0-9]", "_")));
+
+            void ThrowIfPartitionStalled()
+            {
+                var now = DateTime.UtcNow;
+                if (!partitionStallTimeout.HasValue || now < nextStallCheck)
+                    return;
+                nextStallCheck = now.AddSeconds(5);
+                foreach (var partition in consumer.Assignment)
+                {
+                    if (!partitionProgress.TryGetValue(partition, out var progress))
+                        partitionProgress[partition] = progress = (Offset.Unset, now);
+                    if (progress.Offset == Offset.Unset)
+                    {
+                        Offset committed;
+                        try
+                        {
+                            committed = consumer.Committed(new[] { partition }, TimeSpan.FromSeconds(2)).Single().Offset;
+                        }
+                        catch (KafkaException error)
+                        {
+                            dev.Logger.Instance.Error(error, $"Could not inspect committed offset for {partition}");
+                            continue;
+                        }
+                        partitionProgress[partition] = progress = (committed, progress.At);
+                    }
+                    var watermarks = consumer.GetWatermarkOffsets(partition);
+                    var processedThrough = progress.Offset == Offset.Unset ? watermarks.Low : progress.Offset;
+                    if (watermarks.High <= processedThrough)
+                    {
+                        partitionProgress[partition] = (progress.Offset, now);
+                        continue;
+                    }
+                    if (now - progress.At <= partitionStallTimeout.Value)
+                        continue;
+                    restartForStall = true;
+                    throw new TimeoutException(
+                        $"Kafka partition {partition} has not committed for {now - progress.At:g} " +
+                        $"while lagging (committed {processedThrough}, high watermark {watermarks.High}); restarting consumer host");
+                }
+            }
 
             void DispatchOrResume(TopicPartition partition)
             {
@@ -249,6 +305,8 @@ namespace Coflnet.Sky.Kafka
                     {
                         var nextOffset = new TopicPartitionOffset(partition, completed.Value.Batch[^1].Offset + 1);
                         consumer.Commit(new[] { nextOffset });
+                        if (consumer.Assignment.Contains(partition))
+                            partitionProgress[partition] = (nextOffset.Offset, DateTime.UtcNow);
                         var lag = consumer.Assignment.Select(assigned =>
                             consumer.GetWatermarkOffsets(assigned).High - consumer.Position(assigned)).Sum();
                         consumerOffsets.GetOrAdd(metricKey, Metrics.CreateGauge(metricKey, "offset of kafka topic")).Set(lag);
@@ -266,6 +324,7 @@ namespace Coflnet.Sky.Kafka
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     FinishCompleted();
+                    ThrowIfPartitionStalled();
                     var consumed = consumer.Consume(TimeSpan.FromMilliseconds(50));
                     if (consumed == null)
                         continue;
@@ -302,6 +361,8 @@ namespace Coflnet.Sky.Kafka
             catch (Exception error)
             {
                 dev.Logger.Instance.Error(error, $"Partitioned consumer for {string.Join(',', topics)}");
+                if (restartForStall)
+                    throw;
             }
             finally
             {
