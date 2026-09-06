@@ -38,12 +38,18 @@ namespace Coflnet.Sky.Core
             var logger = errorApp.ApplicationServices.GetRequiredService<ILogger<ErrorHandler>>();
             Add(logger, errorApp, serviceName);
         }
-        public static void Add(ILogger logger, IApplicationBuilder errorApp, string serviceName)
+        public static void Add(
+            ILogger logger,
+            IApplicationBuilder errorApp,
+            string serviceName,
+            Func<HttpContext, bool> captureRequestBody = null)
         {
             errorApp.Use(async (context, next) =>
             {
                 // store incomming request body as feature
-                if (context.Request.Method != "GET" && context.Request.ContentLength < 300)
+                if ((captureRequestBody?.Invoke(context) ?? true)
+                    && context.Request.Method != "GET"
+                    && context.Request.ContentLength < 300)
                 {
                     context.Request.EnableBuffering();
                     var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
@@ -79,6 +85,7 @@ namespace Coflnet.Sky.Core
                 }
                 else
                 {
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error, error?.Message);
                     var source = context.RequestServices.GetService<ActivitySource>();
                     using var activity = source.StartActivity("error", ActivityKind.Producer);
                     if (activity == null)
@@ -86,6 +93,7 @@ namespace Coflnet.Sky.Core
                         logger.LogError("Could not start activity");
                         return;
                     }
+                    activity.SetStatus(ActivityStatusCode.Error, error?.Message);
                     var body = "not loadable";
                     try
                     {
