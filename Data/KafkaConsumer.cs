@@ -16,6 +16,7 @@ namespace Coflnet.Sky.Kafka
     {
         static Counter processFail = Metrics.CreateCounter("consume_process_failed", "How often processing of consumed messages failed");
         static ConcurrentDictionary<string, Gauge> consumerOffsets = new();
+        static ConcurrentDictionary<string, Gauge> partitionConsumerOffsets = new();
         /// <summary>
         /// Generic consumer
         /// </summary>
@@ -193,12 +194,21 @@ namespace Coflnet.Sky.Kafka
             var partitionProgress = new Dictionary<TopicPartition, (Offset Offset, DateTime At)>();
             var restartForStall = false;
             var nextStallCheck = DateTime.UtcNow;
+            var partitionMetricKey = "kafka_partition_lag_" + string.Join('_', topics.Select(
+                topic => System.Text.RegularExpressions.Regex.Replace(topic, "[^a-zA-Z0-9]", "_")));
+            var partitionLag = partitionConsumerOffsets.GetOrAdd(partitionMetricKey, key => Metrics.CreateGauge(
+                key,
+                "Kafka consumer offset lag by partition",
+                new GaugeConfiguration { LabelNames = new[] { "partition" } }));
             var builder = new ConsumerBuilder<Ignore, T>(config).SetValueDeserializer(deserializer);
             builder.SetPartitionsAssignedHandler((_, assigned) =>
             {
                 var now = DateTime.UtcNow;
                 foreach (var partition in assigned)
+                {
                     partitionProgress[partition] = (Offset.Unset, now);
+                    partitionLag.WithLabels(partition.Partition.Value.ToString()).Set(0);
+                }
             });
             void RemovePartitions(IEnumerable<TopicPartition> partitions)
             {
@@ -207,6 +217,7 @@ namespace Coflnet.Sky.Kafka
                 {
                     pending.Remove(partition);
                     partitionProgress.Remove(partition);
+                    partitionLag.RemoveLabelled(partition.Partition.Value.ToString());
                 }
                 partitionsRevoked?.Invoke(removed);
             }
@@ -216,8 +227,6 @@ namespace Coflnet.Sky.Kafka
                 RemovePartitions(lost.Select(offset => offset.TopicPartition)));
             using var consumer = builder.Build();
             consumer.Subscribe(topics);
-            var metricKey = "kafka_lag_" + string.Join('_', topics.Select(
-                topic => System.Text.RegularExpressions.Regex.Replace(topic, "[^a-zA-Z0-9]", "_")));
 
             void ThrowIfPartitionStalled()
             {
@@ -245,7 +254,9 @@ namespace Coflnet.Sky.Kafka
                     }
                     var watermarks = consumer.GetWatermarkOffsets(partition);
                     var processedThrough = progress.Offset == Offset.Unset ? watermarks.Low : progress.Offset;
-                    if (watermarks.High <= processedThrough)
+                    var lag = Math.Max(0, watermarks.High.Value - processedThrough.Value);
+                    partitionLag.WithLabels(partition.Partition.Value.ToString()).Set(lag);
+                    if (lag == 0)
                     {
                         partitionProgress[partition] = (progress.Offset, now);
                         continue;
@@ -307,9 +318,6 @@ namespace Coflnet.Sky.Kafka
                         consumer.Commit(new[] { nextOffset });
                         if (consumer.Assignment.Contains(partition))
                             partitionProgress[partition] = (nextOffset.Offset, DateTime.UtcNow);
-                        var lag = consumer.Assignment.Select(assigned =>
-                            consumer.GetWatermarkOffsets(assigned).High - consumer.Position(assigned)).Sum();
-                        consumerOffsets.GetOrAdd(metricKey, Metrics.CreateGauge(metricKey, "offset of kafka topic")).Set(lag);
                     }
                     catch (KafkaException error)
                     {
