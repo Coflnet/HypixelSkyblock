@@ -48,6 +48,18 @@ namespace Coflnet.Sky.Kafka
                 {
                     dev.Logger.Instance.Error(e, $"Kafka consumer process for {topic}");
                     processFail.Inc();
+                    // A consumer that keeps failing (bad message, downstream outage, ...) would
+                    // otherwise hot-loop here with no delay, hammering logs/metrics and spinning
+                    // on CPU while offering no chance for a transient failure to clear. Back off
+                    // instead of retrying immediately.
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(5), cancleToken);
+                    }
+                    catch (OperationCanceledException) when (cancleToken.IsCancellationRequested)
+                    {
+                        // shutting down; let the outer while condition end the loop cleanly
+                    }
                 }
         }
 
