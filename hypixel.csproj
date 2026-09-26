@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit.Redis" Version="2.0.0" />
     <PackageReference Include="Coflnet.Core" Version="0.7.3" />
-    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.21.1" />
+    <PackageReference Include="Coflnet.Sky.Items.Client" Version="0.21.3" />
     <PackageReference Include="Confluent.Kafka" Version="2.15.1" />
     <PackageReference Include="fNbt-netcore" Version="0.6.5" />
     <PackageReference Include="MessagePack" Version="3.1.8" />
@@ -33,7 +33,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.12" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.10.0" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.10.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.18.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.18.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.18.0" />
