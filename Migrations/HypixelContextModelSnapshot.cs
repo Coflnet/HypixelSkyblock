@@ -435,6 +435,21 @@ namespace Coflnet.Sky.Core.Migrations
                     b.ToTable("AgreementAcceptances");
                 });
 
+            modelBuilder.Entity("Coflnet.Sky.Core.PlayerOptOutRecord", b =>
+                {
+                    b.Property<string>("PlayerUuid")
+                        .HasColumnType("char(32)")
+                        .HasCharSet("ascii")
+                        .UseCollation("ascii_bin");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("PlayerUuid");
+
+                    b.ToTable("PlayerOptOutRequests");
+                });
+
             modelBuilder.Entity("hypixel.NBTKey", b =>
                 {
                     b.Property<short>("Id")

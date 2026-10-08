@@ -47,6 +47,7 @@ namespace Coflnet.Sky.Core
         public DbSet<Enchantment> Enchantment { get; set; }
         public DbSet<GoogleUser> Users { get; set; }
         public DbSet<AgreementAcceptanceRecord> AgreementAcceptances { get; set; }
+        public DbSet<PlayerOptOutRecord> PlayerOptOutRequests { get; set; }
         public DbSet<NBTLookup> NBTLookups { get; set; }
         public DbSet<NBTKey> NBTKeys { get; set; }
         public DbSet<NBTValue> NBTValues { get; set; }
@@ -163,6 +164,12 @@ namespace Coflnet.Sky.Core
             modelBuilder.Entity<AgreementAcceptanceRecord>(entity =>
             {
                 entity.HasIndex(e => new { e.UserId, e.Agreement, e.Version, e.Hash }).IsUnique();
+            });
+
+            modelBuilder.Entity<PlayerOptOutRecord>(entity =>
+            {
+                entity.ToTable("PlayerOptOutRequests");
+                entity.Property(e => e.PlayerUuid).HasCharSet("ascii").UseCollation("ascii_bin");
             });
 
             modelBuilder.Entity<NBTLookup>(entity =>
