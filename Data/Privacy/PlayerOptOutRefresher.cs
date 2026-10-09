@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -23,9 +24,18 @@ public class PlayerOptOutRefresher : BackgroundService
     private readonly Func<CancellationToken, Task> onLoaded;
     private bool loaded;
 
-    public PlayerOptOutRefresher(IConfiguration config, ILogger<PlayerOptOutRefresher> logger, bool required = true, Func<CancellationToken, Task> onLoaded = null)
-        : this(token => PlayerOptOut.LoadAsync(PlayerOptOut.ResolveConnectionString(config), token), logger, TimeSpan.FromHours(1), TimeSpan.FromSeconds(3), required, onLoaded)
+    /// <param name="fromIndexer">true: load over HTTP from the indexer (INDEXER_BASE_URL) instead of the database</param>
+    public PlayerOptOutRefresher(IConfiguration config, ILogger<PlayerOptOutRefresher> logger, bool required = true, Func<CancellationToken, Task> onLoaded = null, bool fromIndexer = false)
+        : this(CreateLoader(config, fromIndexer), logger, TimeSpan.FromHours(1), TimeSpan.FromSeconds(3), required, onLoaded)
     {
+    }
+
+    private static Func<CancellationToken, Task> CreateLoader(IConfiguration config, bool fromIndexer)
+    {
+        if (!fromIndexer)
+            return token => PlayerOptOut.LoadAsync(PlayerOptOut.ResolveConnectionString(config), token);
+        var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        return token => PlayerOptOut.LoadFromIndexerAsync(client, PlayerOptOut.ResolveIndexerBaseUrl(config), token);
     }
 
     /// <param name="required">false: don't block startup on the first load, retry it in the background</param>
@@ -112,10 +122,11 @@ public static class PlayerOptOutServiceExtention
     /// <summary>Registers the hosted service that loads the opt-out list at startup and refreshes it hourly</summary>
     /// <param name="required">false: the service starts without the list and loading is retried in the background</param>
     /// <param name="onLoaded">invoked after every successful load</param>
-    public static IServiceCollection AddPlayerOptOut(this IServiceCollection services, bool required = true, Func<IServiceProvider, CancellationToken, Task> onLoaded = null)
+    /// <param name="fromIndexer">true: load from the indexer's GET Player/optout (INDEXER_BASE_URL) instead of the database</param>
+    public static IServiceCollection AddPlayerOptOut(this IServiceCollection services, bool required = true, Func<IServiceProvider, CancellationToken, Task> onLoaded = null, bool fromIndexer = false)
     {
         services.AddHostedService(sp => new PlayerOptOutRefresher(sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<ILogger<PlayerOptOutRefresher>>(),
-            required, onLoaded == null ? null : token => onLoaded(sp, token)));
+            required, onLoaded == null ? null : token => onLoaded(sp, token), fromIndexer));
         return services;
     }
 }

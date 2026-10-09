@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -99,6 +101,41 @@ public static class PlayerOptOut
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
             uuids.Add(reader.GetString(0));
+        current = Build(uuids);
+    }
+
+    /// <summary>Base url of the indexer (INDEXER_BASE_URL), looked up in the configuration first, then in the environment.</summary>
+    public static string ResolveIndexerBaseUrl(IConfiguration config)
+    {
+        var value = config?["INDEXER_BASE_URL"];
+        if (string.IsNullOrEmpty(value))
+            value = Environment.GetEnvironmentVariable("INDEXER_BASE_URL");
+        if (string.IsNullOrEmpty(value))
+            throw new InvalidOperationException("INDEXER_BASE_URL is not configured, can't load the player opt-out list from the indexer.");
+        return value;
+    }
+
+    /// <summary>
+    /// Loads the list from the indexer (GET {base}/Player/optout, a JSON array of uuid strings) and swaps it in.
+    /// For services without database access. Throws on failure or a malformed payload, the previous snapshot stays.
+    /// </summary>
+    public static async Task LoadFromIndexerAsync(HttpClient client, string indexerBaseUrl, CancellationToken cancellationToken = default)
+    {
+        using var response = await client.GetAsync(indexerBaseUrl.TrimEnd('/') + "/Player/optout", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+        using var document = JsonDocument.Parse(body);
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+            throw new InvalidOperationException("Indexer opt-out response is not a JSON array.");
+        var uuids = new List<string>();
+        foreach (var element in document.RootElement.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.String)
+                throw new InvalidOperationException("Indexer opt-out response contains a non-string entry.");
+            var normalized = Normalize(element.GetString());
+            if (IsCanonical(normalized))
+                uuids.Add(normalized);
+        }
         current = Build(uuids);
     }
 
