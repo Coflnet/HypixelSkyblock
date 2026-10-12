@@ -150,21 +150,35 @@ namespace Coflnet.Sky.Core
         private async Task LoadPlayerName(string search, bool forceResolution, List<PlayerResult> result)
         {
             var profile = await GetMcProfile(search);
-            if (profile == null && forceResolution)
-                throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
+            AddResolvedProfile(profile, forceResolution, search, result);
+        }
+
+        /// <summary>
+        /// Adds the resolved profile to the result, handles a failed lookup depending on <paramref name="forceResolution"/>
+        /// </summary>
+        public static void AddResolvedProfile(MinecraftProfile profile, bool forceResolution, string search, List<PlayerResult> result)
+        {
+            if (profile == null)
+            {
+                if (forceResolution)
+                    throw new CoflnetException("player_not_found", $"we don't know of a player with the name {search}");
+                return;
+            }
 
             result.Add(new PlayerResult(profile.Name, profile.Id));
         }
 
+        private static readonly TimeSpan LookupTimeout = TimeSpan.FromMilliseconds(1500);
+
         public async Task<MinecraftProfile> GetMcProfile(string name)
         {
-            var client = new RestClient("https://api.mojang.com/");
+            var client = new RestClient(new RestClientOptions("https://api.mojang.com/") { Timeout = LookupTimeout });
             var request = new RestRequest($"/users/profiles/minecraft/{name}", Method.Get);
             var response = await client.ExecuteAsync(request);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<MinecraftProfile>(response.Content);
 
-            client = new RestClient("https://playerdb.co/");
+            client = new RestClient(new RestClientOptions("https://playerdb.co/") { Timeout = LookupTimeout });
             request = new RestRequest($"/api/player/minecraft/{name}", Method.Get);
             response = await client.ExecuteAsync(request);
             Console.WriteLine($"PlayerDB response: {response.StatusCode} - {response.Content}");
