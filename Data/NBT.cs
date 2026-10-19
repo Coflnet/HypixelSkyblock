@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -683,11 +684,12 @@ namespace Coflnet.Sky.Core
                 if (data.ContainsKey("petInfo"))
                     if (data["petInfo"] is Dictionary<string, object> petInfo && petInfo.ContainsKey("extraData"))
                     {
-                        if (petInfo["extraData"] is Newtonsoft.Json.Linq.JObject obj)
+                        var extra = AsStringDictionary(petInfo["extraData"]);
+                        if (extra != null)
                         {
-                            foreach (var item in obj)
+                            foreach (var item in extra)
                             {
-                                data[item.Key] = ((long)item.Value);
+                                data[item.Key] = Convert.ToInt64(item.Value is JValue jv ? jv.Value : item.Value);
                             }
                         }
                         petInfo.Remove("extraData");
@@ -836,7 +838,13 @@ namespace Coflnet.Sky.Core
 
         private static void UnwarpStringArray(Dictionary<string, object> data, string stringArrayKey)
         {
-            if (data.TryGetValue(stringArrayKey, out object abilityScroll) && abilityScroll is List<object> scrollList)
+            if (!data.TryGetValue(stringArrayKey, out object abilityScroll))
+                return;
+            if (abilityScroll is JArray jArray)
+            {
+                data[stringArrayKey] = String.Join(" ", jArray.Select(a => a.ToString()));
+            }
+            else if (AsObjectList(abilityScroll) is List<object> scrollList)
             {
                 var list = scrollList
                     .Select(o => o.ToString())
@@ -845,10 +853,6 @@ namespace Coflnet.Sky.Core
                     .OrderBy(a => a);
                 data[stringArrayKey] = String.Join(" ", list);
             }
-            else if (abilityScroll is JArray jArray)
-            {
-                data[stringArrayKey] = String.Join(" ", jArray.Select(a => a.ToString()));
-            }
         }
 
         private static void UnwrapList(Dictionary<string, object> data, string name)
@@ -856,9 +860,11 @@ namespace Coflnet.Sky.Core
 
             if (data.ContainsKey(name))
             {
-                foreach (var item in (data[name] as List<object>))
+                foreach (var item in AsObjectList(data[name]) ?? new List<object>())
                 {
-                    var kv = (item as Dictionary<string, object>);
+                    var kv = AsStringDictionary(item);
+                    if (kv == null)
+                        continue;
                     foreach (var keys in kv)
                     {
                         data[keys.Key] = keys.Value;
@@ -874,14 +880,16 @@ namespace Coflnet.Sky.Core
             if (!data.ContainsKey("necromancer_souls"))
                 return;
 
-            foreach (var item in (data["necromancer_souls"] as List<object>))
+            foreach (var item in AsObjectList(data["necromancer_souls"]) ?? new List<object>())
             {
-                var kv = (item as Dictionary<string, object>);
+                var kv = AsStringDictionary(item);
+                if (kv == null)
+                    continue;
                 foreach (var keys in kv)
                 {
                     var soul = keys.Value.ToString();
                     if (data.ContainsKey(soul))
-                        data[soul] = (int)data[soul] + 1;
+                        data[soul] = Convert.ToInt32(data[soul]) + 1;
                     else
                         data[soul] = 1;
                 }
@@ -889,8 +897,6 @@ namespace Coflnet.Sky.Core
             data.Remove("necromancer_souls");
 
         }
-
-
 
         private static void UnwrapJson(Dictionary<string, object> data, string key)
         {
@@ -901,17 +907,79 @@ namespace Coflnet.Sky.Core
                 // content may already be a parsed dictionary (calling ToString() on it would yield
                 // the type name, not json) or a json string that still needs deserializing
                 Dictionary<string, object> innterData;
-                if (content is IDictionary<string, object> alreadyParsed)
-                    innterData = new Dictionary<string, object>(alreadyParsed);
+                if (content is string json)
+                    innterData = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
                 else
-                    innterData = JsonConvert.DeserializeObject<Dictionary<string, object>>(content.ToString());
+                    innterData = AsStringDictionary(content);
+                if (innterData == null)
+                    return;
+                if (ReferenceEquals(innterData, content))
+                    innterData = new Dictionary<string, object>(innterData);
                 innterData.Remove("uuid");
                 data[key] = innterData;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e + $"\nCould not unwrap {JSON.Stringify(data[key])} \nwhich is:{data[key].GetType().Name} {data[key]}");
+                Logger.Instance.Error(e, $"Could not unwrap {JSON.Stringify(data[key])} \nwhich is:{data[key].GetType().Name} {data[key]}");
             }
+        }
+
+        /// <summary>
+        /// Converts list-like values (List, object[], JArray, any non string IEnumerable) to a List&lt;object&gt;
+        /// with nested containers normalized, null if the value is not list-like
+        /// </summary>
+        private static List<object> AsObjectList(object value)
+        {
+            switch (value)
+            {
+                case null:
+                case string:
+                case byte[]:
+                case IDictionary:
+                case JObject:
+                    return null;
+                case JArray jArray:
+                    return jArray.Select(t => NormalizeNested(t is JValue jv ? jv.Value : t)).ToList();
+                case JToken: // a single token (JValue) also implements IEnumerable, it is not a list
+                    return null;
+                case IEnumerable enumerable:
+                    return enumerable.Cast<object>().Select(NormalizeNested).ToList();
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Converts dictionary-like values (IDictionary&lt;string,object&gt;, JObject, any IDictionary such as
+        /// Dictionary&lt;object,object&gt; from messagepack) to a Dictionary&lt;string,object&gt;, null otherwise
+        /// </summary>
+        private static Dictionary<string, object> AsStringDictionary(object value)
+        {
+            switch (value)
+            {
+                case Dictionary<string, object> same:
+                    return same;
+                case IDictionary<string, object> generic:
+                    return new Dictionary<string, object>(generic);
+                case JObject jObject:
+                    return jObject.ToObject<Dictionary<string, object>>();
+                case IDictionary dictionary:
+                    var result = new Dictionary<string, object>();
+                    foreach (DictionaryEntry entry in dictionary)
+                        result[entry.Key?.ToString() ?? ""] = NormalizeNested(entry.Value);
+                    return result;
+                default:
+                    return null;
+            }
+        }
+
+        private static object NormalizeNested(object value)
+        {
+            if (value is Dictionary<string, object> || value is JObject || value is JValue)
+                return value;
+            if (value is IDictionary || value is IDictionary<string, object>)
+                return AsStringDictionary(value);
+            return (value is string || value is byte[]) ? value : (object)AsObjectList(value) ?? value;
         }
 
         private bool TryAs<T>(KeyValuePair<string, object> attr, out NBTLookup value) where T : IComparable, IConvertible, IFormattable
