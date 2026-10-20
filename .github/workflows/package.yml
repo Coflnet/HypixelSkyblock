@@ -1,0 +1,101 @@
+name: Package
+
+# Publishes the Coflnet.Sky.Core NuGet package. Trigger a release by bumping <Version> in
+# hypixel.csproj and merging to master; workflow_dispatch is available for a manual re-run
+# (e.g. after fixing a failed publish without changing the version again).
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - hypixel.csproj
+      - .github/workflows/package.yml
+
+# Never let two releases race each other (e.g. a manual dispatch during a push-triggered run).
+# cancel-in-progress is false so a second trigger queues behind the first instead of aborting a
+# publish that may already be mid-push.
+concurrency:
+  group: package
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # required for NuGet trusted publishing (OIDC) and attestation signing
+  attestations: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout HypixelSkyblock
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.x"
+
+      # The unit tests need no infrastructure (no Cassandra/Redis/Kafka/MySQL), so the whole
+      # Tests project runs.
+      - name: Test
+        run: dotnet test Tests/Tests.csproj -c Release
+
+      - name: Pack
+        id: pack
+        run: |
+          dotnet pack hypixel.csproj -c Release -o out
+          nupkg=$(basename out/Coflnet.Sky.Core.*.nupkg)
+          echo "nupkg=$nupkg" >> "$GITHUB_OUTPUT"
+
+      # nuget.org re-signs every package on push, so the .nupkg's own digest changes after upload
+      # and can't be checked against an attestation made before that. The digests of the files
+      # *inside* the package don't change, so we attest a manifest of those instead. This exact
+      # pipeline must never change, since a verifier reproduces it byte for byte against a
+      # package downloaded later from nuget.org.
+      - name: Compute package content manifest
+        working-directory: out
+        env:
+          NUPKG: ${{ steps.pack.outputs.nupkg }}
+        run: |
+          mkdir contents && unzip -q "$NUPKG" -d contents
+          (cd contents && find . -type f | sed 's|^\./||' | LC_ALL=C sort | tr '\n' '\0' | xargs -0 sha256sum) > "$NUPKG.contents"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            out/${{ steps.pack.outputs.nupkg }}
+            out/${{ steps.pack.outputs.nupkg }}.contents
+
+      # Requested as late as possible: the exchanged NuGet API key is only valid for one hour.
+      - name: NuGet login (OIDC trusted publishing)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ekwav
+
+      # The key and the file name reach the shell through the environment, never as script text.
+      - name: Push to NuGet.org
+        working-directory: out
+        env:
+          NUPKG: ${{ steps.pack.outputs.nupkg }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "$NUPKG" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Write summary
+        working-directory: out
+        env:
+          nupkg: ${{ steps.pack.outputs.nupkg }}
+        run: |
+          version="${nupkg#Coflnet.Sky.Core.}"
+          version="${version%.nupkg}"
+          {
+            echo "### Packaged Coflnet.Sky.Core $version"
+            echo "A version that already exists on nuget.org is not replaced; bump <Version> to release."
+            echo "- Package: \`$nupkg\` — SHA-256 \`$(sha256sum "$nupkg" | cut -d' ' -f1)\`"
+            echo "- Content manifest: \`$nupkg.contents\` — SHA-256 \`$(sha256sum "$nupkg.contents" | cut -d' ' -f1)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
