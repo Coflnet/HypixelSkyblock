@@ -204,6 +204,9 @@ namespace Coflnet.Sky.Kafka
             var pending = new Dictionary<TopicPartition, Queue<ConsumeResult<Ignore, T>>>();
             var inFlight = new Dictionary<TopicPartition, (Task Task, List<ConsumeResult<Ignore, T>> Batch)>();
             var partitionProgress = new Dictionary<TopicPartition, (Offset Offset, DateTime At)>();
+            // offsets of fully processed batches whose commit has not succeeded yet (transient
+            // broker errors like "Not coordinator"); retried instead of dropped
+            var pendingCommits = new Dictionary<TopicPartition, (Offset Next, DateTime LastCommitOrStart, DateTime NextTry)>();
             var restartForStall = false;
             var nextStallCheck = DateTime.UtcNow;
             var partitionMetricKey = "kafka_partition_lag_" + string.Join('_', topics.Select(
@@ -229,6 +232,7 @@ namespace Coflnet.Sky.Kafka
                 {
                     pending.Remove(partition);
                     partitionProgress.Remove(partition);
+                    pendingCommits.Remove(partition);
                     partitionLag.RemoveLabelled(partition.Partition.Value.ToString());
                 }
                 partitionsRevoked?.Invoke(removed);
@@ -273,11 +277,15 @@ namespace Coflnet.Sky.Kafka
                         partitionProgress[partition] = (progress.Offset, now);
                         continue;
                     }
-                    if (now - progress.At <= partitionStallTimeout.Value)
+                    var commitFailingSince = pendingCommits.TryGetValue(partition, out var waiting) ? waiting.LastCommitOrStart : (DateTime?)null;
+                    if (!PartitionStallPolicy.IsStalled(now, progress.At, commitFailingSince, partitionStallTimeout.Value))
                         continue;
                     restartForStall = true;
+                    var idleStall = now - progress.At > partitionStallTimeout.Value;
                     throw new TimeoutException(
-                        $"Kafka partition {partition} has not committed for {now - progress.At:g} " +
+                        (idleStall
+                            ? $"Kafka partition {partition} has not committed or finished a batch for {now - progress.At:g} "
+                            : $"Kafka partition {partition} commits kept failing for {now - commitFailingSince!.Value:g} while batches completed ") +
                         $"while lagging (committed {processedThrough}, high watermark {watermarks.High}); restarting consumer host");
                 }
             }
@@ -304,6 +312,43 @@ namespace Coflnet.Sky.Kafka
                 consumer.Resume(new[] { partition });
             }
 
+            // commits all pending offsets that are due (or all when force) in one call. Failures keep
+            // the offsets pending and retry after a second; a failed commit only means reprocessing.
+            // Note: a batch still in flight across a revoke+reassign may commit a stale offset, a
+            // pre-existing limitation that is out of scope here.
+            void CommitDue(bool force = false)
+            {
+                var now = DateTime.UtcNow;
+                var due = new List<TopicPartition>();
+                foreach (var entry in pendingCommits.ToList())
+                {
+                    if (!consumer.Assignment.Contains(entry.Key))
+                        pendingCommits.Remove(entry.Key);
+                    else if (force || entry.Value.NextTry <= now)
+                        due.Add(entry.Key);
+                }
+                if (due.Count == 0)
+                    return;
+                try
+                {
+                    consumer.Commit(due.Select(partition => new TopicPartitionOffset(partition, pendingCommits[partition].Next)).ToList());
+                    foreach (var partition in due)
+                    {
+                        partitionProgress[partition] = (pendingCommits[partition].Next, DateTime.UtcNow);
+                        pendingCommits.Remove(partition);
+                    }
+                }
+                catch (KafkaException error)
+                {
+                    foreach (var partition in due)
+                    {
+                        var waiting = pendingCommits[partition];
+                        pendingCommits[partition] = (waiting.Next, waiting.LastCommitOrStart, now.AddSeconds(1));
+                    }
+                    dev.Logger.Instance.Error(error, $"On partition commit {string.Join(',', due)} {error.Error.IsFatal}, will retry");
+                }
+            }
+
             void FinishCompleted()
             {
                 foreach (var completed in inFlight.Where(worker => worker.Value.Task.IsCompleted).ToList())
@@ -324,19 +369,19 @@ namespace Coflnet.Sky.Kafka
                         DispatchOrResume(partition);
                         continue;
                     }
-                    try
+                    if (consumer.Assignment.Contains(partition))
                     {
-                        var nextOffset = new TopicPartitionOffset(partition, completed.Value.Batch[^1].Offset + 1);
-                        consumer.Commit(new[] { nextOffset });
-                        if (consumer.Assignment.Contains(partition))
-                            partitionProgress[partition] = (nextOffset.Offset, DateTime.UtcNow);
-                    }
-                    catch (KafkaException error)
-                    {
-                        dev.Logger.Instance.Error(error, $"On partition commit {partition} {error.Error.IsFatal}");
+                        var now = DateTime.UtcNow;
+                        var nextOffset = completed.Value.Batch[^1].Offset + 1;
+                        var since = pendingCommits.TryGetValue(partition, out var previous) ? previous.LastCommitOrStart : now;
+                        var nextTry = pendingCommits.TryGetValue(partition, out var waitingCommit) ? waitingCommit.NextTry : now;
+                        pendingCommits[partition] = (nextOffset, since, nextTry);
+                        // processing finished a batch, so the partition is alive even if the commit fails
+                        partitionProgress[partition] = (partitionProgress.TryGetValue(partition, out var known) ? known.Offset : Offset.Unset, now);
                     }
                     DispatchOrResume(partition);
                 }
+                CommitDue();
             }
 
             try
@@ -344,6 +389,7 @@ namespace Coflnet.Sky.Kafka
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     FinishCompleted();
+                    CommitDue();
                     ThrowIfPartitionStalled();
                     var consumed = consumer.Consume(TimeSpan.FromMilliseconds(50));
                     if (consumed == null)
@@ -386,6 +432,14 @@ namespace Coflnet.Sky.Kafka
             }
             finally
             {
+                try
+                {
+                    CommitDue(force: true);
+                }
+                catch (Exception)
+                {
+                    // failing here only means reprocessing
+                }
                 consumer.Close();
             }
         }
