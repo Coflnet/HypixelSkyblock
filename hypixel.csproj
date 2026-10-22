@@ -7,8 +7,11 @@
     <NoWarn>$(NoWarn);1591;CS8981</NoWarn>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <PackageId>Coflnet.Sky.Core</PackageId>
+    <!-- The Web SDK turns every *.json into a Content item and packs Content as contentFiles.
+         1.0.0/1.0.1 shipped custom.conf.json (live credentials) and whole Tests/bin trees that way. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);custom.conf.json;keyfile.p12;Tests/bin/**;Tests/obj/**;NEU-REPO/**</DefaultItemExcludes>
     <Description>Hypixel Skyblock core library</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
@@ -16,6 +19,10 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <!-- Never pack configuration or data files; only the assembly belongs in the package. -->
+    <Content Update="**\*.json" Pack="false" />
+    <Content Update="**\*.config" Pack="false" />
+    <None Update="**\*.json" Pack="false" />
   </ItemGroup>
 
   <ItemGroup>
