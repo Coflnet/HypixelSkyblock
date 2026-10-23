@@ -25,16 +25,46 @@ namespace Coflnet.Sky.Core.Archive
     }
 
     /// <summary>
+    /// Columns of a Scylla <c>weekly_auctions_2</c> row that <see cref="SaveAuction"/> can not carry (keys 31-38 of
+    /// <see cref="ArchivedAuctionBlock"/>). Passed per row to the Scylla overload of <see cref="ArchivedAuctionBlock.FromAuctions(string, int, int, string, IEnumerable{ValueTuple{SaveAuction, ScyllaAuctionExtras}})"/>.
+    /// </summary>
+    public sealed class ScyllaAuctionExtras
+    {
+        /// <summary>Scylla <c>highestbiddername</c>.</summary>
+        public string HighestBidderName { get; set; }
+        /// <summary>Scylla <c>profilename</c>.</summary>
+        public string ProfileName { get; set; }
+        /// <summary>Scylla <c>coopname</c>.</summary>
+        public string CoopName { get; set; }
+        /// <summary>Scylla <c>color</c>.</summary>
+        public int? Color { get; set; }
+        /// <summary>Scylla <c>itemuid</c>.</summary>
+        public long ItemUid { get; set; }
+        /// <summary>Scylla <c>itemid</c> as 16 bytes (<see cref="EncodeItemId"/>), null for <see cref="Guid.Empty"/>.</summary>
+        public byte[] ItemId { get; set; }
+        /// <summary>Scylla <c>nbtlookup</c> (string keyed flattened nbt); never null after <see cref="ArchivedAuctionBlock.ToExtras"/>.</summary>
+        public IReadOnlyDictionary<string, string> NbtLookupStrings { get; set; }
+        /// <summary>Scylla <c>enchantments</c> entries whose name is not an <see cref="Enchantment.EnchantmentType"/> (or whose level does not fit a byte); never null after <see cref="ArchivedAuctionBlock.ToExtras"/>.</summary>
+        public IReadOnlyDictionary<string, int> UnknownEnchantments { get; set; }
+
+        /// <summary>16 bytes of the "N" form of <paramref name="itemId"/> (<see cref="ArchiveIds.Encode"/>), null for <see cref="Guid.Empty"/>.</summary>
+        public static byte[] EncodeItemId(Guid itemId) => itemId == Guid.Empty ? null : ArchiveIds.Encode(itemId.ToString("N"));
+    }
+
+    /// <summary>
     /// Column-oriented, MessagePack-serialisable, immutable archive of the auctions of one tag that ended in one
     /// UTC month (one part of at most a configured number of rows). Brotli is applied on top when stored.
     /// Rows are sorted by End, then auction uid. Index i of every row column belongs to row i.
     /// Enums are stored as their numeric value. Columns that a source does not have are null as a whole.
     /// Adding a new nullable key later is backwards compatible; changing or removing one requires a new <see cref="CurrentFormatVersion"/>.
+    /// Serialised by <see cref="ArchivedAuctionBlockFormatter"/>, which omits trailing null keys from 38 on so blocks without them keep
+    /// the exact bytes (and <see cref="Sha256"/>) they had before those keys existed.
     /// </summary>
     [MessagePackObject]
+    [MessagePackFormatter(typeof(ArchivedAuctionBlockFormatter))]
     public class ArchivedAuctionBlock
     {
-        /// <summary>Format version written by <see cref="FromAuctions"/>.</summary>
+        /// <summary>Format version written by <see cref="FromAuctions(string, int, int, string, IEnumerable{SaveAuction})"/>.</summary>
         public const int CurrentFormatVersion = 2;
         /// <summary>Block built from MariaDB rows.</summary>
         public const string SourceMariaDb = "mariadb";
@@ -119,6 +149,8 @@ namespace Coflnet.Sky.Core.Archive
         [Key(36)] public byte[][] ItemId { get; set; }
         /// <summary>Scylla only: per-row MessagePack <c>Dictionary&lt;string,string&gt;</c> of the flattened nbt lookup.</summary>
         [Key(37)] public byte[][] NbtLookupStrings { get; set; }
+        /// <summary>Scylla only: per-row MessagePack <c>Dictionary&lt;string,int&gt;</c> of enchantments that are no <see cref="Enchantment.EnchantmentType"/>, sorted by name, null when none.</summary>
+        [Key(38)] public byte[][] UnknownEnchantments { get; set; }
 
         /// <summary>Number of rows.</summary>
         [IgnoreMember]
@@ -136,6 +168,21 @@ namespace Coflnet.Sky.Core.Archive
         /// </summary>
         public static ArchivedAuctionBlock FromAuctions(string tag, int month, int part, string source, IEnumerable<SaveAuction> rows)
         {
+            return Build(tag, month, part, source, (rows ?? Enumerable.Empty<SaveAuction>()).Select(r => (r, (ScyllaAuctionExtras)null)));
+        }
+
+        /// <summary>
+        /// Pack Scylla rows of one tag-month part together with the columns <see cref="SaveAuction"/> can not carry (keys 31-38).
+        /// Same rules as <see cref="FromAuctions(string, int, int, string, IEnumerable{SaveAuction})"/>; when every extras entry is null
+        /// the result is identical (byte for byte) to that overload.
+        /// </summary>
+        public static ArchivedAuctionBlock FromAuctions(string tag, int month, int part, string source, IEnumerable<(SaveAuction Row, ScyllaAuctionExtras Extras)> rows)
+        {
+            return Build(tag, month, part, source, rows ?? Enumerable.Empty<(SaveAuction, ScyllaAuctionExtras)>());
+        }
+
+        private static ArchivedAuctionBlock Build(string tag, int month, int part, string source, IEnumerable<(SaveAuction Row, ScyllaAuctionExtras Extras)> rows)
+        {
             if (string.IsNullOrEmpty(tag))
                 throw new ArgumentException("Tag is required", nameof(tag));
             if (string.IsNullOrEmpty(source))
@@ -143,8 +190,8 @@ namespace Coflnet.Sky.Core.Archive
             if (part < 0)
                 throw new ArgumentOutOfRangeException(nameof(part));
             var (monthStart, _) = ArchiveMonths.MonthRange(month);
-            var list = (rows ?? Enumerable.Empty<SaveAuction>()).ToList();
-            foreach (var r in list)
+            var pairs = rows.ToList();
+            foreach (var (r, _) in pairs)
             {
                 if (r.Tag != tag)
                     throw new ArgumentException($"Auction {r.Uuid} has tag {r.Tag}, block is {tag}", nameof(rows));
@@ -153,11 +200,15 @@ namespace Coflnet.Sky.Core.Archive
                 if (r.End.Ticks % TimeSpan.TicksPerMillisecond != 0 || r.Start.Ticks % TimeSpan.TicksPerMillisecond != 0)
                     throw new ArgumentException($"Auction {r.Uuid} has sub-millisecond start/end", nameof(rows));
             }
-            list.Sort((a, b) =>
+            // same List.Sort and comparison as before the extras existed, so the row permutation (and the bytes) can not change
+            pairs.Sort((a, b) =>
             {
-                var c = a.End.Ticks.CompareTo(b.End.Ticks);
-                return c != 0 ? c : a.UId.CompareTo(b.UId);
+                var c = a.Row.End.Ticks.CompareTo(b.Row.End.Ticks);
+                return c != 0 ? c : a.Row.UId.CompareTo(b.Row.UId);
             });
+            var list = pairs.Select(p => p.Row).ToList();
+            var hasExtras = pairs.Any(p => p.Extras != null);
+            var hasUnknownEnchantments = pairs.Any(p => p.Extras?.UnknownEnchantments?.Count > 0);
 
             var n = list.Count;
             var first = n == 0 ? monthStart.Ticks : list[0].End.Ticks;
@@ -195,6 +246,18 @@ namespace Coflnet.Sky.Core.Archive
                 NbtLookup = new byte[n][],
                 Enchantments = new byte[n][],
             };
+            if (hasExtras)
+            {
+                block.HighestBidderName = new string[n];
+                block.ProfileName = new string[n];
+                block.CoopName = new string[n];
+                block.Color = new int?[n];
+                block.ItemUid = new long[n];
+                block.ItemId = new byte[n][];
+                block.NbtLookupStrings = new byte[n][];
+            }
+            if (hasUnknownEnchantments)
+                block.UnknownEnchantments = new byte[n][];
             for (var i = 0; i < n; i++)
             {
                 var r = list[i];
@@ -223,6 +286,18 @@ namespace Coflnet.Sky.Core.Archive
                 block.ClaimedBidders[i] = SerialiseIds(r.ClaimedBids);
                 block.NbtLookup[i] = SerialiseLookup(r.NBTLookup, r.Uuid);
                 block.Enchantments[i] = SerialiseEnchantments(r.Enchantments);
+                var extras = pairs[i].Extras;
+                if (extras == null)
+                    continue;
+                block.HighestBidderName[i] = extras.HighestBidderName;
+                block.ProfileName[i] = extras.ProfileName;
+                block.CoopName[i] = extras.CoopName;
+                block.Color[i] = extras.Color;
+                block.ItemUid[i] = extras.ItemUid;
+                block.ItemId[i] = extras.ItemId;
+                block.NbtLookupStrings[i] = SerialiseSorted(extras.NbtLookupStrings);
+                if (hasUnknownEnchantments)
+                    block.UnknownEnchantments[i] = SerialiseSorted(extras.UnknownEnchantments);
             }
             return block;
         }
@@ -276,6 +351,34 @@ namespace Coflnet.Sky.Core.Archive
                 };
                 yield return auction;
             }
+        }
+
+        /// <summary>
+        /// The Scylla-only columns (keys 31-38) per row, in row order. Every entry is null when the block has none of these columns
+        /// (MariaDB blocks); otherwise dictionaries are never null (empty when the row had none).
+        /// </summary>
+        public IReadOnlyList<ScyllaAuctionExtras> ToExtras()
+        {
+            var n = RowCount;
+            var result = new ScyllaAuctionExtras[n];
+            if (HighestBidderName == null && ProfileName == null && CoopName == null && Color == null && ItemUid == null
+                && ItemId == null && NbtLookupStrings == null && UnknownEnchantments == null)
+                return result;
+            for (var i = 0; i < n; i++)
+            {
+                result[i] = new ScyllaAuctionExtras
+                {
+                    HighestBidderName = HighestBidderName?[i],
+                    ProfileName = ProfileName?[i],
+                    CoopName = CoopName?[i],
+                    Color = Color?[i],
+                    ItemUid = ItemUid?[i] ?? 0,
+                    ItemId = ItemId?[i],
+                    NbtLookupStrings = DeserialiseMap<string>(NbtLookupStrings?[i]),
+                    UnknownEnchantments = DeserialiseMap<int>(UnknownEnchantments?[i]),
+                };
+            }
+            return result;
         }
 
         /// <summary>True if every uid is a row of this block.</summary>
@@ -334,6 +437,7 @@ namespace Coflnet.Sky.Core.Archive
             if (!ArrayEq(ItemUid, other.ItemUid)) return nameof(ItemUid);
             if (!JaggedEq(ItemId, other.ItemId)) return nameof(ItemId);
             if (!JaggedEq(NbtLookupStrings, other.NbtLookupStrings)) return nameof(NbtLookupStrings);
+            if (!JaggedEq(UnknownEnchantments, other.UnknownEnchantments)) return nameof(UnknownEnchantments);
             return null;
         }
 
@@ -342,9 +446,10 @@ namespace Coflnet.Sky.Core.Archive
         {
             const int arrayHeader = 24;
             // fixed width columns: 6 longs, 3 bools, int, 3 bytes, short; plus a slot reference for each of the 15 jagged/string columns
+            // (Scylla-only columns are billed by content below)
             const int perRowFixed = 6 * 8 + 3 + 4 + 3 + 2 + 15 * 8;
             long total = 512 + (long)RowCount * perRowFixed;
-            foreach (var column in new[] { Uuid, Auctioneer, ProfileId, HighestBidder, ItemBytes, SerialisedBids, Coop, ClaimedBidders, NbtLookup, Enchantments, ItemId, NbtLookupStrings })
+            foreach (var column in new[] { Uuid, Auctioneer, ProfileId, HighestBidder, ItemBytes, SerialisedBids, Coop, ClaimedBidders, NbtLookup, Enchantments, ItemId, NbtLookupStrings, UnknownEnchantments })
             {
                 if (column == null)
                     continue;
@@ -449,6 +554,23 @@ namespace Coflnet.Sky.Core.Archive
             foreach (var kv in sorted)
                 ordered.Add(kv.Key, kv.Value);
             return MessagePackSerializer.Serialize(ordered);
+        }
+
+        private static byte[] SerialiseSorted<TValue>(IReadOnlyDictionary<string, TValue> map)
+        {
+            if (map == null || map.Count == 0)
+                return null;
+            var ordered = new Dictionary<string, TValue>(map.Count);
+            foreach (var kv in map.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+                ordered.Add(kv.Key, kv.Value);
+            return MessagePackSerializer.Serialize(ordered);
+        }
+
+        private static IReadOnlyDictionary<string, TValue> DeserialiseMap<TValue>(byte[] bytes)
+        {
+            if (bytes == null)
+                return new Dictionary<string, TValue>();
+            return MessagePackSerializer.Deserialize<Dictionary<string, TValue>>(bytes);
         }
 
         private static List<NBTLookup> DeserialiseLookup(byte[] bytes)

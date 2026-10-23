@@ -66,6 +66,10 @@ namespace Coflnet.Sky.Core.Migrations.Archive
                         .HasColumnType("int unsigned")
                         .HasColumnName("rows");
 
+                    b.Property<DateTime?>("ScyllaAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("scylla_at");
+
                     b.Property<string>("Sha256")
                         .IsRequired()
                         .HasMaxLength(64)

@@ -35,6 +35,14 @@ namespace Coflnet.Sky.Core.Archive
         /// <summary>Month entries, sorted ascending by month.</summary>
         [Key(1)] public List<ArchivedMonthEntry> Months { get; set; } = new();
 
+        /// <summary>
+        /// ETag of the stored object this index was read from (set by <see cref="IAuctionBlobStore.ReadIndexAsync"/>), null for a new
+        /// index. Not serialised. <see cref="IAuctionBlobStore.WriteIndexAsync"/> only replaces the object if it still has this ETag
+        /// (or, when null, only creates it if it does not exist) and throws <see cref="ArchiveIndexConflictException"/> otherwise;
+        /// after a successful write it holds the new ETag.
+        /// </summary>
+        [IgnoreMember] public string ETag { get; set; }
+
         /// <summary>Insert the entry or replace the existing entry of the same month; keeps <see cref="Months"/> sorted.</summary>
         public ArchivedTagIndex Upsert(ArchivedMonthEntry entry)
         {

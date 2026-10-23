@@ -1,6 +1,8 @@
 using System.Linq;
 using Coflnet.Sky.Core.Archive;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using NUnit.Framework;
 
 namespace Tests
@@ -15,7 +17,23 @@ namespace Tests
         {
             using var context = Create();
             Assert.That(context.Database.HasPendingModelChanges(), Is.False);
-            Assert.That(context.Database.GetMigrations().ToList(), Has.Count.EqualTo(1));
+            Assert.That(context.Database.GetMigrations().ToList(), Has.Count.EqualTo(2));
+        }
+
+        /// <summary>Phase 2 marker: the migration only adds the nullable column, so SkyIndexer's running code and rows are unaffected.</summary>
+        [Test]
+        public void ScyllaAtMigrationOnlyAddsANullableColumn()
+        {
+            using var context = Create();
+            var migrator = context.GetService<IMigrator>();
+            var sql = migrator.GenerateScript("20261021101936_ArchiveInit", "20261023120000_ArchiveScyllaAt");
+            TestContext.Out.WriteLine(sql);
+            Assert.That(sql, Does.Contain("ALTER TABLE `archived_months` ADD `scylla_at` datetime NULL"));
+            Assert.That(sql, Does.Not.Contain("DROP"));
+            Assert.That(sql, Does.Not.Contain("CREATE TABLE `archived_months`"));
+            var property = context.Model.FindEntityType(typeof(ArchivedMonth)).FindProperty(nameof(ArchivedMonth.ScyllaAt));
+            Assert.That(property.GetColumnName(), Is.EqualTo("scylla_at"));
+            Assert.That(property.IsNullable, Is.True);
         }
 
         [Test]

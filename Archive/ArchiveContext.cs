@@ -43,7 +43,8 @@ namespace Coflnet.Sky.Core.Archive
 
     /// <summary>
     /// <c>archived_months</c>: one row per archived tag-month. The row with <c>tag_id = 0</c> is the month sentinel:
-    /// <c>archived_at</c> = every tag of the month is archived and verified, <c>deleted_at</c> = every MariaDB row of the month is deleted.
+    /// <c>archived_at</c> = every tag of the month is archived and verified, <c>deleted_at</c> = every MariaDB row of the month is deleted,
+    /// <c>scylla_at</c> = every tag of the month has its Scylla rows merged (phase 2).
     /// </summary>
     public class ArchivedMonth
     {
@@ -75,6 +76,12 @@ namespace Coflnet.Sky.Core.Archive
         public DateTime? DeletedAt { get; set; }
         /// <summary>Free text for operators.</summary>
         public string Note { get; set; }
+        /// <summary>
+        /// UTC time phase 2 (SkyAuctions' Scylla sweep) finished: on a tag row, the Scylla rows of the tag-month are merged into
+        /// the archive; on the sentinel row, every tag of the month is. Scylla partitions may only be deleted once every month they
+        /// overlap has it on its sentinel.
+        /// </summary>
+        public DateTime? ScyllaAt { get; set; }
     }
 
     /// <summary>
@@ -184,6 +191,7 @@ namespace Coflnet.Sky.Core.Archive
                 entity.Property(e => e.DeletedRows).HasColumnName("deleted_rows").HasColumnType("int unsigned");
                 entity.Property(e => e.DeletedAt).HasColumnName("deleted_at").HasColumnType("datetime");
                 entity.Property(e => e.Note).HasColumnName("note").HasColumnType("varchar(255)").HasMaxLength(255);
+                entity.Property(e => e.ScyllaAt).HasColumnName("scylla_at").HasColumnType("datetime");
             });
         }
     }

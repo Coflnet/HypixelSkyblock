@@ -25,10 +25,16 @@ namespace Coflnet.Sky.Core.Archive
         /// <summary>True if the part exists in storage.</summary>
         Task<bool> BlockExistsAsync(string tag, int month, int part, CancellationToken cancellationToken = default);
 
-        /// <summary>Read the month index of a tag (never cached); null when it does not exist.</summary>
+        /// <summary>Read the month index of a tag (never cached) with its <see cref="ArchivedTagIndex.ETag"/>; null when it does not exist.</summary>
         Task<ArchivedTagIndex> ReadIndexAsync(string tag, CancellationToken cancellationToken = default);
 
-        /// <summary>Write (or overwrite) the month index of a tag.</summary>
+        /// <summary>
+        /// Write the month index of a tag, conditional on <see cref="ArchivedTagIndex.ETag"/> (If-Match, or If-None-Match: * for a new
+        /// index). Several writers share one index object per tag (SkyIndexer and the SkyAuctions sweep, different months), so a
+        /// lost update would drop another writer's month. Throws <see cref="ArchiveIndexConflictException"/> when the object changed
+        /// since it was read; callers re-read, re-apply their <see cref="ArchivedTagIndex.Upsert"/> and retry
+        /// (<see cref="ArchiveIndexConflictException.MaxWriteAttempts"/>).
+        /// </summary>
         Task WriteIndexAsync(ArchivedTagIndex index, CancellationToken cancellationToken = default);
     }
 
@@ -46,6 +52,38 @@ namespace Coflnet.Sky.Core.Archive
             if (part < 0 || part > 999)
                 throw new ArgumentOutOfRangeException(nameof(part), part, "Part must be 0-999");
             return TagPrefix(tag) + ArchiveMonths.Format(month) + "/" + part.ToString("D3") + ".msgpack.br";
+        }
+
+        /// <summary>Prefix of meta objects (bookkeeping, not data); keeps them out of every tag's prefix.</summary>
+        public const string MetaPrefix = Prefix + "_meta/";
+        /// <summary>Prefix of the per-month Scylla import manifests (<see cref="ScyllaMonthManifest"/>).</summary>
+        public const string ScyllaManifestPrefix = MetaPrefix + "scylla/";
+
+        /// <summary>Full key of a meta object; a name that already starts with <see cref="MetaPrefix"/> is returned as is.</summary>
+        public static string Meta(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Meta name is required", nameof(name));
+            return name.StartsWith(MetaPrefix, StringComparison.Ordinal) ? name : MetaPrefix + name;
+        }
+
+        /// <summary><c>auctions/v2/_meta/scylla/{yyyy-MM}.msgpack.br</c>: the Scylla sweep's hand-off of a month to SkyIndexer.</summary>
+        public static string ScyllaManifest(int month) => ScyllaManifestPrefix + ArchiveMonths.Format(month) + ".msgpack.br";
+
+        /// <summary>Month of a <see cref="ScyllaManifest"/> key, null for any other key.</summary>
+        public static int? ScyllaManifestMonth(string key)
+        {
+            if (key == null || !key.StartsWith(ScyllaManifestPrefix, StringComparison.Ordinal) || !key.EndsWith(".msgpack.br", StringComparison.Ordinal))
+                return null;
+            var name = key.Substring(ScyllaManifestPrefix.Length, key.Length - ScyllaManifestPrefix.Length - ".msgpack.br".Length);
+            try
+            {
+                return ArchiveMonths.Parse(name);
+            }
+            catch (Exception ex) when (ex is FormatException || ex is ArgumentOutOfRangeException)
+            {
+                return null;
+            }
         }
 
         /// <summary><c>auctions/v2/{tag}/index.msgpack.br</c></summary>

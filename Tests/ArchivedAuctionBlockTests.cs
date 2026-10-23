@@ -99,7 +99,7 @@ namespace Tests
         {
             var block = Sample();
             var keyed = typeof(ArchivedAuctionBlock).GetProperties().Where(p => p.GetCustomAttribute<KeyAttribute>() != null).ToList();
-            Assert.That(keyed, Has.Count.EqualTo(38));
+            Assert.That(keyed, Has.Count.EqualTo(39));
             foreach (var property in keyed)
             {
                 var copy = RoundTrip(block);
