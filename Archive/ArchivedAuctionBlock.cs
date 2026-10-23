@@ -319,39 +319,53 @@ namespace Coflnet.Sky.Core.Archive
         {
             var n = RowCount;
             for (var i = 0; i < n; i++)
-            {
-                var endTicks = FirstEndTicks + EndDeltasMs[i] * TimeSpan.TicksPerMillisecond;
-                var uuid = ArchiveIds.Decode(Uuid[i]);
-                var auction = new SaveAuction
-                {
-                    Uuid = uuid,
-                    UId = AuctionUid[i],
-                    Tag = Tag,
-                    End = new DateTime(endTicks, DateTimeKind.Utc),
-                    Start = new DateTime(endTicks - StartOffsetMs[i] * TimeSpan.TicksPerMillisecond, DateTimeKind.Utc),
-                    Bin = Bin[i],
-                    Claimed = Claimed != null && Claimed[i],
-                    AuctioneerId = ArchiveIds.Decode(Auctioneer[i]),
-                    ProfileId = ArchiveIds.Decode(ProfileId[i]),
-                    HighestBidAmount = HighestBidAmount[i],
-                    StartingBid = StartingBid[i],
-                    Count = Count[i],
-                    Tier = (Tier)Tier[i],
-                    Category = (Category)Category[i],
-                    Reforge = (ItemReferences.Reforge)unchecked((sbyte)Reforge[i]),
-                    AnvilUses = AnvilUses[i],
-                    ItemName = ItemName[i],
-                    ItemCreatedAt = new DateTime(ItemCreatedAtTicks[i], DateTimeKind.Utc),
-                    NbtData = ItemBytes[i] == null ? null : new NbtData { data = ItemBytes[i] },
-                    Bids = DeserialiseBids(SerialisedBids[i], uuid),
-                    CoopMembers = DeserialiseIds(Coop?[i]),
-                    ClaimedBids = DeserialiseIds(ClaimedBidders?[i]),
-                    NBTLookup = DeserialiseLookup(NbtLookup?[i]),
-                    Enchantments = DeserialiseEnchantments(Enchantments?[i]),
-                };
-                yield return auction;
-            }
+                yield return ToAuction(i);
         }
+
+        /// <summary>Materialise row <paramref name="index"/> (same rules as <see cref="ToAuctions"/>).</summary>
+        public SaveAuction ToAuction(int index)
+        {
+            if (index < 0 || index >= RowCount)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Row index out of range");
+            var i = index;
+            var endTicks = EndTicksAt(i);
+            var uuid = ArchiveIds.Decode(Uuid[i]);
+            return new SaveAuction
+            {
+                Uuid = uuid,
+                UId = AuctionUid[i],
+                Tag = Tag,
+                End = new DateTime(endTicks, DateTimeKind.Utc),
+                Start = new DateTime(endTicks - StartOffsetMs[i] * TimeSpan.TicksPerMillisecond, DateTimeKind.Utc),
+                Bin = Bin[i],
+                Claimed = Claimed != null && Claimed[i],
+                AuctioneerId = ArchiveIds.Decode(Auctioneer[i]),
+                ProfileId = ArchiveIds.Decode(ProfileId[i]),
+                HighestBidAmount = HighestBidAmount[i],
+                StartingBid = StartingBid[i],
+                Count = Count[i],
+                Tier = (Tier)Tier[i],
+                Category = (Category)Category[i],
+                Reforge = (ItemReferences.Reforge)unchecked((sbyte)Reforge[i]),
+                AnvilUses = AnvilUses[i],
+                ItemName = ItemName[i],
+                ItemCreatedAt = new DateTime(ItemCreatedAtTicks[i], DateTimeKind.Utc),
+                NbtData = ItemBytes[i] == null ? null : new NbtData { data = ItemBytes[i] },
+                Bids = DeserialiseBids(SerialisedBids[i], uuid),
+                CoopMembers = DeserialiseIds(Coop?[i]),
+                ClaimedBids = DeserialiseIds(ClaimedBidders?[i]),
+                NBTLookup = DeserialiseLookup(NbtLookup?[i]),
+                Enchantments = DeserialiseEnchantments(Enchantments?[i]),
+            };
+        }
+
+        /// <summary>UTC ticks of the End of row <paramref name="index"/> without materialising the row.</summary>
+        public long EndTicksAt(int index) => FirstEndTicks + EndDeltasMs[index] * TimeSpan.TicksPerMillisecond;
+
+        /// <summary>True if the block has any of the Scylla-only columns (keys 31-38).</summary>
+        [IgnoreMember]
+        public bool HasExtras => HighestBidderName != null || ProfileName != null || CoopName != null || Color != null || ItemUid != null
+            || ItemId != null || NbtLookupStrings != null || UnknownEnchantments != null;
 
         /// <summary>
         /// The Scylla-only columns (keys 31-38) per row, in row order. Every entry is null when the block has none of these columns
@@ -361,24 +375,32 @@ namespace Coflnet.Sky.Core.Archive
         {
             var n = RowCount;
             var result = new ScyllaAuctionExtras[n];
-            if (HighestBidderName == null && ProfileName == null && CoopName == null && Color == null && ItemUid == null
-                && ItemId == null && NbtLookupStrings == null && UnknownEnchantments == null)
+            if (!HasExtras)
                 return result;
             for (var i = 0; i < n; i++)
-            {
-                result[i] = new ScyllaAuctionExtras
-                {
-                    HighestBidderName = HighestBidderName?[i],
-                    ProfileName = ProfileName?[i],
-                    CoopName = CoopName?[i],
-                    Color = Color?[i],
-                    ItemUid = ItemUid?[i] ?? 0,
-                    ItemId = ItemId?[i],
-                    NbtLookupStrings = DeserialiseMap<string>(NbtLookupStrings?[i]),
-                    UnknownEnchantments = DeserialiseMap<int>(UnknownEnchantments?[i]),
-                };
-            }
+                result[i] = ExtrasAt(i);
             return result;
+        }
+
+        /// <summary>The Scylla-only columns of row <paramref name="index"/>, null when the block has none (same rules as <see cref="ToExtras"/>).</summary>
+        public ScyllaAuctionExtras ExtrasAt(int index)
+        {
+            if (index < 0 || index >= RowCount)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Row index out of range");
+            if (!HasExtras)
+                return null;
+            var i = index;
+            return new ScyllaAuctionExtras
+            {
+                HighestBidderName = HighestBidderName?[i],
+                ProfileName = ProfileName?[i],
+                CoopName = CoopName?[i],
+                Color = Color?[i],
+                ItemUid = ItemUid?[i] ?? 0,
+                ItemId = ItemId?[i],
+                NbtLookupStrings = DeserialiseMap<string>(NbtLookupStrings?[i]),
+                UnknownEnchantments = DeserialiseMap<int>(UnknownEnchantments?[i]),
+            };
         }
 
         /// <summary>True if every uid is a row of this block.</summary>
