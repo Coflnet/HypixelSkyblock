@@ -997,7 +997,26 @@ namespace Coflnet.Sky.Core
             return GetColor(fullColor);
         }
 
+        private const int MaxColorCacheSize = 50_000;
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> colorCache = new();
+
+        /// <summary>
+        /// Parses a colour string (r:g:b or numeric parts), memoised because the same few colours repeat heavily.
+        /// </summary>
         public static long GetColor(string fullColor)
+        {
+            if (fullColor == null)
+                return ParseColor(fullColor); // keeps the original NullReferenceException behaviour
+            if (colorCache.TryGetValue(fullColor, out var cached))
+                return cached;
+            var result = ParseColor(fullColor);
+            if (colorCache.Count >= MaxColorCacheSize)
+                colorCache.Clear();
+            colorCache[fullColor] = result;
+            return result;
+        }
+
+        private static long ParseColor(string fullColor)
         {
             var parts = fullColor.Split(':');
             int result = 0;
