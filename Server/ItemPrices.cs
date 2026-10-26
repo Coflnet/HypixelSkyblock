@@ -438,19 +438,51 @@ namespace Coflnet.Sky.Core
             }
         }
 
-        /// <returns>false when the window already had prices and was skipped</returns>
+        /// <returns>false when every day of the window already had prices and was skipped</returns>
         private static async Task<bool> BackfillWindow(HypixelContext context, int itemId, DateTime start, DateTime end)
         {
-            if (await context.Prices.Where(p => p.ItemId == itemId && p.Date < end.AddMinutes(1) && p.Date > start.AddMinutes(-1)).AnyAsync())
+            var existing = await context.Prices
+                .Where(p => p.ItemId == itemId && p.Date >= start && p.Date < end)
+                .Select(p => p.Date).ToListAsync();
+            var result = await MissingDayPrices(existing, start, end,
+                (from, to) => AvgFromAuctions(itemId, AuctionSelect(from, to, context, itemId)));
+            if (result == null)
                 return false;
-            var select = AuctionSelect(start, end, context, itemId);
-            var result = await AvgFromAuctions(itemId, select);
 
             await context.Prices.AddRangeAsync(result);
             await context.SaveChangesAsync();
-            if (result.Count() != 0)
+            if (result.Count != 0)
                 Console.Write($"SIP {itemId} ");
             return true;
+        }
+
+        /// <summary>
+        /// Aggregates the span from the first to the last day of the window without a price row
+        /// and keeps only the prices of days that had none, so a partly filled window is completed.
+        /// aggregate returns the prices of the auctions ending between the two dates passed to it
+        /// </summary>
+        /// <returns>null without calling aggregate when no day is missing</returns>
+        internal static async Task<List<AveragePrice>> MissingDayPrices(IEnumerable<DateTime> existing, DateTime start, DateTime end, Func<DateTime, DateTime, Task<IEnumerable<AveragePrice>>> aggregate)
+        {
+            var missing = MissingWindowDays(existing, start, end);
+            if (missing.Count == 0)
+                return null;
+            var prices = await aggregate(missing.First(), missing.Last().AddDays(1));
+            var missingSet = missing.ToHashSet();
+            return prices.Where(p => missingSet.Contains(p.Date.Date)).ToList();
+        }
+
+        /// <summary>
+        /// The days from <paramref name="start"/> up to <paramref name="end"/> that have no price row, oldest first
+        /// </summary>
+        private static List<DateTime> MissingWindowDays(IEnumerable<DateTime> existing, DateTime start, DateTime end)
+        {
+            var present = existing.Select(d => d.Date).ToHashSet();
+            var days = new List<DateTime>();
+            for (var day = start.Date; day < end; day = day.AddDays(1))
+                if (!present.Contains(day))
+                    days.Add(day);
+            return days;
         }
 
         private async Task FillMissingDaysForever()
