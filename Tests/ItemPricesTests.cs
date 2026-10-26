@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Coflnet.Sky.Core;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Query;
 using NUnit.Framework;
 
 namespace Tests
@@ -73,6 +76,49 @@ namespace Tests
             Assert.That(result.Select(r => (r.Date, r.Avg, r.Volume)), Is.EqualTo(new[] { (new DateTime(2026, 8, 7), 50d, 2) }));
         }
 
+        [Test]
+        public async Task BackfillFillsOnlyMissingDaysOfWindow()
+        {
+            var start = new DateTime(2026, 8, 3);
+            var end = start.AddDays(7);
+            var window = Enumerable.Range(0, 7).Select(i => start.AddDays(i)).ToList();
+            // aggregation stopped after 2026-08-06, the rest of the week stayed empty
+            var partly = window.Take(4).ToList();
+            var calls = new List<(DateTime from, DateTime to)>();
+            Func<DateTime, DateTime, Task<IEnumerable<AveragePrice>>> aggregate = (from, to) =>
+            {
+                calls.Add((from, to));
+                return Task.FromResult(window.Select(d => new AveragePrice { Date = d, ItemId = 1 }));
+            };
+
+            var filled = await Invoke<List<AveragePrice>>("MissingDayPrices", partly, start, end, aggregate);
+            Assert.That(filled.Select(p => p.Date), Is.EqualTo(window.Skip(4)));
+            Assert.That(calls, Is.EqualTo(new[] { (start.AddDays(4), end) }));
+
+            calls.Clear();
+            var none = await Invoke<List<AveragePrice>>("MissingDayPrices", window, start, end, aggregate);
+            Assert.That(none, Is.Null);
+            Assert.That(calls, Is.Empty);
+
+            var all = await Invoke<List<AveragePrice>>("MissingDayPrices", new List<DateTime>(), start, end, aggregate);
+            Assert.That(all.Select(p => p.Date), Is.EqualTo(window));
+            Assert.That(calls, Is.EqualTo(new[] { (start, end) }));
+        }
+
+        [Test]
+        public async Task BackfillWindowFillsRestOfPartlyFilledWeek()
+        {
+            var start = new DateTime(2026, 8, 3);
+            var window = Enumerable.Range(0, 7).Select(i => start.AddDays(i)).ToList();
+            using var context = new FakeContext(
+                window.Take(4).Select(d => new AveragePrice { Date = d, ItemId = 1 }),
+                window.Select(d => new SaveAuction { ItemId = 1, End = d.AddHours(12), HighestBidAmount = 100, Count = 1 }));
+
+            await Invoke<bool>("BackfillWindow", context, 1, start, start.AddDays(7));
+
+            Assert.That(context.Prices.Local.Skip(4).Select(p => p.Date), Is.EqualTo(window.Skip(4)));
+        }
+
         private static async Task<T> Invoke<T>(string name, params object[] args)
         {
             var method = typeof(ItemPrices).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static);
@@ -88,15 +134,62 @@ namespace Tests
         }
 
         /// <summary>
-        /// Linq to objects source that EF's ToListAsync accepts
+        /// Context over in-memory sets that never connects, added prices are collected in <see cref="FakeSet{T}.Local"/>
         /// </summary>
-        private class AsyncQuery<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>, IQueryProvider
+        private class FakeContext : HypixelContext
+        {
+            public new FakeSet<AveragePrice> Prices { get; }
+
+            public FakeContext(IEnumerable<AveragePrice> prices, IEnumerable<SaveAuction> auctions)
+            {
+                Prices = new FakeSet<AveragePrice>(prices);
+                base.Prices = Prices;
+                base.Auctions = new FakeSet<SaveAuction>(auctions);
+            }
+
+            public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+        }
+
+        private class FakeSet<T> : DbSet<T>, IQueryable<T>, IAsyncEnumerable<T> where T : class
+        {
+            public new List<T> Local { get; }
+            private AsyncQuery<T> Query => new(Local);
+
+            public FakeSet(IEnumerable<T> items) => Local = items.ToList();
+
+            public override IEntityType EntityType => throw new NotSupportedException();
+            Type IQueryable.ElementType => typeof(T);
+            Expression IQueryable.Expression => ((IQueryable)Query).Expression;
+            IQueryProvider IQueryable.Provider => Query;
+            IEnumerator<T> IEnumerable<T>.GetEnumerator() => Local.GetEnumerator();
+            IAsyncEnumerator<T> IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationToken) => Query.GetAsyncEnumerator(cancellationToken);
+
+            public override Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+            {
+                Local.AddRange(entities);
+                return Task.CompletedTask;
+            }
+        }
+
+        /// <summary>
+        /// Linq to objects source that EF's ToListAsync and AnyAsync accept
+        /// </summary>
+        private class AsyncQuery<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>, IAsyncQueryProvider
         {
             public AsyncQuery(IEnumerable<T> items) : base(items) { }
             public AsyncQuery(Expression expression) : base(expression) { }
 
             IQueryProvider IQueryable.Provider => this;
             IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression) => new AsyncQuery<TElement>(expression);
+
+            public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
+            {
+                // TResult is Task<X>, run the query synchronously and wrap its X
+                var resultType = typeof(TResult).GetGenericArguments()[0];
+                var result = typeof(IQueryProvider).GetMethod(nameof(IQueryProvider.Execute), 1, new[] { typeof(Expression) })
+                    .MakeGenericMethod(resultType).Invoke(this, new object[] { expression });
+                return (TResult)typeof(Task).GetMethod(nameof(Task.FromResult)).MakeGenericMethod(resultType).Invoke(null, new[] { result });
+            }
 
             public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
             {
