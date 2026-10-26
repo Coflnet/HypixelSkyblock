@@ -367,25 +367,54 @@ namespace Coflnet.Sky.Core
             return; // handled by bazaar service
         }
 
+        /// <summary>
+        /// How many past days the daily job checks for missing <see cref="AveragePrice"/> rows
+        /// </summary>
+        private const int DailyLookbackDays = 14;
+
         public async Task BackfillPrices()
         {
+            // the daily job heals recent days on its own and must not wait for the historic backfill
+            var daily = Task.Run(FillMissingDaysForever);
             Console.WriteLine("starting to backfill item prices :)");
             using (var context = new HypixelContext())
             {
                 context.Database.SetCommandTimeout(3600);
-                
+
                 var startAt = new DateTime(2024, 4, 1);
-                foreach (var itemId in itemDetails.TagLookup.Values.ToList())
+                var failed = await ForEachItem(itemDetails.TagLookup.ToList(), "Item backfill", item =>
                 {
-                    Console.WriteLine($"backfilling {itemId}");
-                    await BackfillAuctions(context, startAt, itemId);
-                }
+                    Console.WriteLine($"backfilling {item.Value}");
+                    return BackfillAuctions(context, startAt, item.Value, item.Key);
+                });
+                Console.WriteLine($"## Backfill completed :) {failed} items failed");
             }
-            Console.WriteLine("## Backfill completed :)");
-            await FillYesterDayForever();
+            await daily;
         }
 
-        private static async Task BackfillAuctions(HypixelContext context, DateTime skyblockStart, int itemId)
+        /// <summary>
+        /// Runs <paramref name="action"/> for every item, logging and skipping items that throw
+        /// </summary>
+        /// <returns>The number of items that failed</returns>
+        internal static async Task<int> ForEachItem(IEnumerable<KeyValuePair<string, int>> items, string jobName, Func<KeyValuePair<string, int>, Task> action)
+        {
+            var failed = 0;
+            foreach (var item in items)
+            {
+                try
+                {
+                    await action(item);
+                }
+                catch (Exception e)
+                {
+                    failed++;
+                    Logger.Instance.Error($"{jobName} failed for item {item.Value} ({item.Key}): {e.GetType().Name} {e.Message}");
+                }
+            }
+            return failed;
+        }
+
+        private static async Task BackfillAuctions(HypixelContext context, DateTime skyblockStart, int itemId, string tag)
         {
             DateTime start = skyblockStart;
             var updateDaySize = 7;
@@ -396,55 +425,41 @@ namespace Coflnet.Sky.Core
 
                 start = end;
                 end = start + TimeSpan.FromDays(updateDaySize);
-                if (context.Prices.Where(p => p.ItemId == itemId && p.Date < end.AddMinutes(1) && p.Date > start.AddMinutes(-1)).Any())
-                    continue;
-                var select = AuctionSelect(start, end, context, itemId);
-                var result = await AvgFromAuctions(itemId, select);
-
-                await context.Prices.AddRangeAsync(result);
-                await context.SaveChangesAsync();
-                if (result.Count() != 0)
-                    Console.Write($"SIP {itemId} ");
-
-                await Task.Delay(100);
+                try
+                {
+                    if (await BackfillWindow(context, itemId, start, end))
+                        await Task.Delay(100);
+                }
+                catch (Exception e)
+                {
+                    context.ChangeTracker.Clear();
+                    Logger.Instance.Error($"Item backfill failed for item {itemId} ({tag}) window {start:yyyy-MM-dd}..{end:yyyy-MM-dd}: {e.GetType().Name} {e.Message}");
+                }
             }
         }
 
-        private async Task FillYesterDayForever()
+        /// <returns>false when the window already had prices and was skipped</returns>
+        private static async Task<bool> BackfillWindow(HypixelContext context, int itemId, DateTime start, DateTime end)
+        {
+            if (await context.Prices.Where(p => p.ItemId == itemId && p.Date < end.AddMinutes(1) && p.Date > start.AddMinutes(-1)).AnyAsync())
+                return false;
+            var select = AuctionSelect(start, end, context, itemId);
+            var result = await AvgFromAuctions(itemId, select);
+
+            await context.Prices.AddRangeAsync(result);
+            await context.SaveChangesAsync();
+            if (result.Count() != 0)
+                Console.Write($"SIP {itemId} ");
+            return true;
+        }
+
+        private async Task FillMissingDaysForever()
         {
             while (true)
             {
                 try
                 {
-                    var start = (DateTime.Now - TimeSpan.FromDays(1)).Date;
-                    var end = start + TimeSpan.FromDays(1);
-                    using (var context = new HypixelContext())
-                    {
-                        context.Database.SetCommandTimeout(3600);
-                        /*var idOfLava = itemDetails.GetItemIdForTag("ENCHANTED_LAVA_BUCKET");
-                        if (!context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == idOfLava).Any())
-                        {
-                            var interval = (end - start) / 4;
-                            for (DateTime bstart = start; bstart < end; bstart += interval)
-                            {
-                                await context.Prices.AddRangeAsync(await AvgBazzarHistory(bstart, bstart + interval));
-                                await Task.Delay(5000);
-                                await context.SaveChangesAsync();
-                            }
-                        }*/
-
-
-                        foreach (var itemId in itemDetails.TagLookup.Values)
-                        {
-                            await Task.Delay(200);
-                            if (context.Prices.Where(p => p.Date >= start && p.Date <= end && p.ItemId == itemId).Any())
-                                continue;
-                            var select = AuctionSelect(start, end, context, itemId);
-                            var result = await AvgFromAuctions(itemId, select);
-                            await context.Prices.AddRangeAsync(result);
-                            await context.SaveChangesAsync();
-                        }
-                    }
+                    await FillMissingDaysForAllItems();
                     // wait for tomorrow (only when no exception)
                     await Task.Delay(DateTime.Now.Date + TimeSpan.FromDays(1.0001) - DateTime.Now);
                 }
@@ -454,6 +469,83 @@ namespace Coflnet.Sky.Core
                     await Task.Delay(TimeSpan.FromMinutes(2));
                 }
             }
+        }
+
+        private async Task FillMissingDaysForAllItems()
+        {
+            var today = DateTime.Now.Date;
+            using var context = new HypixelContext();
+            context.Database.SetCommandTimeout(3600);
+            var added = 0;
+            var failed = await ForEachItem(itemDetails.TagLookup.ToList(), "Daily prices", async item =>
+            {
+                await Task.Delay(200);
+                added += await FillMissingDaysFromDb(context, item, today);
+            });
+            Console.WriteLine($"Daily prices: added {added} rows, {failed} items failed");
+        }
+
+        private static async Task<int> FillMissingDaysFromDb(HypixelContext context, KeyValuePair<string, int> item, DateTime today)
+        {
+            var itemId = item.Value;
+            var from = today.AddDays(-DailyLookbackDays);
+            var existing = await context.Prices
+                .Where(p => p.ItemId == itemId && p.Date >= from && p.Date < today)
+                .Select(p => p.Date).ToListAsync();
+            return await FillMissingDays(item, existing, today, DailyLookbackDays, day => SaveDay(context, itemId, day));
+        }
+
+        /// <summary>
+        /// Calls <paramref name="fillDay"/> for every day without a price row, logging and skipping days that throw
+        /// </summary>
+        /// <returns>The number of rows added</returns>
+        internal static async Task<int> FillMissingDays(KeyValuePair<string, int> item, IEnumerable<DateTime> existing, DateTime today, int lookbackDays, Func<DateTime, Task<int>> fillDay)
+        {
+            var added = 0;
+            foreach (var day in MissingDays(existing, today, lookbackDays))
+            {
+                try
+                {
+                    added += await fillDay(day);
+                }
+                catch (Exception e)
+                {
+                    Logger.Instance.Error($"Daily prices failed for item {item.Value} ({item.Key}) day {day:yyyy-MM-dd}: {e.GetType().Name} {e.Message}");
+                }
+            }
+            return added;
+        }
+
+        private static async Task<int> SaveDay(HypixelContext context, int itemId, DateTime day)
+        {
+            try
+            {
+                var select = AuctionSelect(day, day.AddDays(1), context, itemId);
+                var result = (await AvgFromAuctions(itemId, select)).ToList();
+                await context.Prices.AddRangeAsync(result);
+                await context.SaveChangesAsync();
+                await Task.Delay(100);
+                return result.Count;
+            }
+            catch
+            {
+                // drop the rows that failed to save so later days don't retry them
+                context.ChangeTracker.Clear();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// The days before <paramref name="today"/> within <paramref name="lookbackDays"/> that have no price row, oldest first
+        /// </summary>
+        private static List<DateTime> MissingDays(IEnumerable<DateTime> existing, DateTime today, int lookbackDays)
+        {
+            var present = existing.Select(d => d.Date).ToHashSet();
+            return Enumerable.Range(1, lookbackDays)
+                .Select(i => today.Date.AddDays(-i))
+                .Where(d => !present.Contains(d))
+                .OrderBy(d => d)
+                .ToList();
         }
 
         public async Task<List<AveragePrice>> AvgBazzarHistory(DateTime start, DateTime end)
@@ -489,20 +581,7 @@ namespace Coflnet.Sky.Core
 
         private static async Task<IEnumerable<AveragePrice>> AvgFromAuctions(int itemId, IQueryable<SaveAuction> select, bool detailed = false)
         {
-            var groupedSelect = select.GroupBy(item => new { item.End.Date, Hour = 0 });
-            if (detailed)
-                groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
-
-            var dbResult = await groupedSelect
-                .Select(item =>
-                    new
-                    {
-                        End = item.Key,
-                        Avg = item.Average(a => (a.HighestBidAmount) / a.Count),
-                        Max = item.Max(a => (a.HighestBidAmount) / a.Count),
-                        Min = item.Min(a => (a.HighestBidAmount) / a.Count),
-                        Count = item.Sum(a => a.Count)
-                    }).ToListAsync();
+            var dbResult = await AggregatePrices(select, detailed).ToListAsync();
 
             return dbResult
                 .Select(i => new AveragePrice()
@@ -511,9 +590,40 @@ namespace Coflnet.Sky.Core
                     Avg = i.Avg,
                     Max = i.Max,
                     Min = i.Min,
-                    Date = i.End.Date.Add(TimeSpan.FromHours(i.End.Hour)),
+                    Date = i.Date.Add(TimeSpan.FromHours(i.Hour)),
                     ItemId = itemId
                 });
+        }
+
+        private static IQueryable<PriceAggregate> AggregatePrices(IQueryable<SaveAuction> select, bool detailed)
+        {
+            // HighestBidAmount / 0 is NULL in MariaDB, a group of only such auctions makes Avg/Max/Min NULL
+            select = select.Where(a => a.Count > 0);
+            var groupedSelect = select.GroupBy(item => new { item.End.Date, Hour = 0 });
+            if (detailed)
+                groupedSelect = select.GroupBy(item => new { item.End.Date, item.End.Hour });
+
+            return groupedSelect
+                .Select(item =>
+                    new PriceAggregate
+                    {
+                        Date = item.Key.Date,
+                        Hour = item.Key.Hour,
+                        Avg = item.Average(a => (a.HighestBidAmount) / a.Count),
+                        Max = item.Max(a => (a.HighestBidAmount) / a.Count),
+                        Min = item.Min(a => (a.HighestBidAmount) / a.Count),
+                        Count = item.Sum(a => a.Count)
+                    });
+        }
+
+        private class PriceAggregate
+        {
+            public DateTime Date { get; set; }
+            public int Hour { get; set; }
+            public double Avg { get; set; }
+            public long Max { get; set; }
+            public long Min { get; set; }
+            public int Count { get; set; }
         }
 
         private static IQueryable<SaveAuction> AddEnchantmentWhere(List<Enchantment> enchantments, IQueryable<SaveAuction> moreThanOneBidQuery, HypixelContext context, int itemId, int limit = 0)
