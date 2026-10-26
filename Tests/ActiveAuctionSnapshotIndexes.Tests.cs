@@ -69,6 +69,7 @@ namespace Tests
         public void IndexesFollowRemovalsAndUpserts()
         {
             var set = Build();
+            set.SnapshotMinInterval = TimeSpan.Zero;
             set.GetFreshSnapshot();
             set.Remove(10, RemoveReason.Sold);
             set.Upsert(Make(5, Tier.EPIC, ItemReferences.Reforge.Sharp, true, true, (Enchantment.EnchantmentType.sharpness, 2)), "t");
