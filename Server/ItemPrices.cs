@@ -381,13 +381,8 @@ namespace Coflnet.Sky.Core
             {
                 context.Database.SetCommandTimeout(3600);
 
-                var items = itemDetails.TagLookup.ToList();
-                // backwards pass first: the forward loop below is long and the indexer restarts often
-                var backwardFailed = await ForEachItem(items, "Backward price backfill", item => BackfillBeforeEarliestForItem(context, item.Value, item.Key));
-                Console.WriteLine($"## Backward price backfill completed, {backwardFailed} items failed");
-
                 var startAt = new DateTime(2024, 4, 1);
-                var failed = await ForEachItem(items, "Item backfill", item =>
+                var failed = await ForEachItem(itemDetails.TagLookup.ToList(), "Item backfill", item =>
                 {
                     Console.WriteLine($"backfilling {item.Value}");
                     return BackfillAuctions(context, startAt, item.Value, item.Key);
@@ -417,74 +412,6 @@ namespace Coflnet.Sky.Core
                 }
             }
             return failed;
-        }
-
-        /// <summary>Start of auction data, the backward walk never goes before this</summary>
-        internal static readonly DateTime BackfillFloor = new DateTime(2019, 6, 1);
-
-        /// <summary>
-        /// Fills the days before the earliest price row of an item, for items whose first sales were never aggregated
-        /// </summary>
-        private static async Task BackfillBeforeEarliestForItem(HypixelContext context, int itemId, string tag)
-        {
-            var earliest = await context.Prices.Where(p => p.ItemId == itemId).MinAsync(p => (DateTime?)p.Date);
-            if (earliest == null)
-                return; // the forward pass handles items without rows
-            var written = await BackfillBeforeEarliest(earliest.Value,
-                async (start, end) => (await AvgFromAuctions(itemId, AuctionSelect(start, end, context, itemId))).ToList(),
-                async rows =>
-                {
-                    try
-                    {
-                        await context.Prices.AddRangeAsync(rows);
-                        await context.SaveChangesAsync();
-                    }
-                    finally
-                    {
-                        // the context lives for the whole backfill: stop tracking saved rows so later saves stay cheap,
-                        // and drop rows that failed to save so later items don't retry them
-                        context.ChangeTracker.Clear();
-                    }
-                    await Task.Delay(100);
-                },
-                BackfillFloor);
-            if (written > 0)
-                Console.WriteLine($"backfilled {written} days before {earliest.Value:yyyy-MM-dd} for item {itemId} ({tag})");
-        }
-
-        /// <summary>
-        /// Walks backwards from <paramref name="earliest"/> in 7 day windows, saving daily averages until a window has no sales
-        /// or <paramref name="floor"/> is reached
-        /// </summary>
-        /// <returns>The number of rows saved</returns>
-        internal static async Task<int> BackfillBeforeEarliest(
-            DateTime earliest,
-            Func<DateTime, DateTime, Task<List<AveragePrice>>> loadWindow,
-            Func<List<AveragePrice>, Task> save,
-            DateTime floor,
-            System.Threading.CancellationToken token = default)
-        {
-            var written = 0;
-            var end = earliest.Date;
-            while (end > floor)
-            {
-                token.ThrowIfCancellationRequested();
-                var start = end - TimeSpan.FromDays(7);
-                if (start < floor)
-                    start = floor;
-                var loaded = await loadWindow(start, end);
-                if (loaded == null || loaded.Count == 0)
-                    break;
-                // never touch the earliest day or later, those rows exist and are unique per day
-                var rows = loaded.Where(r => r.Date < earliest.Date).ToList();
-                if (rows.Count > 0)
-                {
-                    await save(rows);
-                    written += rows.Count;
-                }
-                end = start;
-            }
-            return written;
         }
 
         private static async Task BackfillAuctions(HypixelContext context, DateTime skyblockStart, int itemId, string tag)
