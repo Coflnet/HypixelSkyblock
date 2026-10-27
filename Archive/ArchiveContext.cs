@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Core.Archive
         public byte Part { get; set; }
     }
 
-    /// <summary><c>auction_bidders</c>: a player's bids (one row per bidder and auction, highest amount), kept permanently.</summary>
+    /// <summary><c>auction_bidders</c>: a player's bids (one row per bidder and auction; the bid amounts come from the archived auction blob), kept permanently.</summary>
     public class AuctionBidder
     {
         /// <summary><c>Players.Id</c> (<see cref="SaveBids.BidderId"/>).</summary>
@@ -37,8 +37,32 @@ namespace Coflnet.Sky.Core.Archive
         public uint End { get; set; }
         /// <summary><see cref="SaveAuction.UId"/>.</summary>
         public long Uid { get; set; }
-        /// <summary>Highest amount the bidder bid on the auction.</summary>
-        public ulong Amount { get; set; }
+    }
+
+    /// <summary>
+    /// <c>auction_sellers</c>: a player's own auctions (one row per seller and auction), kept permanently. Same shape and ordering as
+    /// <c>auction_bidders</c>; the auction itself comes from the archived blob via <c>auction_locations</c>.
+    /// </summary>
+    public class AuctionSeller
+    {
+        /// <summary><c>Players.Id</c> of the auctioneer (<see cref="SaveAuction.SellerId"/>), the same id space as <see cref="AuctionBidder.BidderId"/>.</summary>
+        public uint SellerId { get; set; }
+        /// <summary>Auction end, unix seconds.</summary>
+        public uint End { get; set; }
+        /// <summary><see cref="SaveAuction.UId"/>.</summary>
+        public long Uid { get; set; }
+    }
+
+    /// <summary>
+    /// <c>auction_seller_backfill</c>: one row per month whose archived R2 parts have been scanned for <c>auction_sellers</c> rows
+    /// (written only by SkyIndexer's retention pass after it read every part of the month once; resumable, runs once per month).
+    /// </summary>
+    public class AuctionSellerBackfillMonth
+    {
+        /// <summary>Months since 2019-01 (<see cref="ArchiveMonths.ToIndex"/>).</summary>
+        public ushort Month { get; set; }
+        /// <summary>UTC time the month was finished.</summary>
+        public DateTime DoneAt { get; set; }
     }
 
     /// <summary>
@@ -99,6 +123,10 @@ namespace Coflnet.Sky.Core.Archive
         public DbSet<AuctionLocation> AuctionLocations { get; set; }
         /// <summary><c>auction_bidders</c></summary>
         public DbSet<AuctionBidder> AuctionBidders { get; set; }
+        /// <summary><c>auction_sellers</c></summary>
+        public DbSet<AuctionSeller> AuctionSellers { get; set; }
+        /// <summary><c>auction_seller_backfill</c></summary>
+        public DbSet<AuctionSellerBackfillMonth> AuctionSellerBackfillMonths { get; set; }
         /// <summary><c>archived_months</c></summary>
         public DbSet<ArchivedMonth> ArchivedMonths { get; set; }
 
@@ -143,7 +171,7 @@ namespace Coflnet.Sky.Core.Archive
             // ALTER DATABASE ... CHARACTER SET, which must never run against the shared production schema.
             modelBuilder.HasCharSet(CharSet.Utf8Mb4, DelegationModes.ApplyToTables);
 
-            // ROW_FORMAT=COMPRESSED would go here (table options of auction_locations / auction_bidders) if index space ever matters, see plan section 8.
+            // auction_locations / auction_bidders are PAGE_COMPRESSED=1, applied by raw SQL in migration 20261027180000_ArchiveIndexCompressionAndSellers (no EF table option for it).
             modelBuilder.Entity<AuctionTag>(entity =>
             {
                 entity.ToTable("auction_tags");
@@ -170,7 +198,24 @@ namespace Coflnet.Sky.Core.Archive
                 entity.Property(e => e.BidderId).HasColumnName("bidder_id").HasColumnType("int unsigned").ValueGeneratedNever();
                 entity.Property(e => e.End).HasColumnName("end").HasColumnType("int unsigned").ValueGeneratedNever();
                 entity.Property(e => e.Uid).HasColumnName("uid").HasColumnType("bigint").ValueGeneratedNever();
-                entity.Property(e => e.Amount).HasColumnName("amount").HasColumnType("bigint unsigned");
+            });
+
+            // auction_sellers is PAGE_COMPRESSED=1 like auction_bidders (raw SQL in migration 20261027180000_ArchiveIndexCompressionAndSellers).
+            modelBuilder.Entity<AuctionSeller>(entity =>
+            {
+                entity.ToTable("auction_sellers");
+                entity.HasKey(e => new { e.SellerId, e.End, e.Uid });
+                entity.Property(e => e.SellerId).HasColumnName("seller_id").HasColumnType("int unsigned").ValueGeneratedNever();
+                entity.Property(e => e.End).HasColumnName("end").HasColumnType("int unsigned").ValueGeneratedNever();
+                entity.Property(e => e.Uid).HasColumnName("uid").HasColumnType("bigint").ValueGeneratedNever();
+            });
+
+            modelBuilder.Entity<AuctionSellerBackfillMonth>(entity =>
+            {
+                entity.ToTable("auction_seller_backfill");
+                entity.HasKey(e => e.Month);
+                entity.Property(e => e.Month).HasColumnName("month").HasColumnType("smallint unsigned").ValueGeneratedNever();
+                entity.Property(e => e.DoneAt).HasColumnName("done_at").HasColumnType("datetime");
             });
 
             modelBuilder.Entity<ArchivedMonth>(entity =>

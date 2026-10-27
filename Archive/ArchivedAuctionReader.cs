@@ -183,18 +183,40 @@ namespace Coflnet.Sky.Core.Archive
         /// <summary>
         /// Archived auctions a player (<c>Players.Id</c>) bid on, newest End first, at most <paramref name="limit"/>, from
         /// <c>auction_bidders</c> (+ <c>auction_locations</c>), optionally limited to the months <paramref name="fromMonth"/>..<paramref name="toMonth"/>
-        /// (<c>yyyyMM</c>, inclusive). Every block is read once, however many of the auctions it holds.
+        /// (<c>yyyyMM</c>, inclusive) and to the rows after <paramref name="before"/> (paging). Every block is read once, however many of the auctions it holds.
         /// </summary>
-        public async Task<IReadOnlyList<ArchivedAuction>> FindByBidderAsync(uint bidderId, int? fromMonth, int? toMonth, int limit, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ArchivedAuction>> FindByBidderAsync(uint bidderId, int? fromMonth, int? toMonth, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default)
         {
             if (limit <= 0)
                 return Array.Empty<ArchivedAuction>();
-            var from = fromMonth == null ? 0u : ToUnixSeconds(ArchiveMonths.MonthRange(fromMonth.Value).start);
-            var to = toMonth == null ? uint.MaxValue : ToUnixSeconds(ArchiveMonths.MonthRange(toMonth.Value).end);
-            var bids = await lookup.GetBidderRowsAsync(bidderId, from, to, limit, cancellationToken).ConfigureAwait(false);
-            if (bids.Count == 0)
+            var (from, to) = ToRange(fromMonth, toMonth);
+            var bids = await lookup.GetBidderRowsAsync(bidderId, from, to, limit, before, cancellationToken).ConfigureAwait(false);
+            return await MaterialiseIndexedAsync(bids.Select(b => b.Uid).ToList(), bidderId, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Archived auctions a player (<c>Players.Id</c>) sold or listed, newest End first, at most <paramref name="limit"/>, from
+        /// <c>auction_sellers</c> (+ <c>auction_locations</c>), optionally limited to the months <paramref name="fromMonth"/>..<paramref name="toMonth"/>
+        /// (<c>yyyyMM</c>, inclusive) and to the rows after <paramref name="before"/> (paging). Every block is read once, however many of the auctions it holds.
+        /// </summary>
+        public async Task<IReadOnlyList<ArchivedAuction>> FindBySellerAsync(uint sellerId, int? fromMonth, int? toMonth, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default)
+        {
+            if (limit <= 0)
                 return Array.Empty<ArchivedAuction>();
-            var uids = bids.Select(b => b.Uid).Distinct().ToList();
+            var (from, to) = ToRange(fromMonth, toMonth);
+            var sells = await lookup.GetSellerRowsAsync(sellerId, from, to, limit, before, cancellationToken).ConfigureAwait(false);
+            return await MaterialiseIndexedAsync(sells.Select(b => b.Uid).ToList(), sellerId, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static (uint from, uint to) ToRange(int? fromMonth, int? toMonth)
+            => (fromMonth == null ? 0u : ToUnixSeconds(ArchiveMonths.MonthRange(fromMonth.Value).start),
+                toMonth == null ? uint.MaxValue : ToUnixSeconds(ArchiveMonths.MonthRange(toMonth.Value).end));
+
+        private async Task<IReadOnlyList<ArchivedAuction>> MaterialiseIndexedAsync(List<long> indexed, uint playerId, CancellationToken cancellationToken)
+        {
+            if (indexed.Count == 0)
+                return Array.Empty<ArchivedAuction>();
+            var uids = indexed.Distinct().ToList();
             var locations = await lookup.GetLocationsAsync(uids, cancellationToken).ConfigureAwait(false);
             var found = new Dictionary<long, ArchivedAuction>();
             foreach (var group in uids.Where(locations.ContainsKey).GroupBy(u => (locations[u].TagId, locations[u].Month, locations[u].Part)))
@@ -203,14 +225,14 @@ namespace Coflnet.Sky.Core.Archive
                 var tag = await lookup.GetTagNameAsync(tagId, cancellationToken).ConfigureAwait(false);
                 if (tag == null)
                 {
-                    logger.LogWarning("Archive: {Count} bids of {BidderId} are located in tag id {TagId}, which has no auction_tags row", group.Count(), bidderId, tagId);
+                    logger.LogWarning("Archive: {Count} indexed auctions of player {PlayerId} are located in tag id {TagId}, which has no auction_tags row", group.Count(), playerId, tagId);
                     continue;
                 }
                 var month = ArchiveMonths.FromIndex(monthIndex);
                 var block = await store.ReadBlockAsync(tag, month, part, false, cancellationToken).ConfigureAwait(false);
                 if (block == null)
                 {
-                    logger.LogWarning("Archive: {Count} bids of {BidderId} are located in {Tag} {Month} part {Part}, which does not exist", group.Count(), bidderId, tag, month, part);
+                    logger.LogWarning("Archive: {Count} indexed auctions of player {PlayerId} are located in {Tag} {Month} part {Part}, which does not exist", group.Count(), playerId, tag, month, part);
                     continue;
                 }
                 var rowOf = new Dictionary<long, int>(block.RowCount);
@@ -226,7 +248,7 @@ namespace Coflnet.Sky.Core.Archive
             }
             var missing = uids.Count - found.Count;
             if (missing > 0)
-                logger.LogDebug("Archive: {Missing} of {Count} bid auctions of {BidderId} have no readable location", missing, uids.Count, bidderId);
+                logger.LogDebug("Archive: {Missing} of {Count} indexed auctions of player {PlayerId} have no readable location", missing, uids.Count, playerId);
             return found.Values.OrderByDescending(a => a.Row.End).ThenByDescending(a => a.Row.UId).ToList();
         }
 
@@ -338,14 +360,20 @@ namespace Coflnet.Sky.Core.Archive
             return block;
         }
 
-        private static ArchivedAuction Materialise(ArchivedAuctionBlock block, int row) => new()
+        /// <summary>The auction of a block row with opted-out participants masked (<see cref="ArchivePrivacy.Mask"/>): every read path goes through here.</summary>
+        private static ArchivedAuction Materialise(ArchivedAuctionBlock block, int row)
         {
-            Row = block.ToAuction(row),
-            Extras = block.ExtrasAt(row),
-            Month = block.Month,
-            Part = block.Part,
-            Source = block.Source,
-        };
+            var auction = new ArchivedAuction
+            {
+                Row = block.ToAuction(row),
+                Extras = block.ExtrasAt(row),
+                Month = block.Month,
+                Part = block.Part,
+                Source = block.Source,
+            };
+            ArchivePrivacy.Mask(auction);
+            return auction;
+        }
 
         /// <summary>
         /// K-way merge of the parts by (End, uid). A deferred part is only loaded once its first key (in merge direction) is not after

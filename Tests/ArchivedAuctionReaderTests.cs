@@ -78,6 +78,7 @@ namespace Tests
         public readonly Dictionary<ushort, string> Tags = new();
         public readonly Dictionary<long, AuctionLocation> Locations = new();
         public readonly List<AuctionBidder> Bidders = new();
+        public readonly List<AuctionSeller> Sellers = new();
         public readonly Dictionary<(string, int), ArchivedMonth> Months = new();
         public readonly List<string> Calls = new();
 
@@ -97,10 +98,18 @@ namespace Tests
         public Task<string> GetTagNameAsync(ushort tagId, CancellationToken cancellationToken = default)
             => Task.FromResult(Tags.GetValueOrDefault(tagId));
 
-        public Task<IReadOnlyList<AuctionBidder>> GetBidderRowsAsync(uint bidderId, uint fromUnixSeconds, uint toUnixSeconds, int limit, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<AuctionBidder>> GetBidderRowsAsync(uint bidderId, uint fromUnixSeconds, uint toUnixSeconds, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default)
         {
             Calls.Add($"bidders:{bidderId}:{fromUnixSeconds}:{toUnixSeconds}:{limit}");
-            IReadOnlyList<AuctionBidder> rows = Bidders.Where(b => b.BidderId == bidderId && b.End >= fromUnixSeconds && b.End < toUnixSeconds)
+            IReadOnlyList<AuctionBidder> rows = Bidders.Where(b => b.BidderId == bidderId && b.End >= fromUnixSeconds && b.End < toUnixSeconds && (before == null || b.End < before.End || b.End == before.End && b.Uid < before.Uid))
+                .OrderByDescending(b => b.End).ThenByDescending(b => b.Uid).Take(limit).ToList();
+            return Task.FromResult(rows);
+        }
+
+        public Task<IReadOnlyList<AuctionSeller>> GetSellerRowsAsync(uint sellerId, uint fromUnixSeconds, uint toUnixSeconds, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default)
+        {
+            Calls.Add($"sellers:{sellerId}:{fromUnixSeconds}:{toUnixSeconds}:{limit}");
+            IReadOnlyList<AuctionSeller> rows = Sellers.Where(b => b.SellerId == sellerId && b.End >= fromUnixSeconds && b.End < toUnixSeconds && (before == null || b.End < before.End || b.End == before.End && b.Uid < before.Uid))
                 .OrderByDescending(b => b.End).ThenByDescending(b => b.Uid).Take(limit).ToList();
             return Task.FromResult(rows);
         }
@@ -393,9 +402,9 @@ namespace Tests
             ArchiveMergedSeptember();
             uint End(long uid) => (uint)new DateTimeOffset(lookup.Locations.ContainsKey(uid) ? SepStart.AddDays(uid) : SepStart).ToUnixTimeSeconds();
             foreach (var uid in new long[] { 1, 2, 3, 5, 6 })
-                lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = uid, End = End(uid), Amount = 10 });
-            lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = 12345, End = End(4), Amount = 1 }); // no location
-            lookup.Bidders.Add(new AuctionBidder { BidderId = 43, Uid = 4, End = End(4), Amount = 1 });
+                lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = uid, End = End(uid) });
+            lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = 12345, End = End(4) }); // no location
+            lookup.Bidders.Add(new AuctionBidder { BidderId = 43, Uid = 4, End = End(4) });
             store.Events.Clear();
 
             var found = await reader.FindByBidderAsync(42, null, null, 100);
@@ -408,6 +417,117 @@ namespace Tests
             Assert.That(await reader.FindByBidderAsync(42, 202010, 202012, 100), Is.Empty);
             Assert.That(lookup.Calls.Last(), Is.EqualTo($"bidders:42:{new DateTimeOffset(2020, 10, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds()}:{new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds()}:100"));
             Assert.That(await reader.FindByBidderAsync(42, null, null, 0), Is.Empty);
+        }
+
+        [Test]
+        public async Task FindBySellerReadsEachBlockOnce()
+        {
+            ArchiveMergedSeptember();
+            uint End(long uid) => (uint)new DateTimeOffset(lookup.Locations.ContainsKey(uid) ? SepStart.AddDays(uid) : SepStart).ToUnixTimeSeconds();
+            foreach (var uid in new long[] { 1, 2, 3, 5, 6 })
+                lookup.Sellers.Add(new AuctionSeller { SellerId = 42, Uid = uid, End = End(uid) });
+            lookup.Sellers.Add(new AuctionSeller { SellerId = 42, Uid = 12345, End = End(4) }); // no location
+            lookup.Sellers.Add(new AuctionSeller { SellerId = 43, Uid = 4, End = End(4) });
+            lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = 4, End = End(4) }); // bids are not sells
+            store.Events.Clear();
+
+            var found = await reader.FindBySellerAsync(42, null, null, 100);
+
+            Assert.That(found.Select(a => a.Row.UId), Is.EqualTo(new long[] { 6, 3, 2, 5, 1 }), "newest End first");
+            Assert.That(store.BlockReads, Is.EquivalentTo(new[] { $"read:{Tag}:{Sep}:0:cached", $"read:{Tag}:{Sep}:1:cached" }));
+            Assert.That(lookup.Calls.Count(c => c.StartsWith("locations:")), Is.EqualTo(1), "one batched location lookup");
+
+            Assert.That((await reader.FindBySellerAsync(42, null, null, 2)).Count, Is.EqualTo(2));
+            Assert.That(await reader.FindBySellerAsync(42, 202010, 202012, 100), Is.Empty);
+            Assert.That(lookup.Calls.Last(), Is.EqualTo($"sellers:42:{new DateTimeOffset(2020, 10, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds()}:{new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds()}:100"));
+            Assert.That(await reader.FindBySellerAsync(42, null, null, 0), Is.Empty);
+            Assert.That(await reader.FindBySellerAsync(99, null, null, 10), Is.Empty);
+        }
+
+        [Test]
+        public async Task FindBySellerAndBidderPageWithACursor()
+        {
+            ArchiveMergedSeptember();
+            // index ends equal the archived rows' ends (day of month per uid, see ArchiveMergedSeptember)
+            uint End(long uid, int day) => (uint)new DateTimeOffset(SepStart.AddDays(day).AddHours(uid % 24)).ToUnixTimeSeconds();
+            foreach (var (uid, end) in new[] { (1L, End(1, 1)), (2L, End(2, 5)), (3L, End(3, 10)), (5L, End(5, 3)), (6L, End(6, 12)) })
+            {
+                lookup.Sellers.Add(new AuctionSeller { SellerId = 42, Uid = uid, End = end });
+                lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = uid, End = end });
+            }
+
+            var all = (await reader.FindBySellerAsync(42, null, null, 100)).Select(a => a.Row.UId).ToList();
+            Assert.That(all, Is.EqualTo(new long[] { 6, 3, 2, 5, 1 }));
+
+            var seen = new List<long>();
+            AuctionIndexCursor cursor = null;
+            for (var page = 0; page < 6; page++)
+            {
+                var got = await reader.FindBySellerAsync(42, null, null, 2, cursor);
+                if (got.Count == 0)
+                    break;
+                seen.AddRange(got.Select(a => a.Row.UId));
+                cursor = AuctionIndexCursor.After(got[^1].Row.End, got[^1].Row.UId);
+            }
+            Assert.That(seen, Is.EqualTo(all), "pages of 2 cover everything exactly once");
+
+            var bidders = await reader.FindByBidderAsync(42, null, null, 100, new AuctionIndexCursor(End(2, 5), 2));
+            Assert.That(bidders.Select(a => a.Row.UId), Is.EqualTo(new long[] { 5, 1 }), "strictly after the cursor row");
+        }
+
+        /// <summary>Opted-out players never show up on any read path, even though the stored part still holds them.</summary>
+        [Test]
+        public async Task OptedOutParticipantsAreMaskedOnEveryReadPath()
+        {
+            var optedOut = PlayerOptOut.LegacyPlayerUuids[0];
+            var secret = Row(1, 1, a =>
+            {
+                a.AuctioneerId = optedOut;
+                a.ProfileId = optedOut;
+                a.HighestBidAmount = 100;
+                a.Bids = new List<SaveBids> { new() { Bidder = optedOut, ProfileId = optedOut, BidderId = 5, Amount = 100, Timestamp = SepStart } };
+            });
+            var other = Row(2, 2, a => a.HighestBidAmount = 50);
+            var part = ArchivedAuctionBlock.FromAuctions(Tag, Sep, 0, ArchivedAuctionBlock.SourceScylla, new[]
+            {
+                (secret, new ScyllaAuctionExtras { HighestBidderName = "Secret", ProfileName = "SecretProfile", NbtLookupStrings = new Dictionary<string, string>() }),
+                (other, new ScyllaAuctionExtras { HighestBidderName = "Visible", NbtLookupStrings = new Dictionary<string, string>() }),
+            });
+            Archive(Sep, part);
+            lookup.Sellers.Add(new AuctionSeller { SellerId = 3, Uid = 1, End = (uint)new DateTimeOffset(secret.End, TimeSpan.Zero).ToUnixTimeSeconds() });
+
+            void AssertMasked(ArchivedAuction a)
+            {
+                Assert.That(a.Row.AuctioneerId, Does.StartWith(PlayerOptOut.AnonymousUuidPrefix));
+                Assert.That(a.Row.SellerId, Is.Zero);
+                Assert.That(a.Row.ProfileId, Is.Null);
+                Assert.That(a.HighestBidder, Does.StartWith(PlayerOptOut.AnonymousUuidPrefix));
+                Assert.That(a.Row.Bids.Single().BidderId, Is.Zero);
+                Assert.That(a.Extras.HighestBidderName, Is.Null);
+                Assert.That(a.Extras.ProfileName, Is.Null);
+            }
+            AssertMasked(await reader.FindByUidAsync(1));
+            AssertMasked(await reader.FindByUuidAsync(secret.Uuid));
+            AssertMasked((await reader.FindBySellerAsync(3, null, null, 10)).Single());
+            var month = new List<ArchivedAuction>();
+            await foreach (var a in reader.ReadMonthAsync(Tag, Sep))
+                month.Add(a);
+            AssertMasked(month.Single(a => a.Row.UId == 1));
+            Assert.That(month.Single(a => a.Row.UId == 2).Extras.HighestBidderName, Is.EqualTo("Visible"), "others are untouched");
+            var byAuctioneer = new List<ArchivedAuction>();
+            await foreach (var a in reader.ReadMonthAsync(Tag, Sep, new ArchivedAuctionQuery { Auctioneer = optedOut }))
+                byAuctioneer.Add(a);
+            Assert.That(byAuctioneer, Is.Empty, "filtering by an opted-out seller finds nothing");
+        }
+
+        [Test]
+        public void CursorParsesAndRoundTrips()
+        {
+            Assert.That(AuctionIndexCursor.TryParse("1599048000:-5", out var c), Is.True);
+            Assert.That(c, Is.EqualTo(new AuctionIndexCursor(1599048000, -5)));
+            Assert.That(c.ToString(), Is.EqualTo("1599048000:-5"));
+            foreach (var bad in new[] { null, "", "5", ":5", "x:5", "5:x", "-1:5", "99999999999:5" })
+                Assert.That(AuctionIndexCursor.TryParse(bad, out _), Is.False, bad);
         }
 
         // ------------------------------------------------------------ verify

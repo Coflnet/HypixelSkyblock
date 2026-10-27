@@ -251,9 +251,19 @@ namespace Tests
         [Test]
         public void BiddersUseInsertIgnore()
         {
-            var sql = ArchiveIndexSql.BuildBidderInserts(new[] { new AuctionBidder { BidderId = 3, End = 1700000000, Uid = -9, Amount = 12 } }).Single();
-            Assert.That(sql, Is.EqualTo("INSERT IGNORE INTO auction_bidders (bidder_id, `end`, uid, amount) VALUES (3,1700000000,-9,12)"));
+            var sql = ArchiveIndexSql.BuildBidderInserts(new[] { new AuctionBidder { BidderId = 3, End = 1700000000, Uid = -9 } }).Single();
+            Assert.That(sql, Is.EqualTo("INSERT IGNORE INTO auction_bidders (bidder_id, `end`, uid) VALUES (3,1700000000,-9)"));
             Assert.That(ArchiveIndexSql.BuildBidderInserts(Array.Empty<AuctionBidder>()), Is.Empty);
+        }
+
+        [Test]
+        public void SellersUseInsertIgnoreAndBatch()
+        {
+            var sql = ArchiveIndexSql.BuildSellerInserts(new[] { new AuctionSeller { SellerId = 3, End = 1700000000, Uid = -9 } }).Single();
+            Assert.That(sql, Is.EqualTo("INSERT IGNORE INTO auction_sellers (seller_id, `end`, uid) VALUES (3,1700000000,-9)"));
+            Assert.That(ArchiveIndexSql.BuildSellerInserts(Array.Empty<AuctionSeller>()), Is.Empty);
+            var many = Enumerable.Range(1, ArchiveIndexSql.BatchSize + 1).Select(i => new AuctionSeller { SellerId = 1, End = 1, Uid = i }).ToList();
+            Assert.That(ArchiveIndexSql.BuildSellerInserts(many).Count(), Is.EqualTo(2));
         }
     }
 }

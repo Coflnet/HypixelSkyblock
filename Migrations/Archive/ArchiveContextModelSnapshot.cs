@@ -17,7 +17,7 @@ namespace Coflnet.Sky.Core.Migrations.Archive
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4", DelegationModes.ApplyToTables);
@@ -109,10 +109,6 @@ namespace Coflnet.Sky.Core.Migrations.Archive
                         .HasColumnType("bigint")
                         .HasColumnName("uid");
 
-                    b.Property<ulong>("Amount")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("amount");
-
                     b.HasKey("BidderId", "End", "Uid");
 
                     b.ToTable("auction_bidders", (string)null);
@@ -139,6 +135,40 @@ namespace Coflnet.Sky.Core.Migrations.Archive
                     b.HasKey("Uid");
 
                     b.ToTable("auction_locations", (string)null);
+                });
+
+            modelBuilder.Entity("Coflnet.Sky.Core.Archive.AuctionSeller", b =>
+                {
+                    b.Property<uint>("SellerId")
+                        .HasColumnType("int unsigned")
+                        .HasColumnName("seller_id");
+
+                    b.Property<uint>("End")
+                        .HasColumnType("int unsigned")
+                        .HasColumnName("end");
+
+                    b.Property<long>("Uid")
+                        .HasColumnType("bigint")
+                        .HasColumnName("uid");
+
+                    b.HasKey("SellerId", "End", "Uid");
+
+                    b.ToTable("auction_sellers", (string)null);
+                });
+
+            modelBuilder.Entity("Coflnet.Sky.Core.Archive.AuctionSellerBackfillMonth", b =>
+                {
+                    b.Property<ushort>("Month")
+                        .HasColumnType("smallint unsigned")
+                        .HasColumnName("month");
+
+                    b.Property<DateTime>("DoneAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("done_at");
+
+                    b.HasKey("Month");
+
+                    b.ToTable("auction_seller_backfill", (string)null);
                 });
 
             modelBuilder.Entity("Coflnet.Sky.Core.Archive.AuctionTag", b =>

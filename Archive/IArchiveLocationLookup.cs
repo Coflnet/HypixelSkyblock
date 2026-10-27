@@ -25,9 +25,15 @@ namespace Coflnet.Sky.Core.Archive
 
         /// <summary>
         /// <c>auction_bidders</c> rows of a bidder (<c>Players.Id</c>) whose auction ended in <c>[fromUnixSeconds, toUnixSeconds)</c>,
-        /// newest End first, at most <paramref name="limit"/>.
+        /// newest End first, at most <paramref name="limit"/>, only rows after <paramref name="before"/> when given.
         /// </summary>
-        Task<IReadOnlyList<AuctionBidder>> GetBidderRowsAsync(uint bidderId, uint fromUnixSeconds, uint toUnixSeconds, int limit, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<AuctionBidder>> GetBidderRowsAsync(uint bidderId, uint fromUnixSeconds, uint toUnixSeconds, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// <c>auction_sellers</c> rows of a seller (<c>Players.Id</c>) whose auction ended in <c>[fromUnixSeconds, toUnixSeconds)</c>,
+        /// newest End first, at most <paramref name="limit"/>, only rows after <paramref name="before"/> when given.
+        /// </summary>
+        Task<IReadOnlyList<AuctionSeller>> GetSellerRowsAsync(uint sellerId, uint fromUnixSeconds, uint toUnixSeconds, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default);
 
         /// <summary><c>archived_months</c> row of a tag-month, null when the tag or the row does not exist.</summary>
         Task<ArchivedMonth> GetArchivedMonthAsync(string tag, int month, CancellationToken cancellationToken = default);
@@ -92,12 +98,31 @@ namespace Coflnet.Sky.Core.Archive
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<AuctionBidder>> GetBidderRowsAsync(uint bidderId, uint fromUnixSeconds, uint toUnixSeconds, int limit, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<AuctionBidder>> GetBidderRowsAsync(uint bidderId, uint fromUnixSeconds, uint toUnixSeconds, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default)
         {
             using var db = dbFactory();
-            return await db.AuctionBidders.AsNoTracking()
-                .Where(b => b.BidderId == bidderId && b.End >= fromUnixSeconds && b.End < toUnixSeconds)
-                .OrderByDescending(b => b.End).ThenByDescending(b => b.Uid)
+            var query = db.AuctionBidders.AsNoTracking().Where(b => b.BidderId == bidderId && b.End >= fromUnixSeconds && b.End < toUnixSeconds);
+            if (before != null)
+            {
+                var (beforeEnd, beforeUid) = (before.End, before.Uid);
+                query = query.Where(b => b.End < beforeEnd || (b.End == beforeEnd && b.Uid < beforeUid));
+            }
+            return await query.OrderByDescending(b => b.End).ThenByDescending(b => b.Uid)
+                .Take(Math.Max(0, limit))
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<AuctionSeller>> GetSellerRowsAsync(uint sellerId, uint fromUnixSeconds, uint toUnixSeconds, int limit, AuctionIndexCursor before = null, CancellationToken cancellationToken = default)
+        {
+            using var db = dbFactory();
+            var query = db.AuctionSellers.AsNoTracking().Where(b => b.SellerId == sellerId && b.End >= fromUnixSeconds && b.End < toUnixSeconds);
+            if (before != null)
+            {
+                var (beforeEnd, beforeUid) = (before.End, before.Uid);
+                query = query.Where(b => b.End < beforeEnd || (b.End == beforeEnd && b.Uid < beforeUid));
+            }
+            return await query.OrderByDescending(b => b.End).ThenByDescending(b => b.Uid)
                 .Take(Math.Max(0, limit))
                 .ToListAsync(cancellationToken).ConfigureAwait(false);
         }

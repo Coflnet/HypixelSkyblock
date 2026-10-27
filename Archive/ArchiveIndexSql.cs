@@ -6,7 +6,7 @@ using System.Text;
 namespace Coflnet.Sky.Core.Archive
 {
     /// <summary>
-    /// Raw SQL for the permanent index tables of <see cref="ArchiveContext"/> (<c>auction_locations</c>, <c>auction_bidders</c>),
+    /// Raw SQL for the permanent index tables of <see cref="ArchiveContext"/> (<c>auction_locations</c>, <c>auction_bidders</c>, <c>auction_sellers</c>),
     /// shared by the MariaDB archive job (SkyIndexer) and the Scylla sweep (SkyAuctions). All values are integers formatted
     /// invariantly, so the statements can not carry injected SQL.
     /// </summary>
@@ -54,7 +54,7 @@ namespace Coflnet.Sky.Core.Archive
                 throw new ArgumentNullException(nameof(bidders));
             for (var offset = 0; offset < bidders.Count; offset += BatchSize)
             {
-                var sb = new StringBuilder("INSERT IGNORE INTO auction_bidders (bidder_id, `end`, uid, amount) VALUES ");
+                var sb = new StringBuilder("INSERT IGNORE INTO auction_bidders (bidder_id, `end`, uid) VALUES ");
                 var end = Math.Min(bidders.Count, offset + BatchSize);
                 for (var i = offset; i < end; i++)
                 {
@@ -63,8 +63,29 @@ namespace Coflnet.Sky.Core.Archive
                     var b = bidders[i];
                     sb.Append('(').Append(b.BidderId.ToString(CultureInfo.InvariantCulture)).Append(',')
                       .Append(b.End.ToString(CultureInfo.InvariantCulture)).Append(',')
-                      .Append(b.Uid.ToString(CultureInfo.InvariantCulture)).Append(',')
-                      .Append(b.Amount.ToString(CultureInfo.InvariantCulture)).Append(')');
+                      .Append(b.Uid.ToString(CultureInfo.InvariantCulture)).Append(')');
+                }
+                yield return sb.ToString();
+            }
+        }
+
+        /// <summary><c>INSERT IGNORE INTO auction_sellers</c> in batches of <see cref="BatchSize"/> (idempotent).</summary>
+        public static IEnumerable<string> BuildSellerInserts(IReadOnlyList<AuctionSeller> sellers)
+        {
+            if (sellers == null)
+                throw new ArgumentNullException(nameof(sellers));
+            for (var offset = 0; offset < sellers.Count; offset += BatchSize)
+            {
+                var sb = new StringBuilder("INSERT IGNORE INTO auction_sellers (seller_id, `end`, uid) VALUES ");
+                var end = Math.Min(sellers.Count, offset + BatchSize);
+                for (var i = offset; i < end; i++)
+                {
+                    if (i > offset)
+                        sb.Append(',');
+                    var s = sellers[i];
+                    sb.Append('(').Append(s.SellerId.ToString(CultureInfo.InvariantCulture)).Append(',')
+                      .Append(s.End.ToString(CultureInfo.InvariantCulture)).Append(',')
+                      .Append(s.Uid.ToString(CultureInfo.InvariantCulture)).Append(')');
                 }
                 yield return sb.ToString();
             }
