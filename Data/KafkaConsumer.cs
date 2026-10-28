@@ -216,9 +216,12 @@ namespace Coflnet.Sky.Kafka
                 "Kafka consumer offset lag by partition",
                 new GaugeConfiguration { LabelNames = new[] { "partition" } }));
             var builder = new ConsumerBuilder<Ignore, T>(config).SetValueDeserializer(deserializer);
+            // resumed from the main loop: the assignment is only applied after this handler returns
+            var resumeAfterAssign = new List<TopicPartition>();
             builder.SetPartitionsAssignedHandler((_, assigned) =>
             {
                 var now = DateTime.UtcNow;
+                resumeAfterAssign.AddRange(PartitionLagPolicy.ResumeOnAssign(assigned, partition => inFlight.ContainsKey(partition)));
                 foreach (var partition in assigned)
                 {
                     partitionProgress[partition] = (Offset.Unset, now);
@@ -270,7 +273,24 @@ namespace Coflnet.Sky.Kafka
                     }
                     var watermarks = consumer.GetWatermarkOffsets(partition);
                     var processedThrough = progress.Offset == Offset.Unset ? watermarks.Low : progress.Offset;
-                    var lag = Math.Max(0, watermarks.High.Value - processedThrough.Value);
+                    var highWatermark = watermarks.High;
+                    // the cache is stale for partitions that are not fetching (e.g. paused), ask the broker
+                    var queriedLag = PartitionLagPolicy.Lag(watermarks.High.Value, processedThrough.Value, () =>
+                    {
+                        try
+                        {
+                            highWatermark = consumer.QueryWatermarkOffsets(partition, TimeSpan.FromSeconds(2)).High;
+                            return highWatermark.Value;
+                        }
+                        catch (KafkaException error)
+                        {
+                            dev.Logger.Instance.Error(error, $"Could not query watermarks for {partition}");
+                            return null;
+                        }
+                    });
+                    if (queriedLag == null)
+                        continue;
+                    var lag = queriedLag.Value;
                     partitionLag.WithLabels(partition.Partition.Value.ToString()).Set(lag);
                     if (lag == 0)
                     {
@@ -286,7 +306,7 @@ namespace Coflnet.Sky.Kafka
                         (idleStall
                             ? $"Kafka partition {partition} has not committed or finished a batch for {now - progress.At:g} "
                             : $"Kafka partition {partition} commits kept failing for {now - commitFailingSince!.Value:g} while batches completed ") +
-                        $"while lagging (committed {processedThrough}, high watermark {watermarks.High}); restarting consumer host");
+                        $"while lagging (committed {processedThrough}, high watermark {highWatermark}); restarting consumer host");
                 }
             }
 
@@ -295,6 +315,15 @@ namespace Coflnet.Sky.Kafka
                 if (!consumer.Assignment.Contains(partition))
                 {
                     pending.Remove(partition);
+                    // the pause flag outlives the assignment and would block a later reassignment
+                    try
+                    {
+                        consumer.Resume(new[] { partition });
+                    }
+                    catch (KafkaException error)
+                    {
+                        dev.Logger.Instance.Info($"Could not resume unassigned {partition}: {error.Error.Reason}");
+                    }
                     return;
                 }
                 if (pending.TryGetValue(partition, out var queue) && queue.Count > 0)
@@ -310,6 +339,24 @@ namespace Coflnet.Sky.Kafka
                 }
                 pending.Remove(partition);
                 consumer.Resume(new[] { partition });
+            }
+
+            void ResumeAssigned()
+            {
+                if (resumeAfterAssign.Count == 0)
+                    return;
+                var toResume = resumeAfterAssign.Where(partition => !inFlight.ContainsKey(partition) && consumer.Assignment.Contains(partition)).ToList();
+                resumeAfterAssign.Clear();
+                if (toResume.Count == 0)
+                    return;
+                try
+                {
+                    consumer.Resume(toResume);
+                }
+                catch (KafkaException error)
+                {
+                    dev.Logger.Instance.Error(error, $"Could not resume newly assigned {string.Join(',', toResume)}");
+                }
             }
 
             // commits all pending offsets that are due (or all when force) in one call. Failures keep
@@ -392,6 +439,7 @@ namespace Coflnet.Sky.Kafka
                     CommitDue();
                     ThrowIfPartitionStalled();
                     var consumed = consumer.Consume(TimeSpan.FromMilliseconds(50));
+                    ResumeAssigned();
                     if (consumed == null)
                         continue;
 
