@@ -136,10 +136,10 @@ namespace Coflnet.Sky.Core.Archive
         public static void SetConfiguration(IConfiguration config) => _config = config;
 
         /// <summary>Uses <c>DBConnection</c>/<c>DBVersion</c> like <see cref="HypixelContext"/>.</summary>
-        public ArchiveContext() { }
+        public ArchiveContext() { HypixelContext.ApplyConnectionFactory(this); }
 
         /// <summary>Explicit options (design time, tests).</summary>
-        public ArchiveContext(DbContextOptions<ArchiveContext> options) : base(options) { }
+        public ArchiveContext(DbContextOptions<ArchiveContext> options) : base(options) { HypixelContext.ApplyConnectionFactory(this); }
 
         /// <summary>Apply the provider options shared by every construction path.</summary>
         public static void Configure(DbContextOptionsBuilder optionsBuilder, string connectionString, string version)

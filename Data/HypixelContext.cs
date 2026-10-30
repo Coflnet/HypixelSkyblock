@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
+using MySqlConnector;
 
 namespace Coflnet.Sky.Core
 {
@@ -61,8 +62,17 @@ namespace Coflnet.Sky.Core
         /// </summary>
         public static void SetConfiguration(IConfiguration config) => _config = config;
 
-        public HypixelContext() { }
-        public HypixelContext(DbContextOptions<HypixelContext> options) : base(options) { }
+        /// <summary>Optional closed-connection factory. Contexts own and dispose the returned connection.</summary>
+        public static Func<string, MySqlConnection> ConnectionFactory { get; set; }
+
+        internal static void ApplyConnectionFactory(DbContext context)
+        {
+            if (ConnectionFactory is { } create)
+                context.Database.SetDbConnection(create(context.Database.GetConnectionString()), contextOwnsConnection: true);
+        }
+
+        public HypixelContext() { ApplyConnectionFactory(this); }
+        public HypixelContext(DbContextOptions<HypixelContext> options) : base(options) { ApplyConnectionFactory(this); }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -75,7 +85,7 @@ namespace Coflnet.Sky.Core
                     ?? Environment.GetEnvironmentVariable("DBVersion")
                     ?? "10.3";
                 optionsBuilder.UseMySql(connStr, new MariaDbServerVersion(version),
-                    opts => opts.CommandTimeout(60).MaxBatchSize(100)).EnableSensitiveDataLogging();
+                    opts => opts.CommandTimeout(60).MaxBatchSize(100));
             }
         }
 

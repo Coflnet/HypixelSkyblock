@@ -82,7 +82,7 @@ public static class PlayerOptOut
     public static void Load(string connectionString)
     {
         var uuids = new List<string>();
-        using var connection = new MySqlConnection(connectionString);
+        using var connection = HypixelContext.ConnectionFactory?.Invoke(connectionString) ?? new MySqlConnection(connectionString);
         connection.Open();
         using var command = new MySqlCommand(SelectSql, connection);
         using var reader = command.ExecuteReader();
@@ -95,7 +95,7 @@ public static class PlayerOptOut
     public static async Task LoadAsync(string connectionString, CancellationToken cancellationToken = default)
     {
         var uuids = new List<string>();
-        await using var connection = new MySqlConnection(connectionString);
+        await using var connection = HypixelContext.ConnectionFactory?.Invoke(connectionString) ?? new MySqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
         await using var command = new MySqlCommand(SelectSql, connection);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
