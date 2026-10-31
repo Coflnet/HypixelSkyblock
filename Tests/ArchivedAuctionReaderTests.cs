@@ -397,6 +397,22 @@ namespace Tests
         }
 
         [Test]
+        public async Task FindByUidsReadsEachBlockOnceWithOneLocationQuery()
+        {
+            ArchiveMergedSeptember();
+            store.Events.Clear();
+            lookup.Calls.Clear();
+
+            var found = await reader.FindByUidsAsync(new long[] { 1, 2, 3, 5, 6, 12345 });
+
+            Assert.That(found.Select(a => a.Row.UId).OrderBy(u => u), Is.EqualTo(new long[] { 1, 2, 3, 5, 6 }), "unknown uid left out");
+            Assert.That(store.BlockReads, Is.EquivalentTo(new[] { $"read:{Tag}:{Sep}:0:cached", $"read:{Tag}:{Sep}:1:cached" }));
+            Assert.That(lookup.Calls.Count(c => c.StartsWith("locations:")), Is.EqualTo(1));
+            Assert.That(await reader.FindByUidsAsync(Array.Empty<long>()), Is.Empty);
+            Assert.That(await reader.FindByUidsAsync(null), Is.Empty);
+        }
+
+        [Test]
         public async Task FindByBidderReadsEachBlockOnce()
         {
             ArchiveMergedSeptember();
@@ -442,6 +458,31 @@ namespace Tests
             Assert.That(lookup.Calls.Last(), Is.EqualTo($"sellers:42:{new DateTimeOffset(2020, 10, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds()}:{new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds()}:100"));
             Assert.That(await reader.FindBySellerAsync(42, null, null, 0), Is.Empty);
             Assert.That(await reader.FindBySellerAsync(99, null, null, 10), Is.Empty);
+        }
+
+        [Test]
+        public async Task ListParticipation_ReturnsIndexRowsWithLocationWithoutReadingBlocks_AndKeepsUnlocatedUids()
+        {
+            ArchiveMergedSeptember();
+            uint End(long uid) => (uint)new DateTimeOffset(SepStart.AddDays(uid)).ToUnixTimeSeconds();
+            foreach (var uid in new long[] { 1, 5 })
+                lookup.Sellers.Add(new AuctionSeller { SellerId = 42, Uid = uid, End = End(uid) });
+            lookup.Sellers.Add(new AuctionSeller { SellerId = 42, Uid = 12345, End = End(9) }); // no location
+            lookup.Bidders.Add(new AuctionBidder { BidderId = 42, Uid = 3, End = End(3) });
+            store.Events.Clear();
+
+            var sells = await reader.ListSellerParticipationAsync(42, 100);
+            var bids = await reader.ListBidderParticipationAsync(42, 100);
+
+            Assert.That(sells.Select(s => s.Uid), Is.EqualTo(new long[] { 12345, 5, 1 }), "newest End first");
+            Assert.That(sells[0], Is.EqualTo(new ArchivedParticipation(12345, SepStart.AddDays(9), null, 0, 0)));
+            Assert.That(sells[1].Tag, Is.EqualTo(Tag));
+            Assert.That((sells[1].Month, sells[1].Part), Is.EqualTo((Sep, 1)));
+            Assert.That(bids.Single().Uid, Is.EqualTo(3));
+            Assert.That(store.BlockReads, Is.Empty, "index only");
+            Assert.That(await reader.ListSellerParticipationAsync(42, 0), Is.Empty);
+            var page2 = await reader.ListSellerParticipationAsync(42, 100, AuctionIndexCursor.After(sells[0].End, sells[0].Uid));
+            Assert.That(page2.Select(s => s.Uid), Is.EqualTo(new long[] { 5, 1 }));
         }
 
         [Test]
