@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Kafka
 {
-    public class KafkaConsumer
+    public partial class KafkaConsumer
     {
         static Counter processFail = Metrics.CreateCounter("consume_process_failed", "How often processing of consumed messages failed");
         static ConcurrentDictionary<string, Gauge> consumerOffsets = new();
@@ -29,38 +29,16 @@ namespace Coflnet.Sky.Kafka
         /// <param name="deserializer">The deserializer used for new messages</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static async Task Consume<T>(IConfiguration config, string topic, Func<T, Task> action,
+        public static Task Consume<T>(IConfiguration config, string topic, Func<T, Task> action,
                                             CancellationToken cancleToken,
                                             string groupId = "default",
                                             AutoOffsetReset start = AutoOffsetReset.Earliest,
                                             IDeserializer<T> deserializer = null)
         {
-            while (!cancleToken.IsCancellationRequested)
-                try
-                {
-                    await ConsumeBatch(config, topic, async batch =>
-                    {
-                        foreach (var message in batch)
-                            await action(message);
-                    }, cancleToken, groupId, 1, start, deserializer);
-                }
-                catch (Exception e)
-                {
-                    dev.Logger.Instance.Error(e, $"Kafka consumer process for {topic}");
-                    processFail.Inc();
-                    // A consumer that keeps failing (bad message, downstream outage, ...) would
-                    // otherwise hot-loop here with no delay, hammering logs/metrics and spinning
-                    // on CPU while offering no chance for a transient failure to clear. Back off
-                    // instead of retrying immediately.
-                    try
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(5), cancleToken);
-                    }
-                    catch (OperationCanceledException) when (cancleToken.IsCancellationRequested)
-                    {
-                        // shutting down; let the outer while condition end the loop cleanly
-                    }
-                }
+            // rebuilt whenever it ends without cancellation, after a 2 s..60 s backoff (KafkaConsumer.Retry.cs)
+            return ConsumeRetrying<T>(
+                (handler, token) => ConsumeBatch(config, topic, handler, token, groupId, 1, start, deserializer),
+                topic, action, cancleToken, Task.Delay);
         }
 
 
@@ -107,7 +85,7 @@ namespace Coflnet.Sky.Kafka
                                             AutoOffsetReset start = AutoOffsetReset.Earliest,
                                             IDeserializer<T> deserializer = null)
         {
-            await ConsumeBatch(new ConsumerConfig(KafkaCreator.GetClientConfig(config))
+            var consumerConfig = new ConsumerConfig(KafkaCreator.GetClientConfig(config))
             {
                 GroupId = groupId,
 
@@ -119,7 +97,11 @@ namespace Coflnet.Sky.Kafka
                 AutoOffsetReset = start,
                 EnableAutoCommit = false,
                 PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
-            }, topics, action, cancleToken, maxChunkSize, deserializer);
+            };
+            if (KafkaRenewalFlag.IsOn(config["KAFKA:TLS:RELOAD_ON_CHANGE"]))
+                await ConsumeBatchRenewing(config, consumerConfig, topics, action, cancleToken, maxChunkSize, deserializer);
+            else
+                await ConsumeBatchPlain(consumerConfig, topics, action, cancleToken, maxChunkSize, deserializer);
         }
         public static async Task ConsumeBatch<T>(
                                                     ConsumerConfig config,
@@ -132,13 +114,45 @@ namespace Coflnet.Sky.Kafka
             await ConsumeBatch(config, new string[] { topic }, action, cancleToken, maxChunkSize, deserializer);
         }
 
-        public static async Task ConsumeBatch<T>(
+        /// <summary>
+        /// Consume batches with the given settings. As no IConfiguration is passed, <c>KAFKA:TLS:RELOAD_ON_CHANGE</c> is read
+        /// from <see cref="SimplerConfig.SConfig"/> (appsettings, custom.conf.json, environment); renewal uses this config's connection.
+        /// </summary>
+        public static Task ConsumeBatch<T>(
                                                 ConsumerConfig config,
                                                 string[] topics,
                                                 Func<IEnumerable<T>, Task> action,
                                                 CancellationToken cancleToken,
                                                 int maxChunkSize = 500,
                                                 IDeserializer<T> deserializer = null)
+        {
+            if (AmbientRenewalConfiguration(config) is { } renewal)
+                return ConsumeBatchRenewing(renewal, config, topics, action, cancleToken, maxChunkSize, deserializer);
+            return ConsumeBatchPlain(config, topics, action, cancleToken, maxChunkSize, deserializer);
+        }
+
+        private static Task ConsumeBatchPlain<T>(
+                                                ConsumerConfig config,
+                                                string[] topics,
+                                                Func<IEnumerable<T>, Task> action,
+                                                CancellationToken cancleToken,
+                                                int maxChunkSize,
+                                                IDeserializer<T> deserializer)
+        {
+            if (deserializer == null)
+                deserializer = SerializerFactory.GetDeserializer<T>();
+            return ConsumeBatchPlain(config, topics, action, cancleToken, maxChunkSize,
+                settings => new ConsumerBuilder<Ignore, T>(settings).SetValueDeserializer(deserializer).Build());
+        }
+
+        // build: creates the native consumer; a throw from it or from Subscribe faults the returned task
+        internal static async Task ConsumeBatchPlain<T>(
+                                                ConsumerConfig config,
+                                                string[] topics,
+                                                Func<IEnumerable<T>, Task> action,
+                                                CancellationToken cancleToken,
+                                                int maxChunkSize,
+                                                Func<ConsumerConfig, IConsumer<Ignore, T>> build)
         {
             var batch = new Queue<ConsumeResult<Ignore, T>>();
             var conf = new ConsumerConfig(config)
@@ -148,17 +162,12 @@ namespace Coflnet.Sky.Kafka
             // in case this method is awaited on in a backgroundWorker
             await Task.Yield();
 
-            if (deserializer == null)
-                deserializer = SerializerFactory.GetDeserializer<T>();
-            // wrap in long running thread
-            var completion = new TaskCompletionSource<bool>();
-            await Task.Factory.StartNew(async () =>
-            {
-                await ConsumeBatchThread<Ignore,T>(config, topics, (message)=>action(message.Select(m=>m.Value)), maxChunkSize, deserializer, batch, conf, cancleToken);
-                completion.SetResult(true);
-            }, TaskCreationOptions.LongRunning);
+            // wrap in long running thread; Unwrap so a failing build/subscribe reaches the caller instead of hanging
+            var consuming = Task.Factory.StartNew(
+                () => ConsumeBatchThread<Ignore,T>(config, topics, (message)=>action(message.Select(m=>m.Value)), maxChunkSize, build, batch, conf, cancleToken),
+                TaskCreationOptions.LongRunning).Unwrap();
             Console.WriteLine($"Started consumer for {string.Join(',', topics)}");
-            await completion.Task;
+            await consuming;
         }
 
         /// <summary>
@@ -184,21 +193,26 @@ namespace Coflnet.Sky.Kafka
                 EnableAutoCommit = false
             };
             deserializer ??= SerializerFactory.GetDeserializer<T>();
+            Func<ConsumerConfig, PartitionHandlers, IConsumer<Ignore, T>> createConsumer =
+                (settings, handlers) => BuildPartitionedConsumer(settings, deserializer, handlers);
+            var createRenewal = PartitionedRenewal<T>(AmbientRenewalConfiguration(conf), conf, topics);
             return Task.Factory.StartNew(
-                () => ConsumePartitionedParallelBatchThread(conf, topics, action, maxChunkSizePerPartition, deserializer, partitionsRevoked, partitionStallTimeout, cancellationToken),
+                () => ConsumePartitionedParallelBatchThread(conf, topics, action, maxChunkSizePerPartition, partitionsRevoked, partitionStallTimeout, createConsumer, createRenewal, cancellationToken),
                 CancellationToken.None,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
 
-        private static void ConsumePartitionedParallelBatchThread<T>(
+        // createRenewal: null on the plain path, else builds the TLS renewal over the given consumer factory
+        internal static void ConsumePartitionedParallelBatchThread<T>(
                                                 ConsumerConfig config,
                                                 string[] topics,
                                                 Func<TopicPartition, IEnumerable<T>, Task> action,
                                                 int maxChunkSizePerPartition,
-                                                IDeserializer<T> deserializer,
                                                 Action<IEnumerable<TopicPartition>> partitionsRevoked,
                                                 TimeSpan? partitionStallTimeout,
+                                                Func<ConsumerConfig, PartitionHandlers, IConsumer<Ignore, T>> createConsumer,
+                                                Func<Func<ConsumerConfig, Coflnet.Kafka.KafkaConsumerReadiness, IConsumer<Ignore, T>>, IConsumerHandoff<T>> createRenewal,
                                                 CancellationToken cancellationToken)
         {
             var pending = new Dictionary<TopicPartition, Queue<ConsumeResult<Ignore, T>>>();
@@ -215,10 +229,10 @@ namespace Coflnet.Sky.Kafka
                 key,
                 "Kafka consumer offset lag by partition",
                 new GaugeConfiguration { LabelNames = new[] { "partition" } }));
-            var builder = new ConsumerBuilder<Ignore, T>(config).SetValueDeserializer(deserializer);
             // resumed from the main loop: the assignment is only applied after this handler returns
             var resumeAfterAssign = new List<TopicPartition>();
-            builder.SetPartitionsAssignedHandler((_, assigned) =>
+            IConsumer<Ignore, T> consumer = null;
+            void Assigned(List<TopicPartition> assigned)
             {
                 var now = DateTime.UtcNow;
                 resumeAfterAssign.AddRange(PartitionLagPolicy.ResumeOnAssign(assigned, partition => inFlight.ContainsKey(partition)));
@@ -227,7 +241,7 @@ namespace Coflnet.Sky.Kafka
                     partitionProgress[partition] = (Offset.Unset, now);
                     partitionLag.WithLabels(partition.Partition.Value.ToString()).Set(0);
                 }
-            });
+            }
             void RemovePartitions(IEnumerable<TopicPartition> partitions)
             {
                 var removed = partitions.ToList();
@@ -240,12 +254,22 @@ namespace Coflnet.Sky.Kafka
                 }
                 partitionsRevoked?.Invoke(removed);
             }
-            builder.SetPartitionsRevokedHandler((_, revoked) =>
-                RemovePartitions(revoked.Select(offset => offset.TopicPartition)));
-            builder.SetPartitionsLostHandler((_, lost) =>
-                RemovePartitions(lost.Select(offset => offset.TopicPartition)));
-            using var consumer = builder.Build();
-            consumer.Subscribe(topics);
+            // readiness is null on the plain path; with renewal every handoff builds a new handle with these handlers
+            IConsumer<Ignore, T> Build(ConsumerConfig settings, Coflnet.Kafka.KafkaConsumerReadiness readiness) =>
+                createConsumer(settings, new PartitionHandlers(Assigned, RemovePartitions, readiness));
+            void Buffer(ConsumeResult<Ignore, T> consumed)
+            {
+                if (!pending.TryGetValue(consumed.TopicPartition, out var partitionQueue))
+                {
+                    partitionQueue = new Queue<ConsumeResult<Ignore, T>>();
+                    pending[consumed.TopicPartition] = partitionQueue;
+                }
+                partitionQueue.Enqueue(consumed);
+            }
+            var renewal = createRenewal?.Invoke(Build);
+            consumer = StartPartitioned(renewal, config, topics, Build, Buffer, cancellationToken);
+            var restartForRenewal = false;
+            bool HandoffDue() => renewal != null && renewal.HandoffRequested.IsCancellationRequested;
 
             void ThrowIfPartitionStalled()
             {
@@ -324,6 +348,12 @@ namespace Coflnet.Sky.Kafka
                     {
                         dev.Logger.Instance.Info($"Could not resume unassigned {partition}: {error.Error.Reason}");
                     }
+                    return;
+                }
+                // draining for a TLS handoff: no new batch and no further fetching until HandOff
+                if (HandoffDue())
+                {
+                    consumer.Pause(new[] { partition });
                     return;
                 }
                 if (pending.TryGetValue(partition, out var queue) && queue.Count > 0)
@@ -431,12 +461,68 @@ namespace Coflnet.Sky.Kafka
                 CommitDue();
             }
 
+            void DispatchWaiting()
+            {
+                foreach (var partition in pending.Keys.Where(partition => !inFlight.ContainsKey(partition)).ToList())
+                    DispatchOrResume(partition);
+            }
+
+            // safe boundary: nothing in flight. A failed forced commit does not hold the handoff back (the old
+            // certificate may be expiring): a replacement then replays those batches, i.e. at-least-once duplicates.
+            void HandOff()
+            {
+                CommitDue(force: true);
+                var current = consumer;
+                consumer = null; // owned by the renewal until it returns the handle to continue with
+                var buffered = new List<ConsumeResult<Ignore, T>>();
+                try
+                {
+                    consumer = renewal.HandoffAsync(current, buffered.Add, cancellationToken).GetAwaiter().GetResult();
+                }
+                catch (Exception error) when (!cancellationToken.IsCancellationRequested)
+                {
+                    restartForRenewal = true;
+                    dev.Logger.Instance.Error($"Kafka TLS handoff for {string.Join(',', topics)} failed ({error.GetType().Name}); restarting consumer host");
+                    throw;
+                }
+                if (!ReferenceEquals(consumer, current))
+                {
+                    // records fetched by the closed handle are replayed from the committed offsets
+                    pending.Clear();
+                    pendingCommits.Clear();
+                }
+                buffered.ForEach(Buffer);
+                foreach (var partition in consumer.Assignment.ToList())
+                    DispatchOrResume(partition);
+            }
+
+            void Shutdown()
+            {
+                if (consumer == null)
+                    return;
+                try
+                {
+                    CommitDue(force: true);
+                }
+                catch (Exception)
+                {
+                    // failing here only means reprocessing
+                }
+                consumer.Close();
+            }
+
             try
             {
+                DispatchWaiting(); // records the first handle fetched while it was being assigned
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     FinishCompleted();
                     CommitDue();
+                    if (HandoffDue() && inFlight.Count == 0)
+                    {
+                        HandOff();
+                        continue;
+                    }
                     ThrowIfPartitionStalled();
                     var consumed = consumer.Consume(TimeSpan.FromMilliseconds(50));
                     ResumeAssigned();
@@ -447,19 +533,13 @@ namespace Coflnet.Sky.Kafka
                     var pulled = 0;
                     do
                     {
-                        if (!pending.TryGetValue(consumed.TopicPartition, out var partitionQueue))
-                        {
-                            partitionQueue = new Queue<ConsumeResult<Ignore, T>>();
-                            pending[consumed.TopicPartition] = partitionQueue;
-                        }
-                        partitionQueue.Enqueue(consumed);
+                        Buffer(consumed);
                         pulled++;
                         consumed = pulled < pullLimit ? consumer.Consume(TimeSpan.Zero) : null;
                     }
                     while (consumed != null);
 
-                    foreach (var partition in pending.Keys.Where(partition => !inFlight.ContainsKey(partition)).ToList())
-                        DispatchOrResume(partition);
+                    DispatchWaiting();
                 }
 
                 while (inFlight.Count > 0)
@@ -468,9 +548,13 @@ namespace Coflnet.Sky.Kafka
                     FinishCompleted();
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (!restartForRenewal)
             {
                 dev.Logger.Instance.Info($"Partitioned consumer for {string.Join(',', topics)} canceled");
+            }
+            catch (Exception) when (restartForRenewal)
+            {
+                throw; // logged by HandOff with its type only
             }
             catch (Exception error)
             {
@@ -482,20 +566,20 @@ namespace Coflnet.Sky.Kafka
             {
                 try
                 {
-                    CommitDue(force: true);
+                    Shutdown();
                 }
-                catch (Exception)
+                finally
                 {
-                    // failing here only means reprocessing
+                    consumer?.Dispose();
+                    DisposeRenewal(renewal);
                 }
-                consumer.Close();
             }
         }
 
-        private static async Task ConsumeBatchThread<TKey,TVal>(ConsumerConfig config, string[] topics, Func<IEnumerable<Message<Ignore, TVal>>, Task> action, int maxChunkSize, IDeserializer<TVal> deserializer, Queue<ConsumeResult<Ignore, TVal>> batch, ConsumerConfig conf, CancellationToken cancleToken)
+        private static async Task ConsumeBatchThread<TKey,TVal>(ConsumerConfig config, string[] topics, Func<IEnumerable<Message<Ignore, TVal>>, Task> action, int maxChunkSize, Func<ConsumerConfig, IConsumer<Ignore, TVal>> build, Queue<ConsumeResult<Ignore, TVal>> batch, ConsumerConfig conf, CancellationToken cancleToken)
         {
             var currentChunkSize = 1;
-            using var c = new ConsumerBuilder<Ignore, TVal>(conf).SetValueDeserializer(deserializer).Build();
+            using var c = build(conf);
             c.Subscribe(topics);
             var key = "kafka_lag_" + string.Join('_', topics.Select(k => System.Text.RegularExpressions.Regex.Replace(k, "[^a-zA-Z0-9]", "_")));
             try

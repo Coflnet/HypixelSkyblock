@@ -13,11 +13,13 @@ namespace Coflnet.Sky.Kafka
     {
         private readonly ILogger<KafkaCreator> _logger;
         private readonly IConfiguration config;
+        private readonly Coflnet.Kafka.KafkaCreator renewing;
 
         public KafkaCreator(ILogger<KafkaCreator> logger, IConfiguration config)
         {
             _logger = logger;
             this.config = config.GetSection("KAFKA");
+            renewing = new Coflnet.Kafka.KafkaCreator(new ForwardingLogger<Coflnet.Kafka.KafkaCreator>(logger), config);
         }
 
         public async Task CreateTopicIfNotExist(string topic, int partitions = 3)
@@ -113,8 +115,15 @@ namespace Coflnet.Sky.Kafka
             };
         }
 
+        /// <summary>
+        /// Builds a producer. With <c>KAFKA:TLS:RELOAD_ON_CHANGE=true</c> it is built by Coflnet.Core and follows client
+        /// certificate renewals under SASL_SSL (see the Coflnet.Core README); <paramref name="configure"/> then runs again
+        /// for every new native producer and should be side-effect free.
+        /// </summary>
         public IProducer<TKey, TRes> BuildProducer<TKey, TRes>(bool serializeToMsgPack = true, Func<ProducerBuilder<TKey, TRes>, ProducerBuilder<TKey, TRes>> configure = null)
         {
+            if (KafkaRenewalFlag.IsOn(config["TLS:RELOAD_ON_CHANGE"]))
+                return renewing.BuildProducer(false, WithSerializers(serializeToMsgPack, configure));
             var producerConfig = GetProducerconfig(config);
             var builder = new ProducerBuilder<TKey, TRes>(producerConfig);
             if (serializeToMsgPack)
@@ -124,6 +133,20 @@ namespace Coflnet.Sky.Kafka
             if (configure != null)
                 builder = configure.Invoke(builder);
             return builder.Build();
+        }
+
+        // The renewal recipe: exactly the serializers of the plain path, then the caller's configure.
+        // SetKeySerializer/SetValueSerializer return the same builder, which Coflnet.Core requires for renewal.
+        internal static Func<ProducerBuilder<TKey, TRes>, ProducerBuilder<TKey, TRes>> WithSerializers<TKey, TRes>(
+            bool serializeToMsgPack, Func<ProducerBuilder<TKey, TRes>, ProducerBuilder<TKey, TRes>> configure)
+        {
+            return builder =>
+            {
+                if (serializeToMsgPack)
+                    builder = builder.SetKeySerializer(SerializerFactory.GetSerializer<TKey>())
+                        .SetValueSerializer(SerializerFactory.GetSerializer<TRes>());
+                return configure == null ? builder : configure.Invoke(builder);
+            };
         }
     }
 }
