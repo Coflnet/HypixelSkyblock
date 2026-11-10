@@ -133,7 +133,11 @@ namespace Coflnet.Sky.Core.Archive
         private static IConfiguration _config;
 
         /// <summary>Call once at startup (same configuration as <see cref="HypixelContext.SetConfiguration"/>).</summary>
-        public static void SetConfiguration(IConfiguration config) => _config = config;
+        public static void SetConfiguration(IConfiguration config)
+        {
+            _config = config;
+            DatabaseTlsFactory.InstallIfConfigured(config);
+        }
 
         /// <summary>Uses <c>DBConnection</c>/<c>DBVersion</c> like <see cref="HypixelContext"/>.</summary>
         public ArchiveContext() { HypixelContext.ApplyConnectionFactory(this); }

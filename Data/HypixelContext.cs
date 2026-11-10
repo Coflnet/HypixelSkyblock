@@ -60,7 +60,11 @@ namespace Coflnet.Sky.Core
         /// Call once at startup to inject IConfiguration (includes OpenBao).
         /// All HypixelContext instances will use this for connection strings.
         /// </summary>
-        public static void SetConfiguration(IConfiguration config) => _config = config;
+        public static void SetConfiguration(IConfiguration config)
+        {
+            _config = config;
+            DatabaseTlsFactory.InstallIfConfigured(config);
+        }
 
         /// <summary>Optional closed-connection factory. Contexts own and dispose the returned connection.</summary>
         public static Func<string, MySqlConnection> ConnectionFactory { get; set; }
