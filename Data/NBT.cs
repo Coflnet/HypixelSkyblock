@@ -505,6 +505,26 @@ namespace Coflnet.Sky.Core
             "petSoulbound",
         };
 
+        /// <summary>
+        /// Gzipped inventory blobs, every value is unique so indexing them only bloats the value table
+        /// </summary>
+        static readonly HashSet<string> BlobKeys = new()
+        {
+            "builder's_wand_data",
+            "builder's_ruler_data",
+            "new_year_cake_bag_data",
+            "frosty_the_snow_blaster_data",
+            "frosty_the_snow_cannon_data",
+            "greater_backpack_data",
+            "jumbo_backpack_data",
+            "large_backpack_data",
+            "medium_backpack_data",
+            "small_backpack_data",
+        };
+
+        internal static IEnumerable<KeyValuePair<string, object>> WithoutBlobKeys(IEnumerable<KeyValuePair<string, object>> flatList)
+            => flatList.Where(attr => !BlobKeys.Contains(attr.Key));
+
         internal static readonly ConcurrentBag<string> KeysWithItem = new ConcurrentBag<string>()
         {
             "heldItem",
@@ -566,8 +586,8 @@ namespace Coflnet.Sky.Core
 
         public NBTLookup[] CreateLookup(string auctionTag, Dictionary<string, object> data, List<KeyValuePair<string, object>> flatList = null)
         {
-            flatList ??= FlattenNbtData(data);
-            return flatList.Select(attr =>
+            var indexable = WithoutBlobKeys(flatList ?? FlattenNbtData(data));
+            return indexable.Select(attr =>
             {
                 var key = attr.Key;
                 if (TryAs<short>(attr, out NBTLookup res))
@@ -680,6 +700,7 @@ namespace Coflnet.Sky.Core
                 UnwarpStringArray(data, "ability_scroll");
                 UnwarpStringArray(data, "mixins");
                 UnwarpStringArray(data, "unlocked_slots");
+                data.Remove("vinyls"); // keyed by random uuid, would create a new nbt key per vinyl
                 UnwrapJson(data, "petInfo");
                 if (data.ContainsKey("petInfo"))
                     if (data["petInfo"] is Dictionary<string, object> petInfo && petInfo.ContainsKey("extraData"))
@@ -689,7 +710,8 @@ namespace Coflnet.Sky.Core
                         {
                             foreach (var item in extra)
                             {
-                                data[item.Key] = Convert.ToInt64(item.Value is JValue jv ? jv.Value : item.Value);
+                                if (TryToInt64(item.Value is JValue jv ? jv.Value : item.Value, out var number))
+                                    data[item.Key] = number;
                             }
                         }
                         petInfo.Remove("extraData");
@@ -776,6 +798,22 @@ namespace Coflnet.Sky.Core
 
             var flatList = flatten(data).ToList();
             return flatList;
+        }
+
+        private static bool TryToInt64(object value, out long number)
+        {
+            number = 0;
+            if (value == null)
+                return false;
+            try
+            {
+                number = Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch (Exception e) when (e is FormatException or InvalidCastException or OverflowException)
+            {
+                return false;
+            }
         }
 
         private static void DenestNestedIdentifiers(Dictionary<string, object> data, string key)
