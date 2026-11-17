@@ -181,7 +181,8 @@ namespace Coflnet.Sky.Core
             feast,
             magmarizer,
             petalfall,
-            karma
+            karma,
+            looting_new
         }
 
         [System.ComponentModel.DataAnnotations.Key]
