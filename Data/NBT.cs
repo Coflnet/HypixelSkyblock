@@ -300,13 +300,7 @@ namespace Coflnet.Sky.Core
                 }
             }
             if (auction.Tier <= Tier.UNKNOWN)
-                auction.Tier = name.Replace("§f", "").Substring(0, 2) switch
-                {
-                    "§c" => Tier.SPECIAL, // god potions don't have it in lore, also they start with two §f
-                    "§4" => Tier.ULTIMATE, // skins are sometimes missing the tag
-                    "§b" => Tier.DIVINE, // drills have issue to find tier (and the fact that tiers have been renamed)
-                    _ => Tier.UNKNOWN
-                };
+                auction.Tier = TierFromNameColor(name);
             if (auction.Context != null)
                 auction.Context["cname"] = name;
             if (auction.ItemName == null)
@@ -344,6 +338,20 @@ namespace Coflnet.Sky.Core
             }
         }
 
+        private static Tier TierFromNameColor(string name)
+        {
+            var stripped = name?.Replace("§f", "");
+            if (stripped == null || stripped.Length < 2)
+                return Tier.UNKNOWN;
+            return stripped.Substring(0, 2) switch
+            {
+                "§c" => Tier.SPECIAL, // god potions don't have it in lore, also they start with two §f
+                "§4" => Tier.ULTIMATE, // skins are sometimes missing the tag
+                "§b" => Tier.DIVINE, // drills have issue to find tier (and the fact that tiers have been renamed)
+                _ => Tier.UNKNOWN
+            };
+        }
+
         private static string Uuid(NbtCompound f)
         {
             var tag = GetExtraTag(f);
@@ -361,6 +369,8 @@ namespace Coflnet.Sky.Core
             {
                 return;
             }
+            if (name == null)
+                return;
             if (name == "§9Stacking Enchants")
                 return; // does not have a real enchantment
             if (name.StartsWith("§a§aBuy §e") || name.StartsWith("BUY_") || name.StartsWith("SELL_"))
