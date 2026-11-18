@@ -292,21 +292,6 @@ public class PropertyMapper
         return AttribDefinitions.TryGetValue((String.Empty, attr), out def);
     }
 
-    /// <summary>
-    /// Enchant levels without an enchanted book. They are applied with an upgrade item to an item that already has
-    /// the level below (endcap upgrades, https://hypixelskyblock.minecraft.wiki/w/Endcap_Upgrade).
-    /// </summary>
-    private static readonly Dictionary<(Enchantment.EnchantmentType, int), string> EndcapUpgrades = new()
-    {
-        { (Enchantment.EnchantmentType.forest_pledge, 6), "WATER_HYACINTH" },
-        { (Enchantment.EnchantmentType.smite, 7), "SEVERED_HAND" },
-        { (Enchantment.EnchantmentType.bane_of_arthropods, 7), "ENSNARED_SNAIL" },
-        { (Enchantment.EnchantmentType.frail, 7), "SEVERED_PINCER" },
-        { (Enchantment.EnchantmentType.spiked_hook, 7), "OCTOPUS_TENDRIL" },
-        { (Enchantment.EnchantmentType.piscary, 7), "TROUBLED_BUBBLE" },
-        { (Enchantment.EnchantmentType.luck_of_the_sea, 7), "GOLD_BOTTLE_CAP" },
-    };
-
     public long EnchantValue(Enchantment enchant, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices, string itemTag)
     {
         var key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_{enchant.Level}";
@@ -340,10 +325,6 @@ public class PropertyMapper
             return (long)bazaarPrices.GetValueOrDefault("ENDER_SLAYER_6", 1_000_000)
                 + (long)bazaarPrices.GetValueOrDefault("ENDSTONE_IDOL", 50_000_000);
         }
-        else if (EndcapUpgrades.TryGetValue((enchant.Type, enchant.Level), out var upgradeItem))
-        {
-            return EndcapUpgradeValue(enchant, upgradeItem, flatNbt, bazaarPrices, itemTag);
-        }
         else
         {
             var lvl5Key = $"ENCHANTMENT_{enchant.Type.ToString().ToUpper()}_5";
@@ -370,19 +351,6 @@ public class PropertyMapper
             }
         }
         return -1;
-    }
-
-    /// <summary>
-    /// The bazaar price of the upgrade item plus the value of the level below it, -1 when either is unknown.
-    /// </summary>
-    private long EndcapUpgradeValue(Enchantment enchant, string upgradeItem, Dictionary<string, string> flatNbt, Dictionary<string, double> bazaarPrices, string itemTag)
-    {
-        if (!bazaarPrices.TryGetValue(upgradeItem, out var itemPrice) || itemPrice <= 0)
-            return -1;
-        var lowerLevel = EnchantValue(new Enchantment(enchant.Type, (byte)(enchant.Level - 1)), flatNbt, bazaarPrices, itemTag);
-        if (lowerLevel < 0)
-            return -1;
-        return (long)itemPrice + lowerLevel;
     }
 
     private static HashSet<string> IgnoreWise10 = new(){
